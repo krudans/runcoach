@@ -428,6 +428,12 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="opt"><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
     <button class="btn ghost" id="btnHR">기기 연결 — 워치 또는 가슴 스트랩</button>
     <div style="font-size:12px;color:var(--ink-3);margin-top:7px;text-align:center" id="hrState">미연결 — 심박 없이도 진행됩니다</div>
+    <div style="font-size:11.5px;color:var(--ink-3);margin-top:7px;line-height:1.55">
+      워치 쪽에서 <b>심박수 브로드캐스트</b>를 먼저 켜세요. 선택창에는 주변 블루투스 기기가 모두
+      나옵니다 — 어메이핏 같은 워치는 자기가 심박 기기라고 알리지 않기 때문입니다.
+      목록에서 <b>워치 이름</b>을 고르면 됩니다. 크롬으로 열어야 동작합니다(카톡 등 앱 안의
+      브라우저는 블루투스를 지원하지 않습니다).
+    </div>
     <button class="btn" id="btnStart">이 세션으로 시작</button>
   </div>
 </div>
@@ -538,14 +544,22 @@ const DEV = {
   store:{ get(k,d){ try{ return JSON.parse(localStorage.getItem('rc_'+k)) ?? d; }catch(e){ return d; } },
           set(k,v){ try{ localStorage.setItem('rc_'+k,JSON.stringify(v)); return true; }catch(e){ return false; } } },
   async hr(onBpm, known){
-    if(!navigator.bluetooth) throw new Error('이 브라우저는 블루투스를 지원하지 않습니다');
-    // 표준 심박 서비스(0x180D)를 광고하는 기기면 전부 잡힌다 —
-    // 어메이핏(심박수 브로드캐스트 ON)·가슴 스트랩·기타 워치 모두 같은 규격
+    if(!navigator.bluetooth) throw new Error('이 브라우저는 블루투스를 지원하지 않습니다. 크롬에서 열어주세요.');
+    // 중요 — 어메이핏 GTR 2e 등 상당수 워치는 표준 심박 서비스(0x180D)를
+    // '가지고 있어도 광고(advertise)하지 않는다'. 그래서
+    // filters:[{services:['heart_rate']}] 로는 선택창에 아예 뜨지 않는다.
+    // 전체 기기를 띄우고, 고른 기기에서 심박 서비스를 직접 확인하는 방식으로 바꿨다.
     const dev = known || await navigator.bluetooth.requestDevice({
-      filters:[{services:['heart_rate']}], optionalServices:['battery_service']});
+      acceptAllDevices:true, optionalServices:['heart_rate','battery_service']});
     const srv = await dev.gatt.connect();
-    const ch = await (await srv.getPrimaryService('heart_rate'))
-      .getCharacteristic('heart_rate_measurement');
+    let hsvc;
+    try{ hsvc = await srv.getPrimaryService('heart_rate'); }
+    catch(e){
+      try{ dev.gatt.disconnect(); }catch(_){}
+      const err = new Error(`'${dev.name||'선택한 기기'}'는 심박을 보내지 않습니다. 목록에서 워치를 선택하세요.`);
+      err.name = 'NoHeartRate'; throw err;
+    }
+    const ch = await hsvc.getCharacteristic('heart_rate_measurement');
     await ch.startNotifications();
     ch.addEventListener('characteristicvaluechanged',e=>{
       const v=e.target.value,f=v.getUint8(0);
@@ -1191,9 +1205,12 @@ const BT={
 const btToggle=async()=>{
   if(BT.dev){ BT.disconnect(); return; }
   try{ await BT.connect(); }
-  catch(e){ BT.paint((e&&e.name==='NotFoundError')
-    ? '취소됨 — 심박 없이도 진행됩니다'
-    : (e.message||'연결 실패')); }
+  catch(e){
+    if(e&&e.name==='NotFoundError'){ BT.paint('취소됨 — 심박 없이도 진행됩니다'); return; }
+    if(e&&e.name==='NoHeartRate'){
+      BT.name=''; DEV.store.set('btname','');
+      BT.paint(e.message); return; }
+    BT.paint(e&&e.message?e.message:'연결 실패'); }
 };
 $('btnHR').onclick=btToggle;
 $('btnBT').onclick=btToggle;
