@@ -199,23 +199,27 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .prog i{display:block;height:100%;background:var(--accent);border-radius:99px;width:0;transition:width .35s linear}
 .banner{padding:12px 18px;font-size:14.5px;font-weight:700;text-align:center;color:#fff}
 .banner.over{background:var(--alarm)} .banner.under{background:#2F6B8F}
-.hero{padding:16px 18px 10px;text-align:center}
-.hero .k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
-.hero .v{font-family:var(--mono);font-size:clamp(58px,20vw,92px);font-weight:600;line-height:1;
-  margin-top:2px;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.hero{padding:14px 14px 8px;text-align:center}
+.hero .k{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+.hero .v{font-family:var(--mono);font-size:clamp(84px,30vw,136px);font-weight:700;line-height:.94;
+  margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.045em;color:#fff}
 .hero .v.fast{color:var(--fast)}.hero .v.slow{color:var(--slow)}.hero .v.ok{color:var(--ok)}
-.hero .u{font-size:12px;color:var(--ink-3);margin-top:1px}
-.sub2{display:flex;align-items:baseline;justify-content:center;gap:10px;padding:0 18px 12px}
-.sub2 .sk{font-size:11px;color:var(--ink-3);font-weight:600}
-.sub2 .sv{font-family:var(--mono);font-size:30px;font-weight:600}
-.sub2 .sd{font-family:var(--mono);font-size:13px;font-weight:600}
+.hero .u{font-size:14.5px;color:var(--ink-2);margin-top:3px;font-weight:600}
+.sub2{display:flex;align-items:baseline;justify-content:center;gap:10px;padding:0 18px 11px}
+.sub2 .sk{font-size:12.5px;color:var(--ink-3);font-weight:700}
+.sub2 .sv{font-family:var(--mono);font-size:38px;font-weight:700;color:#fff}
+.sub2 .sd{font-family:var(--mono);font-size:14px;font-weight:700}
 .sub2 .sd.fast{color:var(--fast)}.sub2 .sd.slow{color:var(--slow)}.sub2 .sd.ok{color:var(--ok)}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.cell{background:var(--bg);padding:11px 5px;text-align:center}
-.cell .k{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
-.cell .v{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1.15;margin-top:2px}
+.cell{background:var(--bg);padding:11px 5px;text-align:center;position:relative}
+.cell .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.cell .v{font-family:var(--mono);font-size:25px;font-weight:700;line-height:1.15;margin-top:2px}
 .cell .u{font-size:10px;color:var(--ink-3)}
+/* 메인에 올라와 있는 항목 — 눌러서 바꾼다 */
+.cell.sel{background:#1B2422}
+.cell.sel .k{color:var(--accent)}
+.cell.sel::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent)}
 .hrbar{display:flex;gap:2px;padding:10px 18px;align-items:center}
 .hrbar .zb{flex:1;height:7px;border-radius:2px;background:var(--panel-2)}
 .hrbar .zl{font-family:var(--mono);font-size:10px;color:var(--ink-3);width:20px;text-align:center}
@@ -225,12 +229,21 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .dot.good{background:var(--ok)}.dot.weak{background:var(--z3)}.dot.bad{background:var(--alarm)}
 .ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px 18px 22px}
 .ctl .btn{margin:0}
-.laplog{padding:0 18px 12px;max-height:24vh;overflow-y:auto}
-.lap{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:7px 0;
-  border-top:1px solid var(--line);font-size:12.5px;align-items:baseline}
-.lap .nm{color:var(--ink-2)} .lap .t{font-family:var(--mono);font-weight:600}
-.lap .d{font-family:var(--mono);font-size:11.5px}
+.lapwrap{border-top:1px solid var(--line);padding:9px 18px 4px}
+.laphd{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.laphd .ttl{font-size:11px;letter-spacing:.06em;color:var(--ink-3);font-weight:700;margin-right:auto}
+.laphd .cg{font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);
+  background:transparent;color:var(--ink-3);font-weight:600}
+.laphd .cg.on{border-color:var(--accent);color:var(--accent);background:#15231F}
+.laplog{max-height:21vh;overflow-y:auto}
+.lap{display:flex;align-items:baseline;gap:9px;padding:7px 0;
+  border-top:1px solid var(--line);font-size:12.5px}
+.lap .nm{color:var(--ink-2);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lap .c{font-family:var(--mono);font-weight:700;flex:0 0 auto;font-size:13px}
+.lap .c i{font-style:normal;font-size:9.5px;color:var(--ink-3);font-weight:600;margin-left:1px}
+.lap .d{font-family:var(--mono);font-size:11.5px;flex:0 0 auto;min-width:44px;text-align:right}
 .lap .d.fast{color:var(--fast)}.lap .d.slow{color:var(--slow)}.lap .d.ok{color:var(--ok)}
+.lapempty{font-size:12px;color:var(--ink-3);padding:9px 0 11px;border-top:1px solid var(--line)}
 
 /* map + chart */
 .mapcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
@@ -386,6 +399,21 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="btnBT" style="margin:0">기기 검색 · 연결</button>
   </div>
 
+  <div class="lbl" style="margin:20px 0 9px">AI 코치 (Claude)</div>
+  <div class="card tight">
+    <div class="meta" style="margin-bottom:9px">
+      API 키를 한 번 넣으면 이 폰에 저장되어 계속 쓰입니다. 세션이 끝나면 AI가 기록을 읽고
+      합격 여부의 근거와 다음 일정 조정안을 써줍니다.<br>
+      <span style="color:var(--z3)">키는 이 폰의 브라우저 저장소에만 들어갑니다. 서버로 보내지 않습니다.
+      다만 폰을 남이 쓰면 열람될 수 있으니 전용 키를 발급해 쓰세요.</span></div>
+    <input type="password" id="aiKey" placeholder="sk-ant-..." autocomplete="off" style="margin-bottom:9px">
+    <select id="aiModel" style="margin-bottom:9px"><option value="">키를 저장하면 모델 목록이 뜹니다</option></select>
+    <div class="row">
+      <button class="btn sm" style="margin:0" id="aiSave">저장 · 연결 확인</button>
+      <button class="btn sm ghost" style="margin:0;flex:0 0 72px" id="aiClear">삭제</button></div>
+    <div id="aiState" style="font-size:12px;color:var(--ink-3);margin-top:9px">미등록</div>
+  </div>
+
   <div class="lbl" style="margin:20px 0 9px">아침 안정시 심박</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:9px">기상 직후 침대에서 1분. 평소값이 쌓이면 +7bpm 이틀 연속을 자동으로 잡습니다.</div>
@@ -424,8 +452,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v4.2</b> · 2026-10-10<br>
-    <span style="font-size:10.5px">이 번호가 v4.2가 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
+    런코치 <b>v4.3</b> · 2026-10-10<br>
+    <span style="font-size:10.5px">이 번호가 v4.3이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
   </div>
 </div></div>
 
@@ -470,19 +498,24 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   </div>
   <div class="sub2"><span class="sk" id="rSubK">페이스</span>
     <span class="sv num" id="rSubV">--'--"</span><span class="sd num" id="rSubD"></span></div>
-  <div class="grid4">
-    <div class="cell"><div class="k">거리</div><div class="v num" id="rDist">0.00</div><div class="u">km</div></div>
-    <div class="cell"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></div>
-    <div class="cell"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></div>
-    <div class="cell"><div class="k">케이던스</div><div class="v num" id="rCad">—</div><div class="u">spm</div></div>
+  <div class="grid4" id="rGrid">
+    <button class="cell" data-h="dist"><div class="k">거리</div><div class="v num" id="rDist">0.00</div><div class="u">km</div></button>
+    <button class="cell" data-h="time"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
+    <button class="cell" data-h="hr"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
+    <button class="cell" data-h="cad"><div class="k">케이던스</div><div class="v num" id="rCad">—</div><div class="u">spm</div></button>
   </div>
   <div class="hrbar" id="rHRBar" hidden>
     <span class="zl">Z1</span><span class="zb" data-z="1" style="color:var(--z1)"></span>
     <span class="zb" data-z="2" style="color:var(--z2)"></span><span class="zb" data-z="3" style="color:var(--z3)"></span>
     <span class="zb" data-z="4" style="color:var(--z4)"></span><span class="zb" data-z="5" style="color:var(--z5)"></span>
     <span class="zl">Z5</span></div>
-  <div class="laplog" id="rLaps"></div>
   <div class="gps"><span class="dot" id="rDot"></span><span id="rGps">GPS 대기 중</span></div>
+  <div class="lapwrap">
+    <div class="laphd"><span class="ttl">구간별 기록</span>
+      <button class="cg" data-c="pace">페이스</button><button class="cg" data-c="time">시간</button>
+      <button class="cg" data-c="hr">심박</button><button class="cg" data-c="cad">케이던스</button></div>
+    <div class="laplog" id="rLaps"></div>
+  </div>
   <div class="ctl"><button class="btn ghost" id="btnPause">일시정지</button>
     <button class="btn danger" id="btnStop">종료</button></div>
 </div>
@@ -523,6 +556,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="tagrow" id="sTerrain"></div><div class="tagrow" id="sWeather"></div>
     <div class="lbl" style="margin:16px 0 8px">메모 · 통증</div>
     <textarea id="sNote" rows="3" placeholder="아킬레스·정강이·무릎 느낌, 호흡, 컨디션"></textarea>
+    <button class="btn ghost" id="btnAI" hidden>AI 코치에게 분석 받기</button>
+    <div class="note" id="aiOut" hidden style="white-space:pre-wrap;line-height:1.65"></div>
     <button class="btn" id="btnSave">기록 저장</button>
     <button class="btn ghost" id="btnGpx">GPX 내보내기</button>
     <button class="btn ghost" id="btnDone">저장 없이 닫기</button>
@@ -1269,8 +1304,8 @@ $('btnStart').onclick=async()=>{
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
-    cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[]}});
-  $('rLaps').innerHTML=''; $('rHRBar').hidden=!(S.hr.dev&&!T.noHR); $('rBanner').hidden=true;
+    cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
+  renderLaps(); paintLapChips(); $('rHRBar').hidden=!(S.hr.dev&&!T.noHR); $('rBanner').hidden=true;
   $('btnPause').textContent='일시정지';
   setHero();
   show('run');
@@ -1282,15 +1317,31 @@ $('btnStart').onclick=async()=>{
   const g=s.segs[0];
   DEV.speak(`${s.t} 시작합니다. ${T.develops?T.develops.split('.')[0]+'.':''} 첫 구간 ${g.nm}, 목표 ${g.pace?fmtPaceVoice(midPace(g.pace)):'자유'}.`,true);
 };
-/* 종류별 hero 지표 (심박 1차인데 스트랩 없으면 페이스로 대체) */
-function setHero(){
-  const T=S.T; let h=T.primary;
-  if(h==='hr'&&!S.hr.dev)h='pace';
-  if(h==='count')h='time';
-  S.hero=h;
-  $('rHeroK').textContent = h==='hr'?'심박':h==='dist'?'거리':h==='time'?'경과 시간':'현재 페이스';
-  $('rSubK').textContent  = h==='pace'?'심박':'페이스';
+/* 메인에 올릴 지표 — 기본은 거리. 아래 4칸을 눌러 바꾸며 선택은 저장된다.
+   페이스는 코칭의 핵심이라 메인과 별개로 바로 아래에 항상 띄운다. */
+const HERO_NM={dist:'거리',time:'경과 시간',hr:'심박',cad:'케이던스'};
+let HERO=DEV.store.get('hero','dist');
+if(!HERO_NM[HERO])HERO='dist';
+function setHero(h){
+  if(h){ HERO=h; DEV.store.set('hero',HERO); }
+  S.hero=HERO;
+  $('rHeroK').textContent=HERO_NM[HERO];
+  $('rSubK').textContent='페이스';
+  document.querySelectorAll('#rGrid .cell').forEach(c=>c.classList.toggle('sel',c.dataset.h===HERO));
+  if(S.running)onTick();
 }
+$('rGrid').onclick=e=>{ const c=e.target.closest('.cell'); if(c)setHero(c.dataset.h); };
+
+/* 구간별 기록에 띄울 항목 — 헤더의 칩으로 켜고 끈다 */
+let LAPC=DEV.store.get('lapc',{pace:1,time:1,hr:1,cad:1});
+function paintLapChips(){
+  document.querySelectorAll('.laphd .cg').forEach(b=>b.classList.toggle('on',!!LAPC[b.dataset.c]));
+}
+document.querySelector('.laphd').onclick=e=>{
+  const b=e.target.closest('.cg'); if(!b)return;
+  LAPC[b.dataset.c]=LAPC[b.dataset.c]?0:1;
+  DEV.store.set('lapc',LAPC); paintLapChips(); renderLaps();
+};
 
 /* ───────── GPS ───────── */
 function onPosErr(e){$('rDot').className='dot bad';
@@ -1368,35 +1419,37 @@ function onTick(){
   $('rProg').style.width=(Math.min(1,Math.max(0,prog))*100).toFixed(1)+'%';
   $('rDist').textContent=km.toFixed(2);
   $('rTime').textContent=fmtClock(S.elapsed);
-  const cadNow=cadence();
+  const p=curPace();
+  /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다 */
+  const moving = isFinite(p) && p<1100;
+  const cadNow = moving ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
-  if(cadNow&&!S.paused)S.cad.corr.push(cadNow);
+  if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
   if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
     const z=hrZoneIx(S.hr.bpm);
     document.querySelectorAll('#rHRBar .zb').forEach(b=>{
       b.style.background=(+b.dataset.z<=z)?'currentColor':'var(--panel-2)';}); }
 
-  const p=curPace();
-  /* hero */
+  /* hero — 4칸에서 고른 항목 */
   const hv=$('rHeroV'); hv.className='v num';
   if(S.hero==='hr'){ hv.textContent=S.hr.bpm||'—';
     const z=T.hrZone;
-    $('rHeroU').textContent = z?`목표 ${z[0]||''}${z[0]?'~':'≤ '}${z[1]} · ${S.hr.bpm?hrZone(S.hr.bpm):''}`:'';
+    $('rHeroU').textContent = z?`목표 ${z[0]||''}${z[0]?'~':'≤ '}${z[1]} · ${S.hr.bpm?hrZone(S.hr.bpm):''}`
+                              :(S.hr.dev?'':'기기 미연결');
     if(S.hr.bpm&&z){ if(S.hr.bpm>z[1])hv.classList.add('fast'); else hv.classList.add('ok'); } }
-  else if(S.hero==='dist'){ hv.textContent=km.toFixed(2); $('rHeroU').textContent=`목표 ${s.dist} km · ${Math.round(km/s.dist*100)}%`; }
-  else if(S.hero==='time'){ hv.textContent=fmtClock(S.elapsed); $('rHeroU').textContent=''; }
-  else { hv.textContent=fmtPace(p); $('rHeroU').textContent=tgPace?`목표 ${rangeText(tgPace)}`:'';
-    if(isFinite(p)&&tgPace){ if(p<tgPace[0]-2)hv.classList.add('fast');
-      else if(p>tgPace[1]+2)hv.classList.add('slow'); else hv.classList.add('ok'); } }
-  /* sub */
+  else if(S.hero==='cad'){ hv.textContent=cadNow||'—';
+    $('rHeroU').textContent = cadNow?`spm · 권장 170~180`:(moving?'측정 중':'정지 중'); }
+  else if(S.hero==='time'){ hv.textContent=fmtClock(S.elapsed); $('rHeroU').textContent='경과'; }
+  else { hv.textContent=km.toFixed(2);
+    $('rHeroU').textContent=`km · 목표 ${s.dist} km · ${Math.round(km/s.dist*100)}%`; }
+  /* sub — 페이스는 항상 띄운다 */
   const sv=$('rSubV'), sd=$('rSubD'); sd.className='sd num';
-  if(S.hero==='pace'){ sv.textContent=S.hr.bpm||'—'; sd.textContent=S.hr.bpm?hrZone(S.hr.bpm):(T.noHR?'참고 안 함':'미연결'); }
-  else { sv.textContent=fmtPace(p);
-    if(isFinite(p)&&tgPace){
-      if(p<tgPace[0]-2){sd.classList.add('fast');sd.textContent=`${Math.round(tgPace[0]-p)}초 빠름`;}
-      else if(p>tgPace[1]+2){sd.classList.add('slow');sd.textContent=`${Math.round(p-tgPace[1])}초 느림`;}
-      else {sd.classList.add('ok');sd.textContent='구간 내';} }
-    else sd.textContent=tgPace?`목표 ${rangeText(tgPace)}`:''; }
+  sv.textContent=fmtPace(p);
+  if(isFinite(p)&&tgPace){
+    if(p<tgPace[0]-2){sd.classList.add('fast');sd.textContent=`${Math.round(tgPace[0]-p)}초 빠름`;}
+    else if(p>tgPace[1]+2){sd.classList.add('slow');sd.textContent=`${Math.round(p-tgPace[1])}초 느림`;}
+    else {sd.classList.add('ok');sd.textContent='구간 내';} }
+  else sd.textContent=tgPace?`목표 ${rangeText(tgPace)}`:'';
 
   /* 상한 — 회복·이지 세션의 핵심 */
   let banner='';
@@ -1440,10 +1493,12 @@ function advanceSeg(){
   const dd=(S.dist/1000)-S.segStart.d,dt=S.elapsed-S.segStart.t;
   const actual=dd>0.02?dt/dd:NaN, hs=S.hr.segSamples;
   const plan=done.pace?[done.pace[0]+(done.hard?S.adj:0),done.pace[1]+(done.hard?S.adj:0)]:null;
+  const cs=S.cad.seg||[];
   const rec={nm:done.nm,plan,actual,dist:dd,time:dt,hard:!!done.hard,rep:done.rep,tol:done.tol,
-    hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null};
-  S.segRecords.push(rec); addLapRow(rec);
-  S.hr.segSamples=[]; S.segStart={d:S.dist/1000,t:S.elapsed};
+    hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,
+    cad:cs.length?Math.round(cs.reduce((a,b)=>a+b,0)/cs.length):null};
+  S.segRecords.push(rec); renderLaps();
+  S.hr.segSamples=[]; S.cad.seg=[]; S.segStart={d:S.dist/1000,t:S.elapsed};
   S.segIx++; S.offCount=0; S.lastCue=0;
   const nx=segs[S.segIx];
   const nxPlan=nx.pace?[nx.pace[0]+(nx.hard?S.adj:0),nx.pace[1]+(nx.hard?S.adj:0)]:null;
@@ -1462,15 +1517,27 @@ function segPass(r){
   const tol=typeof r.tol==='number'?r.tol:8;
   return r.actual>=r.plan[0]-tol&&r.actual<=r.plan[1]+tol;
 }
-function addLapRow(r){
-  const el=document.createElement('div'); el.className='lap';
-  let cls='ok',txt='—';
-  if(isFinite(r.actual)&&r.plan){const d=Math.round(r.actual-midPace(r.plan));
-    const ok=segPass(r); cls=ok===null?'ok':ok?'ok':(d<0?'fast':'slow');
-    txt=(d>0?'+':'')+d+'초';}
-  el.innerHTML=`<span class="nm">${r.nm}</span><span class="t">${fmtPace(r.actual)}</span>`+
-    `<span class="d ${cls}">${txt}</span>`;
-  $('rLaps').prepend(el);
+/* 구간별 기록 — 최근 구간이 위로. 칩으로 켠 항목만 보여준다 */
+function renderLaps(){
+  const host=$('rLaps'); if(!host)return;
+  const recs=(S.segRecords||[]);
+  if(!recs.length){ host.innerHTML='<div class="lapempty">구간이 끝날 때마다 여기에 쌓입니다.</div>'; return; }
+  host.innerHTML='';
+  [...recs].reverse().forEach(r=>{
+    const el=document.createElement('div'); el.className='lap';
+    let cls='ok',txt='';
+    if(isFinite(r.actual)&&r.plan){ const d=Math.round(r.actual-midPace(r.plan));
+      const ok=segPass(r); cls=ok===null?'ok':ok?'ok':(d<0?'fast':'slow');
+      txt=(d>0?'+':'')+d+'초'; }
+    let cols='';
+    if(LAPC.pace)cols+=`<span class="c">${fmtPace(r.actual)}</span>`;
+    if(LAPC.time)cols+=`<span class="c">${fmtClock(r.time)}<i>경과</i></span>`;
+    if(LAPC.hr)  cols+=`<span class="c">${r.hr||'—'}<i>♥</i></span>`;
+    if(LAPC.cad) cols+=`<span class="c">${r.cad||'—'}<i>spm</i></span>`;
+    el.innerHTML=`<span class="nm">${r.nm}</span>${cols}`+
+      (txt?`<span class="d ${cls}">${txt}</span>`:'');
+    host.appendChild(el);
+  });
 }
 $('btnPause').onclick=()=>{
   if(!S.running)return;
@@ -1492,6 +1559,7 @@ function finish(completed){
       hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null});}
   renderSummary(completed);
   DEV.speak(completed?'세션을 완료했습니다. 수고하셨습니다.':'세션을 종료했습니다.',true);
+  $('aiOut').hidden=true; paintAI();
   show('sum');
 }
 
@@ -1788,12 +1856,126 @@ function renderTools(){
       ${sh.km>700?'<div style="font-size:11.5px;color:var(--alarm);margin-top:3px">수명 한계입니다. 교체를 권합니다.</div>':''}</div>`;
   }).join('')+(SHOES.length<2?'<div style="font-size:12px;color:var(--z3)">주 70km에는 2켤레가 필요합니다.</div>':'')
    :'<span style="color:var(--ink-3)">등록된 신발이 없습니다</span>';
-  renderHike(); BT.paint();
+  renderHike(); BT.paint(); paintAI();
 }
 $('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 사이 값을 넣어주세요.');
   RHR=RHR.filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v});
   DEV.store.set('rhr',RHR); $('rhrIn').value=''; renderTools();};
+/* ───────── AI 코치 (Anthropic Claude) ─────────
+   키는 이 기기의 localStorage에만 둔다. 브라우저에서 직접 부르므로
+   anthropic-dangerous-direct-browser-access 헤더가 필요하다.
+   모델 id는 바뀌므로 하드코딩하지 않고 /v1/models 에서 받아 고르게 한다. */
+const AI={
+  get key(){ return DEV.store.get('aikey',''); },
+  get model(){ return DEV.store.get('aimodel',''); },
+  ready(){ return !!(AI.key&&AI.model); },
+  head(){ return {'content-type':'application/json','x-api-key':AI.key,
+    'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}; },
+  async models(key){
+    const r=await fetch('https://api.anthropic.com/v1/models?limit=40',
+      {headers:{'x-api-key':key,'anthropic-version':'2023-06-01',
+                'anthropic-dangerous-direct-browser-access':'true'}});
+    if(!r.ok){ const t=await r.text();
+      throw new Error(r.status===401?'키가 올바르지 않습니다':`오류 ${r.status} — ${t.slice(0,120)}`); }
+    return (await r.json()).data||[];
+  },
+  async ask(system,user,maxTok){
+    if(!AI.ready())throw new Error('AI 코치가 등록되지 않았습니다. 설정에서 API 키를 넣어주세요.');
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:AI.head(),
+      body:JSON.stringify({model:AI.model,max_tokens:maxTok||900,system,
+        messages:[{role:'user',content:user}]})});
+    if(!r.ok){ const t=await r.text(); throw new Error(`오류 ${r.status} — ${t.slice(0,160)}`); }
+    const j=await r.json();
+    return (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+  },
+};
+function fillModels(list){
+  const sel=$('aiModel'), cur=AI.model;
+  sel.innerHTML=list.map(m=>`<option value="${m.id}">${m.display_name||m.id}</option>`).join('');
+  const pick = list.find(m=>m.id===cur) || list.find(m=>/sonnet/i.test(m.id)) || list[0];
+  if(pick){ sel.value=pick.id; DEV.store.set('aimodel',pick.id); }
+}
+$('aiModel').onchange=()=>{ DEV.store.set('aimodel',$('aiModel').value); paintAI(); };
+$('aiSave').onclick=async()=>{
+  const k=$('aiKey').value.trim();
+  if(!k)return alert('API 키를 넣어주세요.');
+  $('aiState').textContent='확인 중…';
+  try{
+    const list=await AI.models(k);
+    DEV.store.set('aikey',k); fillModels(list); paintAI();
+    alert(`연결됐습니다. 모델 ${list.length}개를 불러왔습니다.`);
+  }catch(e){ $('aiState').textContent='연결 실패 — '+e.message; }
+};
+$('aiClear').onclick=()=>{
+  if(!confirm('저장된 API 키를 지웁니다.'))return;
+  DEV.store.set('aikey',''); DEV.store.set('aimodel','');
+  $('aiKey').value=''; $('aiModel').innerHTML='<option value="">키를 저장하면 모델 목록이 뜹니다</option>';
+  paintAI();
+};
+function paintAI(){
+  const k=AI.key;
+  $('aiKey').value = k ? '•'.repeat(12)+k.slice(-4) : '';
+  const sel=$('aiModel');
+  if(AI.model&&![...sel.options].some(o=>o.value===AI.model))
+    sel.innerHTML=`<option value="${AI.model}">${AI.model}</option>`;
+  if(AI.model)sel.value=AI.model;
+  $('aiState').textContent = AI.ready()
+    ? `등록됨 — ${AI.model}` : (k?'모델을 고르세요':'미등록 — AI 코칭이 꺼져 있습니다');
+  const b=$('btnAI'); if(b)b.hidden=!AI.ready();
+}
+$('aiKey').onfocus=()=>{ if(AI.key&&$('aiKey').value.startsWith('•'))$('aiKey').value=''; };
+
+/* 세션 결과 → AI 코치 분석. 판정은 앱이 규칙으로 하고(오프라인에서도 동작),
+   AI는 '왜 그런지'와 '다음을 어떻게 바꿀지'를 쓴다. */
+const AI_SYSTEM=`당신은 Jack Daniels의 VDOT 체계와 폴러라이즈드(80/20) 훈련 원칙에 근거해 코칭하는 러닝 코치다.
+한국어로, 군더더기 없이 답한다. 규칙:
+- 모든 판단에 근거를 댄다. 어떤 능력을 발달시키는 세션인지 먼저 말하고, 그 기준으로만 평가한다.
+  (예: 회복주는 심박 상한이 기준이지 속도가 아니다.)
+- 칭찬을 위한 칭찬은 쓰지 않는다. 문제가 있으면 문제라고 쓴다.
+- 다음 일정 조정이 필요하면 구체적인 수치로 제안하고, 조정하지 않는 선택지도 함께 제시한다.
+- Daniels 상한을 지킨다: T는 주간 거리의 10% 이하, I는 10km와 주간 8% 중 작은 값 이하,
+  R은 8km와 주간 5% 중 작은 값 이하. I 반복은 3~5분, R 반복은 2분 이하.
+- 형식: ① 한 줄 판정 ② 근거 3줄 이내 ③ 다음 세션 제안(2개 중 택1 형태). 전체 400자 내외.`;
+function aiPrompt(){
+  const r=S.result, s=S.session, T=S.T||{};
+  const segs=(r.segments||[]).map(g=>
+    `  - ${g.nm}: ${g.km}km ${fmtClock(g.sec)} 평균 ${g.pace?fmtPace(g.pace):'—'}`+
+    `${g.plan?` (목표 ${fmtPace(g.plan[0])}~${fmtPace(g.plan[1])})`:''}`+
+    `${g.hr?` 심박 ${g.hr}`:''}${g.pass===false?' ← 벗어남':''}`).join('\n');
+  const next=BLOCK.filter(x=>x.d>(r.planId||'')).slice(0,3)
+    .map(x=>`  - ${x.d.slice(5,10)} ${x.t}`).join('\n');
+  const vd=vdotOf(10000,(45*60+46)/60), z=zonesOf(vd);
+  return `[주자] 만 50세 남성, 75kg, 최대심박 ${PROF.hrmax}. 10km 45:46 → VDOT ${vd.toFixed(1)}.
+존: E ${fmtPace(z.E[0])}~${fmtPace(z.E[1])} · M ${fmtPace(z.M)} · T ${fmtPace(z.T)} · I ${fmtPace(z.I)} · R ${fmtPace(z.R)}
+최종 목표: 하프 마라톤 킬로당 3분대.
+
+[오늘 세션] ${r.title} (${T.nm||r.type})
+발달 목적: ${T.develops||'—'}
+1차 기준: ${T.primaryLabel||'—'}
+계획 ${s.dist}km / 실제 ${r.km}km (${Math.round((r.distRatio||0)*100)}%)
+총 시간 ${fmtClock(r.sec)} · 평균 페이스 ${r.paceAvg?fmtPace(r.paceAvg):'—'}
+평균 심박 ${r.hrAvg||'없음'} / 최대 ${r.hrMax||'없음'} · 케이던스 ${r.cadAvg||'없음'}
+${s.ceiling?`상한 ${fmtPace(s.ceiling)} — 초과 시간 ${r.ceilSec}초 (${Math.round((r.ceilRatio||0)*100)}%)`:''}
+${r.spread!=null?`반복 간 편차 ${r.spread}초`:''}
+구간:
+${segs||'  (없음)'}
+
+[다음 예정]
+${next||'  (없음)'}
+
+이 세션이 합격인지 불합격인지 판정하고, 근거를 대고, 다음 세션을 그대로 갈지 바꿀지 제안해줘.`;
+}
+$('btnAI').onclick=async()=>{
+  if(!S.result)return;
+  const out=$('aiOut'), b=$('btnAI');
+  out.hidden=false; out.className='note'; out.textContent='AI 코치가 기록을 읽는 중…';
+  b.disabled=true;
+  try{ out.textContent=await AI.ask(AI_SYSTEM,aiPrompt(),900); out.className='note blue'; }
+  catch(e){ out.className='note red'; out.textContent='분석 실패 — '+e.message; }
+  finally{ b.disabled=false; }
+};
+
 $('wipeRuns').onclick=()=>{
   if(!RUNS.length)return alert('지울 기록이 없습니다.');
   if(!confirm(`러닝 기록 ${RUNS.length}건을 모두 삭제합니다.\n되돌릴 수 없습니다.`))return;
