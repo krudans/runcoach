@@ -28,7 +28,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15p
 button{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);background:var(--panel-2);
   border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
-.view{display:none} .view.on{display:block}
+.view{display:none} .view.on{display:block;padding-bottom:68px}
 .bar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);
   background:var(--panel);position:sticky;top:0;z-index:5}
 .bar h1{margin:0;font-size:15px;font-weight:600;flex:1 1 auto}
@@ -43,7 +43,12 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .nav button i{display:block;width:20px;height:20px;border-radius:5px;background:currentColor;
   opacity:.5;mask-size:contain;-webkit-mask-size:contain}
 .nav button.on{color:var(--accent)} .nav button.on i{opacity:1}
-.navpad{height:66px}
+.navpad{height:0}
+#bye{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;text-align:center;padding:30px}
+#bye .t{font-size:19px;font-weight:700}
+#bye .d{font-size:13px;color:var(--ink-3);line-height:1.7}
+#bye[hidden]{display:none}
 .segtabs{display:flex;gap:6px;margin:14px 0 14px}
 .segtabs button{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(--line);
   background:var(--panel);font-size:12.5px;color:var(--ink-3);font-weight:600}
@@ -294,7 +299,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   <div class="topline"><b id="tlDate">—</b><span id="tlBlock">심폐 강화 블록</span>
     <span class="right" id="tlWk">—</span>
     <button id="bellWrap" class="icbtn" style="margin-left:9px" aria-label="알림">🔔</button>
-    <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button></div>
+    <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button>
+    <button id="btnPower" class="icbtn" style="margin-left:11px;color:var(--alarm)" aria-label="종료">⏻</button></div>
   <div style="padding:0 16px"><div id="alertBox" style="margin-top:14px"></div><div id="propBox"></div></div>
   <div id="heroDay"></div>
   <div class="wkcard" id="wkCard"></div>
@@ -445,6 +451,20 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     </div>
     <button class="btn sm ghost" id="pSave" style="margin:0">저장</button>
   </div>
+  <div class="lbl" style="margin:20px 0 9px">데이터 보관</div>
+  <div class="card tight">
+    <div class="meta" style="margin-bottom:9px">
+      모든 기록은 이 폰 안에 저장됩니다. 앱을 닫아도, 폰을 꺼도 그대로 남습니다.
+      서버로 올라가지 않으니 이 폰에서만 보입니다.<br>
+      <span style="color:var(--z3)">다만 브라우저 저장공간을 비우거나 앱을 지우면 함께 사라집니다.
+      가끔 백업 파일을 내려받아 두세요.</span></div>
+    <div id="storeState" style="font-size:12px;color:var(--ink-3);margin-bottom:9px">확인 중…</div>
+    <div class="row">
+      <button class="btn sm ghost" style="margin:0" id="bkExport">백업 내려받기</button>
+      <button class="btn sm ghost" style="margin:0" id="bkImport">백업 불러오기</button></div>
+    <input type="file" id="bkFile" accept="application/json" hidden>
+  </div>
+
   <div class="lbl" style="margin:20px 0 9px">기록 초기화</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:9px">테스트로 쌓인 기록을 한 번에 지웁니다.
@@ -452,8 +472,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v4.3</b> · 2026-10-10<br>
-    <span style="font-size:10.5px">이 번호가 v4.3이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
+    런코치 <b>v4.4</b> · 2026-10-10<br>
+    <span style="font-size:10.5px">이 번호가 v4.4가 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
   </div>
 </div></div>
 
@@ -562,6 +582,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn ghost" id="btnGpx">GPX 내보내기</button>
     <button class="btn ghost" id="btnDone">저장 없이 닫기</button>
   </div>
+</div>
+
+<div id="bye" hidden>
+  <div class="t">런코치를 종료했습니다</div>
+  <div class="d">기록은 이 폰에 그대로 남아 있습니다.<br>
+    창이 남아 있으면 직접 닫으셔도 됩니다.</div>
+  <button class="btn" id="byeBack" style="max-width:220px">다시 시작</button>
 </div>
 
 <div class="nav" id="nav">
@@ -852,15 +879,71 @@ function auditSession(s){
 
 /* ───────── 뷰 ───────── */
 const $=id=>document.getElementById(id);
+let CURVIEW='home';
+/* 하단 메뉴는 어느 화면에서도 사라지지 않는다.
+   하위 화면(러닝 중·세션 확인·결과·설정)은 속한 탭에 불이 들어온다. */
+const TABOF={run:'runtab',confirm:'runtab',sum:'log',settings:'home',alerts:'home'};
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
-  const tabbed=['home','runtab','plan','log'].includes(id);
-  $('nav').style.display=tabbed?'flex':'none';
-  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));
+  CURVIEW=id;
+  const t=TABOF[id]||id;
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   window.scrollTo(0,0);}
 const RENDER={home:()=>renderHome(),runtab:()=>renderRunTab(),plan:()=>renderPlan(),
   log:()=>renderLog(),settings:()=>renderTools(),alerts:()=>renderAlerts()};
 function go(id){ (RENDER[id]||(()=>{}))(); show(id); }
-$('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;go(b.dataset.t);};
+$('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  const id=b.dataset.t;
+  if(S.running&&id==='runtab')return show('run');
+  if(CURVIEW==='sum'&&S.result&&!S.result._saved&&
+     !confirm('저장하지 않은 세션 결과가 있습니다.\n나가면 사라집니다. 계속할까요?'))return;
+  go(id);};
+
+/* ───────── 뒤로가기 · 종료 · 화면 켜두기 ─────────
+   안드로이드 뒤로가기는 앱을 끄지 않는다. 히스토리에 자리를 하나 깔아두고
+   뒤로가기가 들어올 때마다 다시 깔면서 앱 안에서만 이동한다.
+   앱을 끄는 것은 홈 상단의 전원 버튼뿐이다. */
+let EXITING=false;
+const BACKTO={confirm:'runtab',settings:'home',alerts:'home',sum:'log'};
+function appBack(){
+  if(S.running&&CURVIEW==='run'){ DEV.buzz(50); return; }
+  if(CURVIEW==='sum'&&S.result&&!S.result._saved&&
+     !confirm('저장하지 않은 세션 결과가 있습니다.\n나가면 사라집니다. 계속할까요?'))return;
+  const p=BACKTO[CURVIEW];
+  if(p)go(p); else if(CURVIEW!=='home')go('home'); else DEV.buzz(50);
+}
+try{ history.pushState({rc:1},''); }catch(e){}
+window.addEventListener('popstate',()=>{
+  if(EXITING)return;
+  try{ history.pushState({rc:1},''); }catch(e){}
+  appBack();
+});
+
+/* 앱이 떠 있는 동안에는 화면이 꺼지지 않는다 */
+let WAKE=null;
+async function keepAwake(){
+  if(EXITING||document.hidden)return;
+  try{ if(WAKE&&!WAKE.released)return; WAKE=await DEV.wake.on(); }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden)keepAwake(); });
+keepAwake();
+/* 기기 용량이 부족해도 기록이 먼저 지워지지 않도록 영구 보관을 요청해 둔다 */
+try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
+
+$('btnPower').onclick=async()=>{
+  if(S.running)return alert('러닝이 진행 중입니다.\n먼저 세션을 종료하세요.');
+  if(CURVIEW==='sum'&&S.result&&!S.result._saved&&
+     !confirm('저장하지 않은 세션 결과가 있습니다.\n그래도 종료할까요?'))return;
+  else if(CURVIEW!=='sum'&&!confirm('런코치를 종료할까요?'))return;
+  EXITING=true;
+  try{ DEV.wake.off(WAKE); WAKE=null; }catch(e){}
+  try{ if(S.watchId!=null){DEV.geo.stop(S.watchId);S.watchId=null;} }catch(e){}
+  try{ if(S.tick){clearInterval(S.tick);S.tick=null;} }catch(e){}
+  try{ BT.disconnect(); }catch(e){}
+  try{ speechSynthesis.cancel(); }catch(e){}
+  $('bye').hidden=false;
+  try{ window.close(); }catch(e){}
+};
+$('byeBack').onclick=()=>location.reload();
 
 /* ───────── 경고·부하 ───────── */
 function dayLoad(ds){
@@ -1728,6 +1811,7 @@ $('sWeather').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   $('sWeather').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.w===weatherVal));};
 $('btnSave').onclick=()=>{
   if(!S.result)return;
+  S.result._saved=true;
   Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,note:$('sNote').value.trim()});
   RUNS.push(S.result);
   if(!DEV.store.set('runs',RUNS)){ RUNS.forEach(r=>{if(r.track&&r.track.length>300)r.track=simplify(r.track,300);});
@@ -1856,7 +1940,7 @@ function renderTools(){
       ${sh.km>700?'<div style="font-size:11.5px;color:var(--alarm);margin-top:3px">수명 한계입니다. 교체를 권합니다.</div>':''}</div>`;
   }).join('')+(SHOES.length<2?'<div style="font-size:12px;color:var(--z3)">주 70km에는 2켤레가 필요합니다.</div>':'')
    :'<span style="color:var(--ink-3)">등록된 신발이 없습니다</span>';
-  renderHike(); BT.paint(); paintAI();
+  renderHike(); BT.paint(); paintAI(); paintStore();
 }
 $('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 사이 값을 넣어주세요.');
@@ -1974,6 +2058,43 @@ $('btnAI').onclick=async()=>{
   try{ out.textContent=await AI.ask(AI_SYSTEM,aiPrompt(),900); out.className='note blue'; }
   catch(e){ out.className='note red'; out.textContent='분석 실패 — '+e.message; }
   finally{ b.disabled=false; }
+};
+
+/* ───────── 백업 · 복원 ─────────
+   브라우저 저장소는 사용자가 '인터넷 사용 기록 삭제'를 하면 같이 지워진다.
+   영구 보관을 요청해 두고(기기 용량이 부족해도 먼저 지워지지 않는다),
+   언제든 파일로 빼고 되돌릴 수 있게 한다. */
+const BK_KEYS=['runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc'];
+/* API 키는 백업에 넣지 않는다 — 파일로 새어나가면 안 되는 값이다 */
+async function paintStore(){
+  const el=$('storeState'); if(!el)return;
+  let msg=`러닝 ${RUNS.length}건 저장됨`;
+  try{
+    if(navigator.storage&&navigator.storage.persisted){
+      let ok=await navigator.storage.persisted();
+      if(!ok&&navigator.storage.persist)ok=await navigator.storage.persist();
+      msg+=ok?' · 영구 보관 켜짐':' · 영구 보관 미승인 (백업을 권합니다)';
+    }
+  }catch(e){}
+  el.textContent=msg;
+}
+$('bkExport').onclick=()=>{
+  const out={app:'runcoach',ver:4,at:new Date().toISOString(),data:{}};
+  BK_KEYS.forEach(k=>{ const v=localStorage.getItem('rc_'+k); if(v!=null)out.data[k]=JSON.parse(v); });
+  DEV.saveFile(`runcoach-backup-${todayStr()}.json`,JSON.stringify(out),'application/json');
+};
+$('bkImport').onclick=()=>$('bkFile').click();
+$('bkFile').onchange=async e=>{
+  const f=e.target.files[0]; if(!f)return;
+  e.target.value='';
+  try{
+    const j=JSON.parse(await f.text());
+    if(j.app!=='runcoach')throw new Error('런코치 백업 파일이 아닙니다');
+    const cnt=(j.data.runs||[]).length;
+    if(!confirm(`${j.at?j.at.slice(0,10):'날짜 미상'} 백업입니다.\n러닝 ${cnt}건.\n\n지금 기록을 이걸로 덮어씁니다. 계속할까요?`))return;
+    Object.entries(j.data).forEach(([k,v])=>localStorage.setItem('rc_'+k,JSON.stringify(v)));
+    alert('복원했습니다. 앱을 다시 불러옵니다.'); location.reload();
+  }catch(err){ alert('불러오지 못했습니다 — '+err.message); }
 };
 
 $('wipeRuns').onclick=()=>{
