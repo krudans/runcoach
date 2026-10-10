@@ -362,8 +362,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   <div class="lbl" style="margin-bottom:9px">심박 기기</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:11px">
-      <b>어메이핏</b>은 워치에서 <b>심박수 브로드캐스트</b>를 먼저 켜야 목록에 뜹니다 (Zepp OS 3.0 이상).
-      워치는 기록을 돌리면서 동시에 송출합니다. 가슴 스트랩도 같은 버튼으로 연결됩니다.</div>
+      <b>1.</b> 워치에서 <b>심박수 브로드캐스트</b>를 켠다 (Zepp 앱 아님 — 워치 본체 설정).
+      켜져 있는 동안만 목록에 뜹니다.<br>
+      <b>2.</b> 아래 버튼 → 선택창에 <b>주변 기기가 전부</b> 나옵니다. 어메이핏은 자기가 심박
+      기기라고 알리지 않아서 걸러낼 수가 없습니다. 목록에서 <b>워치 이름</b>을 직접 고르세요.<br>
+      <b>3.</b> 목록이 비어 있으면 브로드캐스트가 꺼진 겁니다. 가슴 스트랩도 같은 버튼입니다.</div>
     <div style="display:flex;gap:14px;align-items:flex-end;margin-bottom:11px">
       <div style="flex:0 0 auto">
         <div style="font-size:11px;color:var(--ink-3)">실시간</div>
@@ -408,6 +411,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <div><div style="font-size:11px;color:var(--ink-3)">안정시 심박</div><input type="number" id="pRHR" inputmode="numeric"></div>
     </div>
     <button class="btn sm ghost" id="pSave" style="margin:0">저장</button>
+  </div>
+  <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
+    런코치 <b>v4.1</b> · 2026-10-10<br>
+    <span style="font-size:10.5px">이 번호가 v4.1이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
   </div>
 </div></div>
 
