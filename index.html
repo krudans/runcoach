@@ -18,7 +18,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
-  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;padding-bottom:env(safe-area-inset-bottom)}
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 button{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);background:var(--panel-2);
@@ -30,9 +30,100 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .bar .sub{font-size:12px;color:var(--ink-3)}
 .pad{padding:18px;padding-bottom:40px}
 .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
-.tabs{display:flex;gap:1px;background:var(--line);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:6}
-.tabs button{flex:1;padding:13px 4px;background:var(--bg);font-size:13px;color:var(--ink-3);font-weight:600}
-.tabs button.on{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;
+  background:rgba(14,18,17,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)}
+.nav button{flex:1;padding:11px 4px 13px;font-size:11px;color:var(--ink-3);font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:.02em}
+.nav button i{display:block;width:20px;height:20px;border-radius:5px;background:currentColor;
+  opacity:.5;mask-size:contain;-webkit-mask-size:contain}
+.nav button.on{color:var(--accent)} .nav button.on i{opacity:1}
+.navpad{height:66px}
+.segtabs{display:flex;gap:6px;margin:14px 0 14px}
+.segtabs button{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(--line);
+  background:var(--panel);font-size:12.5px;color:var(--ink-3);font-weight:600}
+.segtabs button.on{background:var(--accent);color:#07100D;border-color:var(--accent);font-weight:700}
+.devbar{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:12px;
+  background:var(--panel);border:1px solid var(--line);font-size:12.5px;color:var(--ink-2)}
+.devbar .bpm{margin-left:auto;font-family:var(--mono);font-size:17px;font-weight:600;color:var(--ink)}
+.devbar button{color:var(--accent);font-weight:700;font-size:12.5px}
+
+/* ── 오늘 히어로 ── */
+.topline{display:flex;align-items:baseline;gap:10px;padding:20px 20px 0;color:var(--ink-3);font-size:12.5px}
+.topline b{color:var(--ink-2);font-weight:600}
+.topline .right{margin-left:auto;font-family:var(--mono)}
+.icbtn{color:var(--ink-3);font-size:16px;position:relative;line-height:1}
+.icbtn .bdg{position:absolute;top:-5px;right:-7px;background:var(--alarm);color:#fff;font-size:9px;
+  font-weight:700;border-radius:99px;padding:1px 4px;font-family:var(--mono);line-height:1.5}
+.hero-day{margin:12px 16px 0;border-radius:18px;overflow:hidden;position:relative;
+  background:linear-gradient(170deg,color-mix(in srgb,var(--day) 16%,var(--panel)) 0%,var(--panel) 62%);
+  border:1px solid color-mix(in srgb,var(--day) 24%,var(--line));box-shadow:0 18px 40px -28px #000}
+.hero-day .inner{padding:20px 20px 22px}
+.hero-day .kind{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;
+  color:var(--day);letter-spacing:.04em}
+.hero-day .kind s{width:7px;height:7px;border-radius:2px;background:var(--day);text-decoration:none}
+.hero-day .big{font-family:var(--mono);font-size:clamp(46px,14vw,64px);font-weight:600;line-height:1;
+  letter-spacing:-.045em;margin:8px 0 2px;font-variant-numeric:tabular-nums}
+.hero-day .big em{font-style:normal;font-size:.36em;font-weight:600;color:var(--ink-3);margin-left:4px;letter-spacing:0}
+.hero-day .tgt{font-family:var(--mono);font-size:15px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.hero-day .rule{display:block;margin-top:14px;padding:11px 13px;
+  border-radius:11px;background:color-mix(in srgb,var(--day) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--day) 26%,transparent);font-size:12.5px;color:var(--ink-2);line-height:1.45}
+.hero-day .rule b{color:var(--ink)}
+.hero-day .why{font-size:12.5px;color:var(--ink-3);margin-top:12px;line-height:1.5}
+.segbar{display:flex;gap:2px;height:7px;margin-top:16px;border-radius:99px;overflow:hidden}
+.segbar i{display:block;height:100%}
+.seglab{display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;color:var(--ink-3);
+  font-family:var(--mono)}
+.edit{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:9px;border:1px solid color-mix(in srgb,var(--day) 40%,var(--line));
+  color:var(--day);font-size:14px;vertical-align:middle;margin-left:11px;
+  background:color-mix(in srgb,var(--day) 12%,var(--panel-2))}
+.distbox{margin-top:12px;padding:12px 13px;border-radius:12px;background:var(--panel-2);
+  border:1px solid var(--line)}
+.distbox .lab{font-size:11px;color:var(--ink-3);font-weight:600;margin-bottom:9px}
+.distrow{display:flex;align-items:center;gap:9px}
+.distrow button.st{width:42px;height:42px;border-radius:11px;background:var(--panel);
+  border:1px solid var(--line);font-size:19px;font-weight:600;color:var(--ink);flex:none}
+.distrow input{flex:1;text-align:center;font-family:var(--mono);font-size:20px;font-weight:600;
+  padding:9px 6px;background:var(--bg)}
+.distrow .unit{font-size:13px;color:var(--ink-3);flex:none}
+.distbox .acts{display:flex;gap:8px;margin-top:10px}
+.distbox .acts button{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:600}
+.distbox .acts .ok{background:var(--day);color:#07100D}
+.distbox .acts .rv{border:1px solid var(--line);color:var(--ink-3)}
+.gobtn{display:block;width:100%;margin-top:18px;padding:17px;border-radius:13px;
+  background:var(--day);color:#07100D;font-weight:800;font-size:16.5px;text-align:center;letter-spacing:.01em}
+.gobtn.done{background:transparent;border:1px solid var(--line);color:var(--ink-2);font-weight:600}
+.restday{margin:12px 16px 0;border-radius:18px;border:1px dashed var(--line);background:var(--panel);
+  padding:30px 20px;text-align:center}
+.restday .t{font-size:19px;font-weight:700;margin-bottom:5px}
+.restday .d{font-size:13px;color:var(--ink-3);line-height:1.55}
+
+/* ── 주간 진행 ── */
+.wkcard{margin:16px 16px 0;padding:15px 17px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.wkcard .r1{display:flex;align-items:baseline;gap:8px;font-size:12.5px;color:var(--ink-3)}
+.wkcard .r1 b{color:var(--ink);font-weight:600;font-size:13.5px}
+.wkcard .r1 .n{margin-left:auto;font-family:var(--mono);color:var(--ink-2)}
+.wkbar{height:6px;border-radius:99px;background:var(--panel-2);margin-top:10px;overflow:hidden;display:flex}
+.wkbar i{display:block;height:100%;background:var(--accent)}
+.wkmeta{display:flex;gap:14px;margin-top:10px;font-size:11.5px;color:var(--ink-3)}
+.wkmeta span b{color:var(--ink-2);font-family:var(--mono);font-weight:600}
+
+/* ── 내일 미리보기 / 접이식 일정 ── */
+.peek{display:flex;align-items:center;gap:12px;margin:10px 16px 0;padding:14px 17px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;width:calc(100% - 32px);text-align:left}
+.peek .dot2{width:8px;height:8px;border-radius:2px;flex:none}
+.peek .k{font-size:11px;color:var(--ink-3);font-weight:600}
+.peek .v{font-size:13.5px;font-weight:600;margin-top:1px}
+.peek .ar{margin-left:auto;color:var(--ink-3);font-size:16px}
+.more{display:block;width:calc(100% - 32px);margin:10px 16px 0;padding:14px;border-radius:12px;
+  border:1px solid var(--line);color:var(--ink-2);font-size:13.5px;font-weight:600;text-align:center}
+.schedwrap{margin:12px 16px 0}
+.schedwrap[hidden]{display:none}
+.wkhead{display:flex;align-items:baseline;gap:8px;margin:18px 2px 9px;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.wkhead .n{margin-left:auto;font-family:var(--mono);letter-spacing:0;text-transform:none;font-size:11.5px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
 .card h2{margin:0 0 4px;font-size:19px;font-weight:600}
 .card .meta{font-size:13px;color:var(--ink-2)}
@@ -43,14 +134,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .kv>div{background:var(--panel);padding:12px 14px}
 .kv .k{font-size:11px;color:var(--ink-3)} .kv .v{font-family:var(--mono);font-size:20px;font-weight:600;margin-top:2px}
 .kv.three{grid-template-columns:repeat(3,1fr)}
-.day{display:grid;grid-template-columns:56px 1fr auto;gap:2px 12px;align-items:center;
-  padding:13px 15px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
-  margin-bottom:8px;width:100%;text-align:left}
+.day{display:grid;grid-template-columns:50px 1fr auto;gap:2px 12px;align-items:center;
+  padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  margin-bottom:7px;width:100%;text-align:left}
 .day[disabled]{opacity:.4}
-.day .dt{grid-row:1/3;font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
-.day .ti{font-weight:600;font-size:14.5px}
-.day .mt{grid-column:2;font-size:12px;color:var(--ink-2)}
-.day .go{grid-row:1/3;font-size:12px;color:var(--accent);font-weight:600}
+.day .dt{grid-area:1/1/3/2;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);line-height:1.35}
+.day .ti{grid-area:1/2/2/3;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+.tdot{width:7px;height:7px;border-radius:2px;flex:none}
+.day .mt{grid-area:2/2/3/3;font-size:11.5px;color:var(--ink-2)}
+.day .go{grid-area:1/3/3/4;font-size:11.5px;color:var(--accent);font-weight:600;white-space:nowrap}
 .day.today{border-color:var(--accent);background:#15231F}
 .day.did{border-color:#2E5740}
 .chip{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;padding:2px 6px;
@@ -167,37 +259,121 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .prop .choice.sel{border-color:var(--accent);background:#15231F}
 .logrow{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:13px 15px;background:var(--panel);
   border:1px solid var(--line);border-radius:10px;margin-bottom:8px;width:100%;text-align:left}
-.logrow .t{font-weight:600;font-size:14px}
-.logrow .m{font-size:12px;color:var(--ink-3);grid-column:1}
-.logrow .d{grid-row:1/3;font-family:var(--mono);font-size:17px;font-weight:600}
+.logrow .t{grid-area:1/1/2/2;font-weight:600;font-size:14px}
+.logrow .m{grid-area:2/1/3/2;font-size:11.5px;color:var(--ink-3)}
+.logrow .d{grid-area:1/2/3/3;font-family:var(--mono);font-size:17px;font-weight:600;align-self:center}
 .empty{text-align:center;color:var(--ink-3);font-size:13px;padding:34px 10px}
 </style>
 </head>
 <body>
 
-<div class="tabs" id="tabs">
-  <button data-t="pick" class="on">오늘</button>
-  <button data-t="log">기록</button>
-  <button data-t="tools">관리</button>
+<div class="view on" id="home">
+  <div class="topline"><b id="tlDate">—</b><span id="tlBlock">심폐 강화 블록</span>
+    <span class="right" id="tlWk">—</span>
+    <button id="bellWrap" class="icbtn" style="margin-left:9px" aria-label="알림">🔔</button>
+    <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button></div>
+  <div style="padding:0 16px"><div id="alertBox" style="margin-top:14px"></div><div id="propBox"></div></div>
+  <div id="heroDay"></div>
+  <div class="wkcard" id="wkCard"></div>
+  <button class="peek" id="peekNext" hidden></button>
+  <div class="navpad"></div>
 </div>
 
-<div class="view on" id="pick"><div class="pad">
-  <div id="alertBox"></div>
-  <div id="propBox"></div>
-  <div class="kv three" id="statTop" style="margin-bottom:16px"></div>
-  <div class="lbl" style="margin-bottom:10px">심폐 강화 블록 · 10.11 → 11.08</div>
-  <div id="dayList"></div>
-  <button class="btn ghost" id="btnIcs" style="margin-top:14px">아침 알림용 캘린더 내보내기 (.ics)</button>
-</div></div>
+<div class="view" id="runtab">
+  <div class="topline"><b>러닝</b><span id="rtSub">—</span></div>
+  <div style="padding:0 16px"><div class="devbar" id="devBar"></div></div>
+  <div id="rtHero"></div>
+  <div style="padding:0 16px">
+    <button class="btn ghost" id="btnFree" style="margin-top:10px">자유 러닝 — 계획 없이 뛰기</button>
+    <p style="font-size:12px;color:var(--ink-3);text-align:center;margin-top:9px;line-height:1.55">
+      거리·페이스 목표 없이 기록만 남깁니다.<br>판정도 조정 제안도 하지 않습니다.</p>
+  </div>
+  <div class="navpad"></div>
+</div>
 
-<div class="view" id="log"><div class="pad">
+<div class="view" id="plan">
+  <div class="topline"><b>플랜</b><span id="plSub">—</span>
+    <span class="right" id="plTot">—</span></div>
+  <div style="padding:0 16px">
+    <div class="segtabs" id="planTabs">
+      <button data-p="sched" class="on">일정</button>
+      <button data-p="zone">페이스 존</button>
+      <button data-p="audit">기준 검사</button>
+    </div>
+    <div id="planSched">
+      <div id="dayList"></div>
+    </div>
+    <div id="planZone" hidden>
+      <div id="zoneOut"></div>
+      <div class="lbl" style="margin:18px 0 9px">기록으로 다시 계산</div>
+      <div class="card tight">
+        <div class="meta" style="margin-bottom:10px"><b>솔로 TT보다 대회 기록을 우선</b>하세요 — 10/9에 그 차이가 4분이었습니다.</div>
+        <div class="row">
+          <select id="vDist"><option value="5000">5 km</option><option value="10000" selected>10 km</option>
+            <option value="21097.5">하프</option><option value="42195">마라톤</option></select>
+          <input type="text" id="vTime" placeholder="45:46" inputmode="numeric">
+          <button class="btn sm" style="margin:0;flex:0 0 68px" id="vCalc">계산</button>
+        </div>
+        <div id="vOut" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div id="planAudit" hidden>
+      <p style="font-size:12.5px;color:var(--ink-2);margin:4px 0 12px;line-height:1.6">
+        Daniels의 세션 상한(T 주간 10% · I 8% · R 5%, I 구간 3~5분)으로 블록 전체를 검사합니다.</p>
+      <button class="btn sm ghost" id="btnAudit" style="margin:0 0 12px">검사 실행</button>
+      <div id="auditOut"></div>
+    </div>
+  </div>
+  <div class="navpad"></div>
+</div>
+
+<div class="view" id="alerts">
+  <div class="bar"><button class="sub" id="alBack">← 홈</button>
+    <h1 style="text-align:center">알림</h1><span class="sub" id="alCount"></span></div>
+  <div class="pad" style="padding-bottom:90px">
+    <div class="lbl" style="margin-bottom:9px">조정 제안 — 합의 필요</div>
+    <div id="alProps"></div>
+    <div class="lbl" style="margin:20px 0 9px">경고</div>
+    <div id="alWarn"></div>
+    <div class="lbl" style="margin:20px 0 9px">아침 쪽지</div>
+    <div class="card tight">
+      <div class="meta" style="margin-bottom:10px">그날 할 일이 통째로 담긴 알림이 아침에 옵니다. 늦게 와도 알림함에 남아 있습니다.</div>
+      <button class="btn sm ghost" id="btnIcs" style="margin:0">캘린더로 내보내기 (.ics)</button>
+    </div>
+    <div class="lbl" style="margin:20px 0 9px">지난 제안</div>
+    <div id="alDone"></div>
+  </div>
+</div>
+
+<div class="view" id="log"><div class="pad" style="padding-bottom:80px">
   <div class="kv" id="logStats" style="margin-bottom:16px"></div>
   <div class="lbl" style="margin-bottom:10px">러닝 기록</div>
   <div id="logList"></div>
 </div></div>
 
-<div class="view" id="tools"><div class="pad">
-  <div class="lbl" style="margin-bottom:9px">아침 안정시 심박</div>
+<div class="view" id="settings">
+  <div class="bar"><button class="sub" id="setBack">← 홈</button><h1 style="text-align:center">설정</h1><span class="sub" style="visibility:hidden">←</span></div>
+  <div class="pad" style="padding-bottom:80px">
+  <div class="lbl" style="margin-bottom:9px">심박 기기</div>
+  <div class="card tight">
+    <div class="meta" style="margin-bottom:11px">
+      <b>어메이핏</b>은 워치에서 <b>심박수 브로드캐스트</b>를 먼저 켜야 목록에 뜹니다 (Zepp OS 3.0 이상).
+      워치는 기록을 돌리면서 동시에 송출합니다. 가슴 스트랩도 같은 버튼으로 연결됩니다.</div>
+    <div style="display:flex;gap:14px;align-items:flex-end;margin-bottom:11px">
+      <div style="flex:0 0 auto">
+        <div style="font-size:11px;color:var(--ink-3)">실시간</div>
+        <div class="num" id="btLive" style="font-size:32px;font-weight:600;line-height:1">—</div>
+        <div style="font-size:11px;color:var(--ink-3)" id="btZone"></div>
+      </div>
+      <div style="flex:1 1 auto">
+        <div style="font-size:11px;color:var(--ink-3)">상태</div>
+        <div id="btState" style="font-size:12.5px;color:var(--ink-2)">미연결</div>
+      </div>
+    </div>
+    <button class="btn sm ghost" id="btnBT" style="margin:0">기기 검색 · 연결</button>
+  </div>
+
+  <div class="lbl" style="margin:20px 0 9px">아침 안정시 심박</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:9px">기상 직후 침대에서 1분. 평소값이 쌓이면 +7bpm 이틀 연속을 자동으로 잡습니다.</div>
     <div class="row"><input type="number" id="rhrIn" placeholder="bpm" inputmode="numeric">
@@ -218,23 +394,6 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="row"><input type="text" id="shoeName" placeholder="신발 이름">
       <button class="btn sm" style="margin:0;flex:0 0 68px" id="shoeAdd">추가</button></div>
     <div id="shoeList" style="margin-top:11px"></div>
-  </div>
-  <div class="lbl" style="margin:20px 0 9px">VDOT · 페이스 존</div>
-  <div class="card tight">
-    <div class="meta" style="margin-bottom:9px"><b>솔로 TT보다 대회 기록을 우선</b>하세요 — 10/9에 그 차이가 4분이었습니다.</div>
-    <div class="row">
-      <select id="vDist"><option value="5000">5 km</option><option value="10000" selected>10 km</option>
-        <option value="21097.5">하프</option><option value="42195">마라톤</option></select>
-      <input type="text" id="vTime" placeholder="45:46" inputmode="numeric">
-      <button class="btn sm" style="margin:0;flex:0 0 68px" id="vCalc">계산</button>
-    </div>
-    <div id="vOut" style="margin-top:12px"></div>
-  </div>
-  <div class="lbl" style="margin:20px 0 9px">문헌 기준 검사</div>
-  <div class="card tight">
-    <div class="meta" style="margin-bottom:9px">Daniels의 세션 상한(T 10% · I 8% · R 5%, I 구간 3~5분)으로 블록 전체를 검사합니다.</div>
-    <button class="btn sm ghost" id="btnAudit" style="margin:0">검사 실행</button>
-    <div id="auditOut" style="margin-top:12px"></div>
   </div>
   <div class="lbl" style="margin:20px 0 9px">내 정보</div>
   <div class="card tight">
@@ -262,7 +421,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <span class="hint">폰 가속도계</span></label></div>
     <div class="opt"><input type="checkbox" id="optWake" checked><label for="optWake">화면 계속 켜두기</label></div>
     <div class="opt"><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
-    <button class="btn ghost" id="btnHR">가슴 스트랩 심박계 연결</button>
+    <button class="btn ghost" id="btnHR">기기 연결 — 워치 또는 가슴 스트랩</button>
     <div style="font-size:12px;color:var(--ink-3);margin-top:7px;text-align:center" id="hrState">미연결 — 심박 없이도 진행됩니다</div>
     <button class="btn" id="btnStart">이 세션으로 시작</button>
   </div>
@@ -341,6 +500,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   </div>
 </div>
 
+<div class="nav" id="nav">
+  <button data-t="runtab"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M13.5 5.5a2 2 0 100-4 2 2 0 000 4zM9.8 8.9 7 11l-2.5-1-1 1.7 4 1.8 2-1.4-1 4.9-4.2 1.5.6 1.9 5.6-2 1-4.4 2.2 2.3.6 5.7 2-.2-.7-6.2-2.6-2.7.8-3.6c1 1.3 2.6 2.2 4.4 2.2v-2c-1.6 0-2.9-.9-3.6-2.2l-1-1.7c-.4-.6-1-1-1.7-1-.3 0-.5 0-.8.2z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M13.5 5.5a2 2 0 100-4 2 2 0 000 4zM9.8 8.9 7 11l-2.5-1-1 1.7 4 1.8 2-1.4-1 4.9-4.2 1.5.6 1.9 5.6-2 1-4.4 2.2 2.3.6 5.7 2-.2-.7-6.2-2.6-2.7.8-3.6c1 1.3 2.6 2.2 4.4 2.2v-2c-1.6 0-2.9-.9-3.6-2.2l-1-1.7c-.4-.6-1-1-1.7-1-.3 0-.5 0-.8.2z\'/></svg>') center/contain no-repeat"></i>러닝</button>
+  <button data-t="plan"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2zm12 7v10H5V9zM7.5 11v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2zm-8 4v2h2v-2zm4 0v2h2v-2z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2zm12 7v10H5V9zM7.5 11v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2zm-8 4v2h2v-2zm4 0v2h2v-2z\'/></svg>') center/contain no-repeat"></i>플랜</button>
+  <button data-t="home" class="on"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M12 3 3 10.5V21h6v-6h6v6h6V10.5z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M12 3 3 10.5V21h6v-6h6v6h6V10.5z\'/></svg>') center/contain no-repeat"></i>홈</button>
+  <button data-t="log"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M5 3h11l4 4v14a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zm2 7v2h10v-2zm0 4v2h10v-2zm0 4v2h6v-2z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M5 3h11l4 4v14a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zm2 7v2h10v-2zm0 4v2h10v-2zm0 4v2h6v-2z\'/></svg>') center/contain no-repeat"></i>러닝일지</button>
+</div>
+
 <script>
 'use strict';
 /* ══════════════════════════════════════════════════════════════════════
@@ -366,18 +532,27 @@ const DEV = {
   buzz(p){ if(navigator.vibrate)try{navigator.vibrate(p);}catch(e){} },
   store:{ get(k,d){ try{ return JSON.parse(localStorage.getItem('rc_'+k)) ?? d; }catch(e){ return d; } },
           set(k,v){ try{ localStorage.setItem('rc_'+k,JSON.stringify(v)); return true; }catch(e){ return false; } } },
-  async hr(onBpm){
+  async hr(onBpm, known){
     if(!navigator.bluetooth) throw new Error('이 브라우저는 블루투스를 지원하지 않습니다');
-    const dev=await navigator.bluetooth.requestDevice({filters:[{services:['heart_rate']}]});
-    const ch=await(await(await dev.gatt.connect()).getPrimaryService('heart_rate'))
+    // 표준 심박 서비스(0x180D)를 광고하는 기기면 전부 잡힌다 —
+    // 어메이핏(심박수 브로드캐스트 ON)·가슴 스트랩·기타 워치 모두 같은 규격
+    const dev = known || await navigator.bluetooth.requestDevice({
+      filters:[{services:['heart_rate']}], optionalServices:['battery_service']});
+    const srv = await dev.gatt.connect();
+    const ch = await (await srv.getPrimaryService('heart_rate'))
       .getCharacteristic('heart_rate_measurement');
     await ch.startNotifications();
     ch.addEventListener('characteristicvaluechanged',e=>{
       const v=e.target.value,f=v.getUint8(0);
       const bpm=(f&1)?v.getUint16(1,true):v.getUint8(1);
       if(bpm>30&&bpm<240)onBpm(bpm); });
-    return dev;
+    let batt=null;
+    try{ const b=await (await srv.getPrimaryService('battery_service'))
+           .getCharacteristic('battery_level');
+         batt=(await b.readValue()).getUint8(0); }catch(e){}
+    return {dev,batt};
   },
+  async knownDevices(){ try{ return await navigator.bluetooth.getDevices(); }catch(e){ return []; } },
   saveFile(name,text,mime){
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([text],{type:mime})); a.download=name;
@@ -389,63 +564,67 @@ const DEV = {
 /* ───────── 훈련 종류 — 문헌 근거 + 1차 지표 ───────── */
 const P=(m,s)=>m*60+s;
 const TYPES={
-  recovery:{nm:'회복조깅',chip:'c-rec',
+  recovery:{nm:'회복조깅',chip:'c-rec',col:'#5A9FD4',
     develops:'아무것도 발달시키지 않습니다. 어제의 자극이 적응으로 바뀌는 조건을 만드는 날입니다.',
     primary:'hr', primaryLabel:'심박 Z1 이하 · 페이스 상한 준수',
     ignore:'거리와 속도 — 빠르게 뛰는 것이 이 세션의 유일한 실패 방식입니다.',
     src:'Seiler 저강도 80% 원칙', hrZone:[0,134], judgeBy:'ceiling'},
-  easy:{nm:'이지',chip:'c-easy',
+  easy:{nm:'이지',chip:'c-easy',col:'#4FC79F',
     develops:'유산소 기반 — 모세혈관과 미토콘드리아 밀도. 가장 느리게 자라고, 주간 거리에서 나옵니다.',
     primary:'hr', primaryLabel:'심박 Z2 유지',
     ignore:'속도 — "조금 더 빨리"가 이 세션의 적응을 망칩니다.',
     src:'Daniels E (59~74% VO2max)', hrZone:[134,153], judgeBy:'range'},
-  long:{nm:'롱런',chip:'c-long',
+  long:{nm:'롱런',chip:'c-long',col:'#3FB392',
     develops:'근지구력과 글리코겐 저장·내성.',
     primary:'dist', primaryLabel:'계획 거리 완주',
     ignore:'페이스 — 끝까지 느려지면서 완주한 것이, 계획 페이스로 중간에 그만둔 것보다 성공입니다.',
     src:'Daniels L (2시간 30분 이내)', hrZone:[134,153], judgeBy:'distance'},
-  mpace:{nm:'마라톤페이스',chip:'c-goal',
+  mpace:{nm:'마라톤페이스',chip:'c-goal',col:'#A98AD0',
     develops:'레이스 페이스 특화 내성.',
     primary:'pace', primaryLabel:'페이스 일관성',
     src:'Daniels M (75~84% VO2max)', hrZone:[153,172], judgeBy:'range'},
-  goalpace:{nm:'목표페이스',chip:'c-goal',
+  goalpace:{nm:'목표페이스',chip:'c-goal',col:'#A98AD0',
     develops:'목표 속도에 몸이 익숙해지는 것. 페이스가 현재 체력이 아니라 목표 기록에서 나옵니다.',
     primary:'pace', primaryLabel:'페이스 일관성 + 체감(RPE)',
     ignore:'1회차를 과하게 — 전 회차를 같은 속도로 가는 것이 목적입니다.',
     src:'목표 기록 역산 (VDOT 존과 어긋나는 것이 정상)', paceSource:'goal', judgeBy:'spread'},
-  threshold:{nm:'역치',chip:'c-thr',
+  threshold:{nm:'역치',chip:'c-thr',col:'#D4B44A',
     develops:'젖산 역치 — 젖산을 처리하며 버틸 수 있는 최고 속도.',
     primary:'pace', primaryLabel:'페이스 유지 + 세트 완수',
     src:'Daniels T (83~88% VO2max, 세션 주간 10% 이내, W:R 5:1)',
     hrZone:[162,176], judgeBy:'spread', cap:0.10},
-  interval:{nm:'인터벌',chip:'c-int',
+  interval:{nm:'인터벌',chip:'c-int',col:'#E8884F',
     develops:'최대산소섭취량 — 심장이 한 번에 밀어내는 피의 양.',
     primary:'pace', primaryLabel:'심박 도달 + 회차 편차 5초 이내',
     ignore:'1회차 기록 — 전 회차를 균등하게 가는 것이 목적입니다.',
     hint:'페이스는 목표 심박에 도달하기 위한 수단입니다. 더운 날·피곤한 날엔 같은 심박이 더 느린 페이스에서 나옵니다. 그때 페이스를 고집하면 자극이 아니라 과훈련입니다.',
     src:'Daniels I (95~100% VO2max, 구간 3~5분, 세션 10km 또는 주간 8% 중 작은 값)',
     hrZone:[172,182], judgeBy:'spread', cap:0.08, bout:[180,300]},
-  rep:{nm:'리피티션',chip:'c-rep',
+  rep:{nm:'리피티션',chip:'c-rep',col:'#E8884F',
     develops:'러닝 이코노미와 신경근 동원 — 같은 속도에 드는 산소량을 줄입니다.',
     primary:'pace', primaryLabel:'폼 · 케이던스 · 편차',
     ignore:'심박 — 구간이 짧아 심박이 올라오기 전에 끝납니다. Daniels도 R에 심박 기준을 주지 않습니다.',
     src:'Daniels R (105~120% VO2max, 1회 2분 이내, 세션 주간 5% 이내)',
     judgeBy:'spread', cap:0.05, noHR:true},
-  stride:{nm:'스트라이드',chip:'c-str',
+  stride:{nm:'스트라이드',chip:'c-str',col:'#7FB6D6',
     develops:'신경근 활성과 폼의 탄성.',
     primary:'count', primaryLabel:'횟수와 폼',
     ignore:'페이스와 심박 둘 다 — 100m는 GPS로 못 재고 심박은 올라오지 않습니다.',
     src:'완전 회복 반복, 10~20초', judgeBy:'count', noHR:true, noPace:true},
-  hill:{nm:'힐',chip:'c-rep',
+  hill:{nm:'힐',chip:'c-rep',col:'#D4824F',
     develops:'근력과 심폐를 동시에. 평지보다 적은 충격으로 강한 자극.',
     primary:'count', primaryLabel:'횟수와 노력도',
     ignore:'페이스 — 경사 때문에 숫자가 의미 없습니다.',
     src:'Lydiard 힐 저항 훈련', judgeBy:'count', noPace:true},
-  tt:{nm:'TT 측정',chip:'c-tt',
+  tt:{nm:'TT 측정',chip:'c-tt',col:'#E2615C',
     develops:'발달이 아니라 측정입니다. 현재 실력을 확정해 이후 모든 세션의 목표 페이스를 다시 계산합니다.',
     primary:'pace', primaryLabel:'기록',
     src:'Daniels VDOT 갱신', judgeBy:'none'},
-  off:{nm:'휴식',chip:'c-off',develops:'적응이 실제로 일어나는 날입니다.',primary:'none',judgeBy:'none'},
+  free:{nm:'자유 러닝',chip:'c-off',col:'#8FA39A',
+    develops:'계획 없이 뛰는 날입니다. 기록만 남기고 판정하지 않습니다.',
+    primary:'pace', primaryLabel:'목표 없음 — 편한 대로',
+    src:'—', judgeBy:'none'},
+  off:{nm:'휴식',chip:'c-off',col:'#6B766F',develops:'적응이 실제로 일어나는 날입니다.',primary:'none',judgeBy:'none'},
 };
 
 /* ───────── 구간 생성기 ─────────
@@ -469,7 +648,7 @@ function repsBuild(total,wu,n,len,tgt,recDist,recSec,label){
                  end:recSec?'time':'dist',sec:recSec||null}); }
   }
   segs.push({to:total,nm:'쿨다운',pace:[P(7,0),P(7,0)],tol:20});
-  return {segs,reps:n,repTarget:tgt,qvol:n*len,bout:len*tgt};
+  return {segs,reps:n,repTarget:tgt,repLen:len,qvol:n*len,bout:len*tgt};
 }
 const interval=(t,wu,n,len,tgt,rd,rs)=>({type:'interval',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'회차')});
 const thresh  =(t,wu,n,len,tgt,rd,rs)=>({type:'threshold',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'세트')});
@@ -521,6 +700,7 @@ let PROF=DEV.store.get('prof',{w:75,hrmax:191,rhr:null});
 let RUNS=DEV.store.get('runs',[]), SHOES=DEV.store.get('shoes',[]);
 let RHR=DEV.store.get('rhr',[]), HIKES=DEV.store.get('hikes',[]);
 let PROPS=DEV.store.get('props',[]), ADJ=DEV.store.get('adj',{});
+let DIST=DEV.store.get('dist',{});   // 세션별 거리 임의 수정값
 
 /* ───────── 포맷·수학 ───────── */
 const pad=n=>String(n).padStart(2,'0');
@@ -557,6 +737,21 @@ function zonesOf(vd){const dT=bisect(d=>raceTime(vd,d)-60,4000,32000);
     M:raceTime(vd,42195)/42.195*60, T:60/(dT/1000)*60,
     I:raceTime(vd,3000)/3*60, R:raceTime(vd,1200)/1.2*60};}
 
+/* 거리를 수정하면 마지막 구간이 늘거나 줄어든다.
+   반복 세션은 쿨다운이 차이를 흡수하고, 너무 짧으면 전체를 비례 축소한다. */
+function sessionOf(i){
+  if(i<0)return FREE;
+  const base=BLOCK[i]; if(!base)return base;
+  const o=DIST[base.d];
+  if(!o||!base.dist||Math.abs(o-base.dist)<0.01)return base;
+  const sx={...base,dist:o,segs:base.segs.map(g=>({...g}))};
+  const last=sx.segs[sx.segs.length-1];
+  const prev=sx.segs.length>1?sx.segs[sx.segs.length-2].to:0;
+  if(o>prev+0.2){ last.to=o; }
+  else { const k=o/base.dist; sx.segs.forEach(g=>g.to=+(g.to*k).toFixed(2)); }
+  return sx;
+}
+
 /* ───────── 주간 거리·감사 ───────── */
 function weekMonday(ds){const[y,m,d]=ds.slice(0,10).split('-').map(Number);
   const dt=new Date(y,m-1,d); dt.setDate(dt.getDate()-((dt.getDay()+6)%7));
@@ -586,13 +781,14 @@ function auditSession(s){
 /* ───────── 뷰 ───────── */
 const $=id=>document.getElementById(id);
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
-  const tabbed=['pick','log','tools'].includes(id);
-  $('tabs').style.display=tabbed?'flex':'none';
-  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));
+  const tabbed=['home','runtab','plan','log'].includes(id);
+  $('nav').style.display=tabbed?'flex':'none';
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));
   window.scrollTo(0,0);}
-$('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.t==='log')renderLog(); if(b.dataset.t==='tools')renderTools();
-  if(b.dataset.t==='pick')renderPick(); show(b.dataset.t);};
+const RENDER={home:()=>renderHome(),runtab:()=>renderRunTab(),plan:()=>renderPlan(),
+  log:()=>renderLog(),settings:()=>renderTools(),alerts:()=>renderAlerts()};
+function go(id){ (RENDER[id]||(()=>{}))(); show(id); }
+$('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;go(b.dataset.t);};
 
 /* ───────── 경고·부하 ───────── */
 function dayLoad(ds){
@@ -623,40 +819,252 @@ function driftAlert(){
   return null;}
 
 /* ───────── 오늘 탭 ───────── */
-function renderPick(){
+function dayKm(ds){return RUNS.filter(x=>x.date.slice(0,10)===ds).reduce((a,x)=>a+x.km,0);}
+function segBar(sess){
+  const T=TYPES[sess.type]||{}, tot=sess.dist||1; let prev=0, bars='', names=[];
+  sess.segs.forEach(g=>{
+    const w=(g.to-prev)/tot*100; prev=g.to;
+    const c = g.hard ? T.col : /웜업|쿨다운|도입/.test(g.nm) ? 'var(--ink-3)'
+            : /회복/.test(g.nm) ? 'color-mix(in srgb,var(--ink-3) 55%,transparent)'
+            : `color-mix(in srgb,${T.col} 55%,transparent)`;
+    bars+=`<i style="width:${w.toFixed(2)}%;background:${c}"></i>`;
+  });
+  const hard=sess.segs.filter(g=>g.hard).length;
+  names = hard ? [`웜업 ${sess.segs[0].to}km`, `${hard}회 @ ${fmtPace(sess.repTarget)}`, '쿨다운']
+               : [sess.segs[0].nm, sess.segs[sess.segs.length-1].nm];
+  return `<div class="segbar">${bars}</div><div class="seglab">`+
+    names.map(n=>`<span>${n}</span>`).join('')+`</div>`;
+}
+function renderHero(){
   const today=todayStr();
+  const idx=BLOCK.findIndex(x=>x.d.slice(0,10)===today);
+  const host=$('heroDay');
+  if(idx<0){ host.innerHTML=`<div class="restday"><div class="t">블록 밖의 날</div>
+    <div class="d">오늘은 계획에 없는 날입니다.<br>전체 일정에서 원하는 세션을 골라 시작할 수 있습니다.</div></div>`; return; }
+  const sess=sessionOf(idx), T=TYPES[sess.type]||{};
+  const done=RUNS.some(x=>x.planId===sess.d);
+  if(sess.type==='off'){
+    host.innerHTML=`<div class="restday"><div class="t">휴식</div>
+      <div class="d">${T.develops}<br><span style="color:var(--ink-2)">오늘은 아무것도 하지 않는 것이 훈련입니다.</span></div></div>`;
+    return;
+  }
+  const adj=ADJ[sess.type]||0;
+  const main=sess.segs[sess.segs.length-1];
+  const edited = DIST[sess.d]!=null && Math.abs(DIST[sess.d]-BLOCK[idx].dist)>0.01;
+  const headline = sess.reps
+      ? `${sess.repLen}<em>km × ${sess.reps}회</em>`
+      : `${sess.dist}<em>km</em>`;
+  const target = sess.reps ? fmtPace(sess.repTarget+adj)
+                           : rangeText(main.pace);
+  const rule = sess.ceiling
+    ? `<b>${fmtPace(sess.ceiling)}보다 느리게.</b> 이보다 빠르면 거리를 다 뛰어도 실패입니다.`
+    : (T.primaryLabel?`<b>지켜야 할 것</b> · ${T.primaryLabel}`:'');
+  host.innerHTML=`<div class="hero-day" style="--day:${T.col}">
+    <div class="inner">
+      <div class="kind"><s></s>${T.nm}${sess.role?' · '+sess.role:''}${adj?` · 목표 ${adj>0?'+':''}${adj}초`:''}</div>
+      <div class="big num">${headline}<button class="edit" id="distEdit" aria-label="거리 수정">✎</button></div>
+      <div class="tgt">${target}${sess.reps?` · 총 ${sess.dist}km`:''}${edited?' · 수정됨':''}</div>
+      <div class="distbox" id="distBox" hidden>
+        <div class="lab">오늘 거리 조정</div>
+        <div class="distrow">
+          <button class="st" id="dMinus">−</button>
+          <input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}">
+          <span class="unit">km</span>
+          <button class="st" id="dPlus">+</button>
+        </div>
+        <div class="acts"><button class="rv" id="dReset">원래대로 ${BLOCK[idx].dist}km</button>
+          <button class="ok" id="dSave">적용</button></div>
+      </div>
+      ${rule?`<div class="rule">${rule}</div>`:''}
+      <div class="why">${T.develops||''}</div>
+      ${segBar(sess)}
+      <button class="gobtn${done?' done':''}" id="goToday">${done?'오늘 완료 ✓ — 다시 하기':'시작'}</button>
+    </div></div>`;
+  $('goToday').onclick=()=>openConfirm(idx);
+  $('distEdit').onclick=()=>{ const b=$('distBox'); b.hidden=!b.hidden; };
+  const bump=d=>{ const el=$('dVal');
+    el.value=Math.max(0.5,Math.round(((+el.value||0)+d)*10)/10); };
+  $('dMinus').onclick=()=>bump(-0.5);
+  $('dPlus').onclick=()=>bump(0.5);
+  $('dSave').onclick=()=>{ const v=+$('dVal').value;
+    if(!(v>=0.5&&v<=60))return alert('0.5 ~ 60 km 사이로 넣어주세요.');
+    DIST[BLOCK[idx].d]=v; DEV.store.set('dist',DIST); renderPick(); };
+  $('dReset').onclick=()=>{ delete DIST[BLOCK[idx].d]; DEV.store.set('dist',DIST); renderPick(); };
+}
+function pendingCount(){
+  const al=[rhrAlert(),driftAlert()].filter(Boolean).length;
+  const r=acwr(); const ac=(r&&r>1.5)?1:0;
+  return PROPS.filter(x=>!x.done).length+al+ac;
+}
+function renderHome(){
+  const today=todayStr(), d=new Date();
+  $('tlDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${dowOf(today)}요일`;
+  const cur=BLOCK.find(x=>x.d.slice(0,10)===today);
+  $('tlWk').textContent=cur?`${cur.wk}주차`:'';
+  const n=pendingCount();
+  $('bellWrap').innerHTML=`🔔${n?`<span class="bdg">${n}</span>`:''}`;
+
   const ab=$('alertBox'); ab.innerHTML='';
   const al=[rhrAlert(),driftAlert()].filter(Boolean);
   const r=acwr(); if(r&&r>1.5)al.unshift(`급성:만성 부하비 ${r.toFixed(2)} (경고선 1.5). 다음 주 증량을 취소하세요.`);
-  al.forEach(m=>{const d=document.createElement('div');d.className='note red';d.textContent=m;ab.appendChild(d);});
-  renderProps();
-  const wk=weekMonday(today);
-  const wkKm=RUNS.filter(x=>weekMonday(x.date.slice(0,10))===wk).reduce((s,x)=>s+x.km,0);
-  const planKm=plannedWeekKm(today);
-  $('statTop').innerHTML=
-    `<div><div class="k">이번 주</div><div class="v">${wkKm.toFixed(1)}<span style="font-size:11px"> / ${planKm.toFixed(0)}km</span></div></div>`+
-    `<div><div class="k">부하비</div><div class="v" style="color:${r?(r>1.5?'var(--alarm)':r>1.3?'var(--z3)':'var(--ok)'):'var(--ink-3)'}">${r?r.toFixed(2):'—'}</div></div>`+
-    `<div><div class="k">누적</div><div class="v">${RUNS.reduce((s,x)=>s+x.km,0).toFixed(0)}<span style="font-size:11px"> km</span></div></div>`;
-  const host=$('dayList'); host.innerHTML='';
-  BLOCK.forEach((s,i)=>{
-    const dd=s.d.slice(0,10), isToday=dd===today, did=RUNS.some(x=>x.planId===s.d);
-    const T=TYPES[s.type]||{};
+  al.slice(0,2).forEach(m=>{const e=document.createElement('div');e.className='note red';e.textContent=m;ab.appendChild(e);});
+  $('propBox').innerHTML='';
+  const open=PROPS.filter(x=>!x.done);
+  if(open.length){ const e=document.createElement('button'); e.className='peek';
+    e.style.margin='10px 0 0'; e.style.width='100%'; e.style.borderColor='var(--accent)';
+    e.innerHTML=`<span class="dot2" style="background:var(--accent)"></span>
+      <span><span class="k">조정 제안 ${open.length}건 — 합의 필요</span>
+      <span class="v">${open[0].title}</span></span><span class="ar">›</span>`;
+    e.onclick=()=>go('alerts'); $('propBox').appendChild(e); }
+
+  renderHero();
+
+  const wkNo=cur?cur.wk:wkOf(today);
+  const wkSess=BLOCK.filter(x=>x.wk===wkNo&&x.dist);
+  const planKm=wkSess.reduce((a,x)=>a+(DIST[x.d]||x.dist),0);
+  const doneS=wkSess.filter(x=>RUNS.some(y=>y.planId===x.d));
+  const ranKm=RUNS.filter(x=>{const b=BLOCK.find(y=>y.d===x.planId);return b&&b.wk===wkNo;})
+                  .reduce((a,x)=>a+x.km,0);
+  $('wkCard').innerHTML=`<div class="r1"><b>${wkNo}주차</b><span>${doneS.length} / ${wkSess.length} 세션</span>
+      <span class="n">${ranKm.toFixed(1)} / ${planKm.toFixed(1)} km</span></div>
+    <div class="wkbar"><i style="width:${Math.min(100,planKm?ranKm/planKm*100:0).toFixed(1)}%"></i></div>
+    <div class="wkmeta">
+      <span>부하비 <b style="color:${r?(r>1.5?'var(--alarm)':r>1.3?'var(--z3)':'var(--ok)'):'var(--ink-3)'}">${r?r.toFixed(2):'—'}</b></span>
+      <span>누적 <b>${RUNS.reduce((a,x)=>a+x.km,0).toFixed(0)}km</b></span>
+      <span>총 <b>${RUNS.length}회</b></span></div>`;
+
+  const nx=BLOCK.find(x=>x.d.slice(0,10)>today);
+  const pk=$('peekNext');
+  if(nx){ const NT=TYPES[nx.type]||{};
+    pk.hidden=false;
+    pk.innerHTML=`<span class="dot2" style="background:${NT.col}"></span>
+      <span><span class="k">다음 · ${nx.d.slice(5,10).replace('-','.')} ${dowOf(nx.d)}</span>
+      <span class="v">${nx.t}</span></span><span class="ar">›</span>`;
+    pk.onclick=()=>openConfirm(BLOCK.indexOf(nx));
+  } else pk.hidden=true;
+}
+const renderPick=renderHome;
+
+/* ───── 러닝 탭 ───── */
+function renderRunTab(){
+  const today=todayStr();
+  const idx=BLOCK.findIndex(x=>x.d.slice(0,10)===today);
+  const sess=idx>=0?sessionOf(idx):null, T=sess?(TYPES[sess.type]||{}):{};
+  $('rtSub').textContent=sess?(sess.type==='off'?'오늘 · 휴식':`오늘 · ${sess.t}`):'오늘 계획 없음';
+  $('devBar').innerHTML=`<span class="dot" style="background:${BT.dev?'var(--ok)':'var(--ink-3)'}"></span>
+    <span>${BT.dev?`${BT.name}${BT.batt!=null?` · 배터리 ${BT.batt}%`:''}`:'심박 기기 미연결'}</span>
+    <span class="bpm" id="rtBpm">${S.hr&&S.hr.bpm?S.hr.bpm:'—'}</span>`;
+  $('devBar').onclick=()=>go('settings');
+  const h=$('rtHero');
+  if(!sess||sess.type==='off'||!sess.dist){
+    h.innerHTML=`<div class="restday" style="margin:12px 16px 0"><div class="t">${sess&&sess.type==='off'?'휴식':'계획 없음'}</div>
+      <div class="d">${sess&&sess.type==='off'?'오늘은 아무것도 하지 않는 것이 훈련입니다.':'아래 자유 러닝으로 뛰거나, 플랜에서 세션을 고르세요.'}</div></div>`;
+    return; }
+  h.innerHTML=`<div class="hero-day" style="--day:${T.col};margin:12px 16px 0"><div class="inner">
+      <div class="kind"><s></s>${T.nm} · ${sess.dist}km</div>
+      <div class="tgt" style="margin-top:9px">${sess.reps?`${sess.reps}회 @ ${fmtPace(sess.repTarget+(ADJ[sess.type]||0))}`:rangeText(sess.segs[sess.segs.length-1].pace)}${sess.ceiling?` · 상한 ${fmtPace(sess.ceiling)}`:''}</div>
+      ${segBar(sess)}
+      <button class="gobtn" id="rtGo">시작</button>
+    </div></div>`;
+  $('rtGo').onclick=()=>openConfirm(idx);
+}
+$('btnFree').onclick=()=>{ FREE_MODE=true; openConfirm(-1); };
+
+/* ───── 플랜 탭 ───── */
+function renderPlan(){
+  const tot=BLOCK.reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
+  $('plSub').textContent='10.11 → 11.08';
+  $('plTot').textContent=tot.toFixed(0)+' km';
+  const today=todayStr(), host=$('dayList'); host.innerHTML=''; let lastWk=0;
+  BLOCK.forEach((sx,i)=>{
+    if(sx.wk!==lastWk){ lastWk=sx.wk;
+      const km=BLOCK.filter(y=>y.wk===sx.wk).reduce((a,y)=>a+(DIST[y.d]||y.dist||0),0);
+      const h=document.createElement('div'); h.className='wkhead';
+      h.innerHTML=`<span>${sx.wk}주차</span><span class="n">${km.toFixed(1)} km</span>`;
+      host.appendChild(h); }
+    const dd=sx.d.slice(0,10), isToday=dd===today, did=RUNS.some(x=>x.planId===sx.d);
+    const T=TYPES[sx.type]||{}, km=DIST[sx.d]||sx.dist;
     const b=document.createElement('button');
     b.className='day'+(isToday?' today':'')+(did?' did':'');
-    if(s.type==='off')b.disabled=true;
-    b.innerHTML=`<span class="dt">${s.d.slice(5,10).replace('-','.')}<br>${dowOf(s.d)}</span>`+
-      `<span class="ti">${s.t}<span class="chip ${T.chip||'c-off'}">${T.nm||''}</span></span>`+
-      `<span class="go">${s.type==='off'?'':(did?'완료 ✓':isToday?'오늘 ›':'›')}</span>`+
-      `<span class="mt">${s.dist?s.dist+' km · '+summary(s):'완전 휴식'}</span>`;
+    if(sx.type==='off')b.disabled=true;
+    b.innerHTML=`<span class="dt">${sx.d.slice(5,10).replace('-','.')}<br>${dowOf(sx.d)}</span>`+
+      `<span class="ti"><span class="tdot" style="background:${T.col}"></span>${sx.t}</span>`+
+      `<span class="go">${sx.type==='off'?'':(did?'완료 ✓':isToday?'오늘 ›':'›')}</span>`+
+      `<span class="mt">${sx.dist?summary(sx)+(DIST[sx.d]?` · ${km}km로 수정됨`:''):'완전 휴식'}</span>`;
     b.onclick=()=>openConfirm(i);
     host.appendChild(b);
   });
+  // 페이스 존
+  const vd=vdotOf(10000,(45*60+46)/60), z=zonesOf(vd);
+  const rows=[['E 이지','#5A9FD4','유산소 기반',fmtPace(z.E[0])+'~'+fmtPace(z.E[1])],
+              ['M 마라톤','#3FB392','레이스 특화',fmtPace(z.M)],
+              ['T 역치','#D4B44A','젖산 역치',fmtPace(z.T)],
+              ['I 인터벌','#E8884F','최대산소섭취량',fmtPace(z.I)],
+              ['R 리피티션','#E2615C','러닝 이코노미',fmtPace(z.R)]];
+  $('zoneOut').innerHTML=`<div class="note green" style="margin:0 0 10px"><b>VDOT ${vd.toFixed(1)}</b> —
+      10km 45:46 (2026.10.09 대회) 기준 · 5km ${fmtClock(raceTime(vd,5000)*60)} · 하프 ${fmtClock(raceTime(vd,21097.5)*60)}</div>
+    <div class="card" style="margin:0;padding:4px 15px 12px">`+
+    rows.map(([n,c,u,pz])=>`<div class="srow" style="grid-template-columns:76px 1fr auto">
+      <span style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px">
+        <span style="width:8px;height:8px;border-radius:2px;background:${c}"></span>${n}</span>
+      <span class="nm" style="font-size:11.5px">${u}</span>
+      <span class="t">${pz}</span></div>`).join('')+`</div>`;
 }
+$('planTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  $('planTabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  ['sched','zone','audit'].forEach(k=>{
+    const el=$('plan'+k[0].toUpperCase()+k.slice(1)); if(el)el.hidden=(k!==b.dataset.p); });
+};
+
+/* ───── 알림 탭 ───── */
+function renderAlerts(){
+  const open=PROPS.filter(x=>!x.done), done=PROPS.filter(x=>x.done);
+  $('alCount').textContent=open.length?`처리할 것 ${open.length}`:'';
+  const ph=$('alProps'); ph.innerHTML='';
+  if(!open.length)ph.innerHTML='<div class="empty">처리할 제안이 없습니다</div>';
+  open.forEach(pr=>{
+    const el=document.createElement('div'); el.className='prop';
+    el.innerHTML=`<h3>${pr.title}</h3><p>${pr.why}</p>`+
+      pr.choices.map((c,i)=>`<button class="choice" data-i="${i}"><b>${c.label}</b><span>${c.cost}</span></button>`).join('')+
+      `<button class="choice" data-i="-1" style="margin-bottom:0"><b>조정하지 않기</b><span>측정 오류였거나 그대로 가고 싶을 때</span></button>`;
+    el.onclick=e=>{const b=e.target.closest('.choice'); if(!b)return;
+      const ix=+b.dataset.i;
+      if(ix>=0){ const c=pr.choices[ix];
+        if(c.apply==='paceAdjust'){ ADJ[c.target]=(ADJ[c.target]||0)+c.delta; DEV.store.set('adj',ADJ); }
+        alert('적용했습니다 — '+c.label); }
+      pr.done=true; pr.chose=ix; pr.at=new Date().toISOString();
+      DEV.store.set('props',PROPS); renderAlerts(); };
+    ph.appendChild(el);
+  });
+  const wh=$('alWarn'); wh.innerHTML='';
+  const ws=[]; const r=acwr();
+  if(r&&r>1.5)ws.push(['red',`급성:만성 부하비 ${r.toFixed(2)} (경고선 1.5). 다음 주 증량을 취소하세요.`]);
+  const a1=rhrAlert(); if(a1)ws.push(['red',a1]);
+  const a2=driftAlert(); if(a2)ws.push(['red',a2]);
+  BLOCK.forEach(sx=>{ auditSession(sx).forEach(w=>
+    ws.push(['warn',`${sx.d.slice(5,10).replace('-','.')} ${sx.t} — ${w}`])); });
+  if(!ws.length)wh.innerHTML='<div class="empty">경고 없음</div>';
+  ws.forEach(([k,m])=>{const e=document.createElement('div');
+    e.className='note '+(k==='red'?'red':''); if(k!=='red')e.style.cssText='background:#2B2518;border-color:#574B22;color:#E0CE8C';
+    e.textContent=m; wh.appendChild(e);});
+  const dh=$('alDone'); dh.innerHTML=done.length?'':'<div class="empty">아직 없습니다</div>';
+  done.slice(-6).reverse().forEach(pr=>{const e=document.createElement('div');
+    e.className='card tight'; e.style.marginBottom='8px';
+    e.innerHTML=`<div style="font-size:12.5px;font-weight:600">${pr.title}</div>
+      <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">
+        ${pr.chose>=0?'선택: '+pr.choices[pr.chose].label:'조정하지 않음'}${pr.at?' · '+pr.at.slice(5,10):''}</div>`;
+    dh.appendChild(e);});
+}
+$('bellWrap').onclick=()=>go('alerts');
+$('btnGear').onclick=()=>go('settings');
+$('alBack').onclick=()=>go('home');
+$('setBack').onclick=()=>go('home');
+
 const summary=s=>s.reps?`${s.reps}회 @ ${fmtPace(s.repTarget)}`:rangeText(s.segs[s.segs.length-1].pace);
 
 /* ───────── 조정 제안 (합의) ───────── */
 function renderProps(){
-  const box=$('propBox'); box.innerHTML='';
+  const box=$('propBox'); if(!box)return; box.innerHTML='';
   PROPS.filter(p=>!p.done).forEach(p=>{
     const el=document.createElement('div'); el.className='prop';
     el.innerHTML=`<h3>${p.title}</h3><p>${p.why}</p>`+
@@ -672,6 +1080,7 @@ function renderProps(){
   });
 }
 function makeProposal(res,s){
+  if(s.type==='free'||s.type==='tt')return false;
   const T=TYPES[s.type]||{};
   if(T.judgeBy==='spread'&&res.spread!=null){
     if(res.spread>5){
@@ -706,12 +1115,15 @@ function makeProposal(res,s){
 }
 
 /* ───────── 세션 확인 ───────── */
-let pendingIx=0;
+let pendingIx=0, FREE_MODE=false;
+const FREE={d:'free',wk:0,t:'자유 러닝',type:'free',dist:99,
+  segs:[{to:99,nm:'자유 러닝',pace:null,tol:null}]};
 function openConfirm(i){
-  pendingIx=i; const s=BLOCK[i], T=TYPES[s.type]||{};
+  pendingIx=i; const s=sessionOf(i), T=TYPES[s.type]||{};
   const adj=ADJ[s.type]||0;
+  if(i>=0)FREE_MODE=false;
   $('cTitle').textContent=s.t+(s.role?` · ${s.role}`:'');
-  $('cMeta').textContent=`${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)}요일 · 총 ${s.dist} km`+
+  $('cMeta').textContent=(i<0?'계획 없이 기록만 남깁니다':`${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)}요일 · 총 ${s.dist} km`)+
     (s.extra?` · +${s.extra}`:'')+(adj?` · 목표 ${adj>0?'+':''}${adj}초 조정됨`:'');
   const br=$('cBrief'); br.innerHTML=`<div class="bh">${T.nm} — 무엇을 위한 날인가</div>`+
     `<div class="bi"><div class="bk">발달 목표</div><div class="bv">${T.develops||'—'}</div></div>`+
@@ -721,7 +1133,9 @@ function openConfirm(i){
     (T.src?`<div class="bi"><div class="bk">근거</div><div class="bv" style="font-size:12.5px">${T.src}</div></div>`:'')+
     auditSession(s).map(w=>`<div class="bi warn"><div class="bk">문헌 기준 초과</div><div class="bv">${w}</div></div>`).join('');
   const host=$('cSegs'); host.innerHTML=''; let prev=0;
-  s.segs.forEach(g=>{const r=document.createElement('div');
+  if(i<0){ host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">'+
+    '거리·페이스 목표가 없습니다. 종료를 누를 때까지 기록합니다.</span></div>'; }
+  else s.segs.forEach(g=>{const r=document.createElement('div');
     r.className='srow'+(g.hard?' hard':'');
     const p=g.pace?[g.pace[0]+(g.hard?adj:0),g.pace[1]+(g.hard?adj:0)]:null;
     r.innerHTML=`<span class="r">${+prev.toFixed(2)} ~ ${+g.to.toFixed(2)} km</span>`+
@@ -730,24 +1144,58 @@ function openConfirm(i){
     host.appendChild(r); prev=g.to;});
   const n=$('cNote'); if(s.note){n.textContent=s.note;n.hidden=false;}else n.hidden=true;
   $('btnStart').disabled=!s.dist;
+  $('backPick').onclick=()=>go(i<0?'runtab':'home');
   $('optShoe').innerHTML='<option value="">신발 선택 안 함</option>'+
     SHOES.map(sh=>`<option value="${sh.name}">${sh.name} · ${sh.km.toFixed(0)}km</option>`).join('');
   show('confirm');
 }
-$('backPick').onclick=()=>{renderPick();show('pick');};
 
-/* ───────── 심박계 ───────── */
+/* ───────── 심박 기기 (워치 · 가슴 스트랩 공통) ───────── */
 const S={};
-$('btnHR').onclick=async()=>{
-  const st=$('hrState');
-  try{ st.textContent='스트랩을 찾는 중…';
-    const dev=await DEV.hr(bpm=>{ S.hr.bpm=bpm; S.hr.max=Math.max(S.hr.max||0,bpm);
-      if(S.running&&!S.paused){S.hr.samples.push(bpm);S.hr.segSamples.push(bpm);} });
-    dev.addEventListener('gattserverdisconnected',()=>{S.hr.bpm=null;st.textContent='연결이 끊어졌습니다.';});
-    S.hr.dev=dev; st.textContent='연결됨 — '+(dev.name||'심박계');
-    $('btnHR').textContent='심박계 연결됨 ✓';
-  }catch(e){ st.textContent=(e&&e.name==='NotFoundError')?'취소됨. 심박 없이도 진행됩니다.':(e.message||'연결 실패'); }
+const BT={
+  dev:null, batt:null, name:DEV.store.get('btname',''), busy:false,
+  feed(bpm){ S.hr.bpm=bpm; S.hr.max=Math.max(S.hr.max||0,bpm);
+    if(S.running&&!S.paused){ S.hr.samples.push(bpm); S.hr.segSamples.push(bpm); } },
+  async connect(known){
+    if(BT.busy)return; BT.busy=true; BT.paint('기기를 찾는 중…');
+    try{
+      const r=await DEV.hr(b=>BT.feed(b), known);
+      BT.dev=r.dev; BT.batt=r.batt; S.hr.dev=r.dev;
+      BT.name=r.dev.name||'심박 기기'; DEV.store.set('btname',BT.name);
+      r.dev.addEventListener('gattserverdisconnected',()=>{
+        BT.dev=null; S.hr.dev=null; S.hr.bpm=null; BT.paint('연결이 끊어졌습니다'); });
+      BT.paint();
+    } finally { BT.busy=false; }
+  },
+  disconnect(){ try{ BT.dev&&BT.dev.gatt&&BT.dev.gatt.disconnect(); }catch(e){}
+    BT.dev=null; S.hr.dev=null; S.hr.bpm=null; BT.paint(); },
+  status(){ return BT.dev
+      ? `연결됨 — ${BT.name}${BT.batt!=null?` · 배터리 ${BT.batt}%`:''}`
+      : (BT.name? `미연결 (지난 기기: ${BT.name})` : '미연결 — 심박 없이도 진행됩니다'); },
+  paint(msg){
+    const txt=msg||BT.status();
+    const a=$('hrState'); if(a)a.textContent=txt;
+    const c=$('btState'); if(c)c.textContent=txt;
+    const label=BT.dev?'연결 해제':'기기 검색 · 연결';
+    const b=$('btnHR'); if(b)b.textContent=BT.dev?`${BT.name} 연결됨 ✓ — 해제`:'기기 연결 — 워치 또는 가슴 스트랩';
+    const d=$('btnBT'); if(d)d.textContent=label;
+    const l=$('btLive'); if(l)l.textContent=S.hr&&S.hr.bpm?S.hr.bpm:'—';
+    const z=$('btZone'); if(z)z.textContent=S.hr&&S.hr.bpm?hrZone(S.hr.bpm):'';
+  },
 };
+const btToggle=async()=>{
+  if(BT.dev){ BT.disconnect(); return; }
+  try{ await BT.connect(); }
+  catch(e){ BT.paint((e&&e.name==='NotFoundError')
+    ? '취소됨 — 심박 없이도 진행됩니다'
+    : (e.message||'연결 실패')); }
+};
+$('btnHR').onclick=btToggle;
+$('btnBT').onclick=btToggle;
+setInterval(()=>{ const v=$('settings');
+  if(v&&v.classList.contains('on'))BT.paint();
+  const rb=$('rtBpm'); if(rb&&$('runtab').classList.contains('on'))rb.textContent=(S.hr&&S.hr.bpm)||'—';
+},1000);
 
 /* ───────── 케이던스 ───────── */
 function onMotion(e){
@@ -769,7 +1217,7 @@ function onMotion(e){
 
 /* ───────── 시작 ───────── */
 $('btnStart').onclick=async()=>{
-  const s=BLOCK[pendingIx], T=TYPES[s.type]||{}, adj=ADJ[s.type]||0;
+  const s=sessionOf(pendingIx), T=TYPES[s.type]||{}, adj=ADJ[s.type]||0;
   Object.assign(S,{session:s,T,adj,
     opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked},
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
@@ -777,7 +1225,7 @@ $('btnStart').onclick=async()=>{
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
-    cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0}});
+    cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[]}});
   $('rLaps').innerHTML=''; $('rHRBar').hidden=!(S.hr.dev&&!T.noHR); $('rBanner').hidden=true;
   $('btnPause').textContent='일시정지';
   setHero();
@@ -831,6 +1279,17 @@ function onPos(pos){
   S.win.push({t:now,d:S.dist});
   while(S.win.length>2&&(now-S.win[0].t)>20000)S.win.shift();
 }
+/* 케이던스 보정 — 폰을 손에 들거나 주머니에 넣으면 두 걸음에 한 번만 잡혀
+   실제의 절반으로 나온다. 보폭이 말이 되는지로 판별한다. */
+function cadence(){
+  const raw=S.cad&&S.cad.spm; if(!raw)return null;
+  const p=curPace();
+  if(isFinite(p)&&p>120&&p<900&&raw<130){
+    const stepLen=(1000/p)*60/raw;          // m / 걸음
+    if(stepLen>1.4) return raw*2;           // 회복조깅에서도 나올 수 없는 보폭
+  }
+  return raw;
+}
 function curPace(){
   if(!S.win||S.win.length<2)return NaN;
   const a=S.win[0],b=S.win[S.win.length-1];
@@ -865,7 +1324,9 @@ function onTick(){
   $('rProg').style.width=(Math.min(1,Math.max(0,prog))*100).toFixed(1)+'%';
   $('rDist').textContent=km.toFixed(2);
   $('rTime').textContent=fmtClock(S.elapsed);
-  $('rCad').textContent=S.cad.spm||'—';
+  const cadNow=cadence();
+  $('rCad').textContent=cadNow||'—';
+  if(cadNow&&!S.paused)S.cad.corr.push(cadNow);
   if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
     const z=hrZoneIx(S.hr.bpm);
     document.querySelectorAll('#rHRBar .zb').forEach(b=>{
@@ -918,7 +1379,7 @@ function onTick(){
     const dt=S.elapsed-S.lapStart.t, dd=km-S.lapStart.d;
     const n=Math.max(1,Math.round(dt/2)), hs=S.hr.samples.slice(-n);
     S.splits.push({km:S.lapKm,time:dt,pace:dd>0.1?dt/dd:NaN,
-      hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,cad:S.cad.spm||null});
+      hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,cad:cadence()||null});
     S.lapStart={d:km,t:S.elapsed};
     DEV.speak(`${S.lapKm}킬로미터. 구간 ${fmtPaceVoice(dt/dd)}.`);
   }
@@ -1046,7 +1507,8 @@ let rpeVal=null,terrainVal='도로',weatherVal=null;
 function renderSummary(completed){
   const km=S.dist/1000,s=S.session,T=S.T,hs=S.hr.samples;
   const hrAvg=hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null;
-  const cadAvg=S.elapsed>60&&S.cad.steps>50?Math.round(S.cad.steps/(S.elapsed/60)):null;
+  const cc=S.cad.corr||[];
+  const cadAvg=cc.length>20?Math.round(cc.reduce((a,b)=>a+b,0)/cc.length):null;
   const cal=Math.round(1.036*(PROF.w||75)*km);
   const reps=S.segRecords.filter(r=>r.hard&&isFinite(r.actual)).map(r=>r.actual);
   const spread=reps.length>=2?Math.round(Math.max(...reps)-Math.min(...reps)):null;
@@ -1117,7 +1579,7 @@ function renderSummary(completed){
     cv.textContent=`상한(${fmtPace(s.ceiling)})보다 빠르게 뛴 시간 ${fmtClock(S.ceilSec)}`;}
   else cv.hidden=true;
 
-  S.result={planId:s.d,date:new Date().toISOString(),name:runName(),title:s.t,type:s.type,
+  S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:new Date().toISOString(),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
     hrAvg,hrMax:S.hr.max||null,cadAvg,cal,asc:Math.round(S.asc),desc:Math.round(S.desc),
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),spread,distRatio:+distRatio.toFixed(3),
@@ -1161,10 +1623,10 @@ $('btnSave').onclick=()=>{
   if(S.result.shoe){const sh=SHOES.find(x=>x.name===S.result.shoe);
     if(sh){sh.km+=S.result.km;DEV.store.set('shoes',SHOES);}}
   const made=makeProposal(S.result,S.session);
-  alert(made?'기록을 저장했습니다. 조정 제안이 올라왔습니다 — 오늘 탭에서 확인하세요.':'기록을 저장했습니다.');
-  renderPick(); show('pick');
+  alert(made?'기록을 저장했습니다. 조정 제안이 올라왔습니다 — 알림에서 확인하세요.':'기록을 저장했습니다.');
+  go('home');
 };
-$('btnDone').onclick=()=>{renderPick();show('pick');};
+$('btnDone').onclick=()=>go('home');
 $('btnGpx').onclick=()=>{
   if(!S.pts||!S.pts.length)return alert('기록된 좌표가 없습니다.');
   const trk=S.pts.map(p=>`<trkpt lat="${p.lat.toFixed(6)}" lon="${p.lon.toFixed(6)}">`+
@@ -1257,7 +1719,7 @@ function renderTools(){
       ${sh.km>700?'<div style="font-size:11.5px;color:var(--alarm);margin-top:3px">수명 한계입니다. 교체를 권합니다.</div>':''}</div>`;
   }).join('')+(SHOES.length<2?'<div style="font-size:12px;color:var(--z3)">주 70km에는 2켤레가 필요합니다.</div>':'')
    :'<span style="color:var(--ink-3)">등록된 신발이 없습니다</span>';
-  renderHike();
+  renderHike(); BT.paint();
 }
 $('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 사이 값을 넣어주세요.');
@@ -1318,7 +1780,14 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.running
 window.addEventListener('beforeunload',e=>{if(S.running){e.preventDefault();e.returnValue='';}});
 if('speechSynthesis'in window)speechSynthesis.getVoices();
 S.hr={dev:null,bpm:null,samples:[],max:0,segSamples:[]};
-renderPick();
+renderHome();
+/* 지난번에 연결했던 기기가 켜져 있으면 조용히 다시 붙는다 */
+(async()=>{ try{
+  if(!BT.name||!navigator.bluetooth)return;
+  const ds=await DEV.knownDevices();
+  const d=ds.find(x=>(x.name||'')===BT.name);
+  if(d)await BT.connect(d);
+}catch(e){} })();
 </script>
 </body>
 </html>
