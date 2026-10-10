@@ -1,0 +1,55 @@
+<!doctype html><html lang=ko><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>블루투스 진단</title><style>
+body{background:#101413;color:#eef;font:15px/1.6 system-ui,sans-serif;padding:18px;margin:0}
+h2{margin:0 0 4px;font-size:19px} p{color:#9aa;font-size:13px;margin:0 0 14px}
+button{display:block;width:100%;padding:16px;margin:10px 0;border:0;border-radius:11px;
+background:#4FC79F;color:#07100D;font-weight:700;font-size:16px}
+button.g{background:transparent;border:1px solid #333;color:#bbb}
+pre{background:#1a1f1e;padding:12px;border-radius:9px;white-space:pre-wrap;
+word-break:break-all;font-size:12.5px;line-height:1.55;color:#cfd}
+</style></head><body>
+<h2>블루투스 진단</h2>
+<p>워치가 왜 안 잡히는지 확인합니다. 결과 화면을 그대로 캡처해 주세요.</p>
+<button id=a>1. 심박 기기만 찾기</button>
+<button id=b class=g>2. 모든 기기 찾기</button>
+<pre id=o></pre>
+<script>
+var o=document.getElementById('o');
+function L(m){o.textContent+=m+'\n';}
+L('블루투스 API: '+(navigator.bluetooth?'있음':'없음 — 이 브라우저는 불가'));
+L('https 보안 연결: '+(window.isSecureContext?'예':'아니오'));
+L('브라우저: '+navigator.userAgent.slice(0,90));
+if(navigator.bluetooth&&navigator.bluetooth.getAvailability){
+  navigator.bluetooth.getAvailability().then(function(v){L('블루투스 사용 가능: '+(v?'예':'아니오 — 폰 블루투스를 켜세요'));});
+}
+function go(all){
+  L('');L('--- '+(all?'모든 기기':'심박 기기만')+' 검색 ---');
+  var opt = all ? {acceptAllDevices:true, optionalServices:['heart_rate','battery_service']}
+                : {filters:[{services:['heart_rate']}], optionalServices:['battery_service']};
+  navigator.bluetooth.requestDevice(opt).then(function(d){
+    L('선택: '+(d.name||'(이름 없음)'));
+    return d.gatt.connect();
+  }).then(function(s){
+    L('GATT 연결 성공');
+    return s.getPrimaryService('heart_rate');
+  }).then(function(hs){
+    L('심박 서비스 있음');
+    return hs.getCharacteristic('heart_rate_measurement');
+  }).then(function(c){
+    return c.startNotifications().then(function(){
+      L('수신 시작 — 심박이 아래에 뜨면 성공');
+      c.addEventListener('characteristicvaluechanged',function(e){
+        var v=e.target.value, f=v.getUint8(0);
+        L('심박 '+((f&1)?v.getUint16(1,true):v.getUint8(1))+' bpm');
+      });
+    });
+  }).catch(function(e){
+    L('중단: '+e.name+' — '+e.message);
+    if(e.name==='NotFoundError')L('→ 목록에 기기가 없거나 취소했습니다. 워치에서 심박수 브로드캐스트를 켜고 운동을 시작한 뒤 다시 시도하세요.');
+    if(e.name==='NotSupportedError')L('→ 이 기기는 심박 서비스를 제공하지 않습니다.');
+  });
+}
+document.getElementById('a').onclick=function(){go(false);};
+document.getElementById('b').onclick=function(){go(true);};
+</script></body></html>
