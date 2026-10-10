@@ -405,19 +405,25 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="btnBT" style="margin:0">기기 검색 · 연결</button>
   </div>
 
-  <div class="lbl" style="margin:20px 0 9px">AI 코치 (Claude)</div>
+  <div class="lbl" style="margin:20px 0 9px">AI 코치</div>
   <div class="card tight">
-    <div class="meta" style="margin-bottom:9px">
-      API 키를 한 번 넣으면 이 폰에 저장되어 계속 쓰입니다. 세션이 끝나면 AI가 기록을 읽고
-      합격 여부의 근거와 다음 일정 조정안을 써줍니다.<br>
-      <span style="color:var(--z3)">키는 이 폰의 브라우저 저장소에만 들어갑니다. 서버로 보내지 않습니다.
-      다만 폰을 남이 쓰면 열람될 수 있으니 전용 키를 발급해 쓰세요.</span></div>
+    <div class="meta" style="margin-bottom:10px">
+      세션이 끝나면 AI가 기록을 읽고 합격 여부의 근거와 다음 일정 조정안을 써줍니다.
+      키는 한 번만 넣으면 이 폰에 저장되어 계속 쓰입니다.</div>
+    <div class="tagrow" id="aiProv" style="margin-bottom:11px">
+      <button class="tag" data-p="claude">Claude</button>
+      <button class="tag" data-p="gemini">Gemini</button></div>
+    <div class="meta" id="aiHelp" style="margin-bottom:10px"></div>
+    <button class="btn sm ghost" style="margin:0 0 9px" id="aiGet">API 키 발급받기 — 사이트 열기</button>
     <input type="password" id="aiKey" placeholder="sk-ant-..." autocomplete="off" style="margin-bottom:9px">
     <select id="aiModel" style="margin-bottom:9px"><option value="">키를 저장하면 모델 목록이 뜹니다</option></select>
     <div class="row">
       <button class="btn sm" style="margin:0" id="aiSave">저장 · 연결 확인</button>
       <button class="btn sm ghost" style="margin:0;flex:0 0 72px" id="aiClear">삭제</button></div>
     <div id="aiState" style="font-size:12px;color:var(--ink-3);margin-top:9px">미등록</div>
+    <div class="meta" style="margin-top:9px;color:var(--z3)">
+      키는 이 폰의 저장소에만 들어가고 백업 파일에도 포함되지 않습니다.
+      폰을 남이 쓸 수 있으니 이 앱 전용 키를 따로 발급해 쓰세요.</div>
   </div>
 
   <div class="lbl" style="margin:20px 0 9px">아침 안정시 심박</div>
@@ -473,8 +479,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v4.5</b> · 2026-10-10<br>
-    <span style="font-size:10.5px">이 번호가 v4.5가 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
+    런코치 <b>v4.6</b> · 2026-10-10<br>
+    <span style="font-size:10.5px">이 번호가 v4.6이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
   </div>
 </div></div>
 
@@ -1947,67 +1953,126 @@ $('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 사이 값을 넣어주세요.');
   RHR=RHR.filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v});
   DEV.store.set('rhr',RHR); $('rhrIn').value=''; renderTools();};
-/* ───────── AI 코치 (Anthropic Claude) ─────────
-   키는 이 기기의 localStorage에만 둔다. 브라우저에서 직접 부르므로
-   anthropic-dangerous-direct-browser-access 헤더가 필요하다.
-   모델 id는 바뀌므로 하드코딩하지 않고 /v1/models 에서 받아 고르게 한다. */
-const AI={
-  get key(){ return DEV.store.get('aikey',''); },
-  get model(){ return DEV.store.get('aimodel',''); },
-  ready(){ return !!(AI.key&&AI.model); },
-  head(){ return {'content-type':'application/json','x-api-key':AI.key,
-    'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}; },
-  async models(key){
-    const r=await fetch('https://api.anthropic.com/v1/models?limit=40',
-      {headers:{'x-api-key':key,'anthropic-version':'2023-06-01',
-                'anthropic-dangerous-direct-browser-access':'true'}});
-    if(!r.ok){ const t=await r.text();
-      throw new Error(r.status===401?'키가 올바르지 않습니다':`오류 ${r.status} — ${t.slice(0,120)}`); }
-    return (await r.json()).data||[];
+/* ───────── AI 코치 ─────────
+   Claude(Anthropic)와 Gemini(Google) 둘 다 쓸 수 있다. 키는 이 기기에만 둔다.
+   모델 id는 바뀌므로 하드코딩하지 않고 각 서비스에서 목록을 받아 고르게 한다. */
+const PROV={
+  claude:{
+    nm:'Claude (Anthropic)', ph:'sk-ant-...',
+    site:'https://platform.claude.com/settings/keys',
+    help:`<b>1.</b> 아래 버튼 → platform.claude.com 가입(구글 로그인 가능)<br>
+          <b>2.</b> Settings → API keys → <b>Create Key</b><br>
+          <b>3.</b> 뜬 키를 복사해 아래 칸에 붙여넣기 (다시 못 봅니다)<br>
+          <b>4.</b> Billing에서 크레딧을 충전해야 작동합니다. 최소 금액이면 수개월 씁니다.`,
+    async models(key){
+      const r=await fetch('https://api.anthropic.com/v1/models?limit=40',{headers:{
+        'x-api-key':key,'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'}});
+      if(!r.ok)throw new Error(r.status===401?'키가 올바르지 않습니다':`오류 ${r.status} — ${(await r.text()).slice(0,120)}`);
+      return ((await r.json()).data||[]).map(m=>({id:m.id,nm:m.display_name||m.id}));
+    },
+    pick(list){ return list.find(m=>/sonnet/i.test(m.id))||list[0]; },
+    async ask(key,model,system,user,maxTok){
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{
+        'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model,max_tokens:maxTok,system,messages:[{role:'user',content:user}]})});
+      if(!r.ok)throw new Error(`오류 ${r.status} — ${(await r.text()).slice(0,160)}`);
+      const j=await r.json();
+      return (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    },
   },
+  gemini:{
+    nm:'Gemini (Google)', ph:'AIza...',
+    site:'https://aistudio.google.com/apikey',
+    help:`<b>1.</b> 아래 버튼 → aistudio.google.com (쓰던 구글 계정으로 로그인)<br>
+          <b>2.</b> <b>API 키 만들기</b> 누르기<br>
+          <b>3.</b> 뜬 키를 복사해 아래 칸에 붙여넣기<br>
+          <b>4.</b> 무료 한도가 있어 카드 등록 없이 바로 됩니다. 하루 몇 번 쓰는 정도면 충분합니다.`,
+    async models(key){
+      const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key='+encodeURIComponent(key));
+      if(!r.ok)throw new Error(r.status===400||r.status===403?'키가 올바르지 않습니다':`오류 ${r.status} — ${(await r.text()).slice(0,120)}`);
+      return ((await r.json()).models||[])
+        .filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+        .map(m=>({id:m.name.replace(/^models\//,''),nm:m.displayName||m.name}));
+    },
+    pick(list){ return list.find(m=>/flash/i.test(m.id)&&!/lite|thinking/i.test(m.id))||list.find(m=>/flash/i.test(m.id))||list[0]; },
+    async ask(key,model,system,user,maxTok){
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
+        {method:'POST',headers:{'content-type':'application/json'},
+         body:JSON.stringify({system_instruction:{parts:[{text:system}]},
+           contents:[{role:'user',parts:[{text:user}]}],
+           generationConfig:{maxOutputTokens:maxTok,temperature:0.4}})});
+      if(!r.ok)throw new Error(`오류 ${r.status} — ${(await r.text()).slice(0,160)}`);
+      const j=await r.json();
+      const c=(j.candidates||[])[0];
+      const t=((c&&c.content&&c.content.parts)||[]).map(x=>x.text||'').join('').trim();
+      if(!t)throw new Error('빈 응답 — 모델을 바꿔보세요');
+      return t;
+    },
+  },
+};
+/* 예전 버전에서 쓰던 단일 키를 Claude 쪽으로 옮긴다 */
+(function(){ const k=DEV.store.get('aikey',''), m=DEV.store.get('aimodel','');
+  if(k&&!DEV.store.get('aikey_claude','')){ DEV.store.set('aikey_claude',k); DEV.store.set('aimodel_claude',m); }
+})();
+const AI={
+  get prov(){ return PROV[DEV.store.get('aiprov','claude')]?DEV.store.get('aiprov','claude'):'claude'; },
+  get P(){ return PROV[AI.prov]; },
+  get key(){ return DEV.store.get('aikey_'+AI.prov,''); },
+  get model(){ return DEV.store.get('aimodel_'+AI.prov,''); },
+  ready(){ return !!(AI.key&&AI.model); },
   async ask(system,user,maxTok){
     if(!AI.ready())throw new Error('AI 코치가 등록되지 않았습니다. 설정에서 API 키를 넣어주세요.');
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:AI.head(),
-      body:JSON.stringify({model:AI.model,max_tokens:maxTok||900,system,
-        messages:[{role:'user',content:user}]})});
-    if(!r.ok){ const t=await r.text(); throw new Error(`오류 ${r.status} — ${t.slice(0,160)}`); }
-    const j=await r.json();
-    return (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    return AI.P.ask(AI.key,AI.model,system,user,maxTok||900);
   },
 };
 function fillModels(list){
   const sel=$('aiModel'), cur=AI.model;
-  sel.innerHTML=list.map(m=>`<option value="${m.id}">${m.display_name||m.id}</option>`).join('');
-  const pick = list.find(m=>m.id===cur) || list.find(m=>/sonnet/i.test(m.id)) || list[0];
-  if(pick){ sel.value=pick.id; DEV.store.set('aimodel',pick.id); }
+  sel.innerHTML=list.map(m=>`<option value="${m.id}">${m.nm}</option>`).join('');
+  const pick=list.find(m=>m.id===cur)||AI.P.pick(list)||list[0];
+  if(pick){ sel.value=pick.id; DEV.store.set('aimodel_'+AI.prov,pick.id); }
 }
-$('aiModel').onchange=()=>{ DEV.store.set('aimodel',$('aiModel').value); paintAI(); };
+$('aiProv').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return;
+  DEV.store.set('aiprov',b.dataset.p);
+  $('aiModel').innerHTML='<option value="">키를 저장하면 모델 목록이 뜹니다</option>';
+  paintAI(); };
+$('aiGet').onclick=()=>{ try{ window.open(AI.P.site,'_blank','noopener'); }
+  catch(e){ alert(AI.P.site); } };
+$('aiModel').onchange=()=>{ DEV.store.set('aimodel_'+AI.prov,$('aiModel').value); paintAI(); };
 $('aiSave').onclick=async()=>{
   const k=$('aiKey').value.trim();
-  if(!k)return alert('API 키를 넣어주세요.');
+  if(!k||k.startsWith('•'))return alert('API 키를 넣어주세요.');
   $('aiState').textContent='확인 중…';
   try{
-    const list=await AI.models(k);
-    DEV.store.set('aikey',k); fillModels(list); paintAI();
-    alert(`연결됐습니다. 모델 ${list.length}개를 불러왔습니다.`);
+    const list=await AI.P.models(k);
+    if(!list.length)throw new Error('쓸 수 있는 모델이 없습니다');
+    DEV.store.set('aikey_'+AI.prov,k); fillModels(list); paintAI();
+    alert(`${AI.P.nm} 연결됐습니다.\n모델 ${list.length}개를 불러왔습니다.`);
   }catch(e){ $('aiState').textContent='연결 실패 — '+e.message; }
 };
 $('aiClear').onclick=()=>{
-  if(!confirm('저장된 API 키를 지웁니다.'))return;
-  DEV.store.set('aikey',''); DEV.store.set('aimodel','');
-  $('aiKey').value=''; $('aiModel').innerHTML='<option value="">키를 저장하면 모델 목록이 뜹니다</option>';
+  if(!confirm(`${AI.P.nm}에 저장된 API 키를 지웁니다.`))return;
+  DEV.store.set('aikey_'+AI.prov,''); DEV.store.set('aimodel_'+AI.prov,'');
+  $('aiModel').innerHTML='<option value="">키를 저장하면 모델 목록이 뜹니다</option>';
   paintAI();
 };
 function paintAI(){
-  const k=AI.key;
-  $('aiKey').value = k ? '•'.repeat(12)+k.slice(-4) : '';
+  const P=AI.P, k=AI.key;
+  document.querySelectorAll('#aiProv .tag').forEach(b=>b.classList.toggle('on',b.dataset.p===AI.prov));
+  const h=$('aiHelp'); if(h)h.innerHTML=P.help;
+  const g=$('aiGet'); if(g)g.textContent=`API 키 발급 — ${P.site.replace('https://','').split('/')[0]}`;
+  const i=$('aiKey'); if(i){ i.placeholder=P.ph; i.value = k ? '•'.repeat(12)+k.slice(-4) : ''; }
   const sel=$('aiModel');
-  if(AI.model&&![...sel.options].some(o=>o.value===AI.model))
-    sel.innerHTML=`<option value="${AI.model}">${AI.model}</option>`;
-  if(AI.model)sel.value=AI.model;
-  $('aiState').textContent = AI.ready()
-    ? `등록됨 — ${AI.model}` : (k?'모델을 고르세요':'미등록 — AI 코칭이 꺼져 있습니다');
-  const b=$('btnAI'); if(b)b.hidden=!AI.ready();
+  if(sel){
+    if(AI.model&&![...sel.options].some(o=>o.value===AI.model))
+      sel.innerHTML=`<option value="${AI.model}">${AI.model}</option>`;
+    if(AI.model)sel.value=AI.model;
+  }
+  const st=$('aiState');
+  if(st)st.textContent = AI.ready() ? `등록됨 — ${P.nm} · ${AI.model}`
+    : (k?'모델을 고르세요':'미등록 — AI 코칭이 꺼져 있습니다');
+  const b=$('btnAI'); if(b){ b.hidden=!AI.ready(); b.textContent=`AI 코치에게 분석 받기 (${P.nm.split(' ')[0]})`; }
 }
 $('aiKey').onfocus=()=>{ if(AI.key&&$('aiKey').value.startsWith('•'))$('aiKey').value=''; };
 
