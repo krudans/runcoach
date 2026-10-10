@@ -262,11 +262,16 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .prop .choice b{display:block;font-weight:700;margin-bottom:2px}
 .prop .choice span{color:var(--ink-3);font-size:12px}
 .prop .choice.sel{border-color:var(--accent);background:#15231F}
-.logrow{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:13px 15px;background:var(--panel);
+.logrow{display:grid;grid-template-columns:1fr auto auto;gap:3px 12px;padding:13px 15px;background:var(--panel);
   border:1px solid var(--line);border-radius:10px;margin-bottom:8px;width:100%;text-align:left}
 .logrow .t{grid-area:1/1/2/2;font-weight:600;font-size:14px}
 .logrow .m{grid-area:2/1/3/2;font-size:11.5px;color:var(--ink-3)}
 .logrow .d{grid-area:1/2/3/3;font-family:var(--mono);font-size:17px;font-weight:600;align-self:center}
+.logrow .x{grid-area:1/3/3/4;align-self:center;background:transparent;border:1px solid var(--line);
+  border-radius:8px;color:var(--ink-3);font-size:17px;line-height:1;width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0}
+.logrow .x:active{background:#2A1A1A;border-color:var(--alarm);color:var(--alarm)}
+.logtip{font-size:11.5px;color:var(--ink-3);margin:0 0 10px;text-align:right}
 .empty{text-align:center;color:var(--ink-3);font-size:13px;padding:34px 10px}
 </style>
 </head>
@@ -412,9 +417,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     </div>
     <button class="btn sm ghost" id="pSave" style="margin:0">저장</button>
   </div>
+  <div class="lbl" style="margin:20px 0 9px">기록 초기화</div>
+  <div class="card tight">
+    <div class="meta" style="margin-bottom:9px">테스트로 쌓인 기록을 한 번에 지웁니다.
+      러닝 기록만 지워지고 계획·신발·설정은 남습니다.</div>
+    <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
+  </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v4.1</b> · 2026-10-10<br>
-    <span style="font-size:10.5px">이 번호가 v4.1이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
+    런코치 <b>v4.2</b> · 2026-10-10<br>
+    <span style="font-size:10.5px">이 번호가 v4.2가 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
   </div>
 </div></div>
 
@@ -905,8 +916,12 @@ function renderHero(){
       <div class="why">${T.develops||''}</div>
       ${segBar(sess)}
       <button class="gobtn${done?' done':''}" id="goToday">${done?'오늘 완료 ✓ — 다시 하기':'시작'}</button>
+      ${done?`<button id="undoToday" style="display:block;width:100%;margin-top:8px;background:transparent;
+        border:1px solid var(--line);border-radius:10px;color:var(--ink-3);font-size:12.5px;
+        padding:9px 0">완료 취소 — 오늘 기록 삭제</button>`:''}
     </div></div>`;
   $('goToday').onclick=()=>openConfirm(idx);
+  if(done)$('undoToday').onclick=()=>undoPlanDay(sess.d);
   $('distEdit').onclick=()=>{ const b=$('distBox'); b.hidden=!b.hidden; };
   const bump=d=>{ const el=$('dVal');
     el.value=Math.max(0.5,Math.round(((+el.value||0)+d)*10)/10); };
@@ -1697,6 +1712,28 @@ $('btnIcs').onclick=()=>{
 };
 
 /* ───────── 기록 탭 ───────── */
+/* 기록 하나를 지운다. 신발 누적도 되돌리고, 해당 날짜의 '완료' 표시도 함께 풀린다
+   (완료 여부는 RUNS에 planId가 있는지로만 판단하므로 별도 처리가 필요 없다). */
+function deleteRun(idx){
+  const r=RUNS[idx]; if(!r)return;
+  if(!confirm(`${r.date.slice(0,10)} · ${r.name}\n${r.km.toFixed(2)}km · ${fmtClock(r.sec)}\n\n이 기록을 삭제합니다. 되돌릴 수 없습니다.`))return;
+  if(r.shoe){ const sh=SHOES.find(x=>x.name===r.shoe);
+    if(sh){ sh.km=Math.max(0,sh.km-r.km); DEV.store.set('shoes',SHOES); } }
+  RUNS.splice(idx,1); DEV.store.set('runs',RUNS);
+  renderLog(); renderHome();
+}
+/* 특정 계획일(planId)의 기록을 전부 지운다 — 홈의 '완료 취소'용 */
+function undoPlanDay(planId){
+  const hits=RUNS.map((r,i)=>[r,i]).filter(([r])=>r.planId===planId);
+  if(!hits.length)return;
+  const km=hits.reduce((a,[r])=>a+r.km,0);
+  if(!confirm(`오늘 기록 ${hits.length}건 (${km.toFixed(2)}km)을 삭제하고\n'완료' 표시를 풉니다. 되돌릴 수 없습니다.`))return;
+  hits.reverse().forEach(([r,i])=>{
+    if(r.shoe){ const sh=SHOES.find(x=>x.name===r.shoe); if(sh)sh.km=Math.max(0,sh.km-r.km); }
+    RUNS.splice(i,1); });
+  DEV.store.set('runs',RUNS); DEV.store.set('shoes',SHOES);
+  renderHome();
+}
 function renderLog(){
   const wk=weekMonday(todayStr());
   const sum=a=>a.reduce((s,x)=>s+x.km,0);
@@ -1709,16 +1746,19 @@ function renderLog(){
     `<div><div class="k">누적</div><div class="v">${sum(RUNS).toFixed(0)} km</div></div>`;
   const host=$('logList'); host.innerHTML='';
   if(!RUNS.length){host.innerHTML='<div class="empty">아직 기록이 없습니다</div>';return;}
-  [...RUNS].reverse().forEach(r=>{
+  host.innerHTML='<div class="logtip">기록을 누르면 상세 · ✕ 는 삭제</div>';
+  RUNS.map((r,i)=>[r,i]).reverse().forEach(([r,idx])=>{
     const T=TYPES[r.type]||{};
-    const b=document.createElement('button'); b.className='logrow';
+    const b=document.createElement('div'); b.className='logrow';
     const judge = r.spread!=null?`편차 ${r.spread}초`
       : r.ceilRatio!=null&&T.judgeBy==='ceiling'?`과속 ${Math.round(r.ceilRatio*100)}%`
       : r.distRatio!=null?`거리 ${Math.round(r.distRatio*100)}%`:'';
     b.innerHTML=`<span class="t">${r.name} · ${r.title}</span>`+
       `<span class="d">${r.km.toFixed(2)}<span style="font-size:11px"> km</span></span>`+
       `<span class="m">${r.date.slice(5,10)} · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}`+
-      `${r.hrAvg?' · ♥'+r.hrAvg:''}${r.cadAvg?' · '+r.cadAvg+'spm':''}${judge?' · '+judge:''}</span>`;
+      `${r.hrAvg?' · ♥'+r.hrAvg:''}${r.cadAvg?' · '+r.cadAvg+'spm':''}${judge?' · '+judge:''}</span>`+
+      `<button class="x" aria-label="삭제">✕</button>`;
+    b.querySelector('.x').onclick=e=>{ e.stopPropagation(); deleteRun(idx); };
     b.onclick=()=>alert(`${r.name} · ${r.title}\n${r.date.slice(0,10)} · ${T.nm}\n\n`+
       `거리 ${r.km.toFixed(2)}km · 시간 ${fmtClock(r.sec)} · 평균 ${fmtPace(r.paceAvg)}\n`+
       `칼로리 ${r.cal} · 고도 ▲${r.asc}m ▼${r.desc}m\n`+
@@ -1754,6 +1794,14 @@ $('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 사이 값을 넣어주세요.');
   RHR=RHR.filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v});
   DEV.store.set('rhr',RHR); $('rhrIn').value=''; renderTools();};
+$('wipeRuns').onclick=()=>{
+  if(!RUNS.length)return alert('지울 기록이 없습니다.');
+  if(!confirm(`러닝 기록 ${RUNS.length}건을 모두 삭제합니다.\n되돌릴 수 없습니다.`))return;
+  if(!confirm('정말 삭제할까요?'))return;
+  RUNS=[]; DEV.store.set('runs',RUNS);
+  SHOES.forEach(s=>s.km=0); DEV.store.set('shoes',SHOES);
+  renderTools(); renderHome(); alert('모두 삭제했습니다.');
+};
 $('shoeAdd').onclick=()=>{const n=$('shoeName').value.trim();
   if(!n)return; SHOES.push({name:n,km:0}); DEV.store.set('shoes',SHOES);
   $('shoeName').value=''; renderTools();};
