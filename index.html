@@ -58,6 +58,12 @@
 .ifoot{margin:28px 0 0;font-size:13.5px;line-height:1.75;color:rgba(255,255,255,.45)}
 .ibtn{margin-top:auto;width:100%;border:none;border-radius:999px;padding:19px;
   background:#fff;color:#151A18;font-family:inherit;font-size:17px;font-weight:800}
+.iglink{margin-top:12px;width:100%;border:1px solid rgba(255,255,255,.22);border-radius:999px;
+  padding:15px;background:none;color:rgba(255,255,255,.88);font-family:inherit;
+  font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px}
+.iglink svg{width:17px;height:17px;flex:none}
+.iglink[disabled]{opacity:.5}
+.ifine{margin:12px 0 0;text-align:center;font-size:11.5px;line-height:1.6;color:rgba(255,255,255,.38)}
 body.nonav #nav{display:none!important}
 .gpad{flex:1 1 auto;display:flex;flex-direction:column;padding:34px 24px 24px}
 .glogo{width:62px;height:62px;border-radius:17px;background:var(--accent);
@@ -499,7 +505,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 <body>
 
 <div class="view on" id="home">
-  <div class="topline"><b id="tlDate">—</b><span id="tlBlock"></span>
+  <div class="topline"><b id="tlDate">—</b><span id="tlBlock" style="font-family:var(--num);font-size:11px"></span>
     <span class="right" id="tlWk">—</span>
     <button id="bellWrap" class="icbtn" style="margin-left:9px" aria-label="알림">🔔</button>
     <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button>
@@ -722,7 +728,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v7.9</b> · 2026-10-11
+    런코치 <b id="verNow">—</b>
   </div>
 </div></div>
 
@@ -752,7 +758,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 
 <div class="view" id="intro">
   <div class="ipad">
-    <div class="itop">런코치</div>
+    <div class="itop">런코치 <span id="verIntro" style="opacity:.55"></span></div>
     <div class="ibig">받은 훈련을<br>제대로<br>뛰게 합니다</div>
     <div class="ilines">
       <div class="il"><s style="background:#E35A32"></s>너무 빠르면 <b>주황</b></div>
@@ -760,7 +766,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <div class="il"><s style="background:#0FA68C"></s>맞게 가면 <b>그대로</b></div>
     </div>
     <p class="ifoot">뛰는 중에 화면을 볼 필요가 없습니다.<br>색과 소리가 알려줍니다.</p>
+    <div id="introErr" style="display:none;font-size:12.5px;color:#FF9B85;margin-bottom:10px;line-height:1.6"></div>
     <button class="ibtn" id="introGo">시작하기</button>
+    <button class="iglink" id="introGoogle">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-2.8-.4-4H24v7.3h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36.2 45 30.9 45 24.5z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4l-7.1-5.5C2.9 17 2 20.4 2 24s.9 7 2.4 9.9l7.1-5.5z"/><path fill="#EA4335" d="M24 10.3c4.1 0 6.9 1.8 8.5 3.3l6.1-6C34.9 4.1 29.9 2 24 2 15.4 2 8.1 7 4.4 14.1l7.1 5.5C13.3 14.1 18.2 10.3 24 10.3z"/></svg>
+      구글 계정으로 시작하기
+    </button>
+    <p class="ifine">폰을 바꿔도 기록이 남습니다. 나중에 설정에서 켜도 됩니다.</p>
   </div>
 </div>
 
@@ -931,6 +943,28 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
+const APPVER='8.0';
+
+/* ───────── 새 버전 자동 받기 ─────────
+   옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
+   켤 때마다 서버의 index.html을 직접 읽어 버전을 비교하고,
+   다르면 서비스워커와 캐시를 통째로 지우고 한 번만 다시 연다.
+   한 번만 — sessionStorage로 막아서 무한 새로고침이 생기지 않게 한다. */
+(async function autoUpdate(){
+  try{
+    if(sessionStorage.getItem('rc_vcheck'))return;
+    sessionStorage.setItem('rc_vcheck','1');
+    const r=await fetch('index.html?v='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    const m=(await r.text()).match(/APPVER='([\d.]+)'/);
+    if(!m||m[1]===APPVER)return;
+    try{ const rs=await navigator.serviceWorker.getRegistrations();
+         await Promise.all(rs.map(x=>x.unregister())); }catch(e){}
+    try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
+    location.replace(location.pathname+'?v='+m[1]);
+  }catch(e){}
+})();
+
 const DEV = {
   geo:{ start(cb,err){ if(!navigator.geolocation)return null;
           return navigator.geolocation.watchPosition(cb,err,
@@ -3468,10 +3502,12 @@ const FB={
     if(!await FB.init())throw new Error(FB.err||'Firebase 설정값을 먼저 넣어주세요.');
     const p=new firebase.auth.GoogleAuthProvider();
     p.setCustomParameters({prompt:'select_account'});
-    try{ await firebase.auth().signInWithPopup(p); }
+    try{ const res=await firebase.auth().signInWithPopup(p);
+         if(res&&res.user)FB.user=res.user;
+         return res&&res.user||firebase.auth().currentUser||null; }
     catch(e){
       if(/popup|blocked|cancelled|closed/i.test(e.code||e.message||''))
-        return firebase.auth().signInWithRedirect(p);
+        { await firebase.auth().signInWithRedirect(p); return null; }
       throw e;
     }
   },
@@ -3803,6 +3839,20 @@ function obHint(m,fid){
 }
 /* 설문 없이도 바로 쓸 수 있다. 뛰어본 뒤 설정에서 채우면 된다. */
 $('introGo').onclick=()=>obStart();
+$('introGoogle').onclick=async()=>{
+  const er=$('introErr'), bt=$('introGoogle'), was=bt.innerHTML;
+  er.style.display='none'; bt.disabled=true; bt.textContent='잠시만요…';
+  try{
+    const u=await FB.signIn();
+    if(!u)return;                         /* 구글 창으로 넘어간 경우 — 돌아와서 이어진다 */
+    try{ await FB.sync(); }catch(e){}     /* 쓰던 폰이 있으면 설문을 다시 안 묻는다 */
+    if(DEV.store.get('onboarded',false)){ renderHome(); go('home'); }
+    else obStart();
+  }catch(e){
+    er.textContent='로그인하지 못했습니다. '+(e.message||e);
+    er.style.display='block';
+  }finally{ bt.disabled=false; bt.innerHTML=was; }
+};
 $('obSkip').onclick=()=>{
   DEV.store.set('onboarded',true);
   renderHome(); go('home');
@@ -3931,6 +3981,9 @@ S.hr={dev:null,bpm:null,samples:[],max:0,segSamples:[]};
   let fix=false;
   RUNS.forEach(r=>{ if(!r.rid){ r.rid=newRid(r); fix=true; } });
   if(fix)DEV.store.set('runs',RUNS);
+  const vn=$('verNow'); if(vn)vn.textContent='v'+APPVER;
+  const vi=$('verIntro'); if(vi)vi.textContent='v'+APPVER;
+  const tb=$('tlBlock'); if(tb)tb.textContent='v'+APPVER;
   renderHome(); paintFb();
   /* 한 번이라도 로그인한 폰에서만 미리 깨운다.
      안 그러면 로그인 안 쓰는 사람도 열 때마다 400KB를 받는다 */
