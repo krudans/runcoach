@@ -23,6 +23,50 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
+.strow{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:start;
+  padding:12px 0;border-bottom:1px solid var(--line)}
+.strow:last-child{border-bottom:none}
+.strow .ic{font-size:15px;line-height:1.4;text-align:center}
+.strow .ic.p{color:var(--ok)} .strow .ic.f{color:var(--alarm)} .strow .ic.w{color:var(--z3)}
+.strow .nm{font-size:14px;font-weight:600}
+.strow .de{font-size:12px;color:var(--ink-3);margin-top:2px;line-height:1.55;
+  font-family:var(--mono);word-break:break-all}
+.strow .vd{font-size:11.5px;font-weight:700;white-space:nowrap;padding-top:2px}
+.strow .vd.p{color:var(--ok)} .strow .vd.f{color:var(--alarm)} .strow .vd.w{color:var(--z3)}
+.sthd{font-size:11px;letter-spacing:.12em;color:var(--ink-3);font-weight:700;
+  margin:16px 0 2px;text-transform:uppercase}
+/* 로그인 · 온보딩 */
+#gate.on,#onb.on{display:flex;flex-direction:column;min-height:100dvh;padding-bottom:0}
+body.nonav #nav{display:none!important}
+.gpad{flex:1 1 auto;display:flex;flex-direction:column;padding:34px 24px 24px}
+.glogo{width:62px;height:62px;border-radius:17px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.glogo span{color:#fff;font-weight:900;font-size:21px;letter-spacing:-.04em}
+.gtitle{font-size:28px;font-weight:800;line-height:1.3;letter-spacing:-.02em;margin:0}
+.glede{font-size:14.5px;color:var(--ink-2);line-height:1.7;margin:11px 0 0}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;
+  font-size:15px;font-weight:700;color:var(--ink)}
+.gbtn svg{width:19px;height:19px;flex:none}
+.obhead{padding:46px 22px 0}
+.obstep{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--ink-3);font-weight:700}
+.obq{font-size:24px;font-weight:800;line-height:1.35;letter-spacing:-.015em;margin:12px 0 0}
+.obsub{font-size:13.5px;color:var(--ink-2);line-height:1.6;margin:9px 0 0}
+.obbody{flex:1 1 auto;overflow-y:auto;padding:18px 22px 0}
+.oblab{font-size:12.5px;font-weight:700;color:var(--ink-2);margin:18px 0 8px}
+.oblab:first-child{margin-top:0}
+.obgrid{display:grid;gap:8px}
+.obgrid.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.obgrid.c7{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.obopt{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 4px;
+  font-family:var(--mono);font-size:14px;font-weight:700;color:var(--ink);text-align:center}
+.obopt.on{background:#E4F3EC;border:2px solid var(--accent);color:#0A7857;padding:13px 4px}
+.obchk{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line-2,var(--line))}
+.obchk:last-child{border-bottom:none}
+.obchk input{width:19px;height:19px;accent-color:var(--accent);flex:none;padding:0}
+.obchk label{font-size:14px}
+.obfoot{padding:14px 22px calc(18px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line);background:var(--panel)}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
   -webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
@@ -554,13 +598,37 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <input type="file" id="bkFile" accept="application/json" hidden>
   </div>
 
+  <div class="lbl" style="margin:20px 0 9px">계정 · 클라우드 저장</div>
+  <div class="card tight">
+    <div id="fbState" class="meta" style="margin-bottom:10px">설정되지 않았습니다.</div>
+    <div class="row" style="margin-bottom:8px">
+      <button class="btn sm" style="margin:0" id="fbLogin">Google 로그인</button>
+      <button class="btn sm ghost" style="margin:0;flex:0 0 86px" id="fbSync">동기화</button>
+    </div>
+    <button class="btn sm ghost" style="margin:0 0 9px" id="fbCfgT">Firebase 설정값 넣기 ▾</button>
+    <div id="fbCfgBox" hidden>
+      <div class="meta" style="margin-bottom:7px">기본값은 런코치 전용 프로젝트입니다.
+        <b>직접 만든 Firebase 프로젝트</b>를 쓰려면 그 설정값을 붙여넣으세요.</div>
+      <textarea id="fbCfg" rows="5" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "..." }'></textarea>
+      <button class="btn sm" style="margin:8px 0 0" id="fbCfgSave">저장하고 연결</button>
+    </div>
+    <button class="btn sm ghost" style="margin:9px 0 0" id="obAgain">개인정보 · 설문 다시 하기</button>
+  </div>
+
+  <div class="lbl" style="margin:20px 0 9px">자가 점검</div>
+  <div class="card tight">
+    <div class="meta" style="margin-bottom:9px">앱이 스스로 돌려보고 결과를 보여줍니다.
+      새 버전을 올린 뒤 여기서 직접 확인하세요.</div>
+    <button class="btn sm" id="btnSelf" style="margin:0">점검 실행</button>
+  </div>
+
   <div class="lbl" style="margin:20px 0 9px">기록 초기화</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:9px">러닝 기록만 지웁니다. 계획·신발·설정은 남습니다.</div>
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v6.0</b> · 2026-10-13
+    런코치 <b>v6.3</b> · 2026-10-11
   </div>
 </div></div>
 
@@ -585,6 +653,51 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       워치에서 심박 송출을 먼저 켜고, 목록에서 워치 이름을 고르세요.
     </div>
     <button class="btn" id="btnStart">시작</button>
+  </div>
+</div>
+
+<div class="view" id="gate">
+  <div class="gpad">
+    <div class="glogo"><span>RC</span></div>
+    <h1 class="gtitle">받은 훈련을<br>제대로 뛰게 합니다</h1>
+    <p class="glede">계획대로 뛰고 있는지 구간마다 소리로 알려주고,
+      끝나면 근거를 들어 판정합니다.</p>
+    <div style="flex:1 1 auto"></div>
+    <div id="gErr" class="note red" style="margin:0 0 12px" hidden></div>
+    <button class="gbtn" id="gGoogle" style="margin-bottom:9px" hidden>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-2.8-.4-4H24v7.3h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36.2 45 30.9 45 24.5z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4l-7.1-5.5C2.9 17 2 20.4 2 24s.9 7 2.4 9.9l7.1-5.5z"/><path fill="#EA4335" d="M24 10.3c4.1 0 6.9 1.8 8.5 3.3l6.1-6C34.9 4.1 29.9 2 24 2 15.4 2 8.1 7 4.4 14.1l7.1 5.5C13.3 14.1 18.2 10.3 24 10.3z"/></svg>
+      Google로 시작하기
+    </button>
+    <button class="btn" id="gLocal" style="margin:0">이 폰에만 저장하고 시작</button>
+    <p style="font-size:11.5px;color:var(--ink-3);line-height:1.6;margin:11px 0 0;text-align:center" id="gNote">
+      로그인하면 폰을 바꿔도 기록이 남습니다.
+    </p>
+  </div>
+</div>
+
+<div class="view" id="onb">
+  <div class="obhead">
+    <div class="obstep" id="obStep">STEP 1 / 4</div>
+    <h1 class="obq" id="obQ">—</h1>
+    <p class="obsub" id="obSub">—</p>
+  </div>
+  <div class="obbody" id="obBody"></div>
+  <div class="obfoot">
+    <div class="note green" id="obHint" style="margin:0 0 10px" hidden></div>
+    <button class="btn" id="obNext" style="margin:0">다음</button>
+    <button class="btn ghost" id="obBack" style="margin:8px 0 0">이전</button>
+  </div>
+</div>
+
+<div class="view" id="selftest">
+  <div class="bar"><button class="sub" id="stBack">← 설정</button>
+    <h1 style="text-align:center">자가 점검</h1><span class="sub" style="visibility:hidden">←</span></div>
+  <div class="pad" style="padding-bottom:80px">
+    <div class="meta" style="margin-bottom:12px">
+      실제 코드를 그대로 돌립니다. 가상 경로를 GPS 입력으로 먹이고, 지난 기록을 재생해
+      같은 판정이 나오는지 봅니다.</div>
+    <button class="btn" id="stRun" style="margin:0 0 14px">점검 시작</button>
+    <div id="stOut"></div>
   </div>
 </div>
 
@@ -1020,15 +1133,33 @@ function wkOf(ds){const d=ds.slice(0,10);
   return d<='2026-10-18'?1:d<='2026-10-25'?2:d<='2026-11-01'?3:4;}
 function plannedWeekKm(ds){const w=wkOf(ds);
   return BLOCK.filter(s=>s.wk===w).reduce((a,s)=>a+(s.dist||0),0);}
+/* 최근 4주 '실제' 주간 거리. 기록이 없으면 온보딩 설문에서 받은 값을 쓴다 */
+function recentWeekKm(){
+  const bins={};
+  RUNS.forEach(r=>{ const w=weekMonday(String(r.date||'').slice(0,10)); if(w)bins[w]=(bins[w]||0)+(r.km||0); });
+  const thisWk=weekMonday(todayStr());
+  const keys=Object.keys(bins).filter(k=>k<thisWk).sort().slice(-4);
+  if(keys.length>=2) return keys.reduce((a,k)=>a+bins[k],0)/keys.length;
+  const sv=(typeof SURVEY!=='undefined'&&SURVEY)?SURVEY.wk:null;
+  if(sv) return sv;
+  return keys.length?bins[keys[0]]:null;
+}
+/* 상한의 분모는 '계획'이 아니라 '계획과 실제 중 작은 쪽'이다.
+   계획을 부풀리면 질 구간 상한도 같이 부풀어버리는 구멍이 있었다. */
+function baseWeekKm(ds){
+  const plan=plannedWeekKm(ds), act=recentWeekKm();
+  return act>0 ? Math.min(plan||act, act) : plan;
+}
 function auditSession(s){
   const out=[], T=TYPES[s.type]||{};
   if(!s.dist)return out;
-  const wk=plannedWeekKm(s.d);
+  const wk=baseWeekKm(s.d);
+  if(!(wk>0))return out;
   if(T.cap&&s.qvol){
     const capKm = s.type==='interval' ? Math.min(10,wk*T.cap)
                 : s.type==='rep' ? Math.min(8,wk*T.cap) : wk*T.cap;
     if(s.qvol>capKm+0.01) out.push(
-      `질 구간 ${s.qvol}km가 상한 ${capKm.toFixed(1)}km를 초과 (주간 ${wk.toFixed(1)}km의 ${(s.qvol/wk*100).toFixed(1)}%, 기준 ${(T.cap*100)}%)`);
+      `질 구간 ${s.qvol}km가 상한 ${capKm.toFixed(1)}km를 초과 (기준 주간 ${wk.toFixed(1)}km의 ${(s.qvol/wk*100).toFixed(1)}%, 한도 ${(T.cap*100)}%)`);
   }
   if(T.bout&&s.bout){
     if(s.bout>T.bout[1]+1) out.push(
@@ -1046,6 +1177,7 @@ let CURVIEW='home';
 const TABOF={run:'runtab',confirm:'runtab',sum:'log',settings:'home',alerts:'home'};
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
   CURVIEW=id;
+  document.body.classList.toggle('nonav',id==='gate'||id==='onb');
   const t=TABOF[id]||id;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   window.scrollTo(0,0);}
@@ -1067,6 +1199,8 @@ let EXITING=false;
 const BACKTO={confirm:'runtab',settings:'home',alerts:'home',sum:'log'};
 function appBack(){
   if(S.running&&CURVIEW==='run'){ DEV.buzz(50); return; }
+  if(CURVIEW==='gate'){ DEV.buzz(50); return; }
+  if(CURVIEW==='onb'){ if(OB.i>0)$('obBack').onclick(); else DEV.buzz(50); return; }
   if(CURVIEW==='sum'&&S.result&&!S.result._saved&&
      !confirm('저장하지 않은 세션 결과가 있습니다.\n나가면 사라집니다. 계속할까요?'))return;
   const p=BACKTO[CURVIEW];
@@ -2308,6 +2442,7 @@ $('btnSave').onclick=()=>{
   if(!S.result)return;
   S.result._saved=true;
   Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,note:$('sNote').value.trim()});
+  if(!S.result.rid)S.result.rid=newRid(S.result);
   RUNS.push(S.result);
   if(!DEV.store.set('runs',RUNS)){ RUNS.forEach(r=>{if(r.track&&r.track.length>300)r.track=simplify(r.track,300);});
     DEV.store.set('runs',RUNS); }
@@ -2367,6 +2502,7 @@ function deleteRun(idx){
   if(r.shoe){ const sh=SHOES.find(x=>x.name===r.shoe);
     if(sh){ sh.km=Math.max(0,sh.km-r.km); DEV.store.set('shoes',SHOES); } }
   RUNS.splice(idx,1); DEV.store.set('runs',RUNS);
+  markDeleted(r.rid);
   renderLog(); renderHome();
 }
 /* 특정 계획일(planId)의 기록을 전부 지운다 — 홈의 '완료 취소'용 */
@@ -2377,7 +2513,7 @@ function undoPlanDay(planId){
   if(!confirm(`오늘 기록 ${hits.length}건 (${km.toFixed(2)}km)을 삭제하고\n'완료' 표시를 풉니다. 되돌릴 수 없습니다.`))return;
   hits.reverse().forEach(([r,i])=>{
     if(r.shoe){ const sh=SHOES.find(x=>x.name===r.shoe); if(sh)sh.km=Math.max(0,sh.km-r.km); }
-    RUNS.splice(i,1); });
+    RUNS.splice(i,1); markDeleted(r.rid); });
   DEV.store.set('runs',RUNS); DEV.store.set('shoes',SHOES);
   renderHome();
 }
@@ -2632,7 +2768,7 @@ $('btnFresh').onclick=async()=>{
    브라우저 저장소는 사용자가 '인터넷 사용 기록 삭제'를 하면 같이 지워진다.
    영구 보관을 요청해 두고(기기 용량이 부족해도 먼저 지워지지 않는다),
    언제든 파일로 빼고 되돌릴 수 있게 한다. */
-const BK_KEYS=['runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc'];
+const BK_KEYS=['runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc','survey','onboarded','del'];
 /* API 키는 백업에 넣지 않는다 — 파일로 새어나가면 안 되는 값이다 */
 async function paintStore(){
   const el=$('storeState'); if(!el)return;
@@ -2689,10 +2825,218 @@ $('bkFile').onchange=async e=>{
   }catch(err){ alert('불러오지 못했습니다 — '+err.message); }
 };
 
+/* ───────── 자가 점검 ─────────
+   말로 "됐습니다" 하는 대신, 앱이 자기 코드를 직접 돌려서 숫자로 보여준다.
+   가상 좌표를 진짜 onPos에 먹이고, 지난 기록을 재생해 같은 판정이 나오는지 본다. */
+$('btnSelf').onclick=()=>{ go('selftest'); };
+$('stBack').onclick=()=>{ go('settings'); };
+
+const stRow=(ok,nm,de,vd)=>{
+  const c = ok===true?'p':ok===false?'f':'w';
+  const ic= ok===true?'✓':ok===false?'✕':'!';
+  return `<div class="strow"><div class="ic ${c}">${ic}</div>`+
+         `<div><div class="nm">${nm}</div><div class="de">${de}</div></div>`+
+         `<div class="vd ${c}">${vd}</div></div>`;
+};
+
+function stSim(speedFn, secs, hz, acc){
+  /* 가상 러너를 만들어 진짜 거리 파이프라인(onPos)에 통과시킨다 */
+  const M=111320, t0=Date.now();
+  S.session={ceiling:null,segs:[],dist:99}; S.T={};
+  S.dist=0; S.pts=[]; S.win=[]; S.anchor=null; S.smooth=null; S.lastMove=0;
+  S.altBuf=[]; S.asc=0; S.desc=0; S.lastAlt=null;
+  S.running=true; S.paused=false;
+  let along=0, truth=0, t=0;
+  const N=Math.round(secs*hz);
+  for(let k=0;k<N;k++){
+    const v=speedFn(t); t=k/hz;
+    along+=v/hz; truth+=v/hz;
+    onPos({coords:{latitude:37.49+(along+(Math.random()-0.5)*3)/M,
+      longitude:126.72+((Math.random()-0.5)*3)/(M*0.79),
+      accuracy:acc,altitude:null,altitudeAccuracy:null},timestamp:t0+t*1000});
+  }
+  const got=S.dist;
+  S.running=false;
+  return {truth, got};
+}
+
+async function selfTest(){
+  if(S.running){ alert('러닝 중에는 점검할 수 없습니다.'); return; }
+  const out=$('stOut'); const put=h=>{ out.innerHTML+=h; };
+  out.innerHTML='<div class="meta">돌리는 중…</div>';
+  const snap={session:S.session,T:S.T,segRecords:S.segRecords,splits:S.splits,
+              hr:S.hr,cad:S.cad,liveRows:S.liveRows,pts:S.pts,dist:S.dist};
+  const speak=DEV.speak, buzz=DEV.buzz; DEV.speak=()=>{}; DEV.buzz=()=>{};
+  /* 재생 도중 finish()가 결과 화면으로 튀지 않게 막는다 */
+  const _show=show; show=()=>{};
+  const wait=()=>new Promise(r=>setTimeout(r,20));
+  out.innerHTML='';
+  let pass=0, fail=0;
+  const add=(ok,nm,de,vd)=>{ put(stRow(ok,nm,de,vd)); if(ok===true)pass++; else if(ok===false)fail++; };
+
+  try{
+    /* ── 1. 거리 측정 ── */
+    put('<div class="sthd">거리 측정</div>');
+    const cases=[
+      ['달리기 7\'25" 30분', t=>2.247, 1800, 2.7, 4, 2.0],
+      ['걷기 1.0m/s 10분',   t=>1.0,   600,  2.7, 4, 3.0],
+      ['신호등 — 뛰다 60초 정지', t=>((t%300)<240?2.247:0), 1200, 2.7, 4, 3.0],
+      ['10분 완전 정지',     t=>0,     600,  2.7, 4, null],
+    ];
+    for(const [nm,f,secs,hz,acc,lim] of cases){
+      await wait();
+      const r=stSim(f,secs,hz,acc);
+      if(lim===null){
+        const m=Math.round(r.got);
+        add(m<=60, nm, `쌓인 거리 ${m}m (기준 60m 이하)`, `${m}m`);
+      }else{
+        const err=(r.got/r.truth-1)*100;
+        add(Math.abs(err)<=lim, nm,
+          `실제 ${(r.truth/1000).toFixed(2)}km → 측정 ${(r.got/1000).toFixed(2)}km`,
+          `${err>0?'+':''}${err.toFixed(1)}%`);
+      }
+    }
+
+    /* ── 2. 판정 재생 ── */
+    put('<div class="sthd">판정 — 10/11 기록 재생</div>');
+    await wait();
+    const sp=[475,458,476,487,473,464,465,418,410,414,404,398];   /* 그날 실제 1km 스플릿 */
+    const i=BLOCK.findIndex(x=>x.type==='recovery'&&x.dist>=12);
+    const sess=sessionOf(i>=0?i:0), T=TYPES[sess.type];
+    Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
+      dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
+      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],
+      ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
+      lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,
+      hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
+      cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
+    buildRail();
+    const M=111320, t0=Date.now(); let along=0,t=0,lastTick=0,hr=142;
+    for(let km=0;km<sp.length&&S.running;km++){
+      const v=1000/sp[km];
+      for(let k=0;k<sp[km]*2.7&&S.running;k++){
+        t+=1/2.7; along+=v/2.7;
+        hr=142+Math.round(t/5400*26); S.hr.bpm=hr; S.hr.samples.push(hr);
+        S.hr.segSamples.push(hr); S.hr.max=Math.max(S.hr.max,hr);
+        onPos({coords:{latitude:37.49+(along+(Math.random()-0.5)*3)/M,
+          longitude:126.72+((Math.random()-0.5)*3)/(M*0.79),accuracy:4,
+          altitude:null,altitudeAccuracy:null},timestamp:t0+t*1000});
+        if(t*1000-lastTick>=500){ lastTick=t*1000; S.t0=Date.now()-t*1000; S.pausedAt=0; onTick(); }
+      }
+      if(km%4===3)await wait();
+    }
+    const simKm=S.dist/1000, simPace=S.elapsed/simKm, ceilPct=Math.round(S.ceilSec/S.elapsed*100);
+    S.running=false;
+    add(Math.abs(simKm-12.07)<0.35,'거리',`나이키 12.07km → 앱 ${simKm.toFixed(2)}km`,`${simKm.toFixed(2)}km`);
+    add(Math.abs(simPace-445)<12,'평균 페이스',`나이키 7'25" → 앱 ${fmtPace(simPace)}`,fmtPace(simPace));
+    add(ceilPct>10,'상한 초과 판정',`초과 ${ceilPct}% — 10% 넘으면 불합격이어야 함`,
+        ceilPct>10?'불합격 ✓':'놓침');
+    add(S.splits.length>=11,'1km 랩',`${S.splits.length}개 기록됨 (11개 이상)`,`${S.splits.length}개`);
+
+    /* ── 3. 프로필 연결 ── */
+    put('<div class="sthd">프로필 → 존 → 블록</div>');
+    await wait();
+    const keepP=JSON.parse(JSON.stringify(PROF));
+    const before={v:VDOT, I:Math.round(Z.I), z1:ZONES[0][1],
+                  rep:Math.round((BLOCK.find(x=>x.repTarget)||{}).repTarget||0)};
+    PROF.race={m:10000,sec:38*60+30,kind:'race'};
+    recalcProfile(); recalcTypes(); BLOCK=buildBlock();
+    const after={v:VDOT, I:Math.round(Z.I),
+                 rep:Math.round((BLOCK.find(x=>x.repTarget)||{}).repTarget||0)};
+    PROF=keepP; recalcProfile(); recalcTypes(); BLOCK=buildBlock();
+    add(after.v>before.v+5,'VDOT 반영',
+      `10km 45:46 → ${before.v.toFixed(1)} / 38:30 → ${after.v.toFixed(1)}`,
+      `+${(after.v-before.v).toFixed(1)}`);
+    add(after.rep<before.rep-20,'블록 목표 연동',
+      `인터벌 ${fmtPace(before.rep)} → ${fmtPace(after.rep)}`,
+      `${before.rep-after.rep}초`);
+    add(Math.abs(VDOT-before.v)<0.01,'원래대로 복귀',
+      `VDOT ${VDOT.toFixed(1)} · Z1 ≤${ZONES[0][1]}`,'복구됨');
+
+    /* ── 4. 문헌 상한 ── */
+    put('<div class="sthd">문헌 기준 검사</div>');
+    await wait();
+    const warns=[]; BLOCK.forEach(x=>{ const w=auditSession(x);
+      if(w.length)warns.push(`${x.d.slice(5,10)} ${x.t}`); });
+    add(true,'상한 검사 동작',
+      warns.length?`${warns.length}건 적발 — ${warns.join(' / ')}`:'걸리는 세션 없음',
+      `${warns.length}건`);
+
+    /* ── 5. 기기 ── */
+    /* ── 5. 계정 · 온보딩 · 상한 분모 ── */
+    put('<div class="sthd">온보딩 · 계정</div>');
+    await wait();
+    {
+      const oSur=SURVEY, oProf=PROF, oDel=DEV.store.get('del',[]);
+      /* 설문 → 주간 기준 거리 */
+      const d={freq:4.5,per:7.5,long:15};
+      const wk=surveyWk(d);
+      add(Math.abs(wk-33.8)<0.3,'설문 → 주간 기준',
+          `주 4.5회 × 7.5km = ${wk}km/주`,`${wk}km`);
+      /* 1회 평균이 최장보다 길다고 답하면 작은 쪽을 믿는다 */
+      const w2=surveyWk({freq:4,per:12,long:4});
+      add(w2===16,'앞뒤가 안 맞는 답 보정','1회 12km인데 최장 4km → 최장을 믿음',`${w2}km`);
+      /* 상한 분모 — 계획이 부풀어도 상한은 같이 안 부푼다 */
+      SURVEY={wk:20};
+      const plan=plannedWeekKm('2026-10-15'), base=baseWeekKm('2026-10-15');
+      add(base<=20.001,'질 구간 상한 분모',
+          `계획 ${plan.toFixed(1)}km가 아니라 실제 기준 ${base.toFixed(1)}km를 쓴다`,
+          `${base.toFixed(1)}km`);
+      /* 프로필 반영 */
+      const hm=estHrMax(50);
+      add(hm===173,'나이 → 최대심박 추정','50세 → 208 − 0.7 × 50 = 173',`${hm}`);
+      /* 설정값 읽기 */
+      const cfg=parseFbCfg('const firebaseConfig = { apiKey: "A1", authDomain: "x.firebaseapp.com", projectId: "p1" };');
+      add(!!(cfg&&cfg.projectId==='p1'),'Firebase 설정값 읽기',
+          cfg?`projectId ${cfg.projectId} 인식`:'읽지 못함', cfg?'OK':'실패');
+      add(parseFbCfg('아무 글자')===null,'엉뚱한 값은 거른다','설정값이 아니면 저장하지 않는다','OK');
+      /* 백업에 API 키가 섞이지 않는지 */
+      add(!BK_KEYS.some(k=>/aikey|fbcfg|acct/i.test(k)),'백업에 열쇠가 안 들어간다',
+          'API 키·계정 토큰은 백업 파일에 쓰지 않는다','OK');
+      SURVEY=oSur; PROF=oProf; DEV.store.set('del',oDel);
+      recalcProfile(); recalcTypes(); BLOCK=buildBlock();
+    }
+    await wait();
+    add(true,'클라우드 저장 상태',
+        !FBCFG?'설정값 없음 — 이 폰에만 저장됩니다'
+        :FB.user?`${FB.user.email} 로 저장 중`:'설정값 있음 — 로그인하면 저장됩니다',
+        !FBCFG?'로컬':FB.user?'연결':'대기');
+
+    put('<div class="sthd">이 폰에서 쓸 수 있는 것</div>');
+    await wait();
+    add(!!navigator.geolocation,'GPS',navigator.geolocation?'사용 가능':'없음',
+        navigator.geolocation?'OK':'불가');
+    add(!!navigator.bluetooth,'블루투스 심박',
+        navigator.bluetooth?(BT.name?`지난 기기: ${BT.name}`:'사용 가능'):'이 브라우저는 불가 — 크롬으로 여세요',
+        navigator.bluetooth?'OK':'불가');
+    add(!!window.DeviceMotionEvent,'가속도계 (케이던스)',
+        window.DeviceMotionEvent?'사용 가능':'없음', window.DeviceMotionEvent?'OK':'불가');
+    add('speechSynthesis' in window,'음성 안내',
+        ('speechSynthesis' in window)?'사용 가능':'없음', ('speechSynthesis' in window)?'OK':'불가');
+    add(!!navigator.wakeLock,'화면 켜두기',navigator.wakeLock?'사용 가능':'없음',
+        navigator.wakeLock?'OK':'불가');
+    let stOK=false; try{ localStorage.setItem('rc_t','1'); localStorage.removeItem('rc_t'); stOK=true; }catch(e){}
+    add(stOK,'저장소',stOK?`러닝 ${RUNS.length}건 저장됨`:'쓸 수 없음',stOK?'OK':'불가');
+
+  }catch(e){
+    put(stRow(false,'점검 중 오류',String(e&&e.message||e),'오류')); fail++;
+  }finally{
+    DEV.speak=speak; DEV.buzz=buzz; show=_show;
+    Object.assign(S,snap); S.running=false; show('selftest');
+  }
+
+  out.innerHTML = `<div class="note ${fail?'red':'green'}" style="margin:0 0 12px">`+
+    `<b>${pass}개 통과 · ${fail}개 실패</b><br>`+
+    (fail?'실패 항목을 알려주세요.':'전부 정상입니다.')+`</div>`+out.innerHTML;
+  renderHome();
+}
+$('stRun').onclick=()=>{ $('stRun').disabled=true; selfTest().finally(()=>{$('stRun').disabled=false;}); };
+
 $('wipeRuns').onclick=()=>{
   if(!RUNS.length)return alert('지울 기록이 없습니다.');
   if(!confirm(`러닝 기록 ${RUNS.length}건을 모두 삭제합니다.\n되돌릴 수 없습니다.`))return;
   if(!confirm('정말 삭제할까요?'))return;
+  RUNS.forEach(r=>markDeleted(r.rid));
   RUNS=[]; DEV.store.set('runs',RUNS);
   SHOES.forEach(s=>s.km=0); DEV.store.set('shoes',SHOES);
   renderTools(); renderHome(); alert('모두 삭제했습니다.');
@@ -2786,11 +3130,561 @@ $('pSave').onclick=()=>{
   alert(`다시 계산했습니다.\nVDOT ${VDOT.toFixed(1)} · 최대심박 ${HRMAX}\n훈련 페이스와 심박대가 전부 갱신됐습니다.`);
 };
 
+
+/* ══════════════════════════════════════════════════════════════════════
+   계정 · 클라우드 저장 · 온보딩
+   ──────────────────────────────────────────────────────────────────────
+   폰이 바뀌어도, 폰을 잃어도 기록은 남아야 한다. 그래서 구글 로그인 한 번으로
+   계정을 만들고, 그 계정 아래에 설정과 기록을 둔다.
+   파이어베이스 설정값은 사용자가 자기 구글 계정에서 만들어 붙여넣는다 —
+   내가 대신 만들어줄 수 없는 값이다.
+   ══════════════════════════════════════════════════════════════════════ */
+const FBVER='10.12.2';
+/* 이 앱 전용 파이어베이스 프로젝트 (runcoach-120ff).
+   웹 API 키는 비밀이 아니다 — 구글이 공개를 전제로 발급한다.
+   실제 보호는 ① 승인된 도메인 ② 보안 규칙(users/{uid} 본인만)이 한다.
+   다른 프로젝트를 쓰고 싶으면 설정에서 덮어쓸 수 있다. */
+const FB_BUILTIN={
+  apiKey:"AIzaSyDlSwvduhTI3Locdls_wYFn70OtTkPoK8g",
+  authDomain:"runcoach-120ff.firebaseapp.com",
+  projectId:"runcoach-120ff",
+  storageBucket:"runcoach-120ff.firebasestorage.app",
+  messagingSenderId:"306293727512",
+  appId:"1:306293727512:web:f94452abc11d8fb6613e6d"
+};
+let FBCFG=DEV.store.get('fbcfg',null)||FB_BUILTIN;
+let ACCT=DEV.store.get('acct',{mode:null,uid:null,email:null});
+
+/* 붙여넣은 설정값에서 필요한 키만 뽑는다. eval 하지 않는다 —
+   남이 준 글자를 실행하는 길은 열어두지 않는다. */
+function parseFbCfg(t){
+  const keys=['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'];
+  const o={};
+  keys.forEach(k=>{ const m=String(t).match(new RegExp('["\\\']?'+k+'["\\\']?\\s*:\\s*["\\\']([^"\\\']+)["\\\']'));
+    if(m)o[k]=m[1]; });
+  return (o.apiKey&&o.projectId&&o.authDomain)?o:null;
+}
+
+const FB={
+  on:false, user:null, busy:false, err:null,
+  cfg(){ return FBCFG; },
+  async load(){
+    if(window.firebase&&firebase.firestore)return true;
+    const base=`https://www.gstatic.com/firebasejs/${FBVER}/`;
+    for(const f of ['firebase-app-compat.js','firebase-auth-compat.js','firebase-firestore-compat.js']){
+      await new Promise((res,rej)=>{ const s=document.createElement('script');
+        s.src=base+f; s.onload=res;
+        s.onerror=()=>rej(new Error('구글 서버에서 로그인 모듈을 받지 못했습니다. 인터넷 연결을 확인하세요.')); 
+        document.head.appendChild(s); });
+    }
+    return !!(window.firebase&&firebase.firestore);
+  },
+  async init(){
+    if(!FBCFG)return false;
+    if(FB.on)return true;
+    try{
+      await FB.load();
+      if(!firebase.apps.length)firebase.initializeApp(FBCFG);
+      firebase.auth().onAuthStateChanged(u=>{
+        FB.user=u||null;
+        if(u){ ACCT={mode:'cloud',uid:u.uid,email:u.email||null};
+               DEV.store.set('acct',ACCT); }
+        paintFb(); paintGate();
+        if(u&&!FB.busy)FB.sync().catch(()=>{});
+      });
+      try{ await firebase.auth().getRedirectResult(); }catch(e){}
+      FB.on=true; FB.err=null;
+    }catch(e){ FB.err=e.message||String(e); }
+    paintFb();
+    return FB.on;
+  },
+  async signIn(){
+    if(!await FB.init())throw new Error(FB.err||'Firebase 설정값을 먼저 넣어주세요.');
+    const p=new firebase.auth.GoogleAuthProvider();
+    p.setCustomParameters({prompt:'select_account'});
+    try{ await firebase.auth().signInWithPopup(p); }
+    catch(e){
+      if(/popup|blocked|cancelled|closed/i.test(e.code||e.message||''))
+        return firebase.auth().signInWithRedirect(p);
+      throw e;
+    }
+  },
+  async signOut(){ try{ await firebase.auth().signOut(); }catch(e){}
+    ACCT={mode:'local',uid:null,email:null}; DEV.store.set('acct',ACCT); paintFb(); },
+  ref(){ const u=FB.user; if(!u)return null;
+    return firebase.firestore().collection('users').doc(u.uid); },
+
+  /* 설정 문서 하나 + 기록은 한 건씩 따로.
+     한 문서에 다 넣으면 1MB 한계에 금방 닿는다. */
+  SETK:['prof','survey','shoes','props','adj','dist','hero','lapc','rhr','hikes','del','onboarded'],
+  async pull(){
+    const r=FB.ref(); if(!r)return 0;
+    const snap=await r.get();
+    const cloud=snap.exists?(snap.data()||{}):{};
+    const mine=+DEV.store.get('upd',0)||0, theirs=+cloud.updatedAt||0;
+    const myDel=DEV.store.get('del',[]);          /* 내가 지운 표는 덮어쓰기 전에 챙긴다 */
+    if(theirs>mine){
+      FB.SETK.forEach(k=>{ if(cloud[k]!==undefined&&cloud[k]!==null)DEV.store.set(k,cloud[k]); });
+      DEV.store.set('upd',theirs);
+      reloadLocals();
+    }
+    const del=new Set(myDel.concat(cloud.del||[]).concat(DEV.store.get('del',[])));
+    DEV.store.set('del',[...del]);
+    /* 다른 폰에서 지운 기록은 이 폰에서도 사라져야 한다 */
+    let cut=0;
+    for(let i=RUNS.length-1;i>=0;i--) if(del.has(RUNS[i].rid)){ RUNS.splice(i,1); cut++; }
+    if(cut)DEV.store.set('runs',RUNS);
+    const rs=await r.collection('runs').get();
+    const have=new Set(RUNS.map(x=>x.rid));
+    let added=0;
+    rs.forEach(d=>{ const v=d.data();
+      if(!v||!v.rid)return;
+      if(del.has(v.rid)||have.has(v.rid))return;
+      RUNS.push(v); have.add(v.rid); added++; });
+    if(added){ RUNS.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+      DEV.store.set('runs',RUNS); }
+    return added||cut;
+  },
+  async push(){
+    const r=FB.ref(); if(!r)return 0;
+    const o={updatedAt:Date.now()};
+    FB.SETK.forEach(k=>{ const v=DEV.store.get(k,null); if(v!==null)o[k]=v; });
+    o.email=(FB.user&&FB.user.email)||null;
+    await r.set(o,{merge:true});
+    DEV.store.set('upd',o.updatedAt);
+    const db=firebase.firestore();
+    let n=0;
+    for(let i=0;i<RUNS.length;i+=400){
+      const b=db.batch();
+      RUNS.slice(i,i+400).forEach(x=>{
+        if(!x.rid)x.rid=newRid(x);
+        const c=JSON.parse(JSON.stringify(x));
+        if(c.track&&c.track.length>300)c.track=c.track.filter((_,j)=>j%Math.ceil(c.track.length/300)===0);
+        b.set(r.collection('runs').doc(x.rid),c,{merge:true}); n++; });
+      await b.commit();
+    }
+    const del=DEV.store.get('del',[]);
+    if(del.length){ const b=db.batch();
+      del.slice(0,400).forEach(id=>b.delete(r.collection('runs').doc(id)));
+      await b.commit(); }
+    return n;
+  },
+  async sync(){
+    if(!FB.user||FB.busy)return;
+    FB.busy=true; paintFb();
+    try{ const got=await FB.pull(); await FB.push();
+      FB.err=null; FB.last=Date.now();
+      if(got){ renderHome(); }
+      return got;
+    }catch(e){ FB.err=e.message||String(e); throw e; }
+    finally{ FB.busy=false; paintFb(); }
+  }
+};
+const newRid=r=>String((r&&r.date)||todayStr()).replace(/[^0-9]/g,'').slice(0,14)
+  +'-'+Math.random().toString(36).slice(2,8);
+
+/* 저장소에서 다시 읽어 메모리 변수를 맞춘다 — 클라우드에서 끌어온 뒤에 쓴다 */
+function reloadLocals(){
+  RUNS=DEV.store.get('runs',RUNS); SHOES=DEV.store.get('shoes',SHOES);
+  PROPS=DEV.store.get('props',PROPS); ADJ=DEV.store.get('adj',ADJ);
+  DIST=DEV.store.get('dist',DIST); SURVEY=DEV.store.get('survey',SURVEY);
+  PROF=Object.assign({},DEFAULT_PROF,DEV.store.get('prof',PROF));
+  recalcProfile(); recalcTypes(); BLOCK=buildBlock();
+}
+/* 기록을 지우면 클라우드에서도 지워야 한다 — 지운 표를 남겨둔다 */
+function markDeleted(rid){
+  if(!rid)return;
+  const d=DEV.store.get('del',[]); if(!d.includes(rid))d.push(rid);
+  DEV.store.set('del',d.slice(-500));
+  if(FB.user)FB.sync().catch(()=>{});
+}
+
+function paintFb(){
+  const st=$('fbState'); if(!st)return;
+  const u=FB.user;
+  if(!FBCFG) st.innerHTML='아직 연결되지 않았습니다. 기록은 이 폰에만 있습니다.<br>'+
+    '<b>Firebase 설정값</b>을 넣으면 구글 계정으로 저장됩니다.';
+  else if(!u&&FBCFG===FB_BUILTIN&&!FB.err)
+    st.innerHTML='구글 계정으로 저장할 준비가 됐습니다.<br>로그인하면 폰을 바꿔도 기록이 남습니다.';
+  else if(FB.err) st.innerHTML=`<span style="color:var(--alarm)">${FB.err}</span>`;
+  else if(FB.busy) st.textContent='동기화 중…';
+  else if(u) st.innerHTML=`<b>${u.email||'로그인됨'}</b>으로 저장 중 · 기록 ${RUNS.length}건`+
+    (FB.last?` · 마지막 ${new Date(FB.last).toTimeString().slice(0,5)}`:'');
+  else st.textContent='설정값은 들어왔습니다. 구글 로그인을 누르세요.';
+  $('fbLogin').textContent=u?'로그아웃':'Google 로그인';
+  $('fbSync').disabled=!u||FB.busy;
+}
+$('fbCfgT').onclick=()=>{ const b=$('fbCfgBox'); b.hidden=!b.hidden;
+  if(!b.hidden&&FBCFG)$('fbCfg').value=JSON.stringify(FBCFG,null,1); };
+$('fbCfgSave').onclick=async()=>{
+  const c=parseFbCfg($('fbCfg').value);
+  if(!c)return alert('apiKey · authDomain · projectId 가 보이지 않습니다.\nFirebase 콘솔의 firebaseConfig를 그대로 붙여넣어 주세요.');
+  FBCFG=c; DEV.store.set('fbcfg',c);
+  FB.on=false; $('fbCfgBox').hidden=true;
+  const ok=await FB.init();
+  paintFb(); paintGate();
+  alert(ok?'연결했습니다. 구글 로그인을 눌러주세요.':('연결하지 못했습니다.\n'+(FB.err||'')));
+};
+$('fbLogin').onclick=async()=>{
+  if(FB.user)return FB.signOut();
+  try{ await FB.signIn(); }catch(e){ alert('로그인하지 못했습니다.\n'+(e.message||e)); }
+};
+$('fbSync').onclick=async()=>{
+  try{ const n=await FB.sync(); alert(n?`클라우드에서 ${n}건을 가져왔습니다.`:'최신 상태입니다.'); }
+  catch(e){ alert('동기화하지 못했습니다.\n'+(e.message||e)); }
+};
+$('obAgain').onclick=()=>{ obStart(true); };
+
+/* ═════ 첫 화면 — 로그인 ═════ */
+function paintGate(){
+  const g=$('gGoogle'); if(!g)return;
+  g.hidden=!FBCFG;
+  $('gNote').textContent = FBCFG
+    ? '로그인하면 폰을 바꿔도 기록이 남습니다.'
+    : '먼저 이 폰에만 저장하고 시작해도 됩니다. 클라우드 저장은 설정에서 켤 수 있습니다.';
+}
+$('gGoogle').onclick=async()=>{
+  $('gErr').hidden=true; $('gGoogle').disabled=true;
+  try{
+    await FB.signIn();
+    if(!FB.user)return;                      /* 리다이렉트로 넘어간 경우 — 돌아와서 이어진다 */
+    try{ await FB.sync(); }catch(e){}        /* 쓰던 폰이 있으면 설문을 다시 묻지 않는다 */
+    if(DEV.store.get('onboarded',false)){ renderHome(); go('home'); }
+    else obStart();
+  }catch(e){ $('gErr').textContent=e.message||String(e); $('gErr').hidden=false; }
+  finally{ $('gGoogle').disabled=false; }
+};
+$('gLocal').onclick=()=>{ ACCT={mode:'local',uid:null,email:null};
+  DEV.store.set('acct',ACCT); obStart(); };
+
+/* ═════ 온보딩 — 묻는 것은 여섯 개뿐 ═════ */
+let SURVEY=DEV.store.get('survey',{});
+const OBOPT={
+  freq:[{l:'0~1',v:0.5},{l:'2~3',v:2.5},{l:'4~5',v:4.5},{l:'6+',v:6.5}],
+  per :[{l:'~3km',v:2.5},{l:'3~5',v:4},{l:'5~10',v:7.5},{l:'10+',v:12}],
+  long:[{l:'~5km',v:4},{l:'5~10',v:7.5},{l:'10~21',v:15},{l:'21+',v:25}],
+  rd  :[{l:'5km',v:5000},{l:'10km',v:10000},{l:'하프',v:21097},{l:'없음',v:0}],
+  rw  :[{l:'1달 내',v:2},{l:'1~3달',v:8},{l:'3~6달',v:18},{l:'더 전',v:30}],
+  twd :[{l:'30분',v:30},{l:'40분',v:40},{l:'60분',v:60},{l:'90분+',v:90}],
+  twe :[{l:'40분',v:40},{l:'1시간',v:60},{l:'90분',v:90},{l:'2시간+',v:120}]
+};
+const DOW=['월','화','수','목','금','토','일'];
+let OB={i:0,d:{}};
+const surveyWk=d=>{
+  if(!d.freq||!d.per)return null;
+  /* 주 횟수 × 1회 거리. 최장 거리가 1회 평균보다 작다고 답하면 작은 쪽을 믿는다 */
+  const per=Math.min(d.per, d.long||d.per);
+  return Math.round(d.freq*per*10)/10;
+};
+function obStart(again){
+  /* 처음 쓰는 사람에게는 비어 있어야 한다 — 남의 기록이 기본값으로 들어가면 안 된다 */
+  const had=DEV.store.get('prof',null), r=(had&&had.race)||null;
+  OB={i:0,d:Object.assign({
+    age: had?PROF.age:null, w: had?PROF.w:null, rhr: had?PROF.rhr:null,
+    rd: r?r.m:0, rt: r?r.sec:null, rk: r?(r.kind||'race'):'race'
+  },SURVEY)};
+  if(SURVEY.days&&SURVEY.days.length)OB.d.days=SURVEY.days.slice();
+  if(!OB.d.days||!OB.d.days.length)OB.d.days=['화','목','토','일'];
+  if(!OB.d.twd)OB.d.twd=40;
+  if(!OB.d.twe)OB.d.twe=90;
+  obPaint(); show('onb');
+}
+const obEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+function obTags(key,multi){
+  const o=OBOPT[key]||[];
+  return `<div class="obgrid c4" data-k="${key}">`+o.map(x=>
+    `<button type="button" class="obopt${OB.d[key]===x.v?' on':''}" data-v="${x.v}">${x.l}</button>`
+  ).join('')+`</div>`;
+}
+const OBSTEP=[
+ /* 1 ─ 가져오기 */
+ {q:'이미 달린 기록이<br>있으신가요?',
+  s:'한 번 읽어오면 질문 세 개를 건너뜁니다. 나이키·스트라바로 뛰셨어도 내보낸 파일에 다 들어 있습니다.',
+  next:'기록 없이 계속',
+  body(){ return `
+    <button type="button" class="gbtn" id="obGpx" style="justify-content:flex-start;gap:12px;text-align:left">
+      <span style="flex:1 1 auto">GPX · TCX 파일로 넣기<br>
+        <span style="font-size:11.5px;color:var(--ink-3);font-weight:500">내보내 둔 기록이 있을 때 · 여러 개 한꺼번에</span></span>
+      <span style="color:var(--ink-3)">›</span></button>
+    <input type="file" id="obFile" accept=".gpx,.tcx,application/gpx+xml,text/xml" multiple hidden>
+    <button type="button" class="gbtn" id="obHealth" style="justify-content:flex-start;gap:12px;text-align:left">
+      <span style="flex:1 1 auto">삼성 헬스 · 애플 건강에서 가져오기<br>
+        <span style="font-size:11.5px;color:var(--ink-3);font-weight:500">앱스토어 버전에서 연결됩니다</span></span>
+      <span style="color:var(--ink-3)">›</span></button>
+    <div class="card tight" style="margin-top:14px">
+      <div class="meta" style="margin-bottom:9px">가져오면 이게 채워집니다</div>
+      <div class="row" style="text-align:center">
+        <div><div class="meta">주간 거리</div><div style="font-family:var(--mono);font-weight:700">${OB.d.wk?OB.d.wk+'km':'—'}</div></div>
+        <div><div class="meta">최장 1회</div><div style="font-family:var(--mono);font-weight:700">${OB.d.gpxLong?OB.d.gpxLong+'km':'—'}</div></div>
+        <div><div class="meta">주 횟수</div><div style="font-family:var(--mono);font-weight:700">${OB.d.gpxFreq?OB.d.gpxFreq+'회':'—'}</div></div>
+      </div>
+      <div class="meta" id="obGpxNote" style="margin-top:9px"${OB.d.gpxN?'':' hidden'}>${OB.d.gpxN?`${OB.d.gpxN}건을 읽었습니다. 다음 화면에서 확인해 주세요.`:''}</div>
+    </div>`;
+  },
+  wire(){
+    $('obGpx').onclick=()=>$('obFile').click();
+    $('obFile').onchange=e=>obImport(e.target.files);
+    $('obHealth').onclick=()=>alert('웹에서는 건강 앱을 직접 읽을 수 없습니다.\n앱스토어 버전에서 연결됩니다.\n\n지금은 해당 앱에서 GPX로 내보내 넣어주세요.');
+  },
+  ok(){ return true; }},
+
+ /* 2 ─ 설문 */
+ {q:'요즘 얼마나<br>달리고 계신가요?',
+  s:'실력이 아니라 <b>몸이 감당하고 있는 양</b>을 봅니다. 둘은 다릅니다.',
+  body(){ const wk=surveyWk(OB.d);
+    return `<div class="oblab">일주일에 몇 번</div>${obTags('freq')}
+      <div class="oblab">보통 한 번에</div>${obTags('per')}
+      <div class="oblab">가장 길게 뛴 거리</div>${obTags('long')}
+      <div class="card tight" style="margin-top:16px">
+        <div class="meta">여기까지로 계산된 것</div>
+        <div style="margin-top:4px"><b style="font-family:var(--mono);font-size:22px">${wk??'—'}</b>
+          <span class="meta"> km / 주 · 훈련량의 상한을 여기서 잡습니다</span></div>
+      </div>`; },
+  ok(){ return OB.d.freq&&OB.d.per&&OB.d.long ? true : '세 가지 다 골라주세요.'; }},
+
+ /* 3 ─ 몸 · 기록 · 문진 */
+ {q:'몸과 기록을<br>알려주세요',
+  s:'나이로 심박대가, 기록으로 훈련 페이스가 나옵니다. 기록이 없으면 비워두세요.',
+  body(){ const d=OB.d;
+    return `<div class="oblab">몸</div>
+      <div class="row">
+        <div><div class="meta">나이</div><input type="number" id="obAge" inputmode="numeric" value="${d.age||''}"></div>
+        <div><div class="meta">체중 kg</div><input type="number" id="obW" inputmode="decimal" value="${d.w||''}"></div>
+        <div><div class="meta">안정시 심박</div><input type="number" id="obRHR" inputmode="numeric" value="${d.rhr||''}"></div>
+      </div>
+      <div class="meta" style="margin-top:6px" id="obHrNote"></div>
+      <div class="oblab">최근 기록</div>${obTags('rd')}
+      <div id="obRecBox"${d.rd?'':' hidden'} style="margin-top:10px">
+        <div class="row">
+          <div style="flex:1 1 auto"><div class="meta">기록</div>
+            <input type="text" id="obRT" inputmode="numeric" placeholder="45:46" value="${d.rt?obEsc(fmtClock(d.rt)):''}"></div>
+        </div>
+        <div class="meta" style="margin:10px 0 6px">언제</div>${obTags('rw')}
+        <div class="meta" style="margin:10px 0 6px">종류</div>
+        <div class="tagrow" id="obRK">
+          <button class="tag${d.rk!=='solo'?' on':''}" data-v="race">공식 레이스</button>
+          <button class="tag${d.rk==='solo'?' on':''}" data-v="solo">혼자 측정</button></div>
+        <div class="meta" style="margin-top:7px">혼자 뛴 기록은 레이스보다 보통 2~5% 느립니다. 3%만큼 보정합니다.</div>
+      </div>
+      <div class="oblab">최근 3개월, 해당되는 것</div>
+      <div class="card tight">
+        ${[['pain','달리다 생긴 통증 · 부상'],['heart','심장 · 혈압 관련 진단'],
+           ['med','심박에 영향을 주는 약 복용'],['none','해당 없음']].map(([k,l])=>
+        `<div class="obchk"><input type="checkbox" id="obf_${k}" data-f="${k}"${(d.f&&d.f[k])?' checked':''}>
+          <label for="obf_${k}">${l}</label></div>`).join('')}
+      </div>
+      <div class="meta" style="margin-top:8px">심박약(베타차단제)은 심박을 눌러버려서, 심박 기준 훈련이 맞지 않습니다.
+        체크하시면 체감(RPE) 기준으로 바꿉니다.</div>`;
+  },
+  wire(){
+    ['obAge','obW','obRHR'].forEach(id=>{ const el=$(id); if(!el)return;
+      el.oninput=()=>{ const k={obAge:'age',obW:'w',obRHR:'rhr'}[id];
+        OB.d[k]=+el.value||null; if(id==='obAge')paintHr(); }; });
+    const paintHr=()=>{ const a=+$('obAge').value||0;
+      $('obHrNote').textContent=a?`최대심박은 ${estHrMax(a)} 으로 추정합니다 (208 − 0.7 × 나이). 실측값은 설정에서 바꿀 수 있습니다.`:''; };
+    $('obAge').oninput=paintHr; paintHr();
+    $('obRK').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return;
+      OB.d.rk=b.dataset.v; $('obRK').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); };
+    $('obBody').querySelectorAll('[data-f]').forEach(c=>c.onchange=()=>{
+      OB.d.f=OB.d.f||{};
+      if(c.dataset.f==='none'&&c.checked){ OB.d.f={none:true};
+        $('obBody').querySelectorAll('[data-f]').forEach(x=>{if(x!==c)x.checked=false;}); }
+      else { OB.d.f[c.dataset.f]=c.checked;
+        if(c.checked){ OB.d.f.none=false; const n=$('obf_none'); if(n)n.checked=false; } }
+    });
+  },
+  read(){ const d=OB.d;
+    d.age=+$('obAge').value||d.age; d.w=+$('obW').value||d.w; d.rhr=+$('obRHR').value||null;
+    if(d.rd){ const s=parseTime($('obRT').value); d.rt=s>60?Math.round(s):null; } else d.rt=null;
+  },
+  ok(){ const d=OB.d;
+    if(!(d.age>=10&&d.age<=95))return '나이를 넣어주세요.';
+    if(!(d.w>=25&&d.w<=200))return '체중을 넣어주세요.';
+    if(d.rd&&$('obRT').value.trim()&&!d.rt)return '기록을 45:46 형식으로 넣어주세요.';
+    if(d.rd&&!d.rt)return '기록을 넣거나, 거리에서 "없음"을 골라주세요.';
+    return true; }},
+
+ /* 4 ─ 가능한 날 */
+ {q:'언제 달릴 수<br>있으세요?',
+  s:'못 지킬 일정을 짜봐야 소용없습니다. <b>가능한 날만큼만</b> 만듭니다.',
+  next:'완료',
+  body(){ const d=OB.d, n=(d.days||[]).length;
+    const hard=n>=4?2:n>=2?1:0;
+    return `<div class="oblab">보통 가능한 요일</div>
+      <div class="obgrid c7" id="obDays">${DOW.map(x=>
+        `<button type="button" class="obopt${(d.days||[]).includes(x)?' on':''}" data-d="${x}">${x}</button>`).join('')}</div>
+      <div class="oblab">한 번에 쓸 수 있는 시간</div>
+      <div class="meta" style="margin-bottom:6px">평일</div>${obTags('twd')}
+      <div class="meta" style="margin:10px 0 6px">주말</div>${obTags('twe')}
+      <div class="card tight" style="margin-top:16px">
+        <div class="meta" style="margin-bottom:7px">이 조건에서 정해지는 것</div>
+        <ul style="margin:0;padding-left:17px;font-size:13px;line-height:1.85">
+          <li>롱런은 <b>${(d.days||[]).filter(x=>x==='토'||x==='일').join(' · ')||'주말이 없어 평일 중 가장 긴 날'}</b>에 들어갑니다</li>
+          <li>고강도는 주 ${hard}회${hard?', <b>72시간</b> 띄워서':' — 날이 모자라 쉬운 러닝만'}</li>
+          <li>주 ${n}일이므로 쉬운 날이 <b>${Math.max(0,n-hard)}회</b></li>
+        </ul>
+      </div>
+      <div class="meta" style="margin-top:12px">매주 월요일에 그 주 일정을 다시 묻습니다. 야근이 잡히면 그때 빼면 됩니다.</div>`;
+  },
+  wire(){
+    $('obDays').onclick=e=>{ const b=e.target.closest('[data-d]'); if(!b)return;
+      const v=b.dataset.d, a=OB.d.days=OB.d.days||[];
+      const i=a.indexOf(v); if(i<0)a.push(v); else a.splice(i,1);
+      obPaint(); };
+  },
+  ok(){ const d=OB.d;
+    if(!(d.days||[]).length)return '하루라도 골라주세요.';
+    if(!d.twd||!d.twe)return '쓸 수 있는 시간을 골라주세요.';
+    return true; }}
+];
+function obPaint(){
+  const st=OBSTEP[OB.i];
+  $('obStep').textContent=`STEP ${OB.i+1} / ${OBSTEP.length}`;
+  $('obQ').innerHTML=st.q; $('obSub').innerHTML=st.s;
+  $('obBody').innerHTML=st.body();
+  $('obNext').textContent=st.next||'다음';
+  $('obBack').hidden=OB.i===0;
+  $('obHint').hidden=true;
+  $('obBody').querySelectorAll('.obgrid[data-k]').forEach(g=>{
+    g.onclick=e=>{ const b=e.target.closest('.obopt'); if(!b)return;
+      const k=g.dataset.k;
+      OB.d[k]=+b.dataset.v;
+      if(k==='rd'||k==='freq'||k==='per'||k==='long'){
+        if(st.read)try{ st.read(); }catch(e2){}   /* 다시 그리기 전에 입력칸을 거둔다 */
+        obPaint(); return; }
+      g.querySelectorAll('.obopt').forEach(x=>x.classList.toggle('on',x===b)); };
+  });
+  if(st.wire)st.wire();
+  $('obBody').scrollTop=0;
+}
+function obHint(m){ $('obHint').textContent=m; $('obHint').className='note red'; $('obHint').hidden=false; }
+$('obBack').onclick=()=>{ const st=OBSTEP[OB.i]; if(st.read)try{st.read();}catch(e){}
+  if(OB.i>0){ OB.i--; obPaint(); } };
+$('obNext').onclick=()=>{
+  const st=OBSTEP[OB.i];
+  if(st.read)try{ st.read(); }catch(e){}
+  const v=st.ok?st.ok():true;
+  if(v!==true)return obHint(v);
+  if(OB.i<OBSTEP.length-1){ OB.i++; obPaint(); return; }
+  obFinish();
+};
+function obFinish(){
+  const d=OB.d;
+  d.wk=surveyWk(d)||d.wk||null;
+  SURVEY={freq:d.freq,per:d.per,long:d.long,wk:d.wk,rw:d.rw,
+    days:(d.days||[]).slice(),twd:d.twd,twe:d.twe,f:d.f||{},
+    gpxN:d.gpxN||0,at:todayStr()};
+  DEV.store.set('survey',SURVEY);
+  PROF=Object.assign({},PROF,{ age:d.age, w:d.w, rhr:d.rhr||null,
+    hrmaxSrc: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? 'measured' : 'estimated',
+    hrmax: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? PROF.hrmax : estHrMax(d.age),
+    race: d.rd&&d.rt ? {m:d.rd,sec:d.rt,kind:d.rk||'race'} : PROF.race });
+  DEV.store.set('prof',PROF);
+  recalcProfile(); recalcTypes(); BLOCK=buildBlock();
+  DEV.store.set('onboarded',true);
+  if(typeof paintProf==='function')paintProf();
+  renderHome(); go('home');
+  const msg=[`주간 기준 ${d.wk||'—'}km · 가능한 날 ${(d.days||[]).join('')}`];
+  if(d.rt)msg.push(`VDOT ${VDOT.toFixed(1)} · T ${fmtPace(Z.T)} · I ${fmtPace(Z.I)}`);
+  else msg.push('기록이 없어 첫 주에 테스트 러닝을 넣습니다.');
+  if(d.f&&(d.f.heart||d.f.med))msg.push('심박 기준은 느슨하게, 체감(RPE)을 함께 봅니다.');
+  alert('설정을 마쳤습니다.\n\n'+msg.join('\n'));
+  if(FB.user)FB.sync().catch(()=>{});
+}
+
+/* ─── GPX · TCX 읽기 ─── */
+function obImport(files){
+  if(!files||!files.length)return;
+  const list=[...files]; let done=0, got=[];
+  list.forEach(f=>{
+    const rd=new FileReader();
+    rd.onload=()=>{ try{ const r=parseTrackFile(rd.result,f.name); if(r)got.push(r); }catch(e){}
+      if(++done===list.length)obImportDone(got); };
+    rd.onerror=()=>{ if(++done===list.length)obImportDone(got); };
+    rd.readAsText(f);
+  });
+}
+function parseTrackFile(txt,name){
+  const doc=new DOMParser().parseFromString(txt,'application/xml');
+  if(doc.querySelector('parsererror'))return null;
+  let pts=[];
+  doc.querySelectorAll('trkpt,rtept').forEach(p=>{
+    const la=+p.getAttribute('lat'), lo=+p.getAttribute('lon');
+    const t=p.querySelector('time');
+    if(isFinite(la)&&isFinite(lo))pts.push({lat:la,lon:lo,t:t?Date.parse(t.textContent):NaN});
+  });
+  if(!pts.length)doc.querySelectorAll('Trackpoint').forEach(p=>{
+    const la=p.querySelector('LatitudeDegrees'), lo=p.querySelector('LongitudeDegrees');
+    const t=p.querySelector('Time');
+    if(la&&lo)pts.push({lat:+la.textContent,lon:+lo.textContent,t:t?Date.parse(t.textContent):NaN});
+  });
+  pts=pts.filter(p=>isFinite(p.lat)&&isFinite(p.lon));
+  if(pts.length<10)return null;
+  const km=trackDist(pts)/1000;
+  if(!(km>0.4))return null;
+  const ts=pts.map(p=>p.t).filter(isFinite);
+  const dur=ts.length>1?Math.round((Math.max(...ts)-Math.min(...ts))/1000):0;
+  const date=ts.length?new Date(Math.min(...ts)).toISOString():new Date().toISOString();
+  return { rid:'gpx-'+date.slice(0,10).replace(/-/g,'')+'-'+Math.round(km*100),
+    date, km:+km.toFixed(2), dur, type:'easy', planId:null,
+    paceAvg: dur&&km? dur/km : null, hrAvg:null, src:'gpx', name:String(name||'').slice(0,40),
+    track: simplify(pts,200), _saved:true, imported:true };
+}
+function obImportDone(got){
+  if(!got.length){ $('obGpxNote').hidden=false;
+    $('obGpxNote').textContent='읽을 수 있는 좌표가 없었습니다. GPX 또는 TCX 파일인지 확인해 주세요.'; return; }
+  const have=new Set(RUNS.map(x=>x.rid));
+  const add=got.filter(r=>!have.has(r.rid));
+  add.forEach(r=>RUNS.push(r));
+  RUNS.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  DEV.store.set('runs',RUNS);
+  /* 최근 12주만 본다 — 그보다 전은 지금 몸이 아니다 */
+  const cut=Date.now()-84*864e5;
+  const rec=got.filter(r=>Date.parse(r.date)>=cut);
+  const use=rec.length?rec:got;
+  const wks=new Set(use.map(r=>weekMonday(r.date.slice(0,10))));
+  const nw=Math.max(1,wks.size);
+  const tot=use.reduce((a,r)=>a+r.km,0);
+  const long=Math.max(...use.map(r=>r.km));
+  OB.d.wk=Math.round(tot/nw*10)/10;
+  OB.d.gpxLong=Math.round(long*10)/10;
+  OB.d.gpxFreq=Math.round(use.length/nw*10)/10;
+  OB.d.gpxN=got.length;
+  /* 설문 보기를 가까운 쪽으로 미리 눌러둔다 — 사용자가 고쳐도 된다 */
+  const near=(k,x)=>OBOPT[k].reduce((b,o)=>Math.abs(o.v-x)<Math.abs(b.v-x)?o:b).v;
+  OB.d.freq=near('freq',OB.d.gpxFreq);
+  OB.d.per =near('per', tot/use.length);
+  OB.d.long=near('long',long);
+  /* 가장 빠른 5km 이상 기록을 혼자 측정으로 미리 넣는다 */
+  const cand=use.filter(r=>r.km>=4.5&&r.paceAvg).sort((a,b)=>a.paceAvg-b.paceAvg)[0];
+  if(cand&&!OB.d.rt){
+    const m=cand.km>=19?21097:cand.km>=9?10000:5000;
+    OB.d.rd=m; OB.d.rt=Math.round(cand.paceAvg*m/1000); OB.d.rk='solo';
+  }
+  obPaint();
+  $('obGpxNote').hidden=false;
+  $('obGpxNote').textContent=`${got.length}건 · 주 ${OB.d.gpxFreq}회 · 평균 ${OB.d.wk}km/주를 읽었습니다.`;
+}
+
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.running)S.win=[];});
 window.addEventListener('beforeunload',e=>{if(S.running){e.preventDefault();e.returnValue='';}});
 if('speechSynthesis'in window)speechSynthesis.getVoices();
 S.hr={dev:null,bpm:null,samples:[],max:0,segSamples:[]};
-renderHome();
+
+/* ───────── 부팅 ─────────
+   1) 예전 기록에 식별자를 붙인다 — 클라우드와 맞추려면 이름표가 있어야 한다
+   2) 설정값이 있으면 조용히 파이어베이스를 깨운다
+   3) 아직 설문을 안 했으면 첫 화면부터 */
+(function boot(){
+  let fix=false;
+  RUNS.forEach(r=>{ if(!r.rid){ r.rid=newRid(r); fix=true; } });
+  if(fix)DEV.store.set('runs',RUNS);
+  renderHome(); paintFb(); paintGate();
+  /* 한 번이라도 로그인한 폰에서만 미리 깨운다.
+     안 그러면 로그인 안 쓰는 사람도 열 때마다 400KB를 받는다 */
+  if(FBCFG&&ACCT.uid)FB.init().catch(()=>{});
+  if(!DEV.store.get('onboarded',false)){ show('gate'); }
+})();
 /* 지난번에 연결했던 기기가 켜져 있으면 조용히 다시 붙는다 */
 (async()=>{ try{
   if(!BT.name||!navigator.bluetooth)return;
