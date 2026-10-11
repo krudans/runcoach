@@ -411,6 +411,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 
 .conf{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;
   font-size:12px;color:var(--rsub);border-top:1px solid var(--rline);flex:none}
+.zrow{display:grid;grid-template-columns:86px 1fr 62px;gap:9px;align-items:center;padding:5px 0}
+.zrow .zn{font-size:12.5px;font-weight:700}
+.zrow .zb{height:9px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.zrow .zb i{display:block;height:9px;border-radius:99px}
+.zrow .zv{font-family:var(--num);font-size:12px;font-weight:700;color:var(--ink-2);text-align:right}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
 .dot.good{background:var(--ok)}.dot.weak{background:var(--z3)}.dot.bad{background:var(--alarm)}
 
@@ -480,7 +485,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 <body>
 
 <div class="view on" id="home">
-  <div class="topline"><b id="tlDate">—</b><span id="tlBlock">심폐 강화 블록</span>
+  <div class="topline"><b id="tlDate">—</b><span id="tlBlock"></span>
     <span class="right" id="tlWk">—</span>
     <button id="bellWrap" class="icbtn" style="margin-left:9px" aria-label="알림">🔔</button>
     <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button>
@@ -703,13 +708,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v7.5</b> · 2026-10-11
+    런코치 <b>v7.8</b> · 2026-10-11
   </div>
 </div></div>
 
 <div class="view" id="confirm">
   <div class="bar"><button class="sub" id="backPick">← 목록</button>
-    <h1 style="text-align:center">세션 확인</h1><span class="sub" style="visibility:hidden">←</span></div>
+    <h1 style="text-align:center">오늘 뭘 하나</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad">
     <div class="card"><h2 id="cTitle">—</h2><div class="meta" id="cMeta">—</div></div>
     <div class="brief" id="cBrief"></div>
@@ -844,6 +849,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
         <div><div class="k">고도 상승</div><div class="v num" id="sAsc">—</div></div></div>
       <div class="verdict" id="sVerdict" hidden></div>
       <div class="verdict fail" id="sCeilV" hidden></div>
+      <div id="sZones" hidden></div>
     </div>
     <div class="mapcard" id="sMapCard" hidden>
       <div class="maph"><span class="sw" style="background:var(--accent)"></span><span>경로</span>
@@ -1123,19 +1129,19 @@ const thresh  =(t,wu,n,len,tgt,rd,rs)=>({type:'threshold',dist:t,...repsBuild(t,
    반복 목표는 절대 페이스가 아니라 존 상대값이다. VDOT가 바뀌면 같이 움직인다. */
 function buildBlock(){ const R=x=>Math.round(x); return [
  {d:'2026-10-11',wk:1,t:'회복조깅 12km',...recovery(12),
-  note:'7\'20"보다 빠르면 실패한 세션입니다. 등산 근육통 정점 구간이니 끝까지 가속 금지.'},
+  note:'오늘은 느리게 뛰는 게 목적입니다. 빠르게 뛰면 내일이 망가집니다.'},
  {d:'2026-10-12',wk:1,t:'회복조깅 6km + 근력',...recovery(6),extra:'근력'},
  {d:'2026-10-13',wk:1,t:'천천히 9km',...easy(9)},
  {d:'2026-10-14',wk:1,t:'회복조깅 7km',...recovery(7)},
  {d:'2026-10-15',wk:1,t:'인터벌 1km × 4',...interval(10.5,2,4,1,R(PACE.I+9),0.5,null),
-  note:'4회 편차 5초 이내가 성공. 후반 반복에서 심박 172~182 확인. 등산 후 72시간 확보 여부를 먼저 볼 것.'},
+  note:'네 번을 같은 속도로 끝내는 게 목표입니다. 첫 회차에 힘주면 뒤가 무너집니다.'},
  {d:'2026-10-16',wk:1,t:'천천히 9km + 근력',...easy(9),extra:'근력'},
  {d:'2026-10-17',wk:1,t:'회복조깅 7km',...recovery(7)},
- {d:'2026-10-18',wk:1,t:'천천히 8km',...easy(8),note:'롱런은 1주차 누적 부하 때문에 생략합니다.'},
+ {d:'2026-10-18',wk:1,t:'천천히 8km',...easy(8),note:'이번 주는 긴 거리를 넣지 않습니다. 몸이 아직 익숙해지는 중입니다.'},
  {d:'2026-10-19',wk:2,t:'회복조깅 8km + 근력',...recovery(8),extra:'근력'},
  {d:'2026-10-20',wk:2,t:'천천히 12km',...easy(12)},
  {d:'2026-10-21',wk:2,t:'인터벌 1.5km × 3',...interval(11,2,3,1.5,R(PACE.I+14),0.5,180)},
- {d:'2026-10-22',wk:2,t:'더블 — 아침 5km',...recovery(5),note:'저녁 5km를 따로. 몰아서 10km로 뛰면 목적이 사라집니다.'},
+ {d:'2026-10-22',wk:2,t:'더블 — 아침 5km',...recovery(5),note:'저녁에 5km를 따로 뜁니다. 한 번에 10km로 몰면 효과가 사라집니다.'},
  {d:'2026-10-22b',wk:2,t:'더블 — 저녁 5km',...recovery(5)},
  {d:'2026-10-23',wk:2,t:'천천히 10km + 근력',...easy(10),extra:'근력'},
  {d:'2026-10-24',wk:2,t:'회복조깅 7km',...recovery(7)},
@@ -1143,8 +1149,8 @@ function buildBlock(){ const R=x=>Math.round(x); return [
  {d:'2026-10-26',wk:3,t:'회복조깅 8km + 근력',...recovery(8),extra:'근력'},
  {d:'2026-10-27',wk:3,t:'천천히 13km',...easy(13)},
  {d:'2026-10-28',wk:3,t:'인터벌 1km × 5 · 피크',...interval(11.5,2,5,1,R(PACE.I+4),0.5,null),role:'피크',
-  note:'이 블록의 최대 자극 세션. 4회차에서 페이스가 10초 이상 떨어지면 5회차는 버리세요.'},
- {d:'2026-10-29',wk:3,t:'더블 — 아침 6km',...recovery(6),note:'저녁 6km를 따로.'},
+  note:'오늘이 가장 힘든 날입니다. 4회차에서 10초 이상 느려지면 5회차는 하지 마세요.'},
+ {d:'2026-10-29',wk:3,t:'더블 — 아침 6km',...recovery(6),note:'저녁에 6km를 따로 뜁니다.'},
  {d:'2026-10-29b',wk:3,t:'더블 — 저녁 6km',...recovery(6)},
  {d:'2026-10-30',wk:3,t:'천천히 11km + 근력',...easy(11),extra:'근력'},
  {d:'2026-10-31',wk:3,t:'회복조깅 7km',...recovery(7)},
@@ -1156,7 +1162,7 @@ function buildBlock(){ const R=x=>Math.round(x); return [
  {d:'2026-11-06',wk:4,t:'천천히 7km',...easy(7),role:'감량'},
  {d:'2026-11-07',wk:4,t:'휴식',type:'off',dist:0,segs:[]},
  {d:'2026-11-08',wk:4,t:'롱런 12km',...long(12),role:'감량',
-  note:'이 주가 3주차를 성과로 바꿉니다. 몸이 가벼워져도 늘리지 마세요.'},
+  note:'쉬어가는 주입니다. 몸이 가벼워져도 늘리지 마세요. 쉴 때 실력이 붙습니다.'},
 ];}
 let BLOCK=buildBlock();
 const TERRAIN=['도로','트랙','트레일','트레드밀'], WEATHER=['맑음','흐림','비','바람','더움','추움'];
@@ -1219,6 +1225,30 @@ function sessionOf(i){
   if(o>prev+0.2){ last.to=o; }
   else { const k=o/base.dist; sx.segs.forEach(g=>g.to=+(g.to*k).toFixed(2)); }
   return sx;
+}
+
+/* 저장된 기록만 보고 그날 계획을 지켰는지 되살린다 */
+function runPass(r){
+  if(!r||!r.type)return null;
+  const T=TYPES[r.type]||{};
+  if(r.distRatio!=null&&r.distRatio<0.25)return null;      /* 거의 기록이 없으면 판정 불가 */
+  if(T.judgeBy==='spread')   return r.spread!=null      ? r.spread<=5        : null;
+  if(T.judgeBy==='ceiling')  return r.ceilRatio!=null   ? r.ceilRatio<=0.10  : null;
+  if(T.judgeBy==='distance') return r.distRatio!=null   ? r.distRatio>=0.90  : null;
+  if(T.judgeBy==='range')    return r.hrOverRatio!=null ? r.hrOverRatio<=0.20: null;
+  return null;
+}
+/* 계획대로 뛴 비율 — 홈의 대표 숫자 */
+function keepRate(runs){
+  const j=(runs||RUNS).map(runPass).filter(v=>v!==null);
+  return j.length ? {pct:Math.round(j.filter(Boolean).length/j.length*100), n:j.length} : null;
+}
+/* 연속으로 계획대로 뛴 횟수 */
+function keepStreak(){
+  let c=0;
+  for(let i=RUNS.length-1;i>=0;i--){ const v=runPass(RUNS[i]);
+    if(v===null)continue; if(v)c++; else break; }
+  return c;
 }
 
 /* ───────── 주간 거리·감사 ───────── */
@@ -1393,7 +1423,7 @@ function renderHero(){
   const today=todayStr();
   const idx=BLOCK.findIndex(x=>x.d.slice(0,10)===today);
   const host=$('heroDay');
-  if(idx<0){ host.innerHTML=`<div class="restday"><div class="t">블록 밖의 날</div>
+  if(idx<0){ host.innerHTML=`<div class="restday"><div class="t">오늘은 계획이 없습니다</div>
     <div class="d">오늘은 계획에 없는 날입니다.<br>전체 일정에서 원하는 세션을 골라 시작할 수 있습니다.</div></div>`; return; }
   const sess=sessionOf(idx), T=TYPES[sess.type]||{};
   const done=RUNS.some(x=>x.planId===sess.d);
@@ -1483,13 +1513,14 @@ function renderHome(){
   const doneS=wkSess.filter(x=>RUNS.some(y=>y.planId===x.d));
   const ranKm=RUNS.filter(x=>{const b=BLOCK.find(y=>y.d===x.planId);return b&&b.wk===wkNo;})
                   .reduce((a,x)=>a+x.km,0);
-  $('wkCard').innerHTML=`<div class="r1"><b>${wkNo}주차</b><span>${doneS.length} / ${wkSess.length} 세션</span>
+  const kr=keepRate(), st=keepStreak();
+  $('wkCard').innerHTML=`<div class="r1"><b>${wkNo}주차</b><span>${doneS.length} / ${wkSess.length}번</span>
       <span class="n">${ranKm.toFixed(1)} / ${planKm.toFixed(1)} km</span></div>
     <div class="wkbar"><i style="width:${Math.min(100,planKm?ranKm/planKm*100:0).toFixed(1)}%"></i></div>
     <div class="wkmeta">
-      <span>이번 주 부담 <b style="color:${r?(r>1.5?'var(--alarm)':r>1.3?'var(--z3)':'var(--ok)'):'var(--ink-3)'}">${r?(r>1.5?'많음':r>1.3?'보통':'알맞음'):'—'}</b></span>
-      <span>누적 <b>${RUNS.reduce((a,x)=>a+x.km,0).toFixed(0)}km</b></span>
-      <span>총 <b>${RUNS.length}회</b></span></div>`;
+      <span>이번 주 <b style="color:${r?(r>1.5?'var(--alarm)':r>1.3?'var(--z3)':'var(--ok)'):'var(--ink-3)'}">${r?(r>1.5?'많음':r>1.3?'보통':'알맞음'):'—'}</b></span>
+      <span>계획대로 <b style="color:${kr?(kr.pct>=80?'var(--ok)':kr.pct>=60?'var(--z3)':'var(--alarm)'):'var(--ink-3)'}">${kr?kr.pct+'%':'—'}</b></span>
+      <span>연속 <b>${st?st+'번':'—'}</b></span></div>`;
 
   const fb=$('homeFree');
   if(fb)fb.onclick=()=>{ if(typeof startFree==='function')startFree(); else $('btnFree').click(); };
@@ -1848,7 +1879,7 @@ $('btnStart').onclick=async()=>{
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,
-    critSec:0,urgent:false,lastCrit:0,
+    critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
   renderLaps(); paintLapChips(); buildRail(); runPage(1); $('run').dataset.state='ok';
@@ -2079,7 +2110,9 @@ function onTick(){
   const cadNow = moving ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
   if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
-  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm); }
+  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
+    /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다 */
+    if(S.zoneSec)S.zoneSec[Math.min(4,hrZoneIx(S.hr.bpm)-1)]+=0.5; }
 
   /* 속도 칸 */
   $('rPace').textContent=fmtPace(p);
@@ -2112,9 +2145,10 @@ function onTick(){
         : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}을 넘었습니다. 호흡을 고르세요.`, true, true);
     }
     if(hrOver){ state='hr'; pill='숨을 고르세요';
+      const zn=hrZone(S.hr.bpm);
       say = hrPrimary
-        ? `심장이 ${S.hr.bpm}까지 올라갔습니다. 오늘은 느리게 뛰는 게 목적이라, 느려도 심박이 높으면 소용이 없습니다.`
-        : `심장이 ${S.hr.bpm}입니다. 조금 쉬어가세요.`; }
+        ? `지금 ${zn}입니다. 오늘은 '${hrZone(HZ[1])}'까지로 가야 애매한 강도에 빠지지 않습니다.`
+        : `지금 ${zn}입니다. 조금 쉬어가세요.`; }
     else if(HZ[0]&&S.hr.bpm<HZ[0]&&tg.hard&&(S.elapsed-S.segStart.t)>60
             &&!(isFinite(p)&&tgPace&&p<=tgPace[1])){
       /* 심박은 30~60초 늦게 올라온다. 구간 초반이거나 페이스가 이미 목표 안이면 말하지 않는다 */
@@ -2520,6 +2554,9 @@ function renderSummary(completed){
       `<span class="nm">${r.nm} <span style="color:var(--ink-3)">${body}</span></span>`+
       `<span class="t" style="color:${col}">${fmtPace(r.actual)} <span style="font-size:11px">${dt}</span></span>`;
     gh.appendChild(e);});
+  /* ── 어느 세기로 얼마나 뛰었나 ── */
+  paintZones($('sZones'), S.zoneSec, T);
+
   const sh=$('sSplits'); sh.innerHTML='';
   S.splits.forEach(x=>{const e=document.createElement('div');e.className='srow';
     e.innerHTML=`<span class="r">${x.km} km</span><span class="nm">${x.hr?x.hr+' bpm':''}${x.cad?' · '+x.cad+' spm':''}</span>`+
@@ -2574,6 +2611,7 @@ function renderSummary(completed){
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
     hrAvg,hrMax:S.hr.max||null,cadAvg,cal,asc:Math.round(S.asc),desc:Math.round(S.desc),
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
+    zones:(S.zoneSec||[]).map(x=>Math.round(x)),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:+distRatio.toFixed(3),
     completed,shoe:S.shoe,
     splits:S.splits.map(x=>({km:x.km,sec:Math.round(x.time),pace:Math.round(x.pace),hr:x.hr,cad:x.cad})),
@@ -2587,6 +2625,32 @@ function renderSummary(completed){
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
   $('sWeather').innerHTML=WEATHER.map(w=>`<button class="tag" data-w="${w}">${w}</button>`).join('');
 }
+/* ───────── 어느 세기로 얼마나 뛰었나 ─────────
+   삼성·스트라바는 이 표를 '끝나고' 보여준다. 거기서 멈추면 숫자일 뿐이다.
+   런코치는 한 줄 더 쓴다 — 오늘이 애매한 강도였는지 아닌지. */
+const ZNAME=['아주 편함 (Z1)','편함 (Z2)','보통 (Z3)','힘듦 (Z4)','아주 힘듦 (Z5)'];
+const ZCOL=['#8FB8D8','#19A47C','#C9A227','#E35A32','#C0352F'];
+function paintZones(host,zs,T){
+  if(!host)return;
+  const tot=(zs||[]).reduce((a,b)=>a+b,0);
+  if(!tot||tot<60){ host.hidden=true; return; }
+  host.hidden=false;
+  const pc=zs.map(x=>x/tot);
+  const rows=zs.map((v,i)=>!v?'':`<div class="zrow">
+      <span class="zn" style="color:${ZCOL[i]}">${ZNAME[i]}</span>
+      <span class="zb"><i style="width:${(pc[i]*100).toFixed(1)}%;background:${ZCOL[i]}"></i></span>
+      <span class="zv">${Math.round(pc[i]*100)}% · ${fmtClock(v)}</span></div>`).join('');
+  /* 회색지대 — 쉽지도 힘들지도 않은 '보통'에 오래 머물면 힘만 들고 안 는다 */
+  const gray=pc[2], easyDay=T&&(T.judgeBy==='ceiling'||T.judgeBy==='range');
+  let msg='';
+  if(gray>=0.5) msg=`오늘 <b>${Math.round(gray*100)}%</b>를 '보통(Z3)'에서 보냈습니다. 쉬운 날도 빠른 날도 아닌 <b>애매한 강도</b>입니다. 힘은 다 드는데 실력은 잘 안 늡니다.`;
+  else if(easyDay&&(pc[3]+pc[4])>=0.2) msg=`쉬어가는 날인데 <b>${Math.round((pc[3]+pc[4])*100)}%</b>를 힘든 구간에서 보냈습니다. 내일 훈련이 망가집니다.`;
+  else if(easyDay&&(pc[0]+pc[1])>=0.7) msg=`<b>${Math.round((pc[0]+pc[1])*100)}%</b>를 편한 구간에서 보냈습니다. 오늘은 이게 정답입니다.`;
+  host.innerHTML=`<div class="lbl" style="margin:16px 0 6px">어느 세기로 뛰었나</div>
+    <div class="card tight">${rows}
+    ${msg?`<div class="note ${gray>=0.5||((pc[3]+pc[4])>=0.2&&easyDay)?'red':'green'}" style="margin:10px 0 0">${msg}</div>`:''}</div>`;
+}
+
 /* 트랙 다운샘플 — 모양 유지하며 점 수 제한 */
 function simplify(pts,max){
   if(!pts||pts.length<=max)return (pts||[]).map(p=>({lat:+p.lat.toFixed(5),lon:+p.lon.toFixed(5),over:!!p.over}));
