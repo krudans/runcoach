@@ -3,20 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0E1211">
+<meta name="theme-color" content="#F4F7F5">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <meta name="apple-mobile-web-app-title" content="런코치">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>런코치</title>
 <style>
 :root{
-  --bg:#0E1211; --panel:#171D1B; --panel-2:#1F2724; --line:#2A332F;
-  --ink:#F2F5F3; --ink-2:#9FAAA4; --ink-3:#6B766F;
-  --accent:#4FC79F; --ok:#5FBF7A; --fast:#E8884F; --slow:#5A9FD4; --alarm:#E2615C;
-  --z1:#5A9FD4; --z2:#4FC79F; --z3:#C9B04A; --z4:#E8884F; --z5:#E2615C;
+  --bg:#F4F7F5; --panel:#FFFFFF; --panel-2:#EDF2EF; --line:#DCE4E0;
+  --ink:#16211D; --ink-2:#5B6A64; --ink-3:#8B9892;
+  --accent:#0E9B72; --on:#FFFFFF;
+  --ok:#2E9E57; --fast:#C9661F; --slow:#2B7BB9; --alarm:#CF3B36;
+  --z1:#3B86C4; --z2:#19A47C; --z3:#A2850C; --z4:#C9661F; --z5:#CF3B36;
   --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
@@ -36,7 +37,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .pad{padding:18px;padding-bottom:40px}
 .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;
-  background:rgba(14,18,17,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-top:1px solid var(--line);
   padding-bottom:env(safe-area-inset-bottom)}
 .nav button{flex:1;padding:11px 4px 13px;font-size:11px;color:var(--ink-3);font-weight:600;
   display:flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:.02em}
@@ -50,11 +51,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #bye .d{font-size:13px;color:var(--ink-3);line-height:1.7}
 #bye[hidden]{display:none}
 /* 출발 카운트다운 */
-#count{position:fixed;inset:0;z-index:55;background:rgba(14,18,17,.96);display:flex;
+#count{position:fixed;inset:0;z-index:55;background:rgba(244,247,245,.97);display:flex;
   flex-direction:column;align-items:center;justify-content:center;gap:26px}
 #count[hidden]{display:none}
 #count .n{font-family:var(--mono);font-size:min(46vw,230px);font-weight:700;line-height:1;
-  color:#fff;letter-spacing:-.05em}
+  color:var(--ink);letter-spacing:-.05em}
 #count .n.go{color:var(--accent);font-size:min(30vw,150px)}
 #count .n.pop{animation:cpop .45s cubic-bezier(.2,.9,.3,1)}
 @keyframes cpop{0%{transform:scale(.45);opacity:0}45%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
@@ -64,14 +65,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .segtabs{display:flex;gap:6px;margin:14px 0 14px}
 .segtabs button{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(--line);
   background:var(--panel);font-size:12.5px;color:var(--ink-3);font-weight:600}
-.segtabs button.on{background:var(--accent);color:#07100D;border-color:var(--accent);font-weight:700}
+.segtabs button.on{background:var(--accent);color:var(--on);border-color:var(--accent);font-weight:700}
 .devbar{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border-radius:12px;
   background:var(--panel);border:1px solid var(--line);font-size:12.5px;color:var(--ink-2)}
 .devbar .bpm{margin-left:auto;font-family:var(--mono);font-size:17px;font-weight:600;color:var(--ink)}
 .devbar button{color:var(--accent);font-weight:700;font-size:12.5px}
 
 /* ── 오늘 히어로 ── */
-.topline{display:flex;align-items:baseline;gap:10px;padding:20px 20px 0;color:var(--ink-3);font-size:12.5px}
+.topline{display:flex;align-items:center;gap:9px;padding:18px 18px 0;color:var(--ink-3);
+  font-size:12.5px;white-space:nowrap}
+#tlBlock{overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media(max-width:400px){#tlBlock{display:none}}
 .topline b{color:var(--ink-2);font-weight:600}
 .topline .right{margin-left:auto;font-family:var(--mono)}
 .icbtn{color:var(--ink-3);font-size:16px;position:relative;line-height:1}
@@ -79,7 +83,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   font-weight:700;border-radius:99px;padding:1px 4px;font-family:var(--mono);line-height:1.5}
 .hero-day{margin:12px 16px 0;border-radius:18px;overflow:hidden;position:relative;
   background:linear-gradient(170deg,color-mix(in srgb,var(--day) 16%,var(--panel)) 0%,var(--panel) 62%);
-  border:1px solid color-mix(in srgb,var(--day) 24%,var(--line));box-shadow:0 18px 40px -28px #000}
+  border:1px solid color-mix(in srgb,var(--day) 24%,var(--line));box-shadow:0 10px 26px -18px rgba(22,33,29,.30)}
 .hero-day .inner{padding:20px 20px 22px}
 .hero-day .kind{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;
   color:var(--day);letter-spacing:.04em}
@@ -112,10 +116,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .distrow .unit{font-size:13px;color:var(--ink-3);flex:none}
 .distbox .acts{display:flex;gap:8px;margin-top:10px}
 .distbox .acts button{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:600}
-.distbox .acts .ok{background:var(--day);color:#07100D}
+.distbox .acts .ok{background:var(--day);color:var(--on)}
 .distbox .acts .rv{border:1px solid var(--line);color:var(--ink-3)}
 .gobtn{display:block;width:100%;margin-top:18px;padding:17px;border-radius:13px;
-  background:var(--day);color:#07100D;font-weight:800;font-size:16.5px;text-align:center;letter-spacing:.01em}
+  background:var(--day);color:var(--on);font-weight:800;font-size:16.5px;text-align:center;letter-spacing:.01em}
 .gobtn.done{background:transparent;border:1px solid var(--line);color:var(--ink-2);font-weight:600}
 .restday{margin:12px 16px 0;border-radius:18px;border:1px dashed var(--line);background:var(--panel);
   padding:30px 20px;text-align:center}
@@ -165,15 +169,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .tdot{width:7px;height:7px;border-radius:2px;flex:none}
 .day .mt{grid-area:2/2/3/3;font-size:11.5px;color:var(--ink-2)}
 .day .go{grid-area:1/3/3/4;font-size:11.5px;color:var(--accent);font-weight:600;white-space:nowrap}
-.day.today{border-color:var(--accent);background:#15231F}
-.day.did{border-color:#2E5740}
+.day.today{border-color:var(--accent);background:#E4F3EC}
+.day.did{border-color:#9ED3BC}
 .chip{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;padding:2px 6px;
   border-radius:4px;margin-left:6px;vertical-align:1px}
-.c-rec{background:#243029;color:#8FB39C}.c-easy{background:#1D2B36;color:#8FBEDC}
-.c-int{background:#36261D;color:#E8A77F}.c-thr{background:#332C1C;color:#D4C06A}
-.c-long{background:#22302B;color:#8FC7AE}.c-off{background:#262B29;color:#8A948E}
-.c-goal{background:#2B2238;color:#B9A2D8}.c-tt{background:#3A2029;color:#E096AE}
-.c-rep{background:#36261D;color:#E8A77F}.c-str{background:#1F2B33;color:#8FB6CC}
+.c-rec{background:#E2F0E8;color:#2F6B52}.c-easy{background:#E2EDF6;color:#2B6490}
+.c-int{background:#F8E8DC;color:#A8521A}.c-thr{background:#F5EFD8;color:#7D6508}
+.c-long{background:#DFEFE7;color:#2A6B50}.c-off{background:#EAEEEC;color:#6B766F}
+.c-goal{background:#EDE6F7;color:#6A47A8}.c-tt{background:#F9E2E8;color:#A33355}
+.c-rep{background:#F8E8DC;color:#A8521A}.c-str{background:#E4EEF4;color:#2E6B8C}
 .seglist{display:flex;flex-direction:column;margin-top:12px}
 .srow{display:grid;grid-template-columns:92px 1fr auto;gap:10px;align-items:center;
   padding:9px 0;border-top:1px solid var(--line);font-size:13px}
@@ -181,11 +185,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .srow .t{font-family:var(--mono);font-weight:600}
 .srow .nm{color:var(--ink-2)}
 .srow.hard .t{color:var(--fast)}
-.note{background:#2A221C;border:1px solid #4A3A2C;border-radius:10px;padding:13px 15px;
-  font-size:13px;color:#D8C3AC;margin-bottom:12px}
-.note.red{background:#2B1C1B;border-color:#573030;color:#E79B97}
-.note.green{background:#17291F;border-color:#2E5740;color:#8FD4A8}
-.note.blue{background:#1A2530;border-color:#2F455A;color:#A3C4DC}
+.note{background:#FBF3E6;border:1px solid #EBD9B8;border-radius:10px;padding:13px 15px;
+  font-size:13px;color:#7A5B22;margin-bottom:12px}
+.note.red{background:#FCEBEA;border-color:#F0C4C2;color:#A32F2B}
+.note.green{background:#E6F5EC;border-color:#B6DEC6;color:#226B41}
+.note.blue{background:#E8F1F9;border-color:#C2D9EC;color:#245E8C}
 .note b{color:var(--ink)}
 .brief{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px}
 .brief .bh{padding:13px 16px;background:var(--panel-2);border-bottom:1px solid var(--line);
@@ -194,12 +198,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .brief .bi:last-child{border-bottom:none}
 .brief .bk{font-size:11px;color:var(--ink-3);font-weight:600;margin-bottom:3px}
 .brief .bv{color:var(--ink-2)} .brief .bv b{color:var(--ink);font-weight:600}
-.brief .bi.warn{background:#2B1C1B} .brief .bi.warn .bk{color:#E2615C}
+/* 기본은 핵심 두 줄만. 나머지는 '자세히'로 접어둔다 */
+.brief .bi.warn{background:#FCEBEA} .brief .bi.warn .bk{color:var(--alarm)}
+.brief .more{display:none}
+.brief.open .more{display:block}
+.brief .tog{width:100%;padding:11px 16px;font-size:12.5px;color:var(--accent);font-weight:600;
+  border-top:1px solid var(--line);background:var(--panel-2)}
 .opt{display:flex;align-items:center;gap:11px;padding:12px 15px;background:var(--panel);
   border:1px solid var(--line);border-radius:10px;margin-bottom:8px;font-size:13.5px}
 .opt input[type=checkbox]{width:19px;height:19px;accent-color:var(--accent);flex:none;padding:0}
 .opt label{flex:1 1 auto} .opt .hint{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px}
-.btn{display:block;width:100%;padding:16px;border-radius:12px;background:var(--accent);color:#07100D;
+.btn{display:block;width:100%;padding:16px;border-radius:12px;background:var(--accent);color:var(--on);
   font-weight:700;font-size:16px;text-align:center;margin-top:8px}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink-2);font-weight:600}
 .btn.danger{background:var(--alarm);color:#fff}
@@ -215,16 +224,16 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .prog{height:5px;background:var(--panel-2);border-radius:99px;margin-top:9px;overflow:hidden}
 .prog i{display:block;height:100%;background:var(--accent);border-radius:99px;width:0;transition:width .35s linear}
 .banner{padding:12px 18px;font-size:14.5px;font-weight:700;text-align:center;color:#fff}
-.banner.over{background:var(--alarm)} .banner.under{background:#2F6B8F}
+.banner.over{background:var(--alarm)} .banner.under{background:#2B7BB9}
 .hero{padding:14px 14px 8px;text-align:center}
 .hero .k{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
 .hero .v{font-family:var(--mono);font-size:clamp(84px,30vw,136px);font-weight:700;line-height:.94;
-  margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.045em;color:#fff}
+  margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.045em;color:var(--ink)}
 .hero .v.fast{color:var(--fast)}.hero .v.slow{color:var(--slow)}.hero .v.ok{color:var(--ok)}
 .hero .u{font-size:14.5px;color:var(--ink-2);margin-top:3px;font-weight:600}
 .sub2{display:flex;align-items:baseline;justify-content:center;gap:10px;padding:0 18px 11px}
 .sub2 .sk{font-size:12.5px;color:var(--ink-3);font-weight:700}
-.sub2 .sv{font-family:var(--mono);font-size:38px;font-weight:700;color:#fff}
+.sub2 .sv{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--ink)}
 .sub2 .sd{font-family:var(--mono);font-size:14px;font-weight:700}
 .sub2 .sd.fast{color:var(--fast)}.sub2 .sd.slow{color:var(--slow)}.sub2 .sd.ok{color:var(--ok)}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
@@ -234,7 +243,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .cell .v{font-family:var(--mono);font-size:25px;font-weight:700;line-height:1.15;margin-top:2px}
 .cell .u{font-size:10px;color:var(--ink-3)}
 /* 메인에 올라와 있는 항목 — 눌러서 바꾼다 */
-.cell.sel{background:#1B2422}
+.cell.sel{background:#E4F3EC}
 .cell.sel .k{color:var(--accent)}
 .cell.sel::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent)}
 .hrbar{display:flex;gap:2px;padding:10px 18px;align-items:center}
@@ -255,22 +264,21 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .rail .track{position:relative;flex:1 1 auto;width:10px;border-radius:6px;
   background:var(--panel-2);overflow:visible}
 .rail .fill{position:absolute;left:0;right:0;bottom:0;border-radius:6px;background:var(--accent);height:0}
-.rail .band{position:absolute;left:-2px;right:-2px;border-radius:4px;background:#8A6A2E;opacity:.85}
-.rail .band.on{background:#C9B04A}
+.rail .band{position:absolute;left:-2px;right:-2px;border-radius:4px;background:#E3CE7A;opacity:.95}
+.rail .band.on{background:#C9A227}
 .rail .mk{position:absolute;left:50%;transform:translate(-50%,50%);width:11px;height:11px;
   border-radius:50%;background:var(--bg);border:2px solid var(--ink-3)}
 .rail .mk.pass{border-color:var(--ok);background:var(--ok)}
 .rail .mk.fail{border-color:var(--alarm);background:var(--alarm)}
-.rail .mk.now{border-color:#fff;background:#fff;width:13px;height:13px}
+.rail .mk.now{border-color:var(--ink);background:var(--ink);width:13px;height:13px}
 .rail .lb{position:absolute;right:19px;transform:translateY(50%);font-family:var(--mono);
   font-size:9px;color:var(--ink-3);white-space:nowrap}
-.rail .now{position:absolute;left:-5px;right:-5px;height:3px;background:#fff;border-radius:2px;
-  box-shadow:0 0 7px rgba(255,255,255,.65)}
+.rail .now{position:absolute;left:-5px;right:-5px;height:3px;background:var(--ink);border-radius:2px}
 .rail .end{font-family:var(--mono);font-size:9px;color:var(--ink-3);margin-top:5px}
 /* 길게 눌러야 하는 종료 버튼 */
 .ctl.one{grid-template-columns:1fr}
 .holdbtn{position:relative;overflow:hidden}
-.holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.32);
+.holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(0,0,0,.20);
   pointer-events:none;transition:width .05s linear}
 .holdbtn b{position:relative;font-weight:700}
 .lapwrap{border-top:1px solid var(--line);padding:9px 18px 4px}
@@ -278,7 +286,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .laphd .ttl{font-size:11px;letter-spacing:.06em;color:var(--ink-3);font-weight:700;margin-right:auto}
 .laphd .cg{font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);
   background:transparent;color:var(--ink-3);font-weight:600}
-.laphd .cg.on{border-color:var(--accent);color:var(--accent);background:#15231F}
+.laphd .cg.on{border-color:var(--accent);color:var(--accent);background:#E4F3EC}
 .laplog{max-height:21vh;overflow-y:auto}
 .lap{display:flex;align-items:baseline;gap:9px;padding:7px 0;
   border-top:1px solid var(--line);font-size:12.5px}
@@ -300,17 +308,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .chart .ct{font-size:12px;color:var(--ink-3);font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
 .chart svg{display:block;width:100%;height:auto}
 .verdict{border-radius:10px;padding:13px 15px;font-size:13.5px;margin-top:12px;font-weight:600}
-.verdict.pass{background:#17291F;border:1px solid #2E5740;color:#8FD4A8}
-.verdict.fail{background:#2B1C1B;border:1px solid #573030;color:#E79B97}
-.verdict.warn{background:#2B2518;border:1px solid #574B22;color:#E0CE8C}
+.verdict.pass{background:#E6F5EC;border:1px solid #B6DEC6;color:#1E6B3F}
+.verdict.fail{background:#FCEBEA;border:1px solid #F0C4C2;color:#A32F2B}
+.verdict.warn{background:#FAF2DC;border:1px solid #E7D7A4;color:#7A6212}
 .tagrow{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
 .tag{padding:8px 13px;border-radius:99px;border:1px solid var(--line);background:var(--panel-2);
   font-size:13px;color:var(--ink-2)}
-.tag.on{background:var(--accent);color:#07100D;border-color:var(--accent);font-weight:700}
+.tag.on{background:var(--accent);color:var(--on);border-color:var(--accent);font-weight:700}
 .rpe{display:flex;gap:5px;margin-top:9px}
 .rpe button{flex:1;padding:11px 0;border-radius:8px;border:1px solid var(--line);
   background:var(--panel-2);font-family:var(--mono);font-size:14px;color:var(--ink-2)}
-.rpe button.on{background:var(--accent);color:#07100D;border-color:var(--accent);font-weight:700}
+.rpe button.on{background:var(--accent);color:var(--on);border-color:var(--accent);font-weight:700}
 .prop{background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:12px}
 .prop h3{margin:0 0 6px;font-size:15px;font-weight:700}
 .prop p{margin:0 0 10px;font-size:13px;color:var(--ink-2)}
@@ -327,7 +335,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .logrow .x{grid-area:1/3/3/4;align-self:center;background:transparent;border:1px solid var(--line);
   border-radius:8px;color:var(--ink-3);font-size:17px;line-height:1;width:34px;height:34px;
   display:flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0}
-.logrow .x:active{background:#2A1A1A;border-color:var(--alarm);color:var(--alarm)}
+.logrow .x:active{background:#FBE9E8;border-color:var(--alarm);color:var(--alarm)}
 .logtip{font-size:11.5px;color:var(--ink-3);margin:0 0 10px;text-align:right}
 .empty{text-align:center;color:var(--ink-3);font-size:13px;padding:34px 10px}
 </style>
@@ -425,11 +433,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   <div class="lbl" style="margin-bottom:9px">심박 기기</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:11px">
-      <b>1.</b> 워치에서 <b>심박수 브로드캐스트</b>를 켠다 (Zepp 앱 아님 — 워치 본체 설정).
-      켜져 있는 동안만 목록에 뜹니다.<br>
-      <b>2.</b> 아래 버튼 → 선택창에 <b>주변 기기가 전부</b> 나옵니다. 어메이핏은 자기가 심박
-      기기라고 알리지 않아서 걸러낼 수가 없습니다. 목록에서 <b>워치 이름</b>을 직접 고르세요.<br>
-      <b>3.</b> 목록이 비어 있으면 브로드캐스트가 꺼진 겁니다. 가슴 스트랩도 같은 버튼입니다.</div>
+      워치 본체 설정에서 <b>심박 송출</b>을 켜고 → 아래 버튼 → 목록에서 <b>워치 이름</b> 선택.
+      목록이 비면 송출이 꺼진 것입니다. 한 번 잡으면 다음부터 자동으로 붙습니다.</div>
     <div style="display:flex;gap:14px;align-items:flex-end;margin-bottom:11px">
       <div style="flex:0 0 auto">
         <div style="font-size:11px;color:var(--ink-3)">실시간</div>
@@ -447,8 +452,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   <div class="lbl" style="margin:20px 0 9px">AI 코치</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:10px">
-      세션이 끝나면 AI가 기록을 읽고 합격 여부의 근거와 다음 일정 조정안을 써줍니다.
-      키는 한 번만 넣으면 이 폰에 저장되어 계속 쓰입니다.</div>
+      세션이 끝나면 AI가 근거와 다음 일정 조정안을 써줍니다. 키는 한 번만 넣으면 됩니다.</div>
     <div class="tagrow" id="aiProv" style="margin-bottom:11px">
       <button class="tag" data-p="claude">Claude</button>
       <button class="tag" data-p="gemini">Gemini</button></div>
@@ -461,8 +465,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <button class="btn sm ghost" style="margin:0;flex:0 0 72px" id="aiClear">삭제</button></div>
     <div id="aiState" style="font-size:12px;color:var(--ink-3);margin-top:9px">미등록</div>
     <div class="meta" style="margin-top:9px;color:var(--z3)">
-      키는 이 폰의 저장소에만 들어가고 백업 파일에도 포함되지 않습니다.
-      폰을 남이 쓸 수 있으니 이 앱 전용 키를 따로 발급해 쓰세요.</div>
+      키는 이 폰에만 저장되고 백업에도 안 들어갑니다. 전용 키를 발급해 쓰세요.</div>
   </div>
 
   <div class="lbl" style="margin:20px 0 9px">아침 안정시 심박</div>
@@ -499,30 +502,25 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   <div class="lbl" style="margin:20px 0 9px">데이터 보관</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:9px">
-      모든 기록은 이 폰 안에 저장됩니다. 앱을 닫아도, 폰을 꺼도 그대로 남습니다.
-      서버로 올라가지 않으니 이 폰에서만 보입니다.<br>
-      <span style="color:var(--z3)">다만 브라우저 저장공간을 비우거나 앱을 지우면 함께 사라집니다.
-      가끔 백업 파일을 내려받아 두세요.</span></div>
+      기록은 이 폰에 저장됩니다. 앱을 닫아도 남습니다.
+      <span style="color:var(--z3)">브라우저 사용기록을 지우면 함께 사라지니 가끔 백업하세요.</span></div>
     <div id="storeState" style="font-size:12px;color:var(--ink-3);margin-bottom:9px">확인 중…</div>
     <div class="row">
       <button class="btn sm ghost" style="margin:0" id="bkExport">백업 내려받기</button>
       <button class="btn sm ghost" style="margin:0" id="bkImport">백업 불러오기</button></div>
     <button class="btn sm ghost" style="margin:9px 0 0" id="btnFresh">최신 버전으로 새로고침</button>
     <button class="btn sm ghost" style="margin:9px 0 0" id="btnReDist">저장된 기록의 거리 다시 계산</button>
-    <div class="meta" style="margin-top:7px">GPS 경로는 그대로 남아 있으므로, 거리가 잘못 기록된
-      예전 세션도 경로에서 다시 계산할 수 있습니다.</div>
+    <div class="meta" style="margin-top:7px">거리가 잘못 기록된 예전 세션을 GPS 경로에서 다시 계산합니다.</div>
     <input type="file" id="bkFile" accept="application/json" hidden>
   </div>
 
   <div class="lbl" style="margin:20px 0 9px">기록 초기화</div>
   <div class="card tight">
-    <div class="meta" style="margin-bottom:9px">테스트로 쌓인 기록을 한 번에 지웁니다.
-      러닝 기록만 지워지고 계획·신발·설정은 남습니다.</div>
+    <div class="meta" style="margin-bottom:9px">러닝 기록만 지웁니다. 계획·신발·설정은 남습니다.</div>
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v5.0</b> · 2026-10-11<br>
-    <span style="font-size:10.5px">이 번호가 v5.0이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
+    런코치 <b>v5.1</b> · 2026-10-13
   </div>
 </div></div>
 
@@ -543,13 +541,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="opt"><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
     <button class="btn ghost" id="btnHR">기기 연결 — 워치 또는 가슴 스트랩</button>
     <div style="font-size:12px;color:var(--ink-3);margin-top:7px;text-align:center" id="hrState">미연결 — 심박 없이도 진행됩니다</div>
-    <div style="font-size:11.5px;color:var(--ink-3);margin-top:7px;line-height:1.55">
-      워치 쪽에서 <b>심박수 브로드캐스트</b>를 먼저 켜세요. 선택창에는 주변 블루투스 기기가 모두
-      나옵니다 — 어메이핏 같은 워치는 자기가 심박 기기라고 알리지 않기 때문입니다.
-      목록에서 <b>워치 이름</b>을 고르면 됩니다. 크롬으로 열어야 동작합니다(카톡 등 앱 안의
-      브라우저는 블루투스를 지원하지 않습니다).
+    <div style="font-size:11.5px;color:var(--ink-3);margin-top:6px;text-align:center">
+      워치에서 심박 송출을 먼저 켜고, 목록에서 워치 이름을 고르세요.
     </div>
-    <button class="btn" id="btnStart">이 세션으로 시작</button>
+    <button class="btn" id="btnStart">시작</button>
   </div>
 </div>
 
@@ -728,67 +723,67 @@ const DEV = {
 /* ───────── 훈련 종류 — 문헌 근거 + 1차 지표 ───────── */
 const P=(m,s)=>m*60+s;
 const TYPES={
-  recovery:{nm:'회복조깅',chip:'c-rec',col:'#5A9FD4',
+  recovery:{nm:'회복조깅',chip:'c-rec',col:'#2B7BB9',
     develops:'아무것도 발달시키지 않습니다. 어제의 자극이 적응으로 바뀌는 조건을 만드는 날입니다.',
     primary:'hr', primaryLabel:'심박 Z1 이하 · 페이스 상한 준수',
     ignore:'거리와 속도 — 빠르게 뛰는 것이 이 세션의 유일한 실패 방식입니다.',
     src:'Seiler 저강도 80% 원칙', hrZone:[0,134], judgeBy:'ceiling'},
-  easy:{nm:'이지',chip:'c-easy',col:'#4FC79F',
+  easy:{nm:'이지',chip:'c-easy',col:'#0E9B72',
     develops:'유산소 기반 — 모세혈관과 미토콘드리아 밀도. 가장 느리게 자라고, 주간 거리에서 나옵니다.',
     primary:'hr', primaryLabel:'심박 Z2 유지',
     ignore:'속도 — "조금 더 빨리"가 이 세션의 적응을 망칩니다.',
     src:'Daniels E (59~74% VO2max)', hrZone:[134,153], judgeBy:'range'},
-  long:{nm:'롱런',chip:'c-long',col:'#3FB392',
+  long:{nm:'롱런',chip:'c-long',col:'#0F8E70',
     develops:'근지구력과 글리코겐 저장·내성.',
     primary:'dist', primaryLabel:'계획 거리 완주',
     ignore:'페이스 — 끝까지 느려지면서 완주한 것이, 계획 페이스로 중간에 그만둔 것보다 성공입니다.',
     src:'Daniels L (2시간 30분 이내)', hrZone:[134,153], judgeBy:'distance'},
-  mpace:{nm:'마라톤페이스',chip:'c-goal',col:'#A98AD0',
+  mpace:{nm:'마라톤페이스',chip:'c-goal',col:'#7A55B8',
     develops:'레이스 페이스 특화 내성.',
     primary:'pace', primaryLabel:'페이스 일관성',
     src:'Daniels M (75~84% VO2max)', hrZone:[153,172], judgeBy:'range'},
-  goalpace:{nm:'목표페이스',chip:'c-goal',col:'#A98AD0',
+  goalpace:{nm:'목표페이스',chip:'c-goal',col:'#7A55B8',
     develops:'목표 속도에 몸이 익숙해지는 것. 페이스가 현재 체력이 아니라 목표 기록에서 나옵니다.',
     primary:'pace', primaryLabel:'페이스 일관성 + 체감(RPE)',
     ignore:'1회차를 과하게 — 전 회차를 같은 속도로 가는 것이 목적입니다.',
     src:'목표 기록 역산 (VDOT 존과 어긋나는 것이 정상)', paceSource:'goal', judgeBy:'spread'},
-  threshold:{nm:'역치',chip:'c-thr',col:'#D4B44A',
+  threshold:{nm:'역치',chip:'c-thr',col:'#9A7E0A',
     develops:'젖산 역치 — 젖산을 처리하며 버틸 수 있는 최고 속도.',
     primary:'pace', primaryLabel:'페이스 유지 + 세트 완수',
     src:'Daniels T (83~88% VO2max, 세션 주간 10% 이내, W:R 5:1)',
     hrZone:[162,176], judgeBy:'spread', cap:0.10},
-  interval:{nm:'인터벌',chip:'c-int',col:'#E8884F',
+  interval:{nm:'인터벌',chip:'c-int',col:'#C9661F',
     develops:'최대산소섭취량 — 심장이 한 번에 밀어내는 피의 양.',
     primary:'pace', primaryLabel:'심박 도달 + 회차 편차 5초 이내',
     ignore:'1회차 기록 — 전 회차를 균등하게 가는 것이 목적입니다.',
     hint:'페이스는 목표 심박에 도달하기 위한 수단입니다. 더운 날·피곤한 날엔 같은 심박이 더 느린 페이스에서 나옵니다. 그때 페이스를 고집하면 자극이 아니라 과훈련입니다.',
     src:'Daniels I (95~100% VO2max, 구간 3~5분, 세션 10km 또는 주간 8% 중 작은 값)',
     hrZone:[172,182], judgeBy:'spread', cap:0.08, bout:[180,300]},
-  rep:{nm:'리피티션',chip:'c-rep',col:'#E8884F',
+  rep:{nm:'리피티션',chip:'c-rep',col:'#C9661F',
     develops:'러닝 이코노미와 신경근 동원 — 같은 속도에 드는 산소량을 줄입니다.',
     primary:'pace', primaryLabel:'폼 · 케이던스 · 편차',
     ignore:'심박 — 구간이 짧아 심박이 올라오기 전에 끝납니다. Daniels도 R에 심박 기준을 주지 않습니다.',
     src:'Daniels R (105~120% VO2max, 1회 2분 이내, 세션 주간 5% 이내)',
     judgeBy:'spread', cap:0.05, noHR:true},
-  stride:{nm:'스트라이드',chip:'c-str',col:'#7FB6D6',
+  stride:{nm:'스트라이드',chip:'c-str',col:'#3E8FBF',
     develops:'신경근 활성과 폼의 탄성.',
     primary:'count', primaryLabel:'횟수와 폼',
     ignore:'페이스와 심박 둘 다 — 100m는 GPS로 못 재고 심박은 올라오지 않습니다.',
     src:'완전 회복 반복, 10~20초', judgeBy:'count', noHR:true, noPace:true},
-  hill:{nm:'힐',chip:'c-rep',col:'#D4824F',
+  hill:{nm:'힐',chip:'c-rep',col:'#B05C1C',
     develops:'근력과 심폐를 동시에. 평지보다 적은 충격으로 강한 자극.',
     primary:'count', primaryLabel:'횟수와 노력도',
     ignore:'페이스 — 경사 때문에 숫자가 의미 없습니다.',
     src:'Lydiard 힐 저항 훈련', judgeBy:'count', noPace:true},
-  tt:{nm:'TT 측정',chip:'c-tt',col:'#E2615C',
+  tt:{nm:'TT 측정',chip:'c-tt',col:'#CF3B36',
     develops:'발달이 아니라 측정입니다. 현재 실력을 확정해 이후 모든 세션의 목표 페이스를 다시 계산합니다.',
     primary:'pace', primaryLabel:'기록',
     src:'Daniels VDOT 갱신', judgeBy:'none'},
-  free:{nm:'자유 러닝',chip:'c-off',col:'#8FA39A',
+  free:{nm:'자유 러닝',chip:'c-off',col:'#5F7A6E',
     develops:'계획 없이 뛰는 날입니다. 기록만 남기고 판정하지 않습니다.',
     primary:'pace', primaryLabel:'목표 없음 — 편한 대로',
     src:'—', judgeBy:'none'},
-  off:{nm:'휴식',chip:'c-off',col:'#6B766F',develops:'적응이 실제로 일어나는 날입니다.',primary:'none',judgeBy:'none'},
+  off:{nm:'휴식',chip:'c-off',col:'#5E6A63',develops:'적응이 실제로 일어나는 날입니다.',primary:'none',judgeBy:'none'},
 };
 
 /* ───────── 구간 생성기 ─────────
@@ -1078,8 +1073,8 @@ function renderHero(){
   const target = sess.reps ? fmtPace(sess.repTarget+adj)
                            : rangeText(main.pace);
   const rule = sess.ceiling
-    ? `<b>${fmtPace(sess.ceiling)}보다 느리게.</b> 이보다 빠르면 거리를 다 뛰어도 실패입니다.`
-    : (T.primaryLabel?`<b>지켜야 할 것</b> · ${T.primaryLabel}`:'');
+    ? `<b>${fmtPace(sess.ceiling)}보다 느리게</b>`
+    : (T.primaryLabel?`<b>${T.primaryLabel}</b>`:'');
   host.innerHTML=`<div class="hero-day" style="--day:${T.col}">
     <div class="inner">
       <div class="kind"><s></s>${T.nm}${sess.role?' · '+sess.role:''}${adj?` · 목표 ${adj>0?'+':''}${adj}초`:''}</div>
@@ -1097,7 +1092,7 @@ function renderHero(){
           <button class="ok" id="dSave">적용</button></div>
       </div>
       ${rule?`<div class="rule">${rule}</div>`:''}
-      <div class="why">${T.develops||''}</div>
+      <div class="why">${(T.develops||'').split(/ — |\. /)[0]}</div>
       ${segBar(sess)}
       <button class="gobtn${done?' done':''}" id="goToday">${done?'오늘 완료 ✓ — 다시 하기':'시작'}</button>
       ${done?`<button id="undoToday" style="display:block;width:100%;margin-top:8px;background:transparent;
@@ -1225,7 +1220,7 @@ function renderPlan(){
               ['M 마라톤','#3FB392','레이스 특화',fmtPace(z.M)],
               ['T 역치','#D4B44A','젖산 역치',fmtPace(z.T)],
               ['I 인터벌','#E8884F','최대산소섭취량',fmtPace(z.I)],
-              ['R 리피티션','#E2615C','러닝 이코노미',fmtPace(z.R)]];
+              ['R 리피티션','#CF3B36','러닝 이코노미',fmtPace(z.R)]];
   $('zoneOut').innerHTML=`<div class="note green" style="margin:0 0 10px"><b>VDOT ${vd.toFixed(1)}</b> —
       10km 45:46 (2026.10.09 대회) 기준 · 5km ${fmtClock(raceTime(vd,5000)*60)} · 하프 ${fmtClock(raceTime(vd,21097.5)*60)}</div>
     <div class="card" style="margin:0;padding:4px 15px 12px">`+
@@ -1350,16 +1345,21 @@ function openConfirm(i){
   $('cTitle').textContent=s.t+(s.role?` · ${s.role}`:'');
   $('cMeta').textContent=(i<0?'계획 없이 기록만 남깁니다':`${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)}요일 · 총 ${s.dist} km`)+
     (s.extra?` · +${s.extra}`:'')+(adj?` · 목표 ${adj>0?'+':''}${adj}초 조정됨`:'');
-  const br=$('cBrief'); br.innerHTML=`<div class="bh">${T.nm} — 무엇을 위한 날인가</div>`+
-    `<div class="bi"><div class="bk">발달 목표</div><div class="bv">${T.develops||'—'}</div></div>`+
+  const br=$('cBrief'); br.className='brief';
+  const extra=(T.ignore?`<div class="bi more"><div class="bk">보지 말 것</div><div class="bv">${T.ignore}</div></div>`:'')+
+    (T.hint?`<div class="bi more"><div class="bk">알아둘 것</div><div class="bv">${T.hint}</div></div>`:'')+
+    (T.src?`<div class="bi more"><div class="bk">근거</div><div class="bv" style="font-size:12.5px">${T.src}</div></div>`:'');
+  br.innerHTML=
+    `<div class="bi"><div class="bk">${T.nm} — 무엇을 발달시키나</div><div class="bv">${T.develops||'—'}</div></div>`+
     (T.primaryLabel?`<div class="bi"><div class="bk">지켜야 할 것</div><div class="bv"><b>${T.primaryLabel}</b></div></div>`:'')+
-    (T.ignore?`<div class="bi"><div class="bk">보지 말 것</div><div class="bv">${T.ignore}</div></div>`:'')+
-    (T.hint?`<div class="bi"><div class="bk">알아둘 것</div><div class="bv">${T.hint}</div></div>`:'')+
-    (T.src?`<div class="bi"><div class="bk">근거</div><div class="bv" style="font-size:12.5px">${T.src}</div></div>`:'')+
-    auditSession(s).map(w=>`<div class="bi warn"><div class="bk">문헌 기준 초과</div><div class="bv">${w}</div></div>`).join('');
+    auditSession(s).map(w=>`<div class="bi warn"><div class="bk">문헌 기준 초과</div><div class="bv">${w}</div></div>`).join('')+
+    extra+(extra?`<button class="tog" id="cTog">자세히 ▾</button>`:'');
+  const tg=$('cTog');
+  if(tg)tg.onclick=()=>{ br.classList.toggle('open');
+    tg.textContent=br.classList.contains('open')?'접기 ▴':'자세히 ▾'; };
   const host=$('cSegs'); host.innerHTML=''; let prev=0;
   if(i<0){ host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">'+
-    '거리·페이스 목표가 없습니다. 종료를 누를 때까지 기록합니다.</span></div>'; }
+    '목표 없이 기록만 남깁니다.</span></div>'; }
   else s.segs.forEach(g=>{const r=document.createElement('div');
     r.className='srow'+(g.hard?' hard':'');
     const p=g.pace?[g.pace[0]+(g.hard?adj:0),g.pace[1]+(g.hard?adj:0)]:null;
@@ -1999,12 +1999,12 @@ function drawMap(host,pts){
     if(acc/1000>=nextKm){ marks.push({p:pts[i],km:nextKm}); nextKm++; } }
   const st=pts[0], en=pts[pts.length-1];
   host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="러닝 경로">
-    ${runs.map(r=>`<path d="${path(r.pts)}" fill="none" stroke="${r.over?'#E2615C':'#4FC79F'}"
+    ${runs.map(r=>`<path d="${path(r.pts)}" fill="none" stroke="${r.over?'#CF3B36':'#0E9B72'}"
       stroke-width="${r.over?5:4}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}
     ${marks.map(m=>`<circle cx="${X(m.p).toFixed(1)}" cy="${Y(m.p).toFixed(1)}" r="3.2"
-      fill="#0E1211" stroke="#9FAAA4" stroke-width="1.4"/>`).join('')}
-    <circle cx="${X(st).toFixed(1)}" cy="${Y(st).toFixed(1)}" r="7" fill="#4FC79F" stroke="#0E1211" stroke-width="2.5"/>
-    <circle cx="${X(en).toFixed(1)}" cy="${Y(en).toFixed(1)}" r="7" fill="#F2F5F3" stroke="#0E1211" stroke-width="2.5"/>
+      fill="#FFFFFF" stroke="#5B6A64" stroke-width="1.4"/>`).join('')}
+    <circle cx="${X(st).toFixed(1)}" cy="${Y(st).toFixed(1)}" r="7" fill="#0E9B72" stroke="#FFFFFF" stroke-width="2.5"/>
+    <circle cx="${X(en).toFixed(1)}" cy="${Y(en).toFixed(1)}" r="7" fill="#16211D" stroke="#FFFFFF" stroke-width="2.5"/>
   </svg>`;
   const overN=runs.filter(r=>r.over).length;
   $('sMapOver').textContent = overN?`과속 구간 ${overN}곳`:'과속 없음';
@@ -2068,12 +2068,12 @@ function renderSummary(completed){
 
   drawMap($('sMap'),S.pts);
   const sp=S.splits.map(x=>x.pace).filter(isFinite);
-  sparkline('chPace','1km 스플릿 페이스',sp.length?`${fmtPace(Math.min(...sp))} ~ ${fmtPace(Math.max(...sp))}`:'',sp,{invert:true,c:'#4FC79F'});
+  sparkline('chPace','1km 스플릿 페이스',sp.length?`${fmtPace(Math.min(...sp))} ~ ${fmtPace(Math.max(...sp))}`:'',sp,{invert:true,c:'#0E9B72'});
   const alts=S.pts.map(p=>p.alt).filter(v=>v!=null);
   sparkline('chElev','고도',`▲${Math.round(S.asc)}m ▼${Math.round(S.desc)}m`,
-    alts.filter((_,i)=>i%Math.max(1,Math.ceil(alts.length/120))===0),{c:'#C9B04A',h:56});
+    alts.filter((_,i)=>i%Math.max(1,Math.ceil(alts.length/120))===0),{c:'#A2850C',h:56});
   sparkline('chHR','심박',hrAvg?`평균 ${hrAvg} · 최대 ${S.hr.max}`:'',
-    hs.filter((_,i)=>i%Math.max(1,Math.ceil(hs.length/120))===0),{c:'#E2615C',h:56});
+    hs.filter((_,i)=>i%Math.max(1,Math.ceil(hs.length/120))===0),{c:'#CF3B36',h:56});
 
   const gh=$('sSegs'); gh.innerHTML='';
   S.segRecords.forEach(r=>{const e=document.createElement('div');
@@ -2322,8 +2322,8 @@ const PROV={
     site:'https://platform.claude.com/settings/keys',
     help:`<b>1.</b> 아래 버튼 → platform.claude.com 가입(구글 로그인 가능)<br>
           <b>2.</b> Settings → API keys → <b>Create Key</b><br>
-          <b>3.</b> 뜬 키를 복사해 아래 칸에 붙여넣기 (다시 못 봅니다)<br>
-          <b>4.</b> Billing에서 크레딧을 충전해야 작동합니다. 최소 금액이면 수개월 씁니다.`,
+          <b>3.</b> 키를 복사해 아래 칸에 붙여넣기 (다시 못 봅니다)<br>
+          <b>4.</b> Billing에서 크레딧 충전 필요`,
     async models(key){
       const r=await fetch('https://api.anthropic.com/v1/models?limit=40',{headers:{
         'x-api-key':key,'anthropic-version':'2023-06-01',
@@ -2347,8 +2347,8 @@ const PROV={
     site:'https://aistudio.google.com/apikey',
     help:`<b>1.</b> 아래 버튼 → aistudio.google.com (쓰던 구글 계정으로 로그인)<br>
           <b>2.</b> <b>API 키 만들기</b> 누르기<br>
-          <b>3.</b> 뜬 키를 복사해 아래 칸에 붙여넣기<br>
-          <b>4.</b> 무료 한도가 있어 카드 등록 없이 바로 됩니다. 하루 몇 번 쓰는 정도면 충분합니다.`,
+          <b>3.</b> 키를 복사해 아래 칸에 붙여넣기<br>
+          <b>4.</b> 무료 한도 있음 — 카드 등록 불필요`,
     async models(key){
       const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key='+encodeURIComponent(key));
       if(!r.ok)throw new Error(r.status===400||r.status===403?'키가 올바르지 않습니다':`오류 ${r.status} — ${(await r.text()).slice(0,120)}`);
