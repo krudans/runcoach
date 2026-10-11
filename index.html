@@ -22,6 +22,7 @@
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
   -webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
@@ -216,83 +217,96 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .btn:disabled{opacity:.45}
 
 /* run */
-.seg-head{padding:13px 18px;background:var(--panel);border-bottom:1px solid var(--line)}
-.seg-head .top{display:flex;align-items:baseline;gap:10px;margin-bottom:2px}
-.seg-head .nm{font-size:17px;font-weight:700;flex:1 1 auto}
-.seg-head .ix{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
-.seg-head .tgt{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
-.prog{height:5px;background:var(--panel-2);border-radius:99px;margin-top:9px;overflow:hidden}
-.prog i{display:block;height:100%;background:var(--accent);border-radius:99px;width:0;transition:width .35s linear}
-.banner{padding:12px 18px;font-size:14.5px;font-weight:700;text-align:center;color:#fff}
-.banner.over{background:var(--alarm)} .banner.under{background:#2B7BB9}
-.hero{padding:14px 14px 8px;text-align:center}
-.hero .k{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
-.hero .v{font-family:var(--mono);font-size:clamp(84px,30vw,136px);font-weight:700;line-height:.94;
-  margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:-.045em;color:var(--ink)}
-.hero .v.fast{color:var(--fast)}.hero .v.slow{color:var(--slow)}.hero .v.ok{color:var(--ok)}
-.hero .u{font-size:14.5px;color:var(--ink-2);margin-top:3px;font-weight:600}
-.sub2{display:flex;align-items:baseline;justify-content:center;gap:10px;padding:0 18px 11px}
-.sub2 .sk{font-size:12.5px;color:var(--ink-3);font-weight:700}
-.sub2 .sv{font-family:var(--mono);font-size:38px;font-weight:700;color:var(--ink)}
-.sub2 .sd{font-family:var(--mono);font-size:14px;font-weight:700}
-.sub2 .sd.fast{color:var(--fast)}.sub2 .sd.slow{color:var(--slow)}.sub2 .sd.ok{color:var(--ok)}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.cell{background:var(--bg);padding:11px 5px;text-align:center;position:relative}
-.cell .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
-.cell .v{font-family:var(--mono);font-size:25px;font-weight:700;line-height:1.15;margin-top:2px}
-.cell .u{font-size:10px;color:var(--ink-3)}
-/* 메인에 올라와 있는 항목 — 눌러서 바꾼다 */
-.cell.sel{background:#E4F3EC}
-.cell.sel .k{color:var(--accent)}
-.cell.sel::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent)}
-.hrbar{display:flex;gap:2px;padding:10px 18px;align-items:center}
-.hrbar .zb{flex:1;height:7px;border-radius:2px;background:var(--panel-2)}
-.hrbar .zl{font-family:var(--mono);font-size:10px;color:var(--ink-3);width:20px;text-align:center}
-.gps{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 18px;
-  font-size:12px;color:var(--ink-3);border-top:1px solid var(--line)}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
-.dot.good{background:var(--ok)}.dot.weak{background:var(--z3)}.dot.bad{background:var(--alarm)}
-.ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px 18px 22px}
-.ctl .btn{margin:0}
-/* 오늘 미션 진행바 — 아래가 출발, 위가 완주 */
-.runbody{display:flex;align-items:stretch}
-.runmain{flex:1 1 auto;min-width:0}
-.rail{flex:0 0 46px;position:relative;margin:12px 10px 8px 0;display:flex;
-  flex-direction:column;align-items:center}
-.rail .pct{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);margin-bottom:5px}
-.rail .track{position:relative;flex:1 1 auto;width:10px;border-radius:6px;
-  background:var(--panel-2);overflow:visible}
-.rail .fill{position:absolute;left:0;right:0;bottom:0;border-radius:6px;background:var(--accent);height:0}
+/* ───────── 달릴 때 ─────────
+   숫자 하나가 화면을 지배하고, 버튼은 하나, 배경색이 코칭한다. */
+#run{display:none}
+#run.on{display:flex;flex-direction:column;height:100dvh;box-sizing:border-box;
+  padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));
+  background:var(--rbg);color:var(--rink);transition:background .35s ease}
+#run[data-state="ok"]   {--rbg:var(--bg);  --rink:var(--ink); --rsub:var(--ink-2); --rline:var(--line); --rbtn:var(--ink); --rbtnf:#fff; --rfill:var(--accent)}
+#run[data-state="fast"] {--rbg:#C9661F; --rink:#fff; --rsub:rgba(255,255,255,.82); --rline:rgba(255,255,255,.3); --rbtn:#fff; --rbtnf:#C9661F; --rfill:#fff}
+#run[data-state="slow"] {--rbg:#2B7BB9; --rink:#fff; --rsub:rgba(255,255,255,.82); --rline:rgba(255,255,255,.3); --rbtn:#fff; --rbtnf:#2B7BB9; --rfill:#fff}
+#run[data-state="hr"]   {--rbg:#C0352F; --rink:#fff; --rsub:rgba(255,255,255,.82); --rline:rgba(255,255,255,.3); --rbtn:#fff; --rbtnf:#C0352F; --rfill:#fff}
+#run[data-state="soon"] {--rbg:#E4F3EC; --rink:var(--ink); --rsub:var(--ink-2); --rline:#9ED3BC; --rbtn:var(--ink); --rbtnf:#fff; --rfill:var(--accent)}
+
+.rpage{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+.rpage[hidden]{display:none}
+.rhead{padding:14px 20px 0;text-align:center}
+.rhead .nm{font-size:19px;font-weight:700}
+.rhead .tgt{font-family:var(--mono);font-size:13px;color:var(--rsub);margin-top:3px}
+
+.rmid{flex:1 1 auto;display:flex;min-height:0}
+.rmain{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding-left:14px}
+.rmain .k{font-size:12.5px;font-weight:700;letter-spacing:.12em;color:var(--rsub)}
+.rmain .v{font-size:clamp(72px,27vw,112px);font-weight:700;line-height:.88;
+  letter-spacing:-.06em;margin-top:4px;font-variant-numeric:tabular-nums}
+.rmain .u{font-size:16px;font-weight:700;color:var(--rsub);margin-top:2px}
+.rmain .pill{margin-top:16px;border-radius:999px;padding:9px 24px;font-size:17px;font-weight:700;
+  background:#E6F5EC;border:1px solid #B6DEC6;color:#1E6B3F}
+.rmain .pill.warn{background:#fff;border-color:#fff;color:var(--rbg)}
+.rmain .pill[hidden]{display:none}
+.rmain .say{margin-top:11px;font-size:12.5px;line-height:1.6;color:var(--rsub);
+  text-align:center;max-width:240px}
+.rmain .say[hidden]{display:none}
+
+.rail{flex:0 0 52px;display:flex;flex-direction:column;align-items:center;padding:6px 0 10px}
+.rail .pct{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--rink)}
+.rail .track{position:relative;flex:1 1 auto;width:11px;border-radius:6px;background:var(--rline)}
+.rail .fill{position:absolute;left:0;right:0;bottom:0;border-radius:6px;background:var(--rfill);height:0}
 .rail .band{position:absolute;left:-2px;right:-2px;border-radius:4px;background:#E3CE7A;opacity:.95}
 .rail .band.on{background:#C9A227}
 .rail .mk{position:absolute;left:50%;transform:translate(-50%,50%);width:11px;height:11px;
-  border-radius:50%;background:var(--bg);border:2px solid var(--ink-3)}
+  border-radius:50%;background:var(--rbg);border:2px solid var(--rsub)}
 .rail .mk.pass{border-color:var(--ok);background:var(--ok)}
 .rail .mk.fail{border-color:var(--alarm);background:var(--alarm)}
-.rail .mk.now{border-color:var(--ink);background:var(--ink);width:13px;height:13px}
+.rail .mk.now{border-color:var(--rink);background:var(--rink);width:13px;height:13px}
 .rail .lb{position:absolute;right:19px;transform:translateY(50%);font-family:var(--mono);
-  font-size:9px;color:var(--ink-3);white-space:nowrap}
-.rail .now{position:absolute;left:-5px;right:-5px;height:3px;background:var(--ink);border-radius:2px}
-.rail .end{font-family:var(--mono);font-size:9px;color:var(--ink-3);margin-top:5px}
-/* 길게 눌러야 하는 종료 버튼 */
-.ctl.one{grid-template-columns:1fr}
+  font-size:9px;color:var(--rsub);white-space:nowrap}
+.rail .now{position:absolute;left:-5px;right:-5px;height:3px;background:var(--rink);border-radius:2px}
+.rail .end{font-family:var(--mono);font-size:9px;color:var(--rsub);margin-top:5px}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rline);
+  border-top:1px solid var(--rline);border-bottom:1px solid var(--rline);flex:none}
+.cell{background:var(--rbg);padding:11px 4px;text-align:center;position:relative;color:var(--rink)}
+.cell .k{font-size:10px;color:var(--rsub);font-weight:600}
+.cell .v{font-size:24px;font-weight:700;line-height:1.1;margin-top:2px;font-variant-numeric:tabular-nums}
+.cell .u{font-size:9.5px;color:var(--rsub)}
+.cell.sel{background:var(--rink)}
+.cell.sel .k,.cell.sel .u{color:var(--rbg);opacity:.75}
+.cell.sel .v{color:var(--rbg)}
+
+.rctl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 18px 6px;flex:none}
+.pz{width:84px;height:84px;border-radius:50%;background:var(--rbtn);border:none;
+  display:flex;align-items:center;justify-content:center}
+.pz svg{width:34px;height:34px}
+.pz svg rect{fill:var(--rbtnf)}
+.rctl .btn{margin:0;width:100%;max-width:330px}
+.rdots{display:flex;align-items:center;justify-content:center;gap:7px;padding-bottom:8px;flex:none}
+.rdots span{width:7px;height:7px;border-radius:50%;background:var(--rsub);opacity:.45}
+.rdots span.on{opacity:1;background:var(--rink)}
+
+.conf{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;
+  font-size:12px;color:var(--rsub);border-top:1px solid var(--rline);flex:none}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
+.dot.good{background:var(--ok)}.dot.weak{background:var(--z3)}.dot.bad{background:var(--alarm)}
+
 .holdbtn{position:relative;overflow:hidden}
-.holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(0,0,0,.20);
+.holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.32);
   pointer-events:none;transition:width .05s linear}
 .holdbtn b{position:relative;font-weight:700}
-.lapwrap{border-top:1px solid var(--line);padding:9px 18px 4px}
-.laphd{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
-.laphd .ttl{font-size:11px;letter-spacing:.06em;color:var(--ink-3);font-weight:700;margin-right:auto}
-.laphd .cg{font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid var(--line);
-  background:transparent;color:var(--ink-3);font-weight:600}
+.lapwrap{padding:9px 18px 4px;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.laphd{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;flex:none}
+.laphd .ttl{font-size:11px;letter-spacing:.06em;color:var(--rsub);font-weight:700;margin-right:auto}
+.laphd .cg{font-size:10.5px;padding:3px 8px;border-radius:20px;border:1px solid var(--rline);
+  background:transparent;color:var(--rsub);font-weight:600}
 .laphd .cg.on{border-color:var(--accent);color:var(--accent);background:#E4F3EC}
-.laplog{max-height:21vh;overflow-y:auto}
+.laplog{flex:1 1 auto;min-height:0;overflow-y:auto}
 .lap{display:flex;align-items:baseline;gap:9px;padding:7px 0;
-  border-top:1px solid var(--line);font-size:12.5px}
-.lap .nm{color:var(--ink-2);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  border-top:1px solid var(--rline);font-size:12.5px}
+.lap .nm{color:var(--rsub);flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lap .c{font-family:var(--mono);font-weight:700;flex:0 0 auto;font-size:13px}
-.lap .c i{font-style:normal;font-size:9.5px;color:var(--ink-3);font-weight:600;margin-left:1px}
+.lap .c i{font-style:normal;font-size:9.5px;color:var(--rsub);font-weight:600;margin-left:1px}
 .lap .d{font-family:var(--mono);font-size:11.5px;flex:0 0 auto;min-width:44px;text-align:right}
 .lap .d.fast{color:var(--fast)}.lap .d.slow{color:var(--slow)}.lap .d.ok{color:var(--ok)}
 .lapempty{font-size:12px;color:var(--ink-3);padding:9px 0 11px;border-top:1px solid var(--line)}
@@ -492,12 +506,38 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   </div>
   <div class="lbl" style="margin:20px 0 9px">내 정보</div>
   <div class="card tight">
-    <div class="row" style="margin-bottom:9px">
+    <div class="meta" style="margin-bottom:10px">여기서 나온 숫자로 <b>모든 훈련 페이스와 심박대</b>가 계산됩니다.</div>
+    <div class="row" style="margin-bottom:10px">
+      <div><div style="font-size:11px;color:var(--ink-3)">나이</div><input type="number" id="pAge" inputmode="numeric"></div>
       <div><div style="font-size:11px;color:var(--ink-3)">체중 kg</div><input type="number" id="pW" inputmode="decimal"></div>
-      <div><div style="font-size:11px;color:var(--ink-3)">최대심박</div><input type="number" id="pHR" inputmode="numeric"></div>
       <div><div style="font-size:11px;color:var(--ink-3)">안정시 심박</div><input type="number" id="pRHR" inputmode="numeric"></div>
     </div>
-    <button class="btn sm ghost" id="pSave" style="margin:0">저장</button>
+
+    <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">최대심박</div>
+    <div class="tagrow" id="pHRSrc" style="margin-bottom:8px">
+      <button class="tag" data-v="measured">실제로 재봤다</button>
+      <button class="tag" data-v="estimated">모른다 — 추정</button>
+    </div>
+    <input type="number" id="pHR" inputmode="numeric" style="margin-bottom:5px">
+    <div class="meta" id="pHRNote" style="margin-bottom:12px"></div>
+
+    <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">최근 기록 — 실력의 근거</div>
+    <div class="tagrow" id="pRaceD" style="margin-bottom:7px">
+      <button class="tag" data-v="5000">5km</button>
+      <button class="tag" data-v="10000">10km</button>
+      <button class="tag" data-v="21097">하프</button>
+      <button class="tag" data-v="42195">풀</button>
+    </div>
+    <div class="row" style="margin-bottom:7px">
+      <input type="text" id="pRaceT" placeholder="45:46" inputmode="numeric">
+    </div>
+    <div class="tagrow" id="pRaceK" style="margin-bottom:10px">
+      <button class="tag" data-v="race">대회 기록</button>
+      <button class="tag" data-v="solo">혼자 측정</button>
+    </div>
+
+    <div class="note green" id="pOut" style="margin:0 0 10px"></div>
+    <button class="btn sm" id="pSave" style="margin:0">저장 — 전체 다시 계산</button>
   </div>
   <div class="lbl" style="margin:20px 0 9px">데이터 보관</div>
   <div class="card tight">
@@ -520,7 +560,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v5.1</b> · 2026-10-13
+    런코치 <b>v6.0</b> · 2026-10-13
   </div>
 </div></div>
 
@@ -548,50 +588,58 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   </div>
 </div>
 
-<div class="view" id="run">
-  <div class="seg-head">
-    <div class="top"><span class="nm" id="rSegName">준비</span><span class="ix" id="rSegIx">—</span></div>
-    <div class="tgt" id="rSegTgt">GPS 신호를 기다립니다</div>
-    <div class="prog"><i id="rProg"></i></div>
-  </div>
-  <div class="banner" id="rBanner" hidden></div>
-  <div class="runbody"><div class="runmain">
-  <div class="hero">
-    <div class="k" id="rHeroK">현재 페이스</div>
-    <div class="v num" id="rHeroV">--'--"</div>
-    <div class="u" id="rHeroU"></div>
-  </div>
-  <div class="sub2"><span class="sk" id="rSubK">페이스</span>
-    <span class="sv num" id="rSubV">--'--"</span><span class="sd num" id="rSubD"></span></div>
-  <div class="grid4" id="rGrid">
-    <button class="cell" data-h="dist"><div class="k">거리</div><div class="v num" id="rDist">0.00</div><div class="u">km</div></button>
-    <button class="cell" data-h="time"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
-    <button class="cell" data-h="hr"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
-    <button class="cell" data-h="cad"><div class="k">케이던스</div><div class="v num" id="rCad">—</div><div class="u">spm</div></button>
-  </div>
-  <div class="hrbar" id="rHRBar" hidden>
-    <span class="zl">Z1</span><span class="zb" data-z="1" style="color:var(--z1)"></span>
-    <span class="zb" data-z="2" style="color:var(--z2)"></span><span class="zb" data-z="3" style="color:var(--z3)"></span>
-    <span class="zb" data-z="4" style="color:var(--z4)"></span><span class="zb" data-z="5" style="color:var(--z5)"></span>
-    <span class="zl">Z5</span></div>
-  </div>
-  <div class="rail" id="rRail">
-    <div class="pct" id="rPct">0%</div>
-    <div class="track" id="rTrack">
-      <div class="fill" id="rFill"></div>
-      <div class="now" id="rNow" style="bottom:0"></div>
+<div class="view" id="run" data-state="ok">
+  <div class="rpage" id="rPage1">
+    <div class="rhead">
+      <div class="nm" id="rSegName">준비</div>
+      <div class="tgt" id="rSegTgt">GPS 신호를 기다립니다</div>
     </div>
-    <div class="end">출발</div>
-  </div></div>
-  <div class="gps"><span class="dot" id="rDot"></span><span id="rGps">GPS 대기 중</span></div>
-  <div class="lapwrap">
-    <div class="laphd"><span class="ttl">구간별 기록</span>
-      <button class="cg" data-c="pace">페이스</button><button class="cg" data-c="time">시간</button>
-      <button class="cg" data-c="hr">심박</button><button class="cg" data-c="cad">케이던스</button></div>
-    <div class="laplog" id="rLaps"></div>
+    <div class="rmid">
+      <div class="rmain">
+        <div class="k" id="rHeroK">거리</div>
+        <div class="v num" id="rHeroV">0.00</div>
+        <div class="u" id="rHeroU">km</div>
+        <div class="pill" id="rPill" hidden></div>
+        <div class="say" id="rSay" hidden></div>
+      </div>
+      <div class="rail" id="rRail">
+        <div class="pct" id="rPct">0%</div>
+        <div class="track" id="rTrack">
+          <div class="fill" id="rFill"></div>
+          <div class="now" id="rNow" style="bottom:0"></div>
+        </div>
+        <div class="end">출발</div>
+      </div>
+    </div>
+    <div class="grid4" id="rGrid">
+      <button class="cell" data-h="pace"><div class="k">속도</div><div class="v num" id="rPace">--'--"</div><div class="u" id="rPaceU">페이스</div></button>
+      <button class="cell" data-h="time"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
+      <button class="cell" data-h="hr"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
+      <button class="cell" data-h="cad"><div class="k">케이던스</div><div class="v num" id="rCad">—</div><div class="u">spm</div></button>
+    </div>
   </div>
-  <div class="ctl one" id="rCtl"><button class="btn ghost" id="btnPause">일시정지</button>
-    <button class="btn danger holdbtn" id="btnStop" hidden><i></i><b>종료 (3초 길게)</b></button></div>
+
+  <div class="rpage" id="rPage2" hidden>
+    <div class="rhead"><div class="nm">구간별 기록</div>
+      <div class="tgt">1km마다, 구간이 끝날 때마다 쌓입니다</div></div>
+    <div class="lapwrap">
+      <div class="laphd"><span class="ttl">표시</span>
+        <button class="cg" data-c="pace">페이스</button><button class="cg" data-c="time">시간</button>
+        <button class="cg" data-c="hr">심박</button><button class="cg" data-c="cad">케이던스</button></div>
+      <div class="laplog" id="rLaps"></div>
+    </div>
+    <div class="conf" id="rConf">
+      <span class="dot" id="rDot"></span><span id="rGps">GPS 대기 중</span>
+    </div>
+  </div>
+
+  <div class="rctl" id="rCtl">
+    <button class="pz" id="btnPause" aria-label="일시정지">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4.2" height="16" rx="1.4"/><rect x="13.8" y="4" width="4.2" height="16" rx="1.4"/></svg>
+    </button>
+    <button class="btn danger holdbtn" id="btnStop" hidden><i></i><b>종료 (3초 길게)</b></button>
+  </div>
+  <div class="rdots" id="rDots"><span class="on" data-p="1"></span><span data-p="2"></span></div>
 </div>
 
 <div class="view" id="sum"><div class="bar"><h1>세션 결과</h1><span class="sub" id="sumDate">—</span></div>
@@ -722,6 +770,61 @@ const DEV = {
 
 /* ───────── 훈련 종류 — 문헌 근거 + 1차 지표 ───────── */
 const P=(m,s)=>m*60+s;
+
+/* ───────── 개인 상수 ─────────
+   예전에는 VDOT 44.4 · 최대심박 191 · 존 경계 · 훈련 페이스가 전부 코드에 박혀 있었다.
+   이제 박힌 숫자는 하나도 없다. 프로필 하나가 바뀌면 존도 페이스도 블록도 다시 계산된다. */
+const vo2=v=>-4.60+0.182258*v+0.000104*v*v;
+const pctMax=t=>0.8+0.1894393*Math.exp(-0.012778*t)+0.2989558*Math.exp(-0.1932605*t);
+function bisect(f,lo,hi){let a=lo,b=hi;for(let i=0;i<100;i++){const m=(a+b)/2;
+  if(f(a)*f(m)<=0)b=m;else a=m;}return (a+b)/2;}
+const raceTime=(vd,m)=>bisect(t=>vo2(m/t)-vd*pctMax(t),0.5,400);
+const vdotOf=(m,tmin)=>bisect(vd=>raceTime(vd,m)-tmin,15,90);
+const vFromVo2=x=>bisect(v=>vo2(v)-x,40,700);
+function zonesOf(vd){const dT=bisect(d=>raceTime(vd,d)-60,4000,32000);
+  return {E:[60000/vFromVo2(vd*0.74),60000/vFromVo2(vd*0.59)],
+    M:raceTime(vd,42195)/42.195*60, T:60/(dT/1000)*60,
+    I:raceTime(vd,3000)/3*60, R:raceTime(vd,1200)/1.2*60};}
+
+const DEFAULT_PROF={
+  age:50, w:75,
+  hrmaxSrc:'measured',          /* 'measured' | 'estimated' */
+  hrmax:191, rhr:null,
+  race:{m:10000, sec:45*60+46, kind:'race'}   /* kind: 'race' | 'solo' */
+};
+let PROF=Object.assign({},DEFAULT_PROF,DEV.store.get('prof',{}));
+
+let HRMAX, VDOT, Z, PACE, ZONES;
+
+/* 최대심박을 실측한 사람은 거의 없다. 없으면 Tanaka 식으로 추정하고,
+   추정값이라는 사실을 화면에 표시한다 — 추정 존으로 불합격을 주면 안 된다. */
+const estHrMax = age => Math.round(208 - 0.7*(age||40));
+
+function profVdot(p){
+  const r=p&&p.race;
+  if(!r||!r.m||!r.sec)return 38;
+  /* 혼자 뛴 기록은 레이스보다 보통 2~5% 느리다. 3%로 보정한다 */
+  const sec = r.kind==='solo' ? r.sec*0.97 : r.sec;
+  return vdotOf(r.m, sec/60);
+}
+
+function recalcProfile(){
+  HRMAX = (PROF.hrmaxSrc==='measured' && PROF.hrmax) ? PROF.hrmax : estHrMax(PROF.age);
+  VDOT  = profVdot(PROF);
+  Z     = zonesOf(VDOT);
+  const es = Z.E[1];                 /* E존의 느린 끝 — 쉬운 날은 전부 여기서 파생된다 */
+  PACE = {
+    rec:[es+35, es+65],   recCeil: es+40,
+    easyIn:[es+30, es+50], easy:[es+20, es+35], easyCeil: es+15,
+    longIn:[es+30, es+50], long:[es+20, es+45],
+    recJog:[es, es+65],
+    M:Z.M, T:Z.T, I:Z.I, R:Z.R
+  };
+  const f = x => Math.round(HRMAX*x);
+  ZONES = [[0,f(.70),'Z1 회복'],[f(.70),f(.80),'Z2 이지'],[f(.80),f(.85),'Z3 마라톤'],
+           [f(.85),f(.90),'Z4 역치'],[f(.90),f(.95),'Z5 VO2max'],[f(.95),999,'Z5+']];
+}
+recalcProfile();
 const TYPES={
   recovery:{nm:'회복조깅',chip:'c-rec',col:'#2B7BB9',
     develops:'아무것도 발달시키지 않습니다. 어제의 자극이 적응으로 바뀌는 조건을 만드는 날입니다.',
@@ -786,47 +889,59 @@ const TYPES={
   off:{nm:'휴식',chip:'c-off',col:'#5E6A63',develops:'적응이 실제로 일어나는 날입니다.',primary:'none',judgeBy:'none'},
 };
 
+/* TYPES의 심박대는 191 기준 절대값으로 적혀 있었다.
+   한 번만 비율로 환산해 두고, 프로필이 바뀔 때마다 다시 계산한다. */
+function recalcTypes(){
+  Object.values(TYPES).forEach(T=>{
+    if(!T.hrZone)return;
+    if(!T.hrZf)T.hrZf=T.hrZone.map(v=>v?+(v/191).toFixed(4):v);
+    T.hrZone=T.hrZf.map(f=>f?Math.round(f*HRMAX):f);
+  });
+}
+recalcTypes();
+
 /* ───────── 구간 생성기 ─────────
    tol: 숫자=±초, 'ceil'=상한만(느린 건 통과), null=교정 안 함
    end: 'dist'(기본) | 'time'  /  sec: 시간 기준일 때 초 */
-const recovery=km=>({type:'recovery',dist:km,ceiling:P(7,10),segs:[
-  {to:1,nm:'출발',pace:[P(7,20),P(7,30)],tol:'ceil'},
-  {to:km,nm:'유지',pace:[P(7,10),P(7,30)],tol:'ceil'}]});
-const easy=km=>({type:'easy',dist:km,ceiling:P(6,45),segs:[
-  {to:1,nm:'도입',pace:[P(7,0),P(7,20)],tol:20},
-  {to:km,nm:'이지',pace:[P(6,50),P(7,0)],tol:15}]});
-const long=km=>({type:'long',dist:km,ceiling:P(6,45),segs:[
-  {to:1.5,nm:'도입',pace:[P(7,0),P(7,20)],tol:20},
-  {to:km,nm:'롱런',pace:[P(6,50),P(7,10)],tol:20}]});
+const recovery=km=>({type:'recovery',dist:km,ceiling:PACE.recCeil,segs:[
+  {to:1,nm:'출발',pace:PACE.rec,tol:'ceil'},
+  {to:km,nm:'유지',pace:PACE.rec,tol:'ceil'}]});
+const easy=km=>({type:'easy',dist:km,ceiling:PACE.easyCeil,segs:[
+  {to:1,nm:'도입',pace:PACE.easyIn,tol:20},
+  {to:km,nm:'이지',pace:PACE.easy,tol:15}]});
+const long=km=>({type:'long',dist:km,ceiling:PACE.easyCeil,segs:[
+  {to:1.5,nm:'도입',pace:PACE.longIn,tol:20},
+  {to:km,nm:'롱런',pace:PACE.long,tol:20}]});
 function repsBuild(total,wu,n,len,tgt,recDist,recSec,label){
-  const segs=[{to:wu,nm:'웜업',pace:[P(7,0),P(7,0)],tol:20}]; let at=wu;
+  const segs=[{to:wu,nm:'웜업',pace:PACE.easyIn,tol:20}]; let at=wu;
   for(let i=1;i<=n;i++){
     at+=len; segs.push({to:+at.toFixed(2),nm:i+label,pace:[tgt-3,tgt+3],tol:5,hard:true,rep:i});
     if(i<n){ at+=recDist;
-      segs.push({to:+at.toFixed(2),nm:'회복 조깅',pace:[P(6,30),P(7,30)],tol:'ceil',
+      segs.push({to:+at.toFixed(2),nm:'회복 조깅',pace:PACE.recJog,tol:'ceil',
                  end:recSec?'time':'dist',sec:recSec||null}); }
   }
-  segs.push({to:total,nm:'쿨다운',pace:[P(7,0),P(7,0)],tol:20});
+  segs.push({to:total,nm:'쿨다운',pace:PACE.easyIn,tol:20});
   return {segs,reps:n,repTarget:tgt,repLen:len,qvol:n*len,bout:len*tgt};
 }
 const interval=(t,wu,n,len,tgt,rd,rs)=>({type:'interval',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'회차')});
 const thresh  =(t,wu,n,len,tgt,rd,rs)=>({type:'threshold',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'세트')});
 
-/* ───────── 심폐 강화 블록 ───────── */
-const BLOCK=[
+/* ───────── 심폐 강화 블록 ─────────
+   반복 목표는 절대 페이스가 아니라 존 상대값이다. VDOT가 바뀌면 같이 움직인다. */
+function buildBlock(){ const R=x=>Math.round(x); return [
  {d:'2026-10-11',wk:1,t:'회복조깅 12km',...recovery(12),
   note:'7\'20"보다 빠르면 실패한 세션입니다. 등산 근육통 정점 구간이니 끝까지 가속 금지.'},
  {d:'2026-10-12',wk:1,t:'회복조깅 6km + 근력',...recovery(6),extra:'근력'},
  {d:'2026-10-13',wk:1,t:'이지 9km',...easy(9)},
  {d:'2026-10-14',wk:1,t:'회복조깅 7km',...recovery(7)},
- {d:'2026-10-15',wk:1,t:'인터벌 1km × 4',...interval(10.5,2,4,1,P(4,25),0.5,null),
+ {d:'2026-10-15',wk:1,t:'인터벌 1km × 4',...interval(10.5,2,4,1,R(PACE.I+9),0.5,null),
   note:'4회 편차 5초 이내가 성공. 후반 반복에서 심박 172~182 확인. 등산 후 72시간 확보 여부를 먼저 볼 것.'},
  {d:'2026-10-16',wk:1,t:'이지 9km + 근력',...easy(9),extra:'근력'},
  {d:'2026-10-17',wk:1,t:'회복조깅 7km',...recovery(7)},
  {d:'2026-10-18',wk:1,t:'이지 8km',...easy(8),note:'롱런은 1주차 누적 부하 때문에 생략합니다.'},
  {d:'2026-10-19',wk:2,t:'회복조깅 8km + 근력',...recovery(8),extra:'근력'},
  {d:'2026-10-20',wk:2,t:'이지 12km',...easy(12)},
- {d:'2026-10-21',wk:2,t:'인터벌 1.5km × 3',...interval(11,2,3,1.5,P(4,30),0.5,180)},
+ {d:'2026-10-21',wk:2,t:'인터벌 1.5km × 3',...interval(11,2,3,1.5,R(PACE.I+14),0.5,180)},
  {d:'2026-10-22',wk:2,t:'더블 — 아침 5km',...recovery(5),note:'저녁 5km를 따로. 몰아서 10km로 뛰면 목적이 사라집니다.'},
  {d:'2026-10-22b',wk:2,t:'더블 — 저녁 5km',...recovery(5)},
  {d:'2026-10-23',wk:2,t:'이지 10km + 근력',...easy(10),extra:'근력'},
@@ -834,7 +949,7 @@ const BLOCK=[
  {d:'2026-10-25',wk:2,t:'롱런 16km',...long(16)},
  {d:'2026-10-26',wk:3,t:'회복조깅 8km + 근력',...recovery(8),extra:'근력'},
  {d:'2026-10-27',wk:3,t:'이지 13km',...easy(13)},
- {d:'2026-10-28',wk:3,t:'인터벌 1km × 5 · 피크',...interval(11.5,2,5,1,P(4,20),0.5,null),role:'피크',
+ {d:'2026-10-28',wk:3,t:'인터벌 1km × 5 · 피크',...interval(11.5,2,5,1,R(PACE.I+4),0.5,null),role:'피크',
   note:'이 블록의 최대 자극 세션. 4회차에서 페이스가 10초 이상 떨어지면 5회차는 버리세요.'},
  {d:'2026-10-29',wk:3,t:'더블 — 아침 6km',...recovery(6),note:'저녁 6km를 따로.'},
  {d:'2026-10-29b',wk:3,t:'더블 — 저녁 6km',...recovery(6)},
@@ -843,19 +958,17 @@ const BLOCK=[
  {d:'2026-11-01',wk:3,t:'롱런 18km',...long(18)},
  {d:'2026-11-02',wk:4,t:'회복조깅 6km',...recovery(6),role:'감량'},
  {d:'2026-11-03',wk:4,t:'이지 8km',...easy(8),role:'감량'},
- {d:'2026-11-04',wk:4,t:'역치 2km × 3',...thresh(11,2,3,2,P(4,50),0.35,120),role:'감량'},
+ {d:'2026-11-04',wk:4,t:'역치 2km × 3',...thresh(11,2,3,2,R(PACE.T+11),0.35,120),role:'감량'},
  {d:'2026-11-05',wk:4,t:'휴식',type:'off',dist:0,segs:[]},
  {d:'2026-11-06',wk:4,t:'이지 7km',...easy(7),role:'감량'},
  {d:'2026-11-07',wk:4,t:'휴식',type:'off',dist:0,segs:[]},
  {d:'2026-11-08',wk:4,t:'롱런 12km',...long(12),role:'감량',
   note:'이 주가 3주차를 성과로 바꿉니다. 몸이 가벼워져도 늘리지 마세요.'},
-];
-const ZONES=[[0,134,'Z1 회복'],[134,153,'Z2 이지'],[153,162,'Z3 마라톤'],
-             [162,172,'Z4 역치'],[172,182,'Z5 VO2max'],[182,999,'Z5+']];
+];}
+let BLOCK=buildBlock();
 const TERRAIN=['도로','트랙','트레일','트레드밀'], WEATHER=['맑음','흐림','비','바람','더움','추움'];
 
 /* ───────── 상태·저장 ───────── */
-let PROF=DEV.store.get('prof',{w:75,hrmax:191,rhr:null});
 let RUNS=DEV.store.get('runs',[]), SHOES=DEV.store.get('shoes',[]);
 let RHR=DEV.store.get('rhr',[]), HIKES=DEV.store.get('hikes',[]);
 let PROPS=DEV.store.get('props',[]), ADJ=DEV.store.get('adj',{});
@@ -883,18 +996,6 @@ function haversine(a,b){const R=6371000,t=Math.PI/180;
 const parseTime=s=>{const p=String(s).trim().split(':').map(Number);
   if(p.some(isNaN)||!p.length)return NaN;
   return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:p[0];};
-/* VDOT */
-const vo2=v=>-4.60+0.182258*v+0.000104*v*v;
-const pctMax=t=>0.8+0.1894393*Math.exp(-0.012778*t)+0.2989558*Math.exp(-0.1932605*t);
-function bisect(f,lo,hi){let a=lo,b=hi;for(let i=0;i<100;i++){const m=(a+b)/2;
-  if(f(a)*f(m)<=0)b=m;else a=m;}return (a+b)/2;}
-const raceTime=(vd,m)=>bisect(t=>vo2(m/t)-vd*pctMax(t),0.5,400);
-const vdotOf=(m,tmin)=>bisect(vd=>raceTime(vd,m)-tmin,15,90);
-const vFromVo2=x=>bisect(v=>vo2(v)-x,40,700);
-function zonesOf(vd){const dT=bisect(d=>raceTime(vd,d)-60,4000,32000);
-  return {E:[60000/vFromVo2(vd*0.74),60000/vFromVo2(vd*0.59)],
-    M:raceTime(vd,42195)/42.195*60, T:60/(dT/1000)*60,
-    I:raceTime(vd,3000)/3*60, R:raceTime(vd,1200)/1.2*60};}
 
 /* 거리를 수정하면 마지막 구간이 늘거나 줄어든다.
    반복 세션은 쿨다운이 차이를 흡수하고, 너무 짧으면 전체를 비례 축소한다. */
@@ -1215,7 +1316,7 @@ function renderPlan(){
     host.appendChild(b);
   });
   // 페이스 존
-  const vd=vdotOf(10000,(45*60+46)/60), z=zonesOf(vd);
+  const vd=VDOT, z=Z;
   const rows=[['E 이지','#5A9FD4','유산소 기반',fmtPace(z.E[0])+'~'+fmtPace(z.E[1])],
               ['M 마라톤','#3FB392','레이스 특화',fmtPace(z.M)],
               ['T 역치','#D4B44A','젖산 역치',fmtPace(z.T)],
@@ -1507,9 +1608,10 @@ $('btnStart').onclick=async()=>{
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
-  renderLaps(); paintLapChips(); buildRail(); $('rHRBar').hidden=!(S.hr.dev&&!T.noHR); $('rBanner').hidden=true;
+  renderLaps(); paintLapChips(); buildRail(); runPage(1); $('run').dataset.state='ok';
+  $('btnStop').hidden=true; endHold();
   $('btnPause').textContent='일시정지';
-  setHero();
+  HERO=null; setHero();
   show('run');
   if(S.opts.wake)S.wake=await DEV.wake.on();
   if(S.opts.cad)DEV.motion.start(onMotion);
@@ -1552,11 +1654,6 @@ function buildRail(){
     if(i<segs.length-1){                          // 구간이 끝나는 지점
       const m=document.createElement('div'); m.className='mk'; m.dataset.i=i;
       m.style.bottom=(to/tot*100)+'%'; tr.appendChild(m);
-      const l=document.createElement('div'); l.className='lb'; l.dataset.i=i;
-      l.style.bottom=(to/tot*100)+'%';
-      if(to/tot<0.05||to/tot>0.96)l.style.display='none';
-      l.textContent=g.end==='time'?`${Math.round(g.sec)}s`:`${+g.to.toFixed(1)}`;
-      tr.appendChild(l);
     }
     from=to;
   });
@@ -1588,18 +1685,38 @@ function paintRail(prog){
 
 /* 메인에 올릴 지표 — 기본은 거리. 아래 4칸을 눌러 바꾸며 선택은 저장된다.
    페이스는 코칭의 핵심이라 메인과 별개로 바로 아래에 항상 띄운다. */
-const HERO_NM={dist:'거리',time:'경과 시간',hr:'심박',cad:'케이던스'};
-let HERO=DEV.store.get('hero','dist');
-if(!HERO_NM[HERO])HERO='dist';
+let HERO=null;                       /* 사용자가 고른 값. 없으면 세션이 정한다 */
+/* 그 세션에서 가장 중요한 것이 자동으로 메인에 올라온다 */
+function defaultHero(){
+  const T=S.T||{};
+  if(T.primary==='hr')return 'hr';
+  if(S.session&&S.session.reps)return 'segleft';
+  return 'dist';
+}
 function setHero(h){
-  if(h){ HERO=h; DEV.store.set('hero',HERO); }
-  S.hero=HERO;
-  $('rHeroK').textContent=HERO_NM[HERO];
-  $('rSubK').textContent='페이스';
-  document.querySelectorAll('#rGrid .cell').forEach(c=>c.classList.toggle('sel',c.dataset.h===HERO));
+  if(h){ HERO=h; }
+  S.hero = HERO || defaultHero();
+  document.querySelectorAll('#rGrid .cell').forEach(c=>c.classList.toggle('sel',c.dataset.h===S.hero));
   if(S.running)onTick();
 }
 $('rGrid').onclick=e=>{ const c=e.target.closest('.cell'); if(c)setHero(c.dataset.h); };
+
+/* 두 페이지 — 옆으로 넘긴다 */
+let RPAGE=1;
+function runPage(nx){
+  RPAGE=nx; $('rPage1').hidden=nx!==1; $('rPage2').hidden=nx!==2;
+  document.querySelectorAll('#rDots span').forEach(d=>d.classList.toggle('on',+d.dataset.p===nx));
+}
+$('rDots').onclick=e=>{ const d=e.target.closest('span'); if(d)runPage(+d.dataset.p); };
+(function(){
+  let x0=null; const v=$('run');
+  v.addEventListener('touchstart',e=>{ x0=e.touches[0].clientX; },{passive:true});
+  v.addEventListener('touchend',e=>{
+    if(x0==null)return; const dx=e.changedTouches[0].clientX-x0; x0=null;
+    if(Math.abs(dx)<55)return;
+    runPage(dx<0?Math.min(2,RPAGE+1):Math.max(1,RPAGE-1));
+  },{passive:true});
+})();
 
 /* 구간별 기록에 띄울 항목 — 헤더의 칩으로 켜고 끈다 */
 let LAPC=DEV.store.get('lapc',{pace:1,time:1,hr:1,cad:1});
@@ -1704,22 +1821,17 @@ function onTick(){
   const tgPace = tg.pace?[tg.pace[0]+(tg.hard?S.adj:0),tg.pace[1]+(tg.hard?S.adj:0)]:null;
   const prevTo=S.segIx?segs[S.segIx-1].to:0;
   $('rSegName').textContent=tg.nm;
-  $('rSegIx').textContent=`${S.segIx+1} / ${segs.length}`;
-  $('rSegTgt').textContent = tg.end==='time'
-    ? `${tg.sec}초 기준 · 목표 ${rangeText(tgPace)}`
-    : `${+prevTo.toFixed(2)}~${+tg.to.toFixed(2)} km · 목표 ${rangeText(tgPace)}`;
+  $('rSegTgt').textContent = (tg.end==='time'
+    ? `${tg.sec}초 · 목표 ${rangeText(tgPace)}`
+    : `목표 ${rangeText(tgPace)}`)+`  ·  ${S.segIx+1}/${segs.length}`;
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
   if(!S.gpsWarn&&S.elapsed>180&&km<0.15&&S.pts.length>60){
     S.gpsWarn=true;
-    const b=$('rBanner'); b.hidden=false; b.className='banner over';
-    b.textContent='거리가 기록되지 않고 있습니다 — 종료 후 확인하세요';
     DEV.buzz([400,150,400]); DEV.speak('거리가 기록되지 않고 있습니다.',true);
   }
   const prog = tg.end==='time' ? (S.elapsed-S.segStart.t)/tg.sec
              : (km-prevTo)/Math.max(0.01,tg.to-prevTo);
-  $('rProg').style.width=(Math.min(1,Math.max(0,prog))*100).toFixed(1)+'%';
   paintRail(prog);
-  $('rDist').textContent=km.toFixed(2);
   $('rTime').textContent=fmtClock(S.elapsed);
   const p=curPace();
   /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다.
@@ -1728,65 +1840,81 @@ function onTick(){
   const cadNow = moving ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
   if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
-  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
-    const z=hrZoneIx(S.hr.bpm);
-    document.querySelectorAll('#rHRBar .zb').forEach(b=>{
-      b.style.background=(+b.dataset.z<=z)?'currentColor':'var(--panel-2)';}); }
+  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm); }
 
-  /* hero — 4칸에서 고른 항목 */
-  const hv=$('rHeroV'); hv.className='v num';
-  if(S.hero==='hr'){ hv.textContent=S.hr.bpm||'—';
-    const z=T.hrZone;
-    $('rHeroU').textContent = z?`목표 ${z[0]||''}${z[0]?'~':'≤ '}${z[1]} · ${S.hr.bpm?hrZone(S.hr.bpm):''}`
-                              :(S.hr.dev?'':'기기 미연결');
-    if(S.hr.bpm&&z){ if(S.hr.bpm>z[1])hv.classList.add('fast'); else hv.classList.add('ok'); } }
-  else if(S.hero==='cad'){ hv.textContent=cadNow||'—';
-    $('rHeroU').textContent = cadNow?`spm · 권장 170~180`:(moving?'측정 중':'정지 중'); }
-  else if(S.hero==='time'){ hv.textContent=fmtClock(S.elapsed); $('rHeroU').textContent='경과'; }
-  else { hv.textContent=km.toFixed(2);
-    $('rHeroU').textContent=`km · 목표 ${s.dist} km · ${Math.round(km/s.dist*100)}%`; }
-  /* sub — 페이스는 항상 띄운다 */
-  const sv=$('rSubV'), sd=$('rSubD'); sd.className='sd num';
-  sv.textContent=fmtPace(p);
+  /* 속도 칸 */
+  $('rPace').textContent=fmtPace(p);
+  let paceU='페이스';
   if(isFinite(p)&&tgPace){
-    if(p<tgPace[0]-2){sd.classList.add('fast');sd.textContent=`${Math.round(tgPace[0]-p)}초 빠름`;}
-    else if(p>tgPace[1]+2){sd.classList.add('slow');sd.textContent=`${Math.round(p-tgPace[1])}초 느림`;}
-    else {sd.classList.add('ok');sd.textContent='구간 내';} }
-  else sd.textContent=tgPace?`목표 ${rangeText(tgPace)}`:'';
+    if(p<tgPace[0]-2)paceU=`${Math.round(tgPace[0]-p)}초 빠름`;
+    else if(p>tgPace[1]+2)paceU=`${Math.round(p-tgPace[1])}초 느림`;
+    else paceU='구간 내';
+  } else if(tgPace)paceU=rangeText(tgPace);
+  $('rPaceU').textContent=paceU;
 
   /* ── 실시간 코칭 ────────────────────────────────────────
-     이 세션이 무엇을 발달시키는 날이냐에 따라 1순위 기준이 다르다.
-     회복·이지는 심박, 템포·인터벌은 페이스. 1순위를 먼저 말한다. */
-  let banner='', bantxt='';
+     세션이 무엇을 발달시키는 날이냐에 따라 1순위가 다르다.
+     회복·이지는 심박, 인터벌·역치는 페이스. 1순위가 화면 색을 정한다. */
   const HZ=(!T.noHR&&T.hrZone)?T.hrZone:null;
   const hrPrimary=(T.primary==='hr');
+  let state='ok', pill='', say='', hrOver=false;
 
-  /* 심박 — 목표 상한을 넘겼는지 */
   if(S.hr.bpm&&HZ&&HZ[1]){
-    if(S.hr.bpm>HZ[1]){ S.hrOverSec+=0.5; S.hrHoldSec+=0.5; }
-    else { S.hrHoldSec=0; }
+    if(S.hr.bpm>HZ[1]){ S.hrOverSec+=0.5; S.hrHoldSec+=0.5; hrOver=true; }
+    else S.hrHoldSec=0;
     if(S.hrHoldSec>=25&&Date.now()-S.lastHrCue>25000){
       S.lastHrCue=Date.now(); DEV.buzz([250,100,250,100,250]);
       DEV.speak(hrPrimary
         ? `심박 ${S.hr.bpm}. 목표는 ${HZ[1]} 이하입니다. 속도를 더 줄이세요. 오늘은 심박이 기준입니다. 페이스가 느려도 심박이 높으면 회복이 되지 않습니다.`
         : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}을 넘었습니다. 호흡을 고르세요.`, true);
     }
-    if(S.hr.bpm>HZ[1]){ banner='over'; bantxt=`심박 ${S.hr.bpm} — 목표 ${HZ[1]} 이하. 속도를 줄이세요`; }
-    else if(HZ[0]&&S.hr.bpm<HZ[0]&&tg.hard){ banner='under'; bantxt=`심박 ${S.hr.bpm} — 목표 ${HZ[0]} 이상. 강도를 올리세요`; }
+    if(hrOver){ state='hr'; pill='속도를 줄이세요';
+      say = hrPrimary ? '오늘은 심박이 기준입니다. 페이스가 느려도 심박이 높으면 회복이 되지 않습니다.' : ''; }
+    else if(HZ[0]&&S.hr.bpm<HZ[0]&&tg.hard&&(S.elapsed-S.segStart.t)>60
+            &&!(isFinite(p)&&tgPace&&p<=tgPace[1])){
+      /* 심박은 30~60초 늦게 올라온다. 구간 초반이거나 페이스가 이미 목표 안이면 말하지 않는다 */
+      state='slow'; pill='강도를 올리세요'; }
   }
-  /* 페이스 상한 — 회복·이지 세션의 핵심 */
+  /* 페이스 상한 — 회복·이지의 핵심 */
+  let ceilOver=false;
   if(isFinite(p)&&s.ceiling&&!tg.hard&&p<s.ceiling-5){
-    S.ceilSec+=0.5;
-    if(!banner||!hrPrimary){ banner='over'; bantxt=`너무 빠릅니다 — ${fmtPace(s.ceiling)}보다 느리게`; }
+    S.ceilSec+=0.5; ceilOver=true;
+    if(state==='ok'||!hrPrimary){ state='fast'; pill=`${fmtPace(s.ceiling)}보다 느리게`; say=''; }
     if(Date.now()-S.lastCeilCue>20000){ S.lastCeilCue=Date.now(); DEV.buzz([300,120,300,120,300]);
       DEV.speak(`너무 빠릅니다. ${fmtPaceVoice(s.ceiling)}보다 느리게. 이 세션은 느리게 뛰는 것이 목적입니다.`,true); }
   }
-  if(banner+bantxt!==S.bannerState){ S.bannerState=banner+bantxt;
-    const b=$('rBanner'); b.hidden=!banner; b.className='banner '+banner;
-    if(banner)b.textContent=bantxt; }
+  /* 구간 전환이 가까우면 */
+  if(state==='ok'){
+    const left = tg.end==='time' ? (tg.sec-(S.elapsed-S.segStart.t))*1000/Math.max(200,p||400)
+                                 : (tg.to-km)*1000;
+    if(left>0&&left<=100&&S.segIx<segs.length-1){ state='soon'; pill='곧 바뀝니다'; }
+    else { pill='그대로'; }
+  }
+  if(state!==S.bannerState){ S.bannerState=state; $('run').dataset.state=state; }
+  const pl=$('rPill'); pl.hidden=!pill; pl.className='pill'+(state==='ok'||state==='soon'?'':' warn');
+  if(pill)pl.textContent=pill;
+  const sy=$('rSay'); sy.hidden=!say; if(say)sy.textContent=say;
+
+  /* 메인 숫자 — 4칸에서 고른 것. 기본은 세션이 정한다 */
+  const hv=$('rHeroV');
+  const segLeft = tg.end==='time' ? null : Math.max(0,Math.round((tg.to-km)*1000));
+  if(S.hero==='hr'){ $('rHeroK').textContent='심박'; hv.textContent=S.hr.bpm||'—';
+    $('rHeroU').textContent = (HZ&&HZ[1])
+      ? (hrOver?`${S.hr.bpm-HZ[1]} 초과`:`목표 ${HZ[0]?HZ[0]+'~':'≤ '}${HZ[1]}`)
+      : (S.hr.dev?'bpm':'기기 미연결'); }
+  else if(S.hero==='cad'){ $('rHeroK').textContent='케이던스'; hv.textContent=cadNow||'—';
+    $('rHeroU').textContent = cadNow?'spm · 권장 170~180':(moving?'측정 중':'정지 중'); }
+  else if(S.hero==='time'){ $('rHeroK').textContent='경과 시간'; hv.textContent=fmtClock(S.elapsed);
+    $('rHeroU').textContent='경과'; }
+  else if(S.hero==='pace'){ $('rHeroK').textContent='페이스'; hv.textContent=fmtPace(p);
+    $('rHeroU').textContent=tgPace?`목표 ${rangeText(tgPace)}`:''; }
+  else if(S.hero==='segleft'&&segLeft!=null){ $('rHeroK').textContent='남은 거리';
+    hv.textContent=segLeft; $('rHeroU').textContent='m'; }
+  else { $('rHeroK').textContent='거리'; hv.textContent=km.toFixed(2);
+    $('rHeroU').textContent=`km · 목표 ${s.dist} · ${Math.round(km/s.dist*100)}%`; }
 
   /* 구간 내 교정 — 허용 오차는 구간마다 다름 */
-  if(isFinite(p)&&tgPace&&tg.tol!=null&&banner!=='over'){
+  if(isFinite(p)&&tgPace&&tg.tol!=null&&!ceilOver&&!hrOver){
     if(tg.tol==='ceil'){ /* 느린 건 통과, 빠른 건 상한 배너가 담당 */ }
     else{ const tol=tg.tol;
       if(p<tgPace[0]-tol)checkOff(-1);
@@ -2307,7 +2435,7 @@ function renderTools(){
       ${sh.km>700?'<div style="font-size:11.5px;color:var(--alarm);margin-top:3px">수명 한계입니다. 교체를 권합니다.</div>':''}</div>`;
   }).join('')+(SHOES.length<2?'<div style="font-size:12px;color:var(--z3)">주 70km에는 2켤레가 필요합니다.</div>':'')
    :'<span style="color:var(--ink-3)">등록된 신발이 없습니다</span>';
-  renderHike(); BT.paint(); paintAI(); paintStore();
+  renderHike(); BT.paint(); paintAI(); paintStore(); paintProf();
 }
 $('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 사이 값을 넣어주세요.');
@@ -2457,7 +2585,7 @@ function aiPrompt(){
     `${g.cad?` ${g.cad}spm`:''}${g.pass===false?' ← 벗어남':''}`).join('\n');
   const next=BLOCK.filter(x=>x.d>(r.planId||'')).slice(0,3)
     .map(x=>`  - ${x.d.slice(5,10)} ${x.t}`).join('\n');
-  const vd=vdotOf(10000,(45*60+46)/60), z=zonesOf(vd);
+  const vd=VDOT, z=Z;
   return `[주자] 만 50세 남성, 75kg, 최대심박 ${PROF.hrmax}. 10km 45:46 → VDOT ${vd.toFixed(1)}.
 존: E ${fmtPace(z.E[0])}~${fmtPace(z.E[1])} · M ${fmtPace(z.M)} · T ${fmtPace(z.T)} · I ${fmtPace(z.I)} · R ${fmtPace(z.R)}
 최종 목표: 하프 마라톤 킬로당 3분대.
@@ -2616,9 +2744,47 @@ $('btnAudit').onclick=()=>{
   $('auditOut').innerHTML=(rows.length?rows.join(''):'<div class="note green" style="margin:0 0 8px">모든 세션이 문헌 기준 안에 있습니다.</div>')+
     `<div class="note blue" style="margin:0">주간 실제 합계 — ${wk}<br>총 ${Object.values(weeks).reduce((a,b)=>a+b,0).toFixed(1)}km</div>`;
 };
+/* 프로필이 바뀌면 존·페이스·블록을 전부 다시 만든다 */
+let pRaceD=10000, pRaceK='race', pHRSrc='measured';
+function paintProf(){
+  $('pAge').value=PROF.age||''; $('pW').value=PROF.w||''; $('pRHR').value=PROF.rhr||'';
+  pHRSrc=PROF.hrmaxSrc||'measured';
+  $('pHR').value = pHRSrc==='measured' ? (PROF.hrmax||'') : estHrMax(+$('pAge').value||PROF.age);
+  $('pHR').disabled = pHRSrc!=='measured';
+  $('pHRNote').textContent = pHRSrc==='measured'
+    ? '실측값입니다. 존 판정을 그대로 적용합니다.'
+    : `나이로 추정한 값입니다 (208 − 0.7 × 나이). ±10bpm은 틀릴 수 있어 심박 판정을 느슨하게 적용합니다.`;
+  const r=PROF.race||{}; pRaceD=r.m||10000; pRaceK=r.kind||'race';
+  $('pRaceT').value = r.sec ? fmtClock(r.sec) : '';
+  document.querySelectorAll('#pHRSrc .tag').forEach(b=>b.classList.toggle('on',b.dataset.v===pHRSrc));
+  document.querySelectorAll('#pRaceD .tag').forEach(b=>b.classList.toggle('on',+b.dataset.v===pRaceD));
+  document.querySelectorAll('#pRaceK .tag').forEach(b=>b.classList.toggle('on',b.dataset.v===pRaceK));
+  $('pOut').innerHTML=`<b>VDOT ${VDOT.toFixed(1)}</b> · 최대심박 ${HRMAX}`+
+    (PROF.hrmaxSrc==='estimated'?' <span style="opacity:.75">(추정)</span>':'')+`<br>`+
+    `E ${fmtPace(Z.E[0])}~${fmtPace(Z.E[1])} · M ${fmtPace(Z.M)} · T ${fmtPace(Z.T)} · `+
+    `I ${fmtPace(Z.I)} · R ${fmtPace(Z.R)}<br>`+
+    `Z1 ≤${ZONES[0][1]} · Z2 ≤${ZONES[1][1]} · Z4 ≤${ZONES[3][1]} · Z5 ≤${ZONES[4][1]}`;
+}
+$('pHRSrc').onclick=e=>{const b=e.target.closest('.tag');if(!b)return;
+  pHRSrc=b.dataset.v; PROF.hrmaxSrc=pHRSrc; paintProf();};
+$('pRaceD').onclick=e=>{const b=e.target.closest('.tag');if(!b)return;
+  pRaceD=+b.dataset.v; document.querySelectorAll('#pRaceD .tag').forEach(x=>x.classList.toggle('on',x===b));};
+$('pRaceK').onclick=e=>{const b=e.target.closest('.tag');if(!b)return;
+  pRaceK=b.dataset.v; document.querySelectorAll('#pRaceK .tag').forEach(x=>x.classList.toggle('on',x===b));};
+$('pAge').oninput=()=>{ if(pHRSrc!=='measured'){ PROF.age=+$('pAge').value||PROF.age; paintProf(); } };
 $('pSave').onclick=()=>{
-  PROF={w:+$('pW').value||75,hrmax:+$('pHR').value||191,rhr:+$('pRHR').value||null};
-  DEV.store.set('prof',PROF); alert('저장했습니다.');};
+  const sec=parseTime($('pRaceT').value);
+  if($('pRaceT').value.trim()&&!(sec>60)) return alert('기록을 45:46 형식으로 넣어주세요.');
+  PROF={ age:+$('pAge').value||50, w:+$('pW').value||75,
+    hrmaxSrc:pHRSrc,
+    hrmax: pHRSrc==='measured' ? (+$('pHR').value||estHrMax(+$('pAge').value)) : estHrMax(+$('pAge').value),
+    rhr:+$('pRHR').value||null,
+    race: sec>60 ? {m:pRaceD, sec:Math.round(sec), kind:pRaceK} : PROF.race };
+  DEV.store.set('prof',PROF);
+  recalcProfile(); recalcTypes(); BLOCK=buildBlock();
+  paintProf(); renderHome();
+  alert(`다시 계산했습니다.\nVDOT ${VDOT.toFixed(1)} · 최대심박 ${HRMAX}\n훈련 페이스와 심박대가 전부 갱신됐습니다.`);
+};
 
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.running)S.win=[];});
 window.addEventListener('beforeunload',e=>{if(S.running){e.preventDefault();e.returnValue='';}});
