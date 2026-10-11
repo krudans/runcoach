@@ -822,6 +822,30 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .whyl{margin:0;padding-left:18px}.whyl li{margin:3px 0}
 .pz svg path{fill:var(--rbtnf)}
 .pzlab{font-size:12px;font-weight:700;color:var(--rsub);margin-top:-2px}
+.tdet{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;margin-top:10px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);color:#fff;font:inherit;border-radius:12px;padding:11px 13px;text-align:left}
+.tdet b{font-size:14px;font-weight:800}
+.tdet span{font-size:12px;font-weight:700;opacity:.85;white-space:nowrap}
+.pdtabs{position:static;margin:0 0 8px;padding:0}
+.pdleg{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--ink-3);margin:2px 0 4px}
+.pdleg span{display:flex;align-items:center;gap:5px}
+.pdleg em,.pdr .m b em{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.pdr{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.pdr .n{font-family:var(--num);font-weight:800;font-size:15px;color:var(--ink-2);text-align:center}
+.pdr .n i{font-style:normal;font-size:10px;color:var(--ink-3);margin-left:1px}
+.pdr .m{min-width:0}
+.pdr .m b{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;word-break:keep-all}
+.pdr .m i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+.pdr .m u{display:flex;gap:2px;height:7px;margin-top:7px;text-decoration:none}
+.pdr .m u s{display:block;border-radius:3px;height:100%;text-decoration:none}
+.pdr .v{text-align:right}
+.pdr .v b{display:block;font-family:var(--num);font-size:14px;font-weight:800;white-space:nowrap}
+.pdr .v i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:3px;white-space:nowrap}
+.pdr.hard .n,.pdr.hard .v b{color:var(--fast)}
+.pdnote{font-size:11.5px;color:var(--ink-3);padding:10px 0 4px;line-height:1.5}
+.pdsum{display:flex;gap:6px;margin-top:12px}
+.pdsum div{flex:1;background:var(--panel-2);border-radius:12px;padding:9px 4px;text-align:center}
+.pdsum b{display:block;font-size:18px;font-weight:800}
+.pdsum i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:2px}
 .tshape{margin-top:12px;background:rgba(0,0,0,.10);border-radius:12px;padding:10px 10px 8px}
 .tshape svg{width:100%;height:40px;display:block}
 .tsl{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;margin-top:6px;font-size:11.5px}
@@ -1090,8 +1114,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <h1 style="text-align:center">오늘 뭘 하나</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad">
     <div class="card"><h2 id="cTitle">—</h2><div class="meta" id="cMeta">—</div></div>
+    <div class="lbl" style="margin:14px 0 8px">오늘 계획 — 구간별로 보기</div>
+    <div class="card" style="padding:10px 16px 8px"><div class="seglist" id="cSegs" style="margin-top:0"></div></div>
     <div class="brief" id="cBrief"></div>
-    <div class="card" style="padding:4px 18px 14px"><div class="seglist" id="cSegs"></div></div>
     <div class="note" id="cNote" hidden></div>
     <button class="btn sm ghost" id="cUnpaste" style="margin:12px 0 0" hidden>받아적은 것 지우고 원래 일정으로</button>
     <div class="lbl" style="margin:16px 0 10px">코칭 설정</div>
@@ -1337,6 +1362,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 <div class="view" id="share"><div class="bar"><h1>사진으로 공유</h1><span class="sub"></span></div><div class="pad" id="shBody" style="padding-bottom:100px"></div></div>
 <div class="view" id="rview"><div class="bar"><button class="sub" id="rvwBack">← 일지</button><h1 style="text-align:center">기록</h1><span class="sub"><button class="sub" id="rvwDel" style="color:var(--alarm)">삭제</button></span></div><div class="pad" id="rvwBody" style="padding-bottom:100px"></div></div>
 <div class="view" id="dec"><div class="pad decpad" id="decBody"></div></div>
+<div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
 <div class="nav" id="nav">
   <button data-t="plan"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2zm12 7v10H5V9zM7.5 11v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2zm-8 4v2h2v-2zm4 0v2h2v-2z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2zm12 7v10H5V9zM7.5 11v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2zm-8 4v2h2v-2zm4 0v2h2v-2z\'/></svg>') center/contain no-repeat"></i>플랜</button>
@@ -1350,7 +1376,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='11.0';
+const APPVER='11.1';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2205,7 +2231,7 @@ const $=id=>document.getElementById(id);
 let CURVIEW='home';
 /* 하단 메뉴는 어느 화면에서도 사라지지 않는다.
    하위 화면(러닝 중·세션 확인·결과·설정)은 속한 탭에 불이 들어온다. */
-const TABOF={share:'log',rview:'log',dec:'home',run:'home',confirm:'home',sum:'log',settings:'home',alerts:'home',runtab:'home',
+const TABOF={share:'log',rview:'log',dec:'home',tplan:'home',run:'home',confirm:'home',sum:'log',settings:'home',alerts:'home',runtab:'home',
   paste:'plan',review:'home'};
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
   CURVIEW=id;
@@ -2575,13 +2601,9 @@ function openConfirm(i){
   const host=$('cSegs'); host.innerHTML=''; let prev=0;
   if(i<0){ host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">'+
     '목표 없이 기록만 남깁니다.</span></div>'; }
-  else s.segs.forEach(g=>{const r=document.createElement('div');
-    r.className='srow'+(g.hard?' hard':'');
-    const p=g.pace?[g.pace[0]+(g.hard?adj:0),g.pace[1]+(g.hard?adj:0)]:null;
-    r.innerHTML=`<span class="r">${+prev.toFixed(2)} ~ ${+g.to.toFixed(2)} km</span>`+
-      `<span class="nm">${g.nm}${g.end==='time'?` <span style="color:var(--ink-3)">· ${g.sec}초 기준</span>`:''}</span>`+
-      `<span class="t">${g.ptxt||rangeText(p)}</span>`;
-    host.appendChild(r); prev=g.to;});
+  else { const paintSegs=()=>{ host.innerHTML=planDetailHTML(s,adj,TDMODE);
+      host.querySelectorAll('[data-pdm]').forEach(b=>b.onclick=()=>{ TDMODE=b.dataset.pdm; paintSegs(); }); };
+    paintSegs(); }
   const n=$('cNote'); if(s.note){n.textContent=s.note;n.hidden=false;}else n.hidden=true;
   $('btnStart').disabled=!s.dist;
   const vb=$('vOptBox'); if(vb){ vb.innerHTML=((i>=0&&s.reps)?voiceOptsHTML():'')+
@@ -2756,7 +2778,7 @@ function segDurs(s){
   const out=[]; let prev=0;
   s.segs.forEach(g=>{
     let d;
-    if(g.end==='time') d=g.sec||60;
+    if(g.end==='time'){ d=g.sec||60; if(g.to!=null)prev=g.to; }
     else { const km=Math.max(0.01,g.to-prev);
            const pc=g.pace?midPace(g.pace):(s.ceiling||420);
            d=km*pc; prev=g.to; }
@@ -5820,6 +5842,8 @@ function wireHome(sess,idx){
   const hg=$('hGoal'); if(hg)hg.onclick=()=>goalStart();
   const hg2=$('homeGoal2'); if(hg2)hg2.onclick=()=>goalStart();
   const go1=$('goToday'); if(go1)go1.onclick=()=>openConfirm(idx);
+  const tdt=$('todayDet'); if(tdt)tdt.onclick=()=>openTodayPlan(idx);
+  m.querySelectorAll('.tcard .tshape').forEach(x=>{ x.style.cursor='pointer'; x.onclick=()=>openTodayPlan(idx); });
   const un=$('undoToday'); if(un)un.onclick=()=>undoPlanDay(sess.d);
   const de=$('distEdit'); if(de)de.onclick=()=>{ const b=$('distBox'); b.hidden=!b.hidden; };
   m.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{ const el=$('dVal'); el.value=Math.max(0.5,Math.round(((+el.value||0)+ +b.dataset.dd)*10)/10); });
@@ -5847,6 +5871,7 @@ function todayCard(sess,idx){
     <div class="tds">${T.desc||''}</div>
     ${shapeSVG(sess)}
     <div class="tpills"><i>${pace} /km</i><i>${sess.dist} km${edited?' · 바꿈':''}</i>${mins?`<i>${mins}분쯤</i>`:''}${sess.ceiling?`<i>${fmtPace(sess.ceiling)}보다 느리게</i>`:''}</div>
+    <button type="button" class="tdet" id="todayDet"><b>오늘 계획 자세히 보기</b><span>항목별 · 1km씩 ›</span></button>
     <div class="tgrow"><b>오늘 기르는 것</b> ${growLine(sess.type)}</div>
     ${(()=>{ const tp=DEV.store.get('timePref',null); if(!tp||!['interval','threshold','goalpace','tt'].includes(sess.type)||(Date.now()-Date.parse(tp.at))>56*864e5)return '';
       return `<div class="tgrow"><b>정한 것</b> 빠른 날 하나는 ${HGN[tp.k]||''}에 뛰어 보기 ${GRB('D')}</div>`; })()}
@@ -7067,6 +7092,81 @@ function shapeSVG(sess){
     : segs.length>1 ? [`${tm('warm').split(' ')[0]} ${+first.to.toFixed(1)}km`, `${last.nm.split(' ')[0]} ${+(last.to-first.to).toFixed(1)}km`] : [last.nm.split(' ')[0]];
   return `<div class="tshape"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>
     <div class="tsl"><b>오늘 운동 모양</b><span>${lab.join(' → ')}</span>${hard.length?'<i>높은 막대 = 빠르게</i>':''}</div></div>`;
+}
+
+/* ───────── 오늘 계획 자세히 — 항목별 · 1km씩 ─────────
+   시작 전에 무엇을 몇 km, 어떤 속도로, 언제쯤 하는지 한눈에.
+   예상 시간은 목표 속도 범위의 가운데로 계산한다 (쉬는 구간은 정해진 초). */
+let TDMODE='item';
+function segKind(g){
+  if(g.hard)return {k:'fast',nm:'빠르게',c:'var(--fast)'};
+  if(/사이 쉬기|회복 조깅|걷/.test(g.nm))return {k:'rest',nm:'쉬기',c:'var(--sage)'};
+  if(/준비|웜업/.test(g.nm))return {k:'warm',nm:'준비',c:'#C9B8D9'};
+  if(/마무리|쿨다운/.test(g.nm))return {k:'cool',nm:'마무리',c:'#C9B8D9'};
+  return {k:'main',nm:'본 운동',c:'var(--accent)'};
+}
+function planItems(s,adj){
+  let prev=0, t=0;
+  return (s.segs||[]).map((g,i)=>{
+    const p=g.pace?[g.pace[0]+(g.hard?adj:0),g.pace[1]+(g.hard?adj:0)]:null;
+    const to=g.to!=null?g.to:prev, km=Math.max(0,to-prev);
+    const dur=g.end==='time'?(g.sec||60):km*(p?midPace(p):(s.ceiling||420));
+    const ptxt=g.ptxt||(p?rangeText(p)+' /km':s.ceiling?fmtPace(s.ceiling)+'보다 느리게':'편하게');
+    const it={i,g,from:prev,to,km,p,dur,t0:t,t1:t+dur,kind:segKind(g),ptxt};
+    prev=to; t+=dur; return it; });
+}
+function planKms(its){
+  const tot=its.length?its[its.length-1].to:0, out=[]; let cum=0;
+  for(let a=0;a<tot-0.005;a+=1){
+    const b=Math.min(tot,a+1), parts=[]; let sec=0;
+    its.forEach(it=>{ const lo=Math.max(a,it.from), hi=Math.min(b,it.to);
+      if(hi-lo>0.001&&it.km>0){ const ss=it.dur*(hi-lo)/it.km; sec+=ss; parts.push({it,km:hi-lo,sec:ss}); } });
+    cum+=sec; out.push({a,b,len:b-a,sec,cum,parts});
+  }
+  return out;
+}
+function planDetailHTML(s,adj,mode){
+  const its=planItems(s,adj);
+  const kinds=[]; its.forEach(x=>{ if(!kinds.some(k=>k.nm===x.kind.nm))kinds.push(x.kind); });
+  const tabs=`<div class="ltabs pdtabs"><button type="button" data-pdm="item" class="${mode!=='km'?'on':''}">항목별</button><button type="button" data-pdm="km" class="${mode==='km'?'on':''}">거리별 (1km씩)</button></div>`;
+  const leg=kinds.length>1?`<div class="pdleg">${kinds.map(k=>`<span><em style="background:${k.c}"></em>${k.nm}</span>`).join('')}</div>`:'';
+  let rows;
+  if(mode==='km'){
+    rows=planKms(its).map(k=>{
+      const bar=k.parts.map(x=>`<s style="flex:${x.km.toFixed(3)};background:${x.it.kind.c}"></s>`).join('');
+      const nm=k.parts.length<=2
+        ? k.parts.map(x=>k.parts.length>1?`${x.it.g.hard?x.it.g.nm:x.it.kind.nm} ${kmLab(+x.km.toFixed(2))}`:x.it.g.nm).join(' + ')
+        : Object.entries(k.parts.reduce((o,x)=>(o[x.it.kind.nm]=(o[x.it.kind.nm]||0)+1,o),{})).map(([n,c])=>`${n} ${c}번`).join(' · ');
+      const hard=k.parts.some(x=>x.it.g.hard);
+      return `<div class="pdr${hard?' hard':''}"><span class="n">${+k.b.toFixed(2)}<i>km</i></span>
+        <span class="m"><b>${nm}</b><u>${bar}</u></span>
+        <span class="v"><b>${fmtPace(k.sec/k.len)}</b><i>${fmtClock(k.sec)} · 누적 ${fmtClock(k.cum)}</i></span></div>`; }).join('');
+  } else {
+    rows=its.map((x,j)=>`<div class="pdr${x.g.hard?' hard':''}"><span class="n">${j+1}</span>
+      <span class="m"><b><em style="background:${x.kind.c}"></em>${x.g.nm}</b><i>${x.g.end==='time'?`${fmtClock(x.g.sec||60)} 동안`:kmLab(+x.km.toFixed(2))} · ${+x.from.toFixed(2)}→${+x.to.toFixed(2)}km</i></span>
+      <span class="v"><b>${x.ptxt}</b><i>${fmtClock(x.dur)} · 누적 ${fmtClock(x.t1)}</i></span></div>`).join('');
+  }
+  return tabs+leg+rows+`<div class="pdnote">시간은 목표 속도의 가운데로 잡은 예상입니다.${mode==='km'?' 1km 속도는 그 안에 든 구간을 섞은 평균입니다.':''}</div>`;
+}
+function openTodayPlan(idx){
+  const s=sessionOf(idx); if(!s||!s.segs)return;
+  const adj=ADJ[s.type]||0, T=TYPES[s.type]||{};
+  const paint=()=>{
+    const its=planItems(s,adj), tot=its.length?its[its.length-1].t1:0;
+    const fastKm=its.filter(x=>x.g.hard).reduce((a,x)=>a+x.km,0);
+    const end=new Date(Date.now()+tot*1000);
+    $('tpBody').innerHTML=`<div class="card"><h2>${ESC(s.t)}</h2>
+      <div class="meta">${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)}요일${T.nm?' · '+T.nm:''}${s.role?' · '+ESC(s.role):''}</div>
+      <div class="pdsum"><div><b class="num">${s.dist}</b><i>km</i></div><div><b class="num">${Math.round(tot/60)}</b><i>분쯤</i></div>
+        ${fastKm?`<div><b class="num">${+fastKm.toFixed(1)}</b><i>km 빠르게</i></div>`:''}
+        <div><b class="num">${pad(end.getHours())}:${pad(end.getMinutes())}</b><i>지금 뛰면 끝</i></div></div></div>
+      <div class="card" style="padding:10px 16px 8px">${planDetailHTML(s,adj,TDMODE)}</div>
+      <button class="btn" id="tpGo">이대로 시작하기 ▶</button>`;
+    $('tpBody').querySelectorAll('[data-pdm]').forEach(b=>b.onclick=()=>{ TDMODE=b.dataset.pdm; paint(); });
+    $('tpGo').onclick=()=>openConfirm(idx);
+  };
+  $('tpBack').onclick=()=>go('home');
+  paint(); show('tplan');
 }
 
 /* ───────── 내 목표 · 전체 일정 중 지금 ───────── */
