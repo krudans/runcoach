@@ -234,6 +234,33 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .dot.good{background:var(--ok)}.dot.weak{background:var(--z3)}.dot.bad{background:var(--alarm)}
 .ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px 18px 22px}
 .ctl .btn{margin:0}
+/* 오늘 미션 진행바 — 아래가 출발, 위가 완주 */
+.runbody{display:flex;align-items:stretch}
+.runmain{flex:1 1 auto;min-width:0}
+.rail{flex:0 0 46px;position:relative;margin:12px 10px 8px 0;display:flex;
+  flex-direction:column;align-items:center}
+.rail .pct{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);margin-bottom:5px}
+.rail .track{position:relative;flex:1 1 auto;width:10px;border-radius:6px;
+  background:var(--panel-2);overflow:visible}
+.rail .fill{position:absolute;left:0;right:0;bottom:0;border-radius:6px;background:var(--accent);height:0}
+.rail .band{position:absolute;left:-2px;right:-2px;border-radius:4px;background:#8A6A2E;opacity:.85}
+.rail .band.on{background:#C9B04A}
+.rail .mk{position:absolute;left:50%;transform:translate(-50%,50%);width:11px;height:11px;
+  border-radius:50%;background:var(--bg);border:2px solid var(--ink-3)}
+.rail .mk.pass{border-color:var(--ok);background:var(--ok)}
+.rail .mk.fail{border-color:var(--alarm);background:var(--alarm)}
+.rail .mk.now{border-color:#fff;background:#fff;width:13px;height:13px}
+.rail .lb{position:absolute;right:19px;transform:translateY(50%);font-family:var(--mono);
+  font-size:9px;color:var(--ink-3);white-space:nowrap}
+.rail .now{position:absolute;left:-5px;right:-5px;height:3px;background:#fff;border-radius:2px;
+  box-shadow:0 0 7px rgba(255,255,255,.65)}
+.rail .end{font-family:var(--mono);font-size:9px;color:var(--ink-3);margin-top:5px}
+/* 길게 눌러야 하는 종료 버튼 */
+.ctl.one{grid-template-columns:1fr}
+.holdbtn{position:relative;overflow:hidden}
+.holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.32);
+  pointer-events:none;transition:width .05s linear}
+.holdbtn b{position:relative;font-weight:700}
 .lapwrap{border-top:1px solid var(--line);padding:9px 18px 4px}
 .laphd{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px}
 .laphd .ttl{font-size:11px;letter-spacing:.06em;color:var(--ink-3);font-weight:700;margin-right:auto}
@@ -469,6 +496,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <button class="btn sm ghost" style="margin:0" id="bkExport">백업 내려받기</button>
       <button class="btn sm ghost" style="margin:0" id="bkImport">백업 불러오기</button></div>
     <button class="btn sm ghost" style="margin:9px 0 0" id="btnFresh">최신 버전으로 새로고침</button>
+    <button class="btn sm ghost" style="margin:9px 0 0" id="btnReDist">저장된 기록의 거리 다시 계산</button>
+    <div class="meta" style="margin-top:7px">GPS 경로는 그대로 남아 있으므로, 거리가 잘못 기록된
+      예전 세션도 경로에서 다시 계산할 수 있습니다.</div>
     <input type="file" id="bkFile" accept="application/json" hidden>
   </div>
 
@@ -479,8 +509,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v4.6</b> · 2026-10-10<br>
-    <span style="font-size:10.5px">이 번호가 v4.6이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
+    런코치 <b>v4.9</b> · 2026-10-11<br>
+    <span style="font-size:10.5px">이 번호가 v4.9가 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
   </div>
 </div></div>
 
@@ -518,6 +548,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="prog"><i id="rProg"></i></div>
   </div>
   <div class="banner" id="rBanner" hidden></div>
+  <div class="runbody"><div class="runmain">
   <div class="hero">
     <div class="k" id="rHeroK">현재 페이스</div>
     <div class="v num" id="rHeroV">--'--"</div>
@@ -536,6 +567,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <span class="zb" data-z="2" style="color:var(--z2)"></span><span class="zb" data-z="3" style="color:var(--z3)"></span>
     <span class="zb" data-z="4" style="color:var(--z4)"></span><span class="zb" data-z="5" style="color:var(--z5)"></span>
     <span class="zl">Z5</span></div>
+  </div>
+  <div class="rail" id="rRail">
+    <div class="pct" id="rPct">0%</div>
+    <div class="track" id="rTrack">
+      <div class="fill" id="rFill"></div>
+      <div class="now" id="rNow" style="bottom:0"></div>
+    </div>
+    <div class="end">출발</div>
+  </div></div>
   <div class="gps"><span class="dot" id="rDot"></span><span id="rGps">GPS 대기 중</span></div>
   <div class="lapwrap">
     <div class="laphd"><span class="ttl">구간별 기록</span>
@@ -543,8 +583,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <button class="cg" data-c="hr">심박</button><button class="cg" data-c="cad">케이던스</button></div>
     <div class="laplog" id="rLaps"></div>
   </div>
-  <div class="ctl"><button class="btn ghost" id="btnPause">일시정지</button>
-    <button class="btn danger" id="btnStop">종료</button></div>
+  <div class="ctl one" id="rCtl"><button class="btn ghost" id="btnPause">일시정지</button>
+    <button class="btn danger holdbtn" id="btnStop" hidden><i></i><b>종료 (3초 길게)</b></button></div>
 </div>
 
 <div class="view" id="sum"><div class="bar"><h1>세션 결과</h1><span class="sub" id="sumDate">—</span></div>
@@ -1390,12 +1430,13 @@ $('btnStart').onclick=async()=>{
   Object.assign(S,{session:s,T,adj,
     opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked},
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
-    dist:0,pts:[],win:[],altBuf:[],asc:0,desc:0,lastAlt:null,
+    dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
+    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
-  renderLaps(); paintLapChips(); $('rHRBar').hidden=!(S.hr.dev&&!T.noHR); $('rBanner').hidden=true;
+  renderLaps(); paintLapChips(); buildRail(); $('rHRBar').hidden=!(S.hr.dev&&!T.noHR); $('rBanner').hidden=true;
   $('btnPause').textContent='일시정지';
   setHero();
   show('run');
@@ -1407,6 +1448,73 @@ $('btnStart').onclick=async()=>{
   const g=s.segs[0];
   DEV.speak(`${s.t} 시작합니다. ${T.develops?T.develops.split('.')[0]+'.':''} 첫 구간 ${g.nm}, 목표 ${g.pace?fmtPaceVoice(midPace(g.pace)):'자유'}.`,true);
 };
+/* ───────── 오늘 미션 진행바 ─────────
+   구간마다 '예정 소요시간'을 구해 그걸 축으로 삼는다.
+   거리로 끝나는 구간과 시간으로 끝나는 구간이 섞여 있어도 한 축에 올릴 수 있다. */
+function segDurs(s){
+  const out=[]; let prev=0;
+  s.segs.forEach(g=>{
+    let d;
+    if(g.end==='time') d=g.sec||60;
+    else { const km=Math.max(0.01,g.to-prev);
+           const pc=g.pace?midPace(g.pace):(s.ceiling||420);
+           d=km*pc; prev=g.to; }
+    out.push(Math.max(10,d));
+  });
+  return out;
+}
+function buildRail(){
+  const s=S.session, segs=s.segs, durs=segDurs(s);
+  const tot=durs.reduce((a,b)=>a+b,0);
+  const cum=[]; durs.reduce((a,d)=>{const v=a+d;cum.push(v);return v;},0);
+  S.rail={durs,tot,cum};
+  const tr=$('rTrack');
+  tr.querySelectorAll('.band,.mk,.lb').forEach(e=>e.remove());
+  let from=0;
+  segs.forEach((g,i)=>{
+    const to=cum[i];
+    if(g.hard){                                   // 특이지점 — 빠르게 가야 하는 구간
+      const b=document.createElement('div'); b.className='band';
+      b.style.bottom=(from/tot*100)+'%'; b.style.height=((to-from)/tot*100)+'%';
+      b.dataset.i=i; tr.appendChild(b);
+    }
+    if(i<segs.length-1){                          // 구간이 끝나는 지점
+      const m=document.createElement('div'); m.className='mk'; m.dataset.i=i;
+      m.style.bottom=(to/tot*100)+'%'; tr.appendChild(m);
+      const l=document.createElement('div'); l.className='lb'; l.dataset.i=i;
+      l.style.bottom=(to/tot*100)+'%';
+      if(to/tot<0.05||to/tot>0.96)l.style.display='none';
+      l.textContent=g.end==='time'?`${Math.round(g.sec)}s`:`${+g.to.toFixed(1)}`;
+      tr.appendChild(l);
+    }
+    from=to;
+  });
+  const top=document.createElement('div'); top.className='mk'; top.dataset.i='end';
+  top.style.bottom='100%'; tr.appendChild(top);
+  paintRail(0);
+}
+function paintRail(prog){
+  if(!S.rail)return;
+  const {cum,durs,tot}=S.rail;
+  const done=S.segIx?cum[S.segIx-1]:0;
+  const cur=durs[S.segIx]||0;
+  const pct=Math.max(0,Math.min(1,(done+Math.max(0,Math.min(1,prog))*cur)/tot));
+  $('rFill').style.height=(pct*100)+'%';
+  $('rNow').style.bottom=(pct*100)+'%';
+  $('rPct').textContent=Math.round(pct*100)+'%';
+  document.querySelectorAll('#rTrack .mk').forEach(m=>{
+    const i=m.dataset.i; m.className='mk';
+    if(i==='end'){ if(pct>=0.999)m.classList.add('pass'); return; }
+    const ix=+i;
+    if(ix<S.segIx){                       // 이미 지나온 지점 — 어떻게 통과했나
+      const r=S.segRecords[ix], ok=r?segPass(r):null;
+      m.classList.add(ok===false?'fail':'pass');
+    } else if(ix===S.segIx) m.classList.add('now');
+  });
+  document.querySelectorAll('#rTrack .band').forEach(b=>
+    b.classList.toggle('on',+b.dataset.i===S.segIx));
+}
+
 /* 메인에 올릴 지표 — 기본은 거리. 아래 4칸을 눌러 바꾸며 선택은 저장된다.
    페이스는 코칭의 핵심이라 메인과 별개로 바로 아래에 항상 띄운다. */
 const HERO_NM={dist:'거리',time:'경과 시간',hr:'심박',cad:'케이던스'};
@@ -1442,14 +1550,39 @@ function onPos(pos){
   $('rDot').className='dot '+(acc<=12?'good':acc<=25?'weak':'bad');
   $('rGps').textContent=`GPS 정확도 ±${Math.round(acc)}m`+(acc>25?' — 샘플 무시':'');
   if(acc>25)return;
-  const p={lat:c.latitude,lon:c.longitude,t:now,alt:c.altitude,over:false};
-  const last=S.pts[S.pts.length-1];
-  if(last){
-    const dm=haversine(last,p),dt=(now-last.t)/1000;
-    if(dt<=0)return; if(dm/dt>7)return;
-    if(dm<1.2){S.pts.push(p);return;}
-    S.dist+=dm;
+  /* ── 1단계: 좌표 평활화 ──────────────────────────────
+     GPS 한 점 한 점은 몇 미터씩 떨린다. 떨린 점끼리 직선거리를 더하면
+     제자리에 서 있어도 거리가 쌓이고, 천천히 걸으면 실제보다 훨씬 길게 나온다.
+     그래서 거리는 '떨림을 깎아낸 좌표'로 잰다. 시정수 2.5초 — 폰이 초당
+     몇 번을 주든 평활 정도가 같도록 샘플 간격으로 계수를 맞춘다. */
+  const sm=S.smooth;
+  let q;
+  if(!sm) q={lat:c.latitude,lon:c.longitude};
+  else{
+    const gap=Math.max(0.05,Math.min(5,(now-sm.t)/1000));
+    const w=1-Math.exp(-gap/2.5);
+    q={lat:sm.lat+(c.latitude-sm.lat)*w, lon:sm.lon+(c.longitude-sm.lon)*w};
   }
+  const p={lat:q.lat,lon:q.lon,t:now,alt:c.altitude,over:false};
+  S.smooth=p;
+
+  /* ── 2단계: 앵커에서만 거리를 잰다 ───────────────────
+     건너뛸 때 앵커를 함께 옮기면 그 사이 움직임이 통째로 사라진다.
+     그래서 건너뛸 때는 앵커를 그대로 둔다 — 다음 샘플에서 합산된다. */
+  const a=S.anchor;
+  if(a){
+    const dm=haversine(a,p), dt=(now-a.t)/1000;
+    if(dt<1.5){ S.pts.push(p); return; }
+    if(dm/dt>7){ S.pts.push(p); S.anchor=p; return; }   // 튄 좌표
+    /* 아직 잡음 범위이거나 사실상 제자리.
+       앵커를 8초 넘게 붙들고 있으면 신호등에서 선 시간이 평균속도에 섞여
+       다시 뛰어도 한참 안 세게 된다. 그래서 앵커만 당겨둔다. */
+    if(dm<Math.max(1.0,acc*0.3) || dm/dt<0.4){
+      if(dt>8) S.anchor=p;
+      S.pts.push(p); return;
+    }
+    S.dist+=dm; S.anchor=p; S.lastMove=now;
+  } else S.anchor=p;
   if(c.altitude!=null&&(c.altitudeAccuracy==null||c.altitudeAccuracy<18)){
     S.altBuf.push(c.altitude); if(S.altBuf.length>5)S.altBuf.shift();
     if(S.altBuf.length===5){
@@ -1504,14 +1637,23 @@ function onTick(){
   $('rSegTgt').textContent = tg.end==='time'
     ? `${tg.sec}초 기준 · 목표 ${rangeText(tgPace)}`
     : `${+prevTo.toFixed(2)}~${+tg.to.toFixed(2)} km · 목표 ${rangeText(tgPace)}`;
+  /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
+  if(!S.gpsWarn&&S.elapsed>180&&km<0.15&&S.pts.length>60){
+    S.gpsWarn=true;
+    const b=$('rBanner'); b.hidden=false; b.className='banner over';
+    b.textContent='거리가 기록되지 않고 있습니다 — 종료 후 확인하세요';
+    DEV.buzz([400,150,400]); DEV.speak('거리가 기록되지 않고 있습니다.',true);
+  }
   const prog = tg.end==='time' ? (S.elapsed-S.segStart.t)/tg.sec
              : (km-prevTo)/Math.max(0.01,tg.to-prevTo);
   $('rProg').style.width=(Math.min(1,Math.max(0,prog))*100).toFixed(1)+'%';
+  paintRail(prog);
   $('rDist').textContent=km.toFixed(2);
   $('rTime').textContent=fmtClock(S.elapsed);
   const p=curPace();
-  /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다 */
-  const moving = isFinite(p) && p<1100;
+  /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다.
+     페이스가 아니라 거리가 늘고 있는지로 판단한다(페이스가 없어도 동작해야 한다) */
+  const moving = !!S.lastMove && (Date.now()-S.lastMove)<8000;
   const cadNow = moving ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
   if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
@@ -1541,16 +1683,36 @@ function onTick(){
     else {sd.classList.add('ok');sd.textContent='구간 내';} }
   else sd.textContent=tgPace?`목표 ${rangeText(tgPace)}`:'';
 
-  /* 상한 — 회복·이지 세션의 핵심 */
-  let banner='';
+  /* ── 실시간 코칭 ────────────────────────────────────────
+     이 세션이 무엇을 발달시키는 날이냐에 따라 1순위 기준이 다르다.
+     회복·이지는 심박, 템포·인터벌은 페이스. 1순위를 먼저 말한다. */
+  let banner='', bantxt='';
+  const HZ=(!T.noHR&&T.hrZone)?T.hrZone:null;
+  const hrPrimary=(T.primary==='hr');
+
+  /* 심박 — 목표 상한을 넘겼는지 */
+  if(S.hr.bpm&&HZ&&HZ[1]){
+    if(S.hr.bpm>HZ[1]){ S.hrOverSec+=0.5; S.hrHoldSec+=0.5; }
+    else { S.hrHoldSec=0; }
+    if(S.hrHoldSec>=25&&Date.now()-S.lastHrCue>25000){
+      S.lastHrCue=Date.now(); DEV.buzz([250,100,250,100,250]);
+      DEV.speak(hrPrimary
+        ? `심박 ${S.hr.bpm}. 목표는 ${HZ[1]} 이하입니다. 속도를 더 줄이세요. 오늘은 심박이 기준입니다. 페이스가 느려도 심박이 높으면 회복이 되지 않습니다.`
+        : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}을 넘었습니다. 호흡을 고르세요.`, true);
+    }
+    if(S.hr.bpm>HZ[1]){ banner='over'; bantxt=`심박 ${S.hr.bpm} — 목표 ${HZ[1]} 이하. 속도를 줄이세요`; }
+    else if(HZ[0]&&S.hr.bpm<HZ[0]&&tg.hard){ banner='under'; bantxt=`심박 ${S.hr.bpm} — 목표 ${HZ[0]} 이상. 강도를 올리세요`; }
+  }
+  /* 페이스 상한 — 회복·이지 세션의 핵심 */
   if(isFinite(p)&&s.ceiling&&!tg.hard&&p<s.ceiling-5){
-    S.ceilSec+=0.5; banner='over';
+    S.ceilSec+=0.5;
+    if(!banner||!hrPrimary){ banner='over'; bantxt=`너무 빠릅니다 — ${fmtPace(s.ceiling)}보다 느리게`; }
     if(Date.now()-S.lastCeilCue>20000){ S.lastCeilCue=Date.now(); DEV.buzz([300,120,300,120,300]);
       DEV.speak(`너무 빠릅니다. ${fmtPaceVoice(s.ceiling)}보다 느리게. 이 세션은 느리게 뛰는 것이 목적입니다.`,true); }
   }
-  if(banner!==S.bannerState){ S.bannerState=banner;
+  if(banner+bantxt!==S.bannerState){ S.bannerState=banner+bantxt;
     const b=$('rBanner'); b.hidden=!banner; b.className='banner '+banner;
-    if(banner==='over')b.textContent=`너무 빠릅니다 — ${fmtPace(s.ceiling)}보다 느리게`; }
+    if(banner)b.textContent=bantxt; }
 
   /* 구간 내 교정 — 허용 오차는 구간마다 다름 */
   if(isFinite(p)&&tgPace&&tg.tol!=null&&banner!=='over'){
@@ -1560,15 +1722,36 @@ function onTick(){
       else if(p>tgPace[1]+tol)checkOff(1);
       else S.offCount=0; }
   }
-  /* 1km 스플릿 */
+  /* 1km마다 — 기록하고, 목표 대비 어땠는지 말하고, 무엇을 하라고 지시한다 */
   if(Math.floor(km)>S.lapKm&&km>=1){
     S.lapKm=Math.floor(km);
     const dt=S.elapsed-S.lapStart.t, dd=km-S.lapStart.d;
-    const n=Math.max(1,Math.round(dt/2)), hs=S.hr.samples.slice(-n);
-    S.splits.push({km:S.lapKm,time:dt,pace:dd>0.1?dt/dd:NaN,
-      hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,cad:cadence()||null});
+    const ns=Math.max(1,Math.round(dt/2)), hs=S.hr.samples.slice(-ns);
+    const lapHR=hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null;
+    const lapPace=dd>0.1?dt/dd:NaN;
+    const lapCad=cadence()||null;
+    S.splits.push({km:S.lapKm,time:dt,pace:lapPace,hr:lapHR,cad:lapCad});
     S.lapStart={d:km,t:S.elapsed};
-    DEV.speak(`${S.lapKm}킬로미터. 구간 ${fmtPaceVoice(dt/dd)}.`);
+
+    let msg=`${S.lapKm}킬로미터. ${isFinite(lapPace)?fmtPaceVoice(lapPace):'페이스 측정 안 됨'}. `;
+    let verdictTxt='';
+    /* 1순위부터 말한다 */
+    if(hrPrimary&&HZ&&HZ[1]&&lapHR){
+      if(lapHR>HZ[1]){ msg+=`평균 심박 ${lapHR}, 목표 ${HZ[1]}보다 ${lapHR-HZ[1]} 높습니다. 더 느리게 가세요. `;
+        verdictTxt=`♥${lapHR} 초과`; }
+      else { msg+=`평균 심박 ${lapHR}, 목표 안입니다. 이대로 유지하세요. `; verdictTxt=`♥${lapHR} 양호`; }
+    } else if(tgPace&&isFinite(lapPace)){
+      const d=Math.round(lapPace-midPace(tgPace));
+      if(s.ceiling&&!tg.hard&&lapPace<s.ceiling){
+        msg+=`상한 ${fmtPaceVoice(s.ceiling)}보다 빠릅니다. 속도를 줄이세요. `; verdictTxt='상한 초과';
+      } else if(Math.abs(d)<=6){ msg+='목표대로입니다. 이대로 유지하세요. '; verdictTxt='목표대로'; }
+      else if(d<0){ msg+=`목표보다 ${-d}초 빠릅니다. 속도를 줄이세요. `; verdictTxt=`${-d}초 빠름`; }
+      else { msg+=`목표보다 ${d}초 느립니다. 조금 올리세요. `; verdictTxt=`${d}초 느림`; }
+      if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1])msg+=`심박 ${lapHR}, 목표 ${HZ[1]}을 넘었습니다. `;
+    } else if(lapHR){ msg+=`평균 심박 ${lapHR}. `; }
+    DEV.speak(msg,true); DEV.buzz([120,80,120]);
+    S.liveRows.push({kind:'lap',nm:`${S.lapKm}km`,actual:lapPace,time:dt,hr:lapHR,cad:lapCad,note:verdictTxt});
+    renderLaps();
   }
 }
 function checkOff(dir){
@@ -1587,7 +1770,9 @@ function advanceSeg(){
   const rec={nm:done.nm,plan,actual,dist:dd,time:dt,hard:!!done.hard,rep:done.rep,tol:done.tol,
     hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,
     cad:cs.length?Math.round(cs.reduce((a,b)=>a+b,0)/cs.length):null};
-  S.segRecords.push(rec); renderLaps();
+  S.segRecords.push(rec);
+  S.liveRows.push(Object.assign({kind:'seg'},rec));
+  renderLaps();
   S.hr.segSamples=[]; S.cad.seg=[]; S.segStart={d:S.dist/1000,t:S.elapsed};
   S.segIx++; S.offCount=0; S.lastCue=0;
   const nx=segs[S.segIx];
@@ -1610,8 +1795,8 @@ function segPass(r){
 /* 구간별 기록 — 최근 구간이 위로. 칩으로 켠 항목만 보여준다 */
 function renderLaps(){
   const host=$('rLaps'); if(!host)return;
-  const recs=(S.segRecords||[]);
-  if(!recs.length){ host.innerHTML='<div class="lapempty">구간이 끝날 때마다 여기에 쌓입니다.</div>'; return; }
+  const recs=(S.liveRows&&S.liveRows.length)?S.liveRows:(S.segRecords||[]);
+  if(!recs.length){ host.innerHTML='<div class="lapempty">1km마다, 구간이 끝날 때마다 여기에 쌓입니다.</div>'; return; }
   host.innerHTML='';
   [...recs].reverse().forEach(r=>{
     const el=document.createElement('div'); el.className='lap';
@@ -1624,18 +1809,41 @@ function renderLaps(){
     if(LAPC.time)cols+=`<span class="c">${fmtClock(r.time)}<i>경과</i></span>`;
     if(LAPC.hr)  cols+=`<span class="c">${r.hr||'—'}<i>♥</i></span>`;
     if(LAPC.cad) cols+=`<span class="c">${r.cad||'—'}<i>spm</i></span>`;
-    el.innerHTML=`<span class="nm">${r.nm}</span>${cols}`+
+    if(r.kind==='lap'&&r.note){ cls=/초과|빠름/.test(r.note)?'fast':/느림/.test(r.note)?'slow':'ok'; txt=r.note; }
+    el.innerHTML=`<span class="nm">${r.kind==='lap'?'▸ ':''}${r.nm}</span>${cols}`+
       (txt?`<span class="d ${cls}">${txt}</span>`:'');
     host.appendChild(el);
   });
 }
+/* 달리는 중에는 종료 버튼이 아예 없다 — 손에 쥐고 뛰다 눌리는 사고를 막는다.
+   일시정지를 눌러야 나타나고, 3초를 눌러 버텨야 실제로 끝난다. */
 $('btnPause').onclick=()=>{
   if(!S.running)return;
   S.paused=!S.paused; $('btnPause').textContent=S.paused?'계속하기':'일시정지';
-  if(S.paused){S._p=Date.now();DEV.speak('일시정지',true);}
+  $('btnStop').hidden=!S.paused;
+  $('rCtl').classList.toggle('one',!S.paused);
+  endHold();
+  if(S.paused){S._p=Date.now(); S.anchor=null; S.smooth=null;
+    DEV.speak('일시정지했습니다. 종료하려면 종료 버튼을 3초간 누르세요.',true);}
   else{S.pausedAt+=(Date.now()-S._p)/1000;S.win=[];DEV.speak('재개합니다',true);}
 };
-$('btnStop').onclick=()=>{if(S.running&&confirm('세션을 종료할까요?'))finish(false);};
+let holdT=null,holdAt=0;
+function endHold(){ if(holdT){clearInterval(holdT);holdT=null;}
+  const f=$('btnStop').querySelector('i'); if(f)f.style.width='0'; }
+function startHold(e){
+  if(!S.running||!S.paused)return;
+  e.preventDefault(); if(holdT)return;
+  holdAt=Date.now(); DEV.buzz(40);
+  const f=$('btnStop').querySelector('i');
+  holdT=setInterval(()=>{
+    const r=Math.min(1,(Date.now()-holdAt)/3000);
+    f.style.width=(r*100)+'%';
+    if(r>=1){ endHold(); DEV.buzz([250,90,250]); finish(false); }
+  },50);
+}
+$('btnStop').addEventListener('pointerdown',startHold);
+['pointerup','pointerleave','pointercancel'].forEach(ev=>
+  $('btnStop').addEventListener(ev,endHold));
 function finish(completed){
   S.running=false;
   DEV.geo.stop(S.watchId); S.watchId=null;
@@ -1706,7 +1914,24 @@ function sparkline(host,title,right,vals,opt){
 
 /* ───────── 요약 ───────── */
 let rpeVal=null,terrainVal='도로',weatherVal=null;
+/* 궤적 자체에서 거리를 다시 잰다 — 누적값이 틀려도 경로는 남아 있다 */
+function trackDist(pts){
+  if(!pts||pts.length<2)return 0;
+  /* 점마다 더하면 GPS 잡음까지 길이로 쌓인다. 5m 이상 움직였을 때만 센다 */
+  let acc=0, an=pts[0];
+  for(let i=1;i<pts.length;i++){
+    const d=haversine(an,pts[i]);
+    if(d<5)continue;
+    if(d<120)acc+=d;
+    an=pts[i];
+  }
+  return acc;
+}
 function renderSummary(completed){
+  /* 누적 거리와 궤적 거리가 크게 다르면 궤적 쪽을 믿는다 */
+  const td=trackDist(S.pts);
+  let fixed=false;
+  if(td>300&&(S.dist<td*0.8||S.dist>td*1.25)){ S.dist=td; fixed=true; }
   const km=S.dist/1000,s=S.session,T=S.T,hs=S.hr.samples;
   const hrAvg=hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null;
   const cc=S.cad.corr||[];
@@ -1715,12 +1940,16 @@ function renderSummary(completed){
   const reps=S.segRecords.filter(r=>r.hard&&isFinite(r.actual)).map(r=>r.actual);
   const spread=reps.length>=2?Math.round(Math.max(...reps)-Math.min(...reps)):null;
   const ceilRatio=S.elapsed>0?S.ceilSec/S.elapsed:0;
+  const hrOverRatio=S.elapsed>0?S.hrOverSec/S.elapsed:0;
   const distRatio=s.dist?km/s.dist:0;
+  /* 페이스를 한 번도 못 잰 세션은 합격/불합격을 말할 자격이 없다 */
+  const noPace=!S.splits.length&&!S.segRecords.some(r=>isFinite(r.actual));
 
   $('sumDate').textContent=s.d.slice(5,10).replace('-','.');
   $('sName').textContent=`${runName()} · ${s.t}${completed?'':' · 중단'} · ${T.nm}`;
   $('sDist').textContent=km.toFixed(2)+' km';
-  $('sSub').textContent=`계획 ${s.dist} km 중 ${Math.round(distRatio*100)}% · 지켜야 했던 것: ${T.primaryLabel||'—'}`;
+  $('sSub').textContent=`계획 ${s.dist} km 중 ${Math.round(distRatio*100)}% · 지켜야 했던 것: ${T.primaryLabel||'—'}`
+    +(fixed?' · 거리를 GPS 경로로 다시 계산했습니다':'');
   $('sTime').textContent=fmtClock(S.elapsed);
   $('sAvg').textContent=km>0.05?fmtPace(S.elapsed/km):'—';
   $('sCal').textContent=cal; $('sHR').textContent=hrAvg||'—';
@@ -1754,7 +1983,12 @@ function renderSummary(completed){
 
   /* 종류별 판정 */
   const v=$('sVerdict'); v.hidden=false;
-  if(T.judgeBy==='spread'&&spread!=null){
+  if(noPace||distRatio<0.25){
+    v.className='verdict fail';
+    v.textContent=noPace
+      ? `판정 불가 — 페이스를 한 번도 측정하지 못했습니다. GPS 기록을 확인하세요.`
+      : `판정 불가 — 계획 거리의 ${Math.round(distRatio*100)}%만 기록되었습니다. 측정 오류이거나 중도 포기입니다.`;
+  } else if(T.judgeBy==='spread'&&spread!=null){
     v.className='verdict '+(spread<=5?'pass':'fail');
     v.textContent=spread<=5?`반복 ${reps.length}회 편차 ${spread}초 — 합격 (기준 5초 이내)`
       :`반복 ${reps.length}회 편차 ${spread}초 — 불합격. 뒤 회차가 무너진 것은 강도가 과했다는 뜻입니다.`;
@@ -1776,6 +2010,16 @@ function renderSummary(completed){
     v.textContent=`구간 ${good}/${ok.length} 준수 (${pct}%) — ${pct>=80?'합격':'주의'}`;
   } else v.hidden=true;
 
+  /* 심박이 1차 기준인 세션은 심박 준수율을 따로 보여준다 */
+  if(T.primary==='hr'&&T.hrZone&&T.hrZone[1]&&hrAvg){
+    const hp=Math.round(hrOverRatio*100);
+    const e=document.createElement('div');
+    e.className='verdict '+(hp<=15?'pass':'fail');
+    e.textContent=hp<=15
+      ? `심박 목표 ${T.hrZone[1]} 초과 ${hp}% — 합격. 평균 ${hrAvg}.`
+      : `심박 목표 ${T.hrZone[1]} 초과 ${hp}% (평균 ${hrAvg}) — 불합격. 느리게 뛰어도 심박이 높으면 회복 세션이 아닙니다.`;
+    v.parentNode.insertBefore(e,v.nextSibling);
+  }
   const cv=$('sCeilV');
   if(S.ceilSec>45&&T.judgeBy!=='ceiling'){cv.hidden=false;
     cv.textContent=`상한(${fmtPace(s.ceiling)})보다 빠르게 뛴 시간 ${fmtClock(S.ceilSec)}`;}
@@ -1784,7 +2028,8 @@ function renderSummary(completed){
   S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:new Date().toISOString(),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
     hrAvg,hrMax:S.hr.max||null,cadAvg,cal,asc:Math.round(S.asc),desc:Math.round(S.desc),
-    ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),spread,distRatio:+distRatio.toFixed(3),
+    ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
+    hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:+distRatio.toFixed(3),
     completed,shoe:S.shoe,
     splits:S.splits.map(x=>({km:x.km,sec:Math.round(x.time),pace:Math.round(x.pace),hr:x.hr,cad:x.cad})),
     segments:S.segRecords.map(r=>({nm:r.nm,plan:r.plan,pace:isFinite(r.actual)?Math.round(r.actual):null,
@@ -2156,6 +2401,30 @@ async function paintStore(){
   }catch(e){}
   el.textContent=msg;
 }
+$('btnReDist').onclick=()=>{
+  if(!RUNS.length)return alert('기록이 없습니다.');
+  const rows=[];
+  RUNS.forEach(r=>{
+    const td=trackDist(r.track)/1000;
+    if(td>0.3&&(r.km<td*0.8||r.km>td*1.25))
+      rows.push({r,old:r.km,neo:+td.toFixed(3)});
+  });
+  if(!rows.length)return alert('다시 계산할 기록이 없습니다.\n저장된 거리가 모두 경로와 맞습니다.');
+  const list=rows.map(x=>`${x.r.date.slice(5,10)} ${x.r.name}  ${x.old.toFixed(2)} → ${x.neo.toFixed(2)} km`).join('\n');
+  if(!confirm(`아래 기록의 거리를 GPS 경로에서 다시 계산합니다.\n\n${list}\n\n진행할까요?`))return;
+  rows.forEach(({r,old,neo})=>{
+    r.km=neo;
+    r.paceAvg=neo>0.05?Math.round(r.sec/neo):null;
+    r.cal=Math.round(1.036*(PROF.w||75)*neo);
+    r.distRatio=null; r.ceilRatio=null; r.spread=null;
+    r.repaired=true;
+    if(r.shoe){ const sh=SHOES.find(x=>x.name===r.shoe);
+      if(sh)sh.km=Math.max(0,sh.km-old+neo); }
+  });
+  DEV.store.set('runs',RUNS); DEV.store.set('shoes',SHOES);
+  renderLog(); renderHome(); paintStore();
+  alert(`${rows.length}건을 다시 계산했습니다.\n경로에 시간 정보가 없어 구간별 페이스는 복구되지 않습니다.`);
+};
 $('bkExport').onclick=()=>{
   const out={app:'runcoach',ver:4,at:new Date().toISOString(),data:{}};
   BK_KEYS.forEach(k=>{ const v=localStorage.getItem('rc_'+k); if(v!=null)out.data[k]=JSON.parse(v); });
