@@ -49,6 +49,18 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #bye .t{font-size:19px;font-weight:700}
 #bye .d{font-size:13px;color:var(--ink-3);line-height:1.7}
 #bye[hidden]{display:none}
+/* 출발 카운트다운 */
+#count{position:fixed;inset:0;z-index:55;background:rgba(14,18,17,.96);display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:26px}
+#count[hidden]{display:none}
+#count .n{font-family:var(--mono);font-size:min(46vw,230px);font-weight:700;line-height:1;
+  color:#fff;letter-spacing:-.05em}
+#count .n.go{color:var(--accent);font-size:min(30vw,150px)}
+#count .n.pop{animation:cpop .45s cubic-bezier(.2,.9,.3,1)}
+@keyframes cpop{0%{transform:scale(.45);opacity:0}45%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+#count .t{font-size:14px;color:var(--ink-2);font-weight:600}
+#count .x{background:transparent;border:1px solid var(--line);border-radius:10px;
+  color:var(--ink-3);font-size:13px;padding:11px 26px}
 .segtabs{display:flex;gap:6px;margin:14px 0 14px}
 .segtabs button{flex:1;padding:9px 4px;border-radius:9px;border:1px solid var(--line);
   background:var(--panel);font-size:12.5px;color:var(--ink-3);font-weight:600}
@@ -509,8 +521,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v4.9</b> · 2026-10-11<br>
-    <span style="font-size:10.5px">이 번호가 v4.9가 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
+    런코치 <b>v5.0</b> · 2026-10-11<br>
+    <span style="font-size:10.5px">이 번호가 v5.0이 아니면 옛 파일이 캐시된 겁니다 — 새로고침하세요.</span>
   </div>
 </div></div>
 
@@ -629,6 +641,12 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn ghost" id="btnGpx">GPX 내보내기</button>
     <button class="btn ghost" id="btnDone">저장 없이 닫기</button>
   </div>
+</div>
+
+<div id="count" hidden>
+  <div class="t" id="countT">—</div>
+  <div class="n" id="countN">5</div>
+  <button class="x" id="countX">취소</button>
 </div>
 
 <div id="bye" hidden>
@@ -971,7 +989,8 @@ async function keepAwake(){
   if(EXITING||document.hidden)return;
   try{ if(WAKE&&!WAKE.released)return; WAKE=await DEV.wake.on(); }catch(e){}
 }
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden)keepAwake(); });
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ keepAwake();
+  if(BT.want&&!BT.dev){ BT.tries=0; BT.retry(); } } });
 keepAwake();
 /* 기기 용량이 부족해도 기록이 먼저 지워지지 않도록 영구 보관을 요청해 둔다 */
 try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
@@ -1360,37 +1379,65 @@ function openConfirm(i){
 const S={};
 const BT={
   dev:null, batt:null, name:DEV.store.get('btname',''), busy:false,
-  feed(bpm){ S.hr.bpm=bpm; S.hr.max=Math.max(S.hr.max||0,bpm);
+  want:false,            // 사용자가 연결을 원하는 상태인가 (직접 끊으면 false)
+  tries:0, timer:null, lostAt:0, warned:false,
+  feed(bpm){ S.hr.bpm=bpm; S.hr.max=Math.max(S.hr.max||0,bpm); BT.lostAt=0; BT.warned=false;
     if(S.running&&!S.paused){ S.hr.samples.push(bpm); S.hr.segSamples.push(bpm); } },
   async connect(known){
-    if(BT.busy)return; BT.busy=true; BT.paint('기기를 찾는 중…');
+    if(BT.busy)return; BT.busy=true;
+    if(!known)BT.paint('기기를 찾는 중…');
     try{
       const r=await DEV.hr(b=>BT.feed(b), known);
-      BT.dev=r.dev; BT.batt=r.batt; S.hr.dev=r.dev;
+      BT.dev=r.dev; BT.batt=r.batt; S.hr.dev=r.dev; BT.want=true; BT.tries=0;
       BT.name=r.dev.name||'심박 기기'; DEV.store.set('btname',BT.name);
-      r.dev.addEventListener('gattserverdisconnected',()=>{
-        BT.dev=null; S.hr.dev=null; S.hr.bpm=null; BT.paint('연결이 끊어졌습니다'); });
+      if(!r.dev._rcHooked){
+        r.dev._rcHooked=true;
+        r.dev.addEventListener('gattserverdisconnected',()=>{
+          BT.dev=null; S.hr.dev=null; S.hr.bpm=null; BT.lostAt=Date.now();
+          if(BT.want)BT.retry(); else BT.paint();
+        });
+      }
       BT.paint();
     } finally { BT.busy=false; }
   },
-  disconnect(){ try{ BT.dev&&BT.dev.gatt&&BT.dev.gatt.disconnect(); }catch(e){}
+  /* 한 번 잡은 기기는 끊겨도 스스로 다시 붙는다.
+     워치가 송출을 멈췄거나 잠깐 멀어진 경우가 대부분이라, 간격을 늘려가며 계속 시도한다.
+     선택창은 다시 뜨지 않는다 — 이미 권한을 받은 기기라 조용히 붙는다. */
+  retry(){
+    if(!BT.want||BT.dev)return;
+    clearTimeout(BT.timer);
+    const wait=[1000,2000,4000,8000,15000][Math.min(BT.tries,4)]||30000;
+    BT.tries++;
+    BT.paint(`연결이 끊어졌습니다 — ${Math.round(wait/1000)}초 뒤 재연결 (${BT.tries}회째)`);
+    BT.timer=setTimeout(async()=>{
+      if(!BT.want||BT.dev)return;
+      let d=null;
+      try{ const ds=await DEV.knownDevices();
+           d=ds.find(x=>(x.name||'')===BT.name)||null; }catch(e){}
+      try{ await BT.connect(d||undefined); }catch(e){}
+      if(!BT.dev)BT.retry();
+    },wait);
+  },
+  disconnect(){ BT.want=false; clearTimeout(BT.timer); BT.tries=0;
+    try{ BT.dev&&BT.dev.gatt&&BT.dev.gatt.disconnect(); }catch(e){}
     BT.dev=null; S.hr.dev=null; S.hr.bpm=null; BT.paint(); },
-  status(){ return BT.dev
-      ? `연결됨 — ${BT.name}${BT.batt!=null?` · 배터리 ${BT.batt}%`:''}`
-      : (BT.name? `미연결 (지난 기기: ${BT.name})` : '미연결 — 심박 없이도 진행됩니다'); },
+  status(){
+    if(BT.dev)return `연결됨 — ${BT.name}${BT.batt!=null?` · 배터리 ${BT.batt}%`:''}`;
+    if(BT.want&&BT.name)return `재연결 시도 중 — ${BT.name}`;
+    return BT.name? `미연결 (지난 기기: ${BT.name})` : '미연결 — 심박 없이도 진행됩니다';
+  },
   paint(msg){
     const txt=msg||BT.status();
     const a=$('hrState'); if(a)a.textContent=txt;
     const c=$('btState'); if(c)c.textContent=txt;
-    const label=BT.dev?'연결 해제':'기기 검색 · 연결';
     const b=$('btnHR'); if(b)b.textContent=BT.dev?`${BT.name} 연결됨 ✓ — 해제`:'기기 연결 — 워치 또는 가슴 스트랩';
-    const d=$('btnBT'); if(d)d.textContent=label;
+    const d=$('btnBT'); if(d)d.textContent=BT.dev?'연결 해제':(BT.want&&BT.name?'재연결 중 — 멈추기':'기기 검색 · 연결');
     const l=$('btLive'); if(l)l.textContent=S.hr&&S.hr.bpm?S.hr.bpm:'—';
     const z=$('btZone'); if(z)z.textContent=S.hr&&S.hr.bpm?hrZone(S.hr.bpm):'';
   },
 };
 const btToggle=async()=>{
-  if(BT.dev){ BT.disconnect(); return; }
+  if(BT.dev||BT.want){ BT.disconnect(); return; }
   try{ await BT.connect(); }
   catch(e){
     if(e&&e.name==='NotFoundError'){ BT.paint('취소됨 — 심박 없이도 진행됩니다'); return; }
@@ -1425,15 +1472,39 @@ function onMotion(e){
 }
 
 /* ───────── 시작 ───────── */
+/* 출발 카운트다운 — 세는 동안 GPS를 미리 깨워 둔다.
+   버튼을 누르자마자 첫 좌표가 잡히는 일은 거의 없어서, 이 5초가 그대로 정확도가 된다. */
+function countdown(sec,label){
+  return new Promise(res=>{
+    const ov=$('count'), num=$('countN');
+    $('countT').textContent=label||'';
+    ov.hidden=false; let k=sec, t=null;
+    const pop=(txt,go)=>{ num.textContent=txt; num.className='n'+(go?' go':'');
+      void num.offsetWidth; num.classList.add('pop'); };
+    const done=ok=>{ clearInterval(t); ov.hidden=true; res(ok); };
+    const tick=()=>{
+      if(k>0){ pop(k,false); DEV.buzz(70); k--; }
+      else { pop('GO',true); DEV.buzz([350]); DEV.speak('출발',true);
+             clearInterval(t); setTimeout(()=>{ov.hidden=true;res(true);},800); }
+    };
+    tick(); t=setInterval(tick,1000);
+    $('countX').onclick=()=>done(false);
+  });
+}
 $('btnStart').onclick=async()=>{
   const s=sessionOf(pendingIx), T=TYPES[s.type]||{}, adj=ADJ[s.type]||0;
+  /* GPS를 먼저 켜서 카운트 도는 동안 위성을 잡게 한다 */
+  let warm=null; try{ warm=DEV.geo.start(()=>{},()=>{}); }catch(e){}
+  const ok=await countdown(5,`${s.t} · ${T.nm||''}`);
+  try{ if(warm!=null)DEV.geo.stop(warm); }catch(e){}
+  if(!ok)return;
   Object.assign(S,{session:s,T,adj,
     opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked},
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
     dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
-    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,
+    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
   renderLaps(); paintLapChips(); buildRail(); $('rHRBar').hidden=!(S.hr.dev&&!T.noHR); $('rBanner').hidden=true;
@@ -1722,6 +1793,12 @@ function onTick(){
       else if(p>tgPace[1]+tol)checkOff(1);
       else S.offCount=0; }
   }
+  /* 심박이 끊긴 채로 오래 가면 알려준다 — 모르고 계속 뛰면 판정이 비어버린다 */
+  if(BT.want&&!BT.dev&&!BT.warned&&BT.lostAt&&Date.now()-BT.lostAt>60000){
+    BT.warned=true; DEV.buzz([200,100,200,100,200]);
+    DEV.speak('심박 연결이 끊어졌습니다. 다시 붙이는 중입니다. 워치에서 심박 송출이 켜져 있는지 확인하세요.',true);
+  }
+
   /* 1km마다 — 기록하고, 목표 대비 어땠는지 말하고, 무엇을 하라고 지시한다 */
   if(Math.floor(km)>S.lapKm&&km>=1){
     S.lapKm=Math.floor(km);
@@ -1767,12 +1844,24 @@ function advanceSeg(){
   const actual=dd>0.02?dt/dd:NaN, hs=S.hr.segSamples;
   const plan=done.pace?[done.pace[0]+(done.hard?S.adj:0),done.pace[1]+(done.hard?S.adj:0)]:null;
   const cs=S.cad.seg||[];
+  /* 구간마다 몸 상태를 같이 남긴다.
+     반복 구간은 '얼마나 세게 갔나'(최고 심박)가,
+     그 사이 회복 구간은 '얼마나 돌아왔나'(심박 하강폭)가 핵심이다.
+     심박이 안 떨어지면 다음 회차는 무너진다 — 그 전에 알려줘야 한다. */
+  const hrEnd = hs.length?hs[hs.length-1]:null;
+  const hrTop = hs.length?Math.max(...hs):null;
+  const hrLow = hs.length?Math.min(...hs):null;
+  const prevEnd = S.lastHrEnd;                 // 직전 구간이 끝났을 때의 심박
+  const isRec = !done.hard;                    // 회복·조깅 구간
+  const drop = (isRec&&prevEnd&&hrEnd)?(prevEnd-hrEnd):null;
   const rec={nm:done.nm,plan,actual,dist:dd,time:dt,hard:!!done.hard,rep:done.rep,tol:done.tol,
     hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,
+    hrTop,hrLow,hrEnd,drop,
     cad:cs.length?Math.round(cs.reduce((a,b)=>a+b,0)/cs.length):null};
   S.segRecords.push(rec);
   S.liveRows.push(Object.assign({kind:'seg'},rec));
   renderLaps();
+  S.lastHrEnd=hrEnd;
   S.hr.segSamples=[]; S.cad.seg=[]; S.segStart={d:S.dist/1000,t:S.elapsed};
   S.segIx++; S.offCount=0; S.lastCue=0;
   const nx=segs[S.segIx];
@@ -1781,8 +1870,19 @@ function advanceSeg(){
   if(done.hard&&isFinite(actual)){
     const diff=Math.round(actual-midPace(plan));
     msg=`${done.nm} 완료, ${fmtPaceVoice(actual)}. 목표 대비 ${Math.abs(diff)}초 ${diff<=0?'빠름':'느림'}. `;
-    if(rec.hr)msg+=`평균 심박 ${rec.hr}. `;
+    if(hrTop)msg+=`최고 심박 ${hrTop}. `;
+    /* 회차가 무너지고 있는지 — 앞 회차들과 비교 */
+    const reps=S.segRecords.filter(r=>r.hard&&isFinite(r.actual));
+    if(reps.length>=2){
+      const d2=Math.round(reps[reps.length-1].actual-reps[0].actual);
+      if(d2>8)msg+=`첫 회차보다 ${d2}초 느려졌습니다. 남은 회차는 무리하지 마세요. `;
+    }
   } else if(isFinite(actual)) msg=`${done.nm} 완료, 평균 ${fmtPaceVoice(actual)}. `;
+  if(isRec&&drop!=null){
+    msg+= drop>=20 ? `심박 ${prevEnd}에서 ${hrEnd}로 ${drop} 떨어졌습니다. 회복 좋습니다. `
+        : drop>=10 ? `심박이 ${drop}밖에 안 떨어졌습니다. 다음 회차는 조금 보수적으로. `
+                   : `심박이 ${Math.max(0,drop)}만 떨어졌습니다. 회복이 부족합니다. 다음 회차 전에 더 늦추세요. `;
+  }
   msg+=`${nx.nm}${nxPlan?`, 목표 ${fmtPaceVoice(midPace(nxPlan))}`:''}.`;
   DEV.speak(msg,true); DEV.buzz([120,80,120]);
 }
@@ -1807,7 +1907,13 @@ function renderLaps(){
     let cols='';
     if(LAPC.pace)cols+=`<span class="c">${fmtPace(r.actual)}</span>`;
     if(LAPC.time)cols+=`<span class="c">${fmtClock(r.time)}<i>경과</i></span>`;
-    if(LAPC.hr)  cols+=`<span class="c">${r.hr||'—'}<i>♥</i></span>`;
+    if(LAPC.hr){
+      const extra = r.kind!=='lap'
+        ? (r.hard&&r.hrTop?`<i>최고 ${r.hrTop}</i>`
+          :(r.drop!=null?`<i>${r.drop>0?'▼'+r.drop:'회복 없음'}</i>`:'<i>♥</i>'))
+        : '<i>♥</i>';
+      cols+=`<span class="c">${r.hr||'—'}${extra}</span>`;
+    }
     if(LAPC.cad) cols+=`<span class="c">${r.cad||'—'}<i>spm</i></span>`;
     if(r.kind==='lap'&&r.note){ cls=/초과|빠름/.test(r.note)?'fast':/느림/.test(r.note)?'slow':'ok'; txt=r.note; }
     el.innerHTML=`<span class="nm">${r.kind==='lap'?'▸ ':''}${r.nm}</span>${cols}`+
@@ -1853,8 +1959,13 @@ function finish(completed){
   const dd=(S.dist/1000)-S.segStart.d,dt=S.elapsed-S.segStart.t;
   if(dd>0.02){const g=S.session.segs[S.segIx],hs=S.hr.segSamples;
     const plan=g.pace?[g.pace[0]+(g.hard?S.adj:0),g.pace[1]+(g.hard?S.adj:0)]:null;
+    const cs=S.cad.seg||[];
+    const hrEnd=hs.length?hs[hs.length-1]:null;
     S.segRecords.push({nm:g.nm,plan,actual:dt/dd,dist:dd,time:dt,hard:!!g.hard,rep:g.rep,tol:g.tol,
-      hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null});}
+      hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,
+      hrTop:hs.length?Math.max(...hs):null, hrLow:hs.length?Math.min(...hs):null, hrEnd,
+      drop:(!g.hard&&S.lastHrEnd&&hrEnd)?(S.lastHrEnd-hrEnd):null,
+      cad:cs.length?Math.round(cs.reduce((a,b)=>a+b,0)/cs.length):null});}
   renderSummary(completed);
   DEV.speak(completed?'세션을 완료했습니다. 수고하셨습니다.':'세션을 종료했습니다.',true);
   $('aiOut').hidden=true; paintAI();
@@ -1971,8 +2082,11 @@ function renderSummary(completed){
     if(isFinite(r.actual)&&r.plan){const d=Math.round(r.actual-midPace(r.plan));
       const ok=segPass(r); dt=(d>0?'+':'')+d+'초'+(ok===null?'':ok?' ✓':' ✗');
       col=ok===null?'var(--ink-3)':ok?'var(--ok)':(d<0?'var(--fast)':'var(--slow)');}
+    const body = r.hard
+      ? `· 계획 ${rangeText(r.plan)}${r.hr?` · ♥${r.hr}`:''}${r.hrTop?` · 최고 ${r.hrTop}`:''}${r.cad?` · ${r.cad}spm`:''}`
+      : `· 계획 ${rangeText(r.plan)}${r.hr?` · ♥${r.hr}`:''}${r.drop!=null?` · 심박 ${r.drop>0?'▼'+r.drop:'회복 없음'}`:''}`;
     e.innerHTML=`<span class="r">${r.dist.toFixed(2)} km</span>`+
-      `<span class="nm">${r.nm} <span style="color:var(--ink-3)">· 계획 ${rangeText(r.plan)}${r.hr?' · ♥'+r.hr:''}</span></span>`+
+      `<span class="nm">${r.nm} <span style="color:var(--ink-3)">${body}</span></span>`+
       `<span class="t" style="color:${col}">${fmtPace(r.actual)} <span style="font-size:11px">${dt}</span></span>`;
     gh.appendChild(e);});
   const sh=$('sSplits'); sh.innerHTML='';
@@ -2033,7 +2147,8 @@ function renderSummary(completed){
     completed,shoe:S.shoe,
     splits:S.splits.map(x=>({km:x.km,sec:Math.round(x.time),pace:Math.round(x.pace),hr:x.hr,cad:x.cad})),
     segments:S.segRecords.map(r=>({nm:r.nm,plan:r.plan,pace:isFinite(r.actual)?Math.round(r.actual):null,
-      km:+r.dist.toFixed(3),sec:Math.round(r.time),hr:r.hr,hard:r.hard,pass:segPass(r)})),
+      km:+r.dist.toFixed(3),sec:Math.round(r.time),hr:r.hr,hrTop:r.hrTop,hrEnd:r.hrEnd,
+      drop:r.drop,cad:r.cad,hard:r.hard,pass:segPass(r)})),
     track:simplify(S.pts,600)};
 
   rpeVal=null;terrainVal='도로';weatherVal=null;$('sNote').value='';
@@ -2337,7 +2452,9 @@ function aiPrompt(){
   const segs=(r.segments||[]).map(g=>
     `  - ${g.nm}: ${g.km}km ${fmtClock(g.sec)} 평균 ${g.pace?fmtPace(g.pace):'—'}`+
     `${g.plan?` (목표 ${fmtPace(g.plan[0])}~${fmtPace(g.plan[1])})`:''}`+
-    `${g.hr?` 심박 ${g.hr}`:''}${g.pass===false?' ← 벗어남':''}`).join('\n');
+    `${g.hr?` 평균심박 ${g.hr}`:''}${g.hrTop&&g.hard?` 최고 ${g.hrTop}`:''}`+
+    `${g.drop!=null?` 회복 ${g.drop>0?'-'+g.drop:'없음'}bpm`:''}`+
+    `${g.cad?` ${g.cad}spm`:''}${g.pass===false?' ← 벗어남':''}`).join('\n');
   const next=BLOCK.filter(x=>x.d>(r.planId||'')).slice(0,3)
     .map(x=>`  - ${x.d.slice(5,10)} ${x.t}`).join('\n');
   const vd=vdotOf(10000,(45*60+46)/60), z=zonesOf(vd);
@@ -2511,9 +2628,11 @@ renderHome();
 /* 지난번에 연결했던 기기가 켜져 있으면 조용히 다시 붙는다 */
 (async()=>{ try{
   if(!BT.name||!navigator.bluetooth)return;
+  BT.want=true; BT.paint();
   const ds=await DEV.knownDevices();
   const d=ds.find(x=>(x.name||'')===BT.name);
-  if(d)await BT.connect(d);
+  if(d){ await BT.connect(d); if(!BT.dev)BT.retry(); }
+  else BT.paint();
 }catch(e){} })();
 </script>
 </body>
