@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#F4F7F5">
+<meta name="theme-color" content="#FDFBF6">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -11,15 +11,22 @@
 <meta name="apple-mobile-web-app-title" content="런코치">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>런코치</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
+  rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
-  --bg:#F4F7F5; --panel:#FFFFFF; --panel-2:#EDF2EF; --line:#DCE4E0;
-  --ink:#16211D; --ink-2:#5B6A64; --ink-3:#8B9892;
-  --accent:#0E9B72; --on:#FFFFFF;
-  --ok:#2E9E57; --fast:#C9661F; --slow:#2B7BB9; --alarm:#CF3B36;
-  --z1:#3B86C4; --z2:#19A47C; --z3:#A2850C; --z4:#C9661F; --z5:#CF3B36;
-  --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  --bg:#FDFBF6; --panel:#FFFFFF; --panel-2:#F4F1EA; --line:#E8E4DC;
+  --ink:#1A1D1B; --ink-2:#5F6B64; --ink-3:#9AA5A0;
+  --accent:#0FA68C; --on:#FFFFFF;
+  --ok:#0FA68C; --fast:#E35A32; --slow:#3D82D9; --alarm:#CF3B36;
+  --z1:#3B86C4; --z2:#19A47C; --z3:#A2850C; --z4:#E35A32; --z5:#CF3B36;
+  --sans:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* 화면에 크게 보이는 숫자는 모노가 아니라 둥근 숫자체를 쓴다 */
+  --num:"Outfit",ui-monospace,SFMono-Regular,Menlo,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
@@ -266,73 +273,142 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 
 /* run */
 /* ───────── 달릴 때 ─────────
-   숫자 하나가 화면을 지배하고, 버튼은 하나, 배경색이 코칭한다. */
+   평소에는 말랑하고 조용하다. 잘못 뛰고 있을 때만 화면 전체가 바뀐다.
+   같은 DOM을 쓰고 [data-state] 하나로 두 얼굴을 오간다. */
 #run{display:none}
 #run.on{display:flex;flex-direction:column;height:100dvh;box-sizing:border-box;
   padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));
-  background:var(--rbg);color:var(--rink);transition:background .35s ease}
-#run[data-state="ok"]   {--rbg:var(--bg);  --rink:var(--ink); --rsub:var(--ink-2); --rline:var(--line); --rbtn:var(--ink); --rbtnf:#fff; --rfill:var(--accent)}
-#run[data-state="fast"] {--rbg:#C9661F; --rink:#fff; --rsub:rgba(255,255,255,.82); --rline:rgba(255,255,255,.3); --rbtn:#fff; --rbtnf:#C9661F; --rfill:#fff}
-#run[data-state="slow"] {--rbg:#2B7BB9; --rink:#fff; --rsub:rgba(255,255,255,.82); --rline:rgba(255,255,255,.3); --rbtn:#fff; --rbtnf:#2B7BB9; --rfill:#fff}
-#run[data-state="hr"]   {--rbg:#C0352F; --rink:#fff; --rsub:rgba(255,255,255,.82); --rline:rgba(255,255,255,.3); --rbtn:#fff; --rbtnf:#C0352F; --rfill:#fff}
-#run[data-state="soon"] {--rbg:#E4F3EC; --rink:var(--ink); --rsub:var(--ink-2); --rline:#9ED3BC; --rbtn:var(--ink); --rbtnf:#fff; --rfill:var(--accent)}
+  background:var(--rbg);color:var(--rink);
+  transition:background .4s cubic-bezier(.4,0,.2,1)}
 
-.rpage{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+/* ── 평온 — 따뜻한 바탕에 흰 카드 ── */
+#run[data-state="ok"],#run[data-state="soon"]{
+  --rbg:#FDFBF6; --rcard:#FFFFFF; --rcardsh:0 6px 22px rgba(26,29,27,.07);
+  --rink:#1A1D1B; --rsub:#9AA5A0; --rline:#E8E4DC; --rtile:#FFFFFF;
+  --rbtn:#1A1D1B; --rbtnf:#fff; --rfill:#0FA68C;
+  --rpbg:#D9F2EC; --rpink:#0A7A66}
+#run[data-state="soon"]{--rpbg:#FFF3D6; --rpink:#8A6A12}
+
+/* ── 경고 — 화면 전체가 색이 된다 ── */
+#run[data-state="fast"],#run[data-state="slow"],#run[data-state="hr"]{
+  --rcard:transparent; --rcardsh:none;
+  --rink:#fff; --rsub:rgba(255,255,255,.82); --rline:rgba(255,255,255,.28);
+  --rtile:rgba(255,255,255,.14); --rbtn:#fff;
+  --rfill:#fff; --rpbg:#fff}
+/* 넘어감 — 너무 빠르거나 심박이 높거나, 둘 다 '과했다'는 한 가지 뜻이다 */
+#run[data-state="fast"],
+#run[data-state="hr"]  {--rbg:#E35A32; --rbtnf:#E35A32; --rpink:#C4471F}
+/* 모자람 */
+#run[data-state="slow"]{--rbg:#7355D6; --rbtnf:#7355D6; --rpink:#5B3FB5}
+
+.rpage{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;padding:0 16px}
 .rpage[hidden]{display:none}
-.rhead{padding:14px 20px 0;text-align:center}
-.rhead .nm{font-size:19px;font-weight:700}
-.rhead .tgt{font-family:var(--mono);font-size:13px;color:var(--rsub);margin-top:3px}
 
-.rmid{flex:1 1 auto;display:flex;min-height:0}
+.rhead{display:flex;align-items:center;gap:9px;padding:12px 4px 0}
+.rhead .nm{background:var(--rpbg);color:var(--rpink);font-size:13px;font-weight:700;
+  padding:7px 14px;border-radius:999px;flex:none;transition:background .4s,color .4s}
+.rhead .tgt{font-size:13px;color:var(--rsub);font-weight:500;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* 흰 카드. 경고 때는 투명해져서 색이 화면을 가득 채운다 */
+.rmid{flex:1 1 auto;display:flex;min-height:0;margin-top:10px;
+  background:var(--rcard);box-shadow:var(--rcardsh);border-radius:30px;
+  padding:16px;transition:background .4s,box-shadow .4s}
 .rmain{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;padding-left:14px}
-.rmain .k{font-size:12.5px;font-weight:700;letter-spacing:.12em;color:var(--rsub)}
-.rmain .v{font-size:clamp(72px,27vw,112px);font-weight:700;line-height:.88;
-  letter-spacing:-.06em;margin-top:4px;font-variant-numeric:tabular-nums}
-.rmain .u{font-size:16px;font-weight:700;color:var(--rsub);margin-top:2px}
-.rmain .pill{margin-top:16px;border-radius:999px;padding:9px 24px;font-size:17px;font-weight:700;
-  background:#E6F5EC;border:1px solid #B6DEC6;color:#1E6B3F}
-.rmain .pill.warn{background:#fff;border-color:#fff;color:var(--rbg)}
+  align-items:center;justify-content:center}
+.rmain .k{font-size:13px;font-weight:700;color:var(--rsub)}
+/* 크기는 어느 상태에서도 같다 — 자리가 움직이면 뛰면서 못 읽는다 */
+.rmain .v{font-family:var(--num);font-size:clamp(72px,26vw,108px);
+  font-weight:800;line-height:.92;letter-spacing:-.045em;margin-top:2px;
+  font-variant-numeric:tabular-nums}
+.rmain .u{font-size:17px;font-weight:700;color:var(--rsub);margin-top:2px}
+.rmain .pill{margin-top:18px;border-radius:999px;padding:12px 26px;
+  font-size:20px;font-weight:800;letter-spacing:-.02em;
+  background:var(--rpbg);color:var(--rpink);text-align:center;
+  transition:background .4s,color .4s}
 .rmain .pill[hidden]{display:none}
-.rmain .say{margin-top:11px;font-size:12.5px;line-height:1.6;color:var(--rsub);
-  text-align:center;max-width:240px}
+.rmain .say{margin-top:11px;font-size:13px;line-height:1.65;color:var(--rsub);
+  text-align:center;max-width:250px}
 .rmain .say[hidden]{display:none}
 
-.rail{flex:0 0 52px;display:flex;flex-direction:column;align-items:center;padding:6px 0 10px}
-.rail .pct{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--rink)}
-.rail .track{position:relative;flex:1 1 auto;width:11px;border-radius:6px;background:var(--rline)}
-.rail .fill{position:absolute;left:0;right:0;bottom:0;border-radius:6px;background:var(--rfill);height:0}
-.rail .band{position:absolute;left:-2px;right:-2px;border-radius:4px;background:#E3CE7A;opacity:.95}
-.rail .band.on{background:#C9A227}
-.rail .mk{position:absolute;left:50%;transform:translate(-50%,50%);width:11px;height:11px;
+/* 오늘 전체에서 지금 어디쯤인가 — 세로로 세우면 화면이 한쪽으로 쏠린다 */
+.rail{flex:none;display:flex;align-items:center;gap:10px;padding:10px 4px 0}
+.rail .pct{font-family:var(--num);font-size:12px;font-weight:800;color:var(--rfill);
+  flex:none;min-width:30px;text-align:right}
+.rail .track{position:relative;flex:1 1 auto;height:10px;border-radius:99px;
+  background:var(--rline);transition:background .4s}
+.rail .fill{position:absolute;top:0;bottom:0;left:0;border-radius:99px;
+  background:var(--rfill);width:0;transition:width .5s ease,background .4s}
+.rail .band{position:absolute;top:-2px;bottom:-2px;border-radius:99px;background:#F0D98A}
+.rail .band.on{background:#E8A33C}
+.rail .mk{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;
   border-radius:50%;background:var(--rbg);border:2px solid var(--rsub)}
 .rail .mk.pass{border-color:var(--ok);background:var(--ok)}
 .rail .mk.fail{border-color:var(--alarm);background:var(--alarm)}
-.rail .mk.now{border-color:var(--rink);background:var(--rink);width:13px;height:13px}
-.rail .lb{position:absolute;right:19px;transform:translateY(50%);font-family:var(--mono);
-  font-size:9px;color:var(--rsub);white-space:nowrap}
-.rail .now{position:absolute;left:-5px;right:-5px;height:3px;background:var(--rink);border-radius:2px}
-.rail .end{font-family:var(--mono);font-size:9px;color:var(--rsub);margin-top:5px}
+.rail .mk.now{border-color:var(--rink);background:var(--rink);width:14px;height:14px}
+.rail .now{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--rink);border-radius:2px}
+.rail .end{font-size:10px;color:var(--rsub);font-weight:700;flex:none}
 
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rline);
-  border-top:1px solid var(--rline);border-bottom:1px solid var(--rline);flex:none}
-.cell{background:var(--rbg);padding:11px 4px;text-align:center;position:relative;color:var(--rink)}
-.cell .k{font-size:10px;color:var(--rsub);font-weight:600}
-.cell .v{font-size:24px;font-weight:700;line-height:1.1;margin-top:2px;font-variant-numeric:tabular-nums}
-.cell .u{font-size:9.5px;color:var(--rsub)}
+/* 숫자 네 칸 — 선으로 나누지 않고 말랑한 조각으로 */
+.grid4{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;flex:none;margin-top:12px}
+.cell{background:var(--rtile);border:none;border-radius:16px;padding:10px 2px;
+  text-align:center;color:var(--rink);transition:background .4s;min-width:0}
+.cell .k{font-size:10px;color:var(--rsub);font-weight:700}
+.cell .v{font-family:var(--num);font-size:18px;font-weight:800;line-height:1.15;
+  margin-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cell .u{font-size:9px;color:var(--rsub);font-weight:600;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
 .cell.sel{background:var(--rink)}
-.cell.sel .k,.cell.sel .u{color:var(--rbg);opacity:.75}
+.cell.sel .k,.cell.sel .u{color:var(--rbg);opacity:.8}
 .cell.sel .v{color:var(--rbg)}
 
-.rctl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 18px 6px;flex:none}
+.rctl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px 6px;flex:none}
+.rrow{display:flex;align-items:center;justify-content:center;gap:16px}
 .pz{width:84px;height:84px;border-radius:50%;background:var(--rbtn);border:none;
-  display:flex;align-items:center;justify-content:center}
+  display:flex;align-items:center;justify-content:center;transition:background .4s}
 .pz svg{width:34px;height:34px}
 .pz svg rect{fill:var(--rbtnf)}
+.sidebtn{width:52px;height:52px;border-radius:50%;background:var(--rtile);border:none;
+  display:flex;align-items:center;justify-content:center;flex:none;transition:background .4s}
+#run[data-state="ok"] .sidebtn,#run[data-state="soon"] .sidebtn{background:#FFFFFF}
+.sidebtn svg{width:21px;height:21px;stroke:var(--rsub);fill:none;
+  stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .rctl .btn{margin:0;width:100%;max-width:330px}
 .rdots{display:flex;align-items:center;justify-content:center;gap:7px;padding-bottom:8px;flex:none}
 .rdots span{width:7px;height:7px;border-radius:50%;background:var(--rsub);opacity:.45}
 .rdots span.on{opacity:1;background:var(--rink)}
+
+/* ── 중단 권고 ──
+   깜빡임(초당 3회 이상)은 광과민성 발작을 일으킬 수 있어 쓰지 않는다 (WCAG 2.3.1).
+   2초에 한 번 밝아졌다 어두워지는 0.5Hz 맥박 — 기준의 6분의 1이고,
+   화면이 꺼지지 않으니 언제 봐도 다 읽힌다. */
+@keyframes rpulse{0%,100%{filter:none}50%{filter:brightness(1.22)}}
+#run.urgent{animation:rpulse 2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){#run.urgent{animation:none;outline:6px solid #fff;outline-offset:-6px}}
+
+/* 화면 잠금 — 손에 쥐고 뛰면 뺨·소매에 계속 닿는다 */
+.lockmask{position:fixed;inset:0;z-index:60;background:transparent}
+.lockmask .ub{position:absolute;left:24px;right:24px;
+  bottom:calc(26px + env(safe-area-inset-bottom,0px));
+  border-radius:999px;padding:17px;border:none;background:rgba(26,29,27,.86);
+  color:#fff;font-family:inherit;font-size:15px;font-weight:700}
+#run[data-state="fast"] .lockmask .ub,#run[data-state="slow"] .lockmask .ub,
+#run[data-state="hr"] .lockmask .ub{background:rgba(255,255,255,.9);color:var(--rbg)}
+.lockmask .chip{position:absolute;left:50%;transform:translateX(-50%);
+  top:calc(14px + env(safe-area-inset-top,0px));
+  background:rgba(26,29,27,.78);color:#fff;font-size:12px;font-weight:700;
+  padding:8px 16px;border-radius:999px}
+
+.alertc{background:#FFF8E8;border:1px solid #F0E2BE;border-radius:20px;
+  padding:16px 17px;margin-bottom:10px}
+.alertc.red{background:#FDECEA;border-color:#F6C9C3}
+.alertc h4{margin:0;font-size:15px;font-weight:800;color:#6B5212}
+.alertc.red h4{color:#A32B22}
+.alertc p{margin:7px 0 0;font-size:13.5px;line-height:1.7;color:#4A4336}
+.alertc.red p{color:#7A3A34}
+.alertc .why{display:inline-block;margin-top:10px;font-size:11.5px;font-weight:700;
+  color:#9A8A5E;background:rgba(255,255,255,.75);padding:5px 11px;border-radius:99px}
+.alertc.red .why{color:#A8746E}
 
 .conf{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;
   font-size:12px;color:var(--rsub);border-top:1px solid var(--rline);flex:none}
@@ -340,7 +416,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .dot.good{background:var(--ok)}.dot.weak{background:var(--z3)}.dot.bad{background:var(--alarm)}
 
 .holdbtn{position:relative;overflow:hidden}
-.holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.32);
+.holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:currentColor;opacity:.28;
   pointer-events:none;transition:width .05s linear}
 .holdbtn b{position:relative;font-weight:700}
 .lapwrap{padding:9px 18px 4px;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
@@ -469,16 +545,16 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   <div class="bar"><button class="sub" id="alBack">← 홈</button>
     <h1 style="text-align:center">알림</h1><span class="sub" id="alCount"></span></div>
   <div class="pad" style="padding-bottom:90px">
-    <div class="lbl" style="margin-bottom:9px">조정 제안 — 합의 필요</div>
+    <div class="lbl" style="margin-bottom:9px">물어볼 게 있어요</div>
     <div id="alProps"></div>
-    <div class="lbl" style="margin:20px 0 9px">경고</div>
+    <div class="lbl" style="margin:20px 0 9px">몸 상태</div>
     <div id="alWarn"></div>
     <div class="lbl" style="margin:20px 0 9px">아침 쪽지</div>
     <div class="card tight">
       <div class="meta" style="margin-bottom:10px">그날 할 일이 통째로 담긴 알림이 아침에 옵니다. 늦게 와도 알림함에 남아 있습니다.</div>
       <button class="btn sm ghost" id="btnIcs" style="margin:0">캘린더로 내보내기 (.ics)</button>
     </div>
-    <div class="lbl" style="margin:20px 0 9px">지난 제안</div>
+    <div class="lbl" style="margin:20px 0 9px">지난 기록</div>
     <div id="alDone"></div>
   </div>
 </div>
@@ -632,7 +708,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v6.4</b> · 2026-10-11
+    런코치 <b>v6.9</b> · 2026-10-11
   </div>
 </div></div>
 
@@ -711,6 +787,14 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <div class="nm" id="rSegName">준비</div>
       <div class="tgt" id="rSegTgt">GPS 신호를 기다립니다</div>
     </div>
+    <div class="rail" id="rRail">
+      <span class="end">출발</span>
+      <div class="track" id="rTrack">
+        <div class="fill" id="rFill"></div>
+        <div class="now" id="rNow" style="left:0"></div>
+      </div>
+      <span class="pct" id="rPct">0%</span>
+    </div>
     <div class="rmid">
       <div class="rmain">
         <div class="k" id="rHeroK">거리</div>
@@ -719,21 +803,19 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
         <div class="pill" id="rPill" hidden></div>
         <div class="say" id="rSay" hidden></div>
       </div>
-      <div class="rail" id="rRail">
-        <div class="pct" id="rPct">0%</div>
-        <div class="track" id="rTrack">
-          <div class="fill" id="rFill"></div>
-          <div class="now" id="rNow" style="bottom:0"></div>
-        </div>
-        <div class="end">출발</div>
-      </div>
     </div>
     <div class="grid4" id="rGrid">
+      <button class="cell" data-h="dist"><div class="k">거리</div><div class="v num" id="rDist">0.00</div><div class="u">km</div></button>
       <button class="cell" data-h="pace"><div class="k">속도</div><div class="v num" id="rPace">--'--"</div><div class="u" id="rPaceU">페이스</div></button>
       <button class="cell" data-h="time"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
       <button class="cell" data-h="hr"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
       <button class="cell" data-h="cad"><div class="k">케이던스</div><div class="v num" id="rCad">—</div><div class="u">spm</div></button>
     </div>
+  </div>
+
+  <div class="lockmask" id="lockMask" hidden>
+    <div class="chip">화면이 잠겼습니다</div>
+    <button class="ub holdbtn" id="btnUnlock"><i></i><b>길게 눌러 잠금 해제</b></button>
   </div>
 
   <div class="rpage" id="rPage2" hidden>
@@ -751,9 +833,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   </div>
 
   <div class="rctl" id="rCtl">
-    <button class="pz" id="btnPause" aria-label="일시정지">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4.2" height="16" rx="1.4"/><rect x="13.8" y="4" width="4.2" height="16" rx="1.4"/></svg>
-    </button>
+    <div class="rrow">
+      <button class="sidebtn" id="btnLock" aria-label="화면 잠금">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      </button>
+      <button class="pz" id="btnPause" aria-label="일시정지">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4.2" height="16" rx="1.4"/><rect x="13.8" y="4" width="4.2" height="16" rx="1.4"/></svg>
+      </button>
+      <button class="sidebtn" id="btnQuiet" aria-label="음성 끄기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5c.9.9.9 4.1 0 5"/><path d="M19 7c2 2.2 2 7.8 0 10"/></svg>
+      </button>
+    </div>
     <button class="btn danger holdbtn" id="btnStop" hidden><i></i><b>종료 (3초 길게)</b></button>
   </div>
   <div class="rdots" id="rDots"><span class="on" data-p="1"></span><span data-p="2"></span></div>
@@ -840,12 +930,20 @@ const DEV = {
            stop(cb){ window.removeEventListener('devicemotion',cb); } },
   wake:{ async on(){ try{ return await navigator.wakeLock.request('screen'); }catch(e){ return null; } },
          off(l){ try{ l&&l.release(); }catch(e){} } },
-  speak(text,force){ if(!('speechSynthesis'in window))return;
+  speak(text,force,critical){ if(!('speechSynthesis'in window))return;
+    /* 조용히 모드 — 평범한 안내만 끈다. 심박 경고는 끌 수 없다 */
+    if(typeof QUIET!=='undefined'&&QUIET&&!critical)return;
     try{ if(force)speechSynthesis.cancel();
       const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=1.05;
       const ko=(speechSynthesis.getVoices()||[]).find(v=>/^ko/i.test(v.lang)); if(ko)u.voice=ko;
       speechSynthesis.speak(u); }catch(e){} },
+  /* 진동 문법 — 셋뿐이다. 뛰면서 다섯 가지를 구분할 수 없다.
+       BZ.tick  툭        — 구간이 바뀌었다 · 1km
+       BZ.off   툭툭툭    — 계획에서 벗어났다 (빠르든 느리든)
+       BZ.stop  우웅×3    — 멈춰라
+     아이폰 사파리는 진동 API를 지원하지 않는다. 안드로이드에서만 울린다. */
   buzz(p){ if(navigator.vibrate)try{navigator.vibrate(p);}catch(e){} },
+  canBuzz(){ return !!navigator.vibrate; },
   store:{ get(k,d){ try{ return JSON.parse(localStorage.getItem('rc_'+k)) ?? d; }catch(e){ return d; } },
           set(k,v){ try{ localStorage.setItem('rc_'+k,JSON.stringify(v)); return true; }catch(e){ return false; } } },
   async hr(onBpm, known){
@@ -1178,13 +1276,20 @@ function auditSession(s){
   if(T.cap&&s.qvol){
     const capKm = s.type==='interval' ? Math.min(10,wk*T.cap)
                 : s.type==='rep' ? Math.min(8,wk*T.cap) : wk*T.cap;
-    if(s.qvol>capKm+0.01) out.push(
-      `질 구간 ${s.qvol}km가 상한 ${capKm.toFixed(1)}km를 초과 (기준 주간 ${wk.toFixed(1)}km의 ${(s.qvol/wk*100).toFixed(1)}%, 한도 ${(T.cap*100)}%)`);
+    if(s.qvol>capKm+0.01) out.push({
+      t:'빠르게 뛰는 양이 많습니다',
+      m:`빠르게 뛰는 부분이 ${s.qvol}km인데, 요즘 일주일에 ${wk.toFixed(0)}km를 뛰는 몸에는 ${capKm.toFixed(1)}km까지가 안전합니다.`,
+      w:`일주일 거리의 ${(s.qvol/wk*100).toFixed(0)}% · 권장 ${(T.cap*100)}% 이내`});
   }
   if(T.bout&&s.bout){
-    if(s.bout>T.bout[1]+1) out.push(
-      `1회 구간 ${fmtClock(s.bout)}이 I 구간 범위(3~5분)를 초과 — 뒤 반복을 완주하기 어렵습니다`);
-    else if(s.bout<T.bout[0]-1) out.push(`1회 구간 ${fmtClock(s.bout)}이 3분 미만 — I 자극이 부족할 수 있습니다`);
+    if(s.bout>T.bout[1]+1) out.push({
+      t:'한 번에 너무 길게 몰아칩니다',
+      m:`한 번 빠르게 뛰는 시간이 ${fmtClock(s.bout)}입니다. 3~5분이 적당한데, 이보다 길면 뒤쪽 회차에서 다리가 먼저 멈춥니다.`,
+      w:`1회 ${fmtClock(s.bout)} · 권장 ${fmtClock(T.bout[0])}~${fmtClock(T.bout[1])}`});
+    else if(s.bout<T.bout[0]-1) out.push({
+      t:'한 번이 너무 짧습니다',
+      m:`한 번 빠르게 뛰는 시간이 ${fmtClock(s.bout)}입니다. 3분은 넘어야 심장이 제대로 반응합니다.`,
+      w:`1회 ${fmtClock(s.bout)} · 권장 ${fmtClock(T.bout[0])}~${fmtClock(T.bout[1])}`});
   }
   return out;
 }
@@ -1218,6 +1323,7 @@ $('nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 let EXITING=false;
 const BACKTO={confirm:'runtab',settings:'home',alerts:'home',sum:'log'};
 function appBack(){
+  if(typeof LOCKED!=='undefined'&&LOCKED){ DEV.buzz(50); return; }
   if(S.running&&CURVIEW==='run'){ DEV.buzz(50); return; }
   if(CURVIEW==='gate'){ DEV.buzz(50); return; }
   if(CURVIEW==='onb'){ if(OB.i>0)$('obBack').onclick(); else DEV.buzz(50); return; }
@@ -1494,9 +1600,9 @@ $('planTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 /* ───── 알림 탭 ───── */
 function renderAlerts(){
   const open=PROPS.filter(x=>!x.done), done=PROPS.filter(x=>x.done);
-  $('alCount').textContent=open.length?`처리할 것 ${open.length}`:'';
+  $('alCount').textContent=open.length?`${open.length}건`:'';
   const ph=$('alProps'); ph.innerHTML='';
-  if(!open.length)ph.innerHTML='<div class="empty">처리할 제안이 없습니다</div>';
+  if(!open.length)ph.innerHTML='<div class="empty">물어볼 거 없습니다</div>';
   open.forEach(pr=>{
     const el=document.createElement('div'); el.className='prop';
     el.innerHTML=`<h3>${pr.title}</h3><p>${pr.why}</p>`+
@@ -1511,17 +1617,20 @@ function renderAlerts(){
       DEV.store.set('props',PROPS); renderAlerts(); };
     ph.appendChild(el);
   });
+  /* ── 몸에서 온 신호만 ──
+     계획이 과한 건 앱이 알아서 줄인다. 그걸 사용자에게 설명하지 않는다.
+     여기 뜨는 건 '내 몸이 보낸 것' 뿐이다. */
   const wh=$('alWarn'); wh.innerHTML='';
   const ws=[]; const r=acwr();
-  if(r&&r>1.5)ws.push(['red',`급성:만성 부하비 ${r.toFixed(2)} (경고선 1.5). 다음 주 증량을 취소하세요.`]);
-  const a1=rhrAlert(); if(a1)ws.push(['red',a1]);
-  const a2=driftAlert(); if(a2)ws.push(['red',a2]);
-  BLOCK.forEach(sx=>{ auditSession(sx).forEach(w=>
-    ws.push(['warn',`${sx.d.slice(5,10).replace('-','.')} ${sx.t} — ${w}`])); });
-  if(!ws.length)wh.innerHTML='<div class="empty">경고 없음</div>';
-  ws.forEach(([k,m])=>{const e=document.createElement('div');
-    e.className='note '+(k==='red'?'red':''); if(k!=='red')e.style.cssText='background:#2B2518;border-color:#574B22;color:#E0CE8C';
-    e.textContent=m; wh.appendChild(e);});
+  if(r&&r>1.5)ws.push(['이번 주는 여기까지',
+    '요즘 뛰던 양보다 많이 뛰었습니다. 다음 주에 더 늘리는 건 미뤘어요.']);
+  const a1=rhrAlert(); if(a1)ws.push(['몸이 아직 안 풀렸어요',a1]);
+  const a2=driftAlert(); if(a2)ws.push(['같은 속도인데 더 힘들어졌어요',a2]);
+  if(!ws.length)wh.innerHTML='<div class="empty">지금은 괜찮습니다</div>';
+  ws.forEach(([t,m])=>{const e=document.createElement('div');
+    e.className='alertc red';
+    e.innerHTML=`<h4>${t}</h4><p>${m}</p>`;
+    wh.appendChild(e);});
   const dh=$('alDone'); dh.innerHTML=done.length?'':'<div class="empty">아직 없습니다</div>';
   done.slice(-6).reverse().forEach(pr=>{const e=document.createElement('div');
     e.className='card tight'; e.style.marginBottom='8px';
@@ -1607,7 +1716,7 @@ function openConfirm(i){
   br.innerHTML=
     `<div class="bi"><div class="bk">${T.nm} — 무엇을 발달시키나</div><div class="bv">${T.develops||'—'}</div></div>`+
     (T.primaryLabel?`<div class="bi"><div class="bk">지켜야 할 것</div><div class="bv"><b>${T.primaryLabel}</b></div></div>`:'')+
-    auditSession(s).map(w=>`<div class="bi warn"><div class="bk">문헌 기준 초과</div><div class="bv">${w}</div></div>`).join('')+
+    auditSession(s).map(w=>`<div class="bi warn"><div class="bk">참고</div><div class="bv">${w.m}</div></div>`).join('')+
     extra+(extra?`<button class="tog" id="cTog">자세히 ▾</button>`:'');
   const tg=$('cTog');
   if(tg)tg.onclick=()=>{ br.classList.toggle('open');
@@ -1760,6 +1869,7 @@ $('btnStart').onclick=async()=>{
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,
+    critSec:0,urgent:false,lastCrit:0,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
   renderLaps(); paintLapChips(); buildRail(); runPage(1); $('run').dataset.state='ok';
@@ -1802,17 +1912,17 @@ function buildRail(){
     const to=cum[i];
     if(g.hard){                                   // 특이지점 — 빠르게 가야 하는 구간
       const b=document.createElement('div'); b.className='band';
-      b.style.bottom=(from/tot*100)+'%'; b.style.height=((to-from)/tot*100)+'%';
+      b.style.left=(from/tot*100)+'%'; b.style.width=((to-from)/tot*100)+'%';
       b.dataset.i=i; tr.appendChild(b);
     }
     if(i<segs.length-1){                          // 구간이 끝나는 지점
       const m=document.createElement('div'); m.className='mk'; m.dataset.i=i;
-      m.style.bottom=(to/tot*100)+'%'; tr.appendChild(m);
+      m.style.left=(to/tot*100)+'%'; tr.appendChild(m);
     }
     from=to;
   });
   const top=document.createElement('div'); top.className='mk'; top.dataset.i='end';
-  top.style.bottom='100%'; tr.appendChild(top);
+  top.style.left='100%'; tr.appendChild(top);
   paintRail(0);
 }
 function paintRail(prog){
@@ -1821,8 +1931,8 @@ function paintRail(prog){
   const done=S.segIx?cum[S.segIx-1]:0;
   const cur=durs[S.segIx]||0;
   const pct=Math.max(0,Math.min(1,(done+Math.max(0,Math.min(1,prog))*cur)/tot));
-  $('rFill').style.height=(pct*100)+'%';
-  $('rNow').style.bottom=(pct*100)+'%';
+  $('rFill').style.width=(pct*100)+'%';
+  $('rNow').style.left=(pct*100)+'%';
   $('rPct').textContent=Math.round(pct*100)+'%';
   document.querySelectorAll('#rTrack .mk').forEach(m=>{
     const i=m.dataset.i; m.className='mk';
@@ -1841,12 +1951,8 @@ function paintRail(prog){
    페이스는 코칭의 핵심이라 메인과 별개로 바로 아래에 항상 띄운다. */
 let HERO=null;                       /* 사용자가 고른 값. 없으면 세션이 정한다 */
 /* 그 세션에서 가장 중요한 것이 자동으로 메인에 올라온다 */
-function defaultHero(){
-  const T=S.T||{};
-  if(T.primary==='hr')return 'hr';
-  if(S.session&&S.session.reps)return 'segleft';
-  return 'dist';
-}
+/* 기본은 '오늘 전체 뛴 거리'. 구간 남은 거리는 칸을 눌러 바꾼다. */
+function defaultHero(){ return 'dist'; }
 function setHero(h){
   if(h){ HERO=h; }
   S.hero = HERO || defaultHero();
@@ -1981,7 +2087,7 @@ function onTick(){
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
   if(!S.gpsWarn&&S.elapsed>180&&km<0.15&&S.pts.length>60){
     S.gpsWarn=true;
-    DEV.buzz([400,150,400]); DEV.speak('거리가 기록되지 않고 있습니다.',true);
+    DEV.buzz(BZ.off); DEV.speak('거리가 기록되지 않고 있습니다.',true);
   }
   const prog = tg.end==='time' ? (S.elapsed-S.segStart.t)/tg.sec
              : (km-prevTo)/Math.max(0.01,tg.to-prevTo);
@@ -2016,37 +2122,59 @@ function onTick(){
   if(S.hr.bpm&&HZ&&HZ[1]){
     if(S.hr.bpm>HZ[1]){ S.hrOverSec+=0.5; S.hrHoldSec+=0.5; hrOver=true; }
     else S.hrHoldSec=0;
+    /* 최대심박의 95%가 2분 넘게 이어지면 그만두라고 말해야 한다.
+       "계속 가세요"가 믿을 만하려면 "멈추세요"도 말할 줄 알아야 한다. */
+    if(S.hr.bpm>=HRMAX*0.95) S.critSec+=0.5;
+    else S.critSec=Math.max(0,S.critSec-1);
     if(S.hrHoldSec>=25&&Date.now()-S.lastHrCue>25000){
-      S.lastHrCue=Date.now(); DEV.buzz([250,100,250,100,250]);
+      S.lastHrCue=Date.now(); DEV.buzz(BZ.off);
       DEV.speak(hrPrimary
         ? `심박 ${S.hr.bpm}. 목표는 ${HZ[1]} 이하입니다. 속도를 더 줄이세요. 오늘은 심박이 기준입니다. 페이스가 느려도 심박이 높으면 회복이 되지 않습니다.`
-        : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}을 넘었습니다. 호흡을 고르세요.`, true);
+        : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}을 넘었습니다. 호흡을 고르세요.`, true, true);
     }
-    if(hrOver){ state='hr'; pill='속도를 줄이세요';
-      say = hrPrimary ? '오늘은 심박이 기준입니다. 페이스가 느려도 심박이 높으면 회복이 되지 않습니다.' : ''; }
+    if(hrOver){ state='hr'; pill='숨을 고르세요';
+      say = hrPrimary
+        ? `심장이 ${S.hr.bpm}까지 올라갔습니다. 오늘은 느리게 뛰는 게 목적이라, 느려도 심박이 높으면 소용이 없습니다.`
+        : `심장이 ${S.hr.bpm}입니다. 조금 쉬어가세요.`; }
     else if(HZ[0]&&S.hr.bpm<HZ[0]&&tg.hard&&(S.elapsed-S.segStart.t)>60
             &&!(isFinite(p)&&tgPace&&p<=tgPace[1])){
       /* 심박은 30~60초 늦게 올라온다. 구간 초반이거나 페이스가 이미 목표 안이면 말하지 않는다 */
-      state='slow'; pill='강도를 올리세요'; }
+      state='slow'; pill='조금 더 힘내요'; say='아직 여유가 있습니다. 조금만 더 밀어보세요.'; }
   }
   /* 페이스 상한 — 회복·이지의 핵심 */
   let ceilOver=false;
   if(isFinite(p)&&s.ceiling&&!tg.hard&&p<s.ceiling-5){
     S.ceilSec+=0.5; ceilOver=true;
-    if(state==='ok'||!hrPrimary){ state='fast'; pill=`${fmtPace(s.ceiling)}보다 느리게`; say=''; }
-    if(Date.now()-S.lastCeilCue>20000){ S.lastCeilCue=Date.now(); DEV.buzz([300,120,300,120,300]);
+    if(state==='ok'||!hrPrimary){ state='fast'; pill='조금만 늦춰요';
+      say=`오늘은 천천히 뛰는 날입니다. 1km를 ${fmtPace(s.ceiling)}보다 느리게.`; }
+    if(Date.now()-S.lastCeilCue>20000){ S.lastCeilCue=Date.now(); DEV.buzz(BZ.off);
       DEV.speak(`너무 빠릅니다. ${fmtPaceVoice(s.ceiling)}보다 느리게. 이 세션은 느리게 뛰는 것이 목적입니다.`,true); }
   }
   /* 구간 전환이 가까우면 */
   if(state==='ok'){
     const left = tg.end==='time' ? (tg.sec-(S.elapsed-S.segStart.t))*1000/Math.max(200,p||400)
                                  : (tg.to-km)*1000;
-    if(left>0&&left<=100&&S.segIx<segs.length-1){ state='soon'; pill='곧 바뀝니다'; }
-    else { pill='그대로'; }
+    if(left>0&&left<=100&&S.segIx<segs.length-1){ state='soon'; pill='곧 바뀝니다'; say=''; }
+    else { pill='지금 좋아요'; say=''; }
   }
   if(state!==S.bannerState){ S.bannerState=state; $('run').dataset.state=state; }
-  const pl=$('rPill'); pl.hidden=!pill; pl.className='pill'+(state==='ok'||state==='soon'?'':' warn');
+
+  /* 중단 권고 — 이것만 맥박친다. 아끼지 않으면 늑대 소년이 된다. */
+  const urgent = S.critSec>=120;
+  if(urgent!==S.urgent){ S.urgent=urgent; $('run').classList.toggle('urgent',urgent); }
+  if(urgent){
+    state='hr'; $('run').dataset.state='hr'; S.bannerState='hr';
+    pill='오늘은 여기까지';
+    say=`심장이 ${S.hr.bpm}에서 2분 넘게 안 내려옵니다. 걷거나 멈추세요.`;
+    if(Date.now()-S.lastCrit>60000){ S.lastCrit=Date.now();
+      DEV.buzz(BZ.stop);
+      DEV.speak('멈추세요. 심박이 너무 높은 상태로 2분 넘게 이어졌습니다. 걷거나 멈추세요.',true,true); }
+  }
+  const pl=$('rPill'); pl.hidden=!pill; pl.className='pill';
   if(pill)pl.textContent=pill;
+  /* 반복이 있는 날에만 '이 구간 얼마 남았나'를 한 줄 받쳐준다.
+     쭉 뛰는 날엔 총 거리가 곧 구간이라 똑같은 말이 두 번 된다. */
+  if(!say&&S.hero==='dist'&&segLeft!=null&&s.reps)say=`이 구간 ${segLeft}m 남음`;
   const sy=$('rSay'); sy.hidden=!say; if(say)sy.textContent=say;
 
   /* 메인 숫자 — 4칸에서 고른 것. 기본은 세션이 정한다 */
@@ -2064,8 +2192,8 @@ function onTick(){
     $('rHeroU').textContent=tgPace?`목표 ${rangeText(tgPace)}`:''; }
   else if(S.hero==='segleft'&&segLeft!=null){ $('rHeroK').textContent='남은 거리';
     hv.textContent=segLeft; $('rHeroU').textContent='m'; }
-  else { $('rHeroK').textContent='거리'; hv.textContent=km.toFixed(2);
-    $('rHeroU').textContent=`km · 목표 ${s.dist} · ${Math.round(km/s.dist*100)}%`; }
+  else { $('rHeroK').textContent = s.dist?`오늘 ${s.dist}km 중`:'오늘 뛴 거리';
+    hv.textContent=km.toFixed(2); $('rHeroU').textContent='km'; }
 
   /* 구간 내 교정 — 허용 오차는 구간마다 다름 */
   if(isFinite(p)&&tgPace&&tg.tol!=null&&!ceilOver&&!hrOver){
@@ -2108,7 +2236,7 @@ function onTick(){
       else { msg+=`목표보다 ${d}초 느립니다. 조금 올리세요. `; verdictTxt=`${d}초 느림`; }
       if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1])msg+=`심박 ${lapHR}, 목표 ${HZ[1]}을 넘었습니다. `;
     } else if(lapHR){ msg+=`평균 심박 ${lapHR}. `; }
-    DEV.speak(msg,true); DEV.buzz([120,80,120]);
+    DEV.speak(msg,true); DEV.buzz(BZ.tick);
     S.liveRows.push({kind:'lap',nm:`${S.lapKm}km`,actual:lapPace,time:dt,hr:lapHR,cad:lapCad,note:verdictTxt});
     renderLaps();
   }
@@ -2166,7 +2294,7 @@ function advanceSeg(){
                    : `심박이 ${Math.max(0,drop)}만 떨어졌습니다. 회복이 부족합니다. 다음 회차 전에 더 늦추세요. `;
   }
   msg+=`${nx.nm}${nxPlan?`, 목표 ${fmtPaceVoice(midPace(nxPlan))}`:''}.`;
-  DEV.speak(msg,true); DEV.buzz([120,80,120]);
+  DEV.speak(msg,true); DEV.buzz(BZ.tick);
 }
 function segPass(r){
   if(!r.plan||!isFinite(r.actual))return null;
@@ -2215,6 +2343,7 @@ $('btnPause').onclick=()=>{
     DEV.speak('일시정지했습니다. 종료하려면 종료 버튼을 3초간 누르세요.',true);}
   else{S.pausedAt+=(Date.now()-S._p)/1000;S.win=[];DEV.speak('재개합니다',true);}
 };
+const BZ={tick:[140], off:[130,90,130,90,130], stop:[600,200,600,200,600]};
 let holdT=null,holdAt=0;
 function endHold(){ if(holdT){clearInterval(holdT);holdT=null;}
   const f=$('btnStop').querySelector('i'); if(f)f.style.width='0'; }
@@ -2229,10 +2358,51 @@ function startHold(e){
     if(r>=1){ endHold(); DEV.buzz([250,90,250]); finish(false); }
   },50);
 }
+/* ───────── 화면 잠금 ─────────
+   손에 쥐고 달리면 뺨과 소매가 화면에 계속 닿는다.
+   잠그면 숫자는 그대로 보이고 손가락만 막는다. 풀 때는 1.5초 길게. */
+let LOCKED=false, ulT=null, ulAt=0;
+function setLock(v){
+  LOCKED=v; $('lockMask').hidden=!v;
+  $('btnLock').setAttribute('aria-label', v?'화면 잠금 해제':'화면 잠금');
+  DEV.buzz(v?[40,60,40]:30);
+  if(v)DEV.speak('화면을 잠갔습니다',true);
+}
+$('btnLock').onclick=()=>setLock(true);
+function endUnlock(){ if(ulT){clearInterval(ulT);ulT=null;}
+  const f=$('btnUnlock').querySelector('i'); if(f)f.style.width='0'; }
+$('btnUnlock').addEventListener('pointerdown',e=>{
+  e.preventDefault(); if(ulT)return;
+  ulAt=Date.now(); DEV.buzz(30);
+  const f=$('btnUnlock').querySelector('i');
+  ulT=setInterval(()=>{
+    const r=Math.min(1,(Date.now()-ulAt)/1500);
+    f.style.width=(r*100)+'%';
+    if(r>=1){ endUnlock(); setLock(false); }
+  },50);
+});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>
+  $('btnUnlock').addEventListener(ev,endUnlock));
+
+/* ───────── 음성 잠깐 끄기 ─────────
+   "아 좀 조용히 뛰게 해줘" 하는 날이 있다. 단, 위험 신호는 못 끈다. */
+let QUIET=false;
+function paintQuiet(){
+  const b=$('btnQuiet');
+  b.innerHTML = QUIET
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5c.9.9.9 4.1 0 5"/><path d="M19 7c2 2.2 2 7.8 0 10"/></svg>';
+  b.setAttribute('aria-label', QUIET?'음성 켜기':'음성 끄기');
+}
+$('btnQuiet').onclick=()=>{ QUIET=!QUIET; paintQuiet(); DEV.buzz(30);
+  if(!QUIET)DEV.speak('음성을 다시 켭니다',true); };
+paintQuiet();
+
 $('btnStop').addEventListener('pointerdown',startHold);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>
   $('btnStop').addEventListener(ev,endHold));
 function finish(completed){
+  if(typeof setLock==='function'&&LOCKED)setLock(false);
   S.running=false;
   DEV.geo.stop(S.watchId); S.watchId=null;
   if(S.tick){clearInterval(S.tick);S.tick=null;}
@@ -3100,7 +3270,7 @@ $('vCalc').onclick=()=>{
 $('btnAudit').onclick=()=>{
   const rows=[];
   BLOCK.forEach(s=>{ const w=auditSession(s);
-    if(w.length)rows.push(`<div class="note red" style="margin:0 0 8px"><b>${s.d.slice(5,10).replace('-','.')} ${s.t}</b><br>${w.join('<br>')}</div>`); });
+    if(w.length)rows.push(`<div class="note red" style="margin:0 0 8px"><b>${s.d.slice(5,10).replace('-','.')} ${s.t}</b><br>${w.map(x=>x.m).join('<br>')}</div>`); });
   const weeks={1:0,2:0,3:0,4:0};
   BLOCK.forEach(s=>{weeks[s.wk]+=(s.dist||0);});
   const DOC={1:58,2:64,3:72,4:44};
