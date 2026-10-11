@@ -980,6 +980,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       <button class="btn sm" style="margin:0;flex:0 0 86px" id="rhrAdd">기록</button></div>
     <div id="rhrList" style="margin-top:11px;font-size:12.5px;color:var(--ink-2)"></div>
   </div>
+  <div hidden><!-- 등산 수동 입력 · 신발 로테이션: 사용자 요청으로 화면에서 뺌(코드는 남겨 둠) -->
   <div class="lbl" style="margin:20px 0 9px">등산 기록 (지난 것 넣기)</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:9px;line-height:1.6">폰을 들고 간 날은 홈의 <b>그냥 움직이기 → 등산</b>으로 기록하세요. 여기는 지난 등산을 시간만 넣는 곳입니다. <b>달리기 거리로 바꾸지 않습니다</b> — 바꿀 근거가 없습니다 <span class="gr B">B</span>.</div>
@@ -994,6 +995,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="row"><input type="text" id="shoeName" placeholder="신발 이름">
       <button class="btn sm" style="margin:0;flex:0 0 68px" id="shoeAdd">추가</button></div>
     <div id="shoeList" style="margin-top:11px"></div>
+  </div>
   </div>
   <div class="lbl" style="margin:20px 0 9px">내 정보</div>
   <div class="card tight">
@@ -1099,7 +1101,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="opt"><input type="checkbox" id="optCad" checked><label for="optCad">걸음 수 재기 (케이던스)
       <span class="hint">1분에 몇 걸음 뛰는지</span></label></div>
     <div class="opt"><input type="checkbox" id="optWake" checked><label for="optWake">화면 계속 켜두기</label></div>
-    <div class="opt"><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
+    <div class="opt" hidden><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
     <button class="btn ghost" id="btnHR">기기 연결 — 워치 또는 가슴 스트랩</button>
     <div style="font-size:12px;color:var(--ink-3);margin-top:7px;text-align:center" id="hrState">미연결 — 심박 없이도 진행됩니다</div>
     <div style="font-size:11.5px;color:var(--ink-3);margin-top:6px;text-align:center">
