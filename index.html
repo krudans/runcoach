@@ -44,6 +44,20 @@
   margin:16px 0 2px;text-transform:uppercase}
 /* 로그인 · 온보딩 */
 #onb.on{display:flex;flex-direction:column;height:100dvh;padding-bottom:0;overflow:hidden}
+/* 시작 화면 — 말은 적게, 글자는 크게. 색 규칙 하나만 보여주고 들여보낸다 */
+#intro.on{display:flex;flex-direction:column;min-height:100dvh;padding-bottom:0;background:#151A18;color:#fff}
+.ipad{flex:1 1 auto;display:flex;flex-direction:column;
+  padding:62px 26px calc(26px + env(safe-area-inset-bottom,0px))}
+.itop{font-size:13px;font-weight:800;letter-spacing:.22em;color:#0FA68C}
+.ibig{margin-top:30px;font-size:clamp(38px,11.5vw,50px);font-weight:900;
+  line-height:1.2;letter-spacing:-.035em}
+.ilines{margin-top:34px;display:flex;flex-direction:column;gap:13px}
+.il{display:flex;align-items:center;gap:13px;font-size:15.5px;color:rgba(255,255,255,.72)}
+.il s{width:30px;height:30px;border-radius:10px;flex:none;text-decoration:none}
+.il b{color:#fff;font-weight:800}
+.ifoot{margin:28px 0 0;font-size:13.5px;line-height:1.75;color:rgba(255,255,255,.45)}
+.ibtn{margin-top:auto;width:100%;border:none;border-radius:999px;padding:19px;
+  background:#fff;color:#151A18;font-family:inherit;font-size:17px;font-weight:800}
 body.nonav #nav{display:none!important}
 .gpad{flex:1 1 auto;display:flex;flex-direction:column;padding:34px 24px 24px}
 .glogo{width:62px;height:62px;border-radius:17px;background:var(--accent);
@@ -708,7 +722,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <button class="btn sm ghost" id="wipeRuns" style="margin:0;color:var(--alarm)">모든 러닝 기록 삭제</button>
   </div>
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">
-    런코치 <b>v7.8</b> · 2026-10-11
+    런코치 <b>v7.9</b> · 2026-10-11
   </div>
 </div></div>
 
@@ -733,6 +747,20 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
       워치에서 심박 송출을 먼저 켜고, 목록에서 워치 이름을 고르세요.
     </div>
     <button class="btn" id="btnStart">시작</button>
+  </div>
+</div>
+
+<div class="view" id="intro">
+  <div class="ipad">
+    <div class="itop">런코치</div>
+    <div class="ibig">받은 훈련을<br>제대로<br>뛰게 합니다</div>
+    <div class="ilines">
+      <div class="il"><s style="background:#E35A32"></s>너무 빠르면 <b>주황</b></div>
+      <div class="il"><s style="background:#7355D6"></s>너무 느리면 <b>보라</b></div>
+      <div class="il"><s style="background:#0FA68C"></s>맞게 가면 <b>그대로</b></div>
+    </div>
+    <p class="ifoot">뛰는 중에 화면을 볼 필요가 없습니다.<br>색과 소리가 알려줍니다.</p>
+    <button class="ibtn" id="introGo">시작하기</button>
   </div>
 </div>
 
@@ -1310,7 +1338,7 @@ let CURVIEW='home';
 const TABOF={run:'home',confirm:'home',sum:'log',settings:'home',alerts:'home',runtab:'home'};
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
   CURVIEW=id;
-  document.body.classList.toggle('nonav',id==='onb');
+  document.body.classList.toggle('nonav',id==='onb'||id==='intro');
   const t=TABOF[id]||id;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   window.scrollTo(0,0);}
@@ -1333,7 +1361,8 @@ const BACKTO={confirm:'runtab',settings:'home',alerts:'home',sum:'log'};
 function appBack(){
   if(typeof LOCKED!=='undefined'&&LOCKED){ DEV.buzz(50); return; }
   if(S.running&&CURVIEW==='run'){ DEV.buzz(50); return; }
-  if(CURVIEW==='onb'){ if(OB.i>0)$('obBack').onclick(); else DEV.buzz(50); return; }
+  if(CURVIEW==='intro'){ DEV.buzz(50); return; }
+  if(CURVIEW==='onb'){ if(OB.i>0)$('obBack').onclick(); else show('intro'); return; }
   if(CURVIEW==='sum'&&S.result&&!S.result._saved&&
      !confirm('저장하지 않은 세션 결과가 있습니다.\n나가면 사라집니다. 계속할까요?'))return;
   const p=BACKTO[CURVIEW];
@@ -2991,9 +3020,12 @@ if('serviceWorker' in navigator && location.protocol==='https:'){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 $('btnFresh').onclick=async()=>{
-  try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
+  /* update()만으로는 옛날 서비스워커가 안 떨어진다. 통째로 등록 해제한다.
+     기록은 localStorage에 있어서 이걸로 지워지지 않는다. */
+  if(!confirm('앱을 최신 버전으로 다시 받습니다.\n기록과 설정은 그대로 남습니다.\n\n진행할까요?'))return;
   try{ const rs=await navigator.serviceWorker.getRegistrations();
-       await Promise.all(rs.map(r=>r.update())); }catch(e){}
+       await Promise.all(rs.map(r=>r.unregister())); }catch(e){}
+  try{ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }catch(e){}
   location.replace(location.pathname+'?r='+Date.now());
 };
 
@@ -3611,7 +3643,7 @@ function obTags(key,multi){
 const OBSTEP=[
  /* 1 ─ 설문 */
  {q:'요즘 얼마나<br>달리고 계신가요?',
-  s:'실력이 아니라 <b>몸이 감당하고 있는 양</b>을 봅니다. 둘은 다릅니다.',
+  s:'잘 뛰는지가 아니라 <b>얼마나 뛰는지</b>를 묻는 겁니다.',
   body(){ const wk=surveyWk(OB.d);
     return `<div class="oblab">일주일에 몇 번</div>${obTags('freq')}
       <div class="oblab">보통 한 번에</div>${obTags('per')}
@@ -3627,7 +3659,7 @@ const OBSTEP=[
 
  /* 3 ─ 몸 · 기록 · 문진 */
  {q:'몸과 기록을<br>알려주세요',
-  s:'나이로 심박대가, 기록으로 훈련 페이스가 나옵니다. 기록이 없으면 비워두세요.',
+  s:'나이로 심박 기준이, 기록으로 속도 기준이 정해집니다.',
   body(){ const d=OB.d;
     return `<div class="oblab">몸</div>
       <div class="row">
@@ -3708,7 +3740,7 @@ const OBSTEP=[
 
  /* 4 ─ 가능한 날 */
  {q:'언제 달릴 수<br>있으세요?',
-  s:'못 지킬 일정을 짜봐야 소용없습니다. <b>가능한 날만큼만</b> 만듭니다.',
+  s:'못 지킬 일정은 안 만듭니다. <b>가능한 날만큼만</b>.',
   next:'완료',
   body(){ const d=OB.d, n=(d.days||[]).length;
     const hard=n>=4?2:n>=2?1:0;
@@ -3770,6 +3802,7 @@ function obHint(m,fid){
   setTimeout(()=>{ el.style.outline=''; },2600);
 }
 /* 설문 없이도 바로 쓸 수 있다. 뛰어본 뒤 설정에서 채우면 된다. */
+$('introGo').onclick=()=>obStart();
 $('obSkip').onclick=()=>{
   DEV.store.set('onboarded',true);
   renderHome(); go('home');
@@ -3902,7 +3935,7 @@ S.hr={dev:null,bpm:null,samples:[],max:0,segSamples:[]};
   /* 한 번이라도 로그인한 폰에서만 미리 깨운다.
      안 그러면 로그인 안 쓰는 사람도 열 때마다 400KB를 받는다 */
   if(FBCFG&&ACCT.uid)FB.init().catch(()=>{});
-  if(!DEV.store.get('onboarded',false)){ obStart(); }
+  if(!DEV.store.get('onboarded',false)){ show('intro'); }
 })();
 /* 지난번에 연결했던 기기가 켜져 있으면 조용히 다시 붙는다 */
 (async()=>{ try{
