@@ -1376,7 +1376,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='11.1';
+const APPVER='11.3';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -1410,6 +1410,8 @@ const DEV = {
   wake:{ async on(){ try{ return await navigator.wakeLock.request('screen'); }catch(e){ return null; } },
          off(l){ try{ l&&l.release(); }catch(e){} } },
   speak(text,force,critical){ if(!('speechSynthesis'in window))return;
+    /* 괄호 속 전문용어는 화면용 — 소리로는 읽지 않는다 */
+    text=String(text||'').replace(/\s*\([^)]*\)/g,'').replace(/\s{2,}/g,' ').trim();
     /* 조용히 모드 — 평범한 안내만 끈다. 심박 경고는 끌 수 없다 */
     if(typeof QUIET!=='undefined'&&QUIET&&!critical)return;
     if(typeof VC!=='undefined'&&!VC.gate(text,critical?3:force?2:1))return;
@@ -3019,7 +3021,7 @@ function onTick(){
       S.lastHrCue=Date.now(); DEV.buzz(BZ.off);
       DEV.speak(hrPrimary
         ? `심박 ${S.hr.bpm}. 목표는 ${HZ[1]} 이하입니다. 속도를 더 줄이세요. 오늘은 심박이 기준입니다. 속도(페이스)가 느려도 심박이 높으면 회복이 되지 않습니다.`
-        : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}을 넘었습니다. 호흡을 고르세요.`, true, true);
+        : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}보다 높습니다. 호흡을 고르세요.`, true, true);
     }
     if(hrOver){ state='hr'; pill='숨을 고르세요';
       const zn=hrZone(S.hr.bpm);
@@ -3130,7 +3132,7 @@ function onTick(){
       } else if(Math.abs(d)<=6){ msg+='목표대로입니다. 이대로 유지하세요. '; verdictTxt='목표대로'; }
       else if(d<0){ msg+=`목표보다 ${-d}초 빠릅니다. 속도를 줄이세요. `; verdictTxt=`${-d}초 빠름`; }
       else { msg+=`목표보다 ${d}초 느립니다. 조금 올리세요. `; verdictTxt=`${d}초 느림`; }
-      if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1])msg+=`심박 ${lapHR}, 목표 ${HZ[1]}을 넘었습니다. `;
+      if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1])msg+=`심박 ${lapHR}, 목표 ${HZ[1]}보다 높습니다. `;
     } else if(lapHR){ msg+=`평균 심박 ${lapHR}. `; }
     if(VOPT.kmBuzzOnly&&s.reps&&S.act==='run') DEV.buzz(BZ.tick);   /* 회차가 있는 날 1km는 진동만 — 회차 안내와 겹치지 않게 */
     else { DEV.speak(msg,false); DEV.buzz(BZ.tick); }
@@ -3180,21 +3182,21 @@ function advanceSeg(){
   let msg='';
   if(done.hard&&isFinite(actual)){
     const diff=Math.round(actual-midPace(plan));
-    msg=`${done.nm} 완료, ${fmtPaceVoice(actual)}. 목표 대비 ${Math.abs(diff)}초 ${diff<=0?'빠름':'느림'}. `;
+    msg=`${vnm(done.nm)} 끝, 1킬로미터에 ${fmtPaceVoice(actual)}. 목표 대비 ${Math.abs(diff)}초 ${diff<=0?'빠름':'느림'}. `;
     if(hrTop)msg+=`최고 심박 ${hrTop}. `;
     /* 회차가 무너지고 있는지 — 앞 회차들과 비교 */
     const reps=S.segRecords.filter(r=>r.hard&&isFinite(r.actual));
     if(reps.length>=2){
       const d2=Math.round(reps[reps.length-1].actual-reps[0].actual);
-      if(d2>8)msg+=`첫 회차보다 ${d2}초 느려졌습니다. 남은 회차는 무리하지 마세요. `;
+      if(d2>8)msg+=`첫 번째보다 ${d2}초 느려졌습니다. 남은 건 무리하지 마세요. `;
     }
-  } else if(isFinite(actual)) msg=`${done.nm} 완료, 평균 ${fmtPaceVoice(actual)}. `;
+  } else if(isFinite(actual)) msg=`${vnm(done.nm)} 끝, 평균 1킬로미터에 ${fmtPaceVoice(actual)}. `;
   if(isRec&&drop!=null){
     msg+= drop>=20 ? `심박 ${prevEnd}에서 ${hrEnd}로 ${drop} 떨어졌습니다. 회복 좋습니다. `
-        : drop>=10 ? `심박이 ${drop}밖에 안 떨어졌습니다. 다음 회차는 조금 보수적으로. `
-                   : `심박이 ${Math.max(0,drop)}만 떨어졌습니다. 회복이 부족합니다. 다음 회차 전에 더 늦추세요. `;
+        : drop>=10 ? `심박이 ${drop}밖에 안 떨어졌습니다. 다음은 조금 천천히 시작하세요. `
+                   : `심박이 ${Math.max(0,drop)}만 떨어졌습니다. 회복이 부족합니다. 다음 전에 더 천천히 숨을 고르세요. `;
   }
-  msg+=`${nx.nm}${nxPlan?`, 목표 ${fmtPaceVoice(midPace(nxPlan))}`:''}.`;
+  msg+=`이어서 ${vnm(nx.nm)}${nxPlan?`, 1킬로미터에 ${fmtPaceVoice(midPace(nxPlan))}`:''}.`;
   /* 회차가 있는 날은 사람 말투로 짧게 — "1회차가 끝났습니다. 회복 조깅 400미터입니다." / "시작합니다." */
   const vm=voiceSegMsg(done,nx,actual,plan,segs);
   if(vm)msg=vm;
@@ -6452,11 +6454,16 @@ const VC={busyUntil:0,busyPrio:0,ctx:null,counted:-1,
     const t=c.currentTime; g.gain.exponentialRampToValueAtTime(0.5*((VOPT&&VOPT.vol)||1),t+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t+(ms||160)/1000);
     o.start(t); o.stop(t+(ms||160)/1000+0.02); }catch(e){} }
 };
+/* 소리로 읽을 말 — 괄호 속 전문용어는 화면에만. 횟수는 '두 번', 순서는 '두 번째'로 (TTS가 '2번'을 '이번'으로 읽는다) */
+const KN=['영','한','두','세','네','다섯','여섯','일곱','여덟','아홉','열','열한','열두','열세','열네','열다섯','열여섯','열일곱','열여덟','열아홉','스무'];
+const ORDN=['','첫','두','세','네','다섯','여섯','일곱','여덟','아홉','열','열한','열두','열세','열네','열다섯','열여섯','열일곱','열여덟','열아홉','스무'];
+const vCount=n=>`${KN[n]||n} 번`, vOrd=k=>`${ORDN[k]||k} 번째`;
+const vSec=x=>{x=Math.round(x); const m=Math.floor(x/60), r=x%60; return m?(r?`${m}분 ${r}초`:`${m}분`):`${r}초`;};
+const vnm=nm=>String(nm||'').replace(/\s*\([^)]*\)/g,'').trim();
 function repLabel(g,segs){
-  if(!g||!g.hard)return g?g.nm:'';
+  if(!g||!g.hard)return g?vnm(g.nm):'';
   const n=segs.filter(x=>x.hard).length, k=g.rep||(segs.filter(x=>x.hard).indexOf(g)+1);
-  const base=(GL[S.session.type]||{}).t||'';
-  return k===n&&n>1?'마지막 회차':`${base} ${k}회차`.trim();
+  return k===n&&n>1?'마지막':vOrd(k);
 }
 function cadGoal(s){ const c=DEV.store.get('cadTry',null);
   if(!c||!s||!['easy','long','recovery'].includes(s.type))return null;
@@ -6464,10 +6471,22 @@ function cadGoal(s){ const c=DEV.store.get('cadTry',null);
 function startVoice(s,T,g){
   VC.audio(); VC.counted=-1; S.vc={seg:-1,cued:{}};
   const n=s.segs.filter(x=>x.hard).length;
-  const first=g.nm, pc=g.pace?fmtPaceVoice(midPace(g.pace)):'';
-  let m=`${first}을 시작합니다. ${g.to?`${kmLabVoice(g.to)}${pc?`, 1킬로미터 ${pc}로`:''}. `:''}`;
-  if(n>=2)m+=`오늘은 ${(GL[s.type]||{}).e||''} ${n}번입니다.`;
-  else if(s.ceiling)m+=`오늘은 ${fmtPaceVoice(s.ceiling)}보다 느리게 가는 날입니다.`;
+  const VE={recovery:'아주 천천히',tt:'힘껏',stride:'짧게 빠르게',hill:'언덕을',free:'자유롭게'};
+  const how=VE[s.type]||(GL[s.type]||{}).e||'';
+  const hard=s.segs.filter(x=>x.hard), len=hard.length?(s.repLen||(hard[0].to-((s.segs[s.segs.indexOf(hard[0])-1]||{to:0}).to))):0;
+  const pc=g.pace?fmtPaceVoice(midPace(g.pace)):'';
+  /* 1) 오늘 무엇을 — 쉬운 말 + 러너 용어를 같이: "오늘은 벅차게 뛰는 템포런입니다. 1.5킬로미터씩 두 번 뜁니다." */
+  const TV={long:'엘에스디',tt:'티티'};                     /* 영문 약자는 소리 나는 대로 */
+  const term=TV[s.type]||(GL[s.type]||{}).t||'';
+  const head = s.type==='tt' ? `오늘은 실력 재는 날, ${term}입니다. `
+             : term ? `오늘은 ${how} 뛰는 ${term}입니다. ` : `오늘은 ${how} 뜁니다. `;
+  let m = head + (n>=2 ? `${len?kmLabVoice(len)+'씩 ':''}${vCount(n)} 뜁니다. `
+        : n===1 ? `${len?kmLabVoice(len)+' ':''}한 번 뜁니다. `
+        : `${kmLabVoice(s.dist)} 뜁니다. `);
+  /* 2) 첫 구간 — 여러 구간일 때만 */
+  if(s.segs.length>1) m+=`먼저 ${vnm(g.nm)} ${g.to?kmLabVoice(g.to):''}${pc?`, 1킬로미터에 ${pc}`:''}.`;
+  else if(s.ceiling) m+=`1킬로미터에 ${fmtPaceVoice(s.ceiling)}보다 느리게 가세요.`;
+  else if(pc) m+=`1킬로미터에 ${pc}.`;
   const cg=cadGoal(s); if(cg)m+=` 오늘 발걸음 목표는 1분에 ${cg}걸음. 속도는 그대로, 보폭만 조금 줄이세요.`;
   S.cadGoal=cg; S.cadLow=0; S.lastCadCue=Date.now();
   DEV.speak(m,true);
@@ -6477,10 +6496,11 @@ function voiceSegMsg(done,nx,actual,plan,segs){
   if(!S.session.reps&&!done.hard&&!nx.hard)return null;
   let m='';
   if(done.hard){
-    m=`${repLabel(done,segs)==='마지막 회차'?'마지막 회차가':repLabel(done,segs)+'가'} 끝났습니다. ${isFinite(actual)?fmtPaceVoice(actual)+'. ':''}`;
-    const len=nx.end==='time'?`${nx.sec}초`:kmLabVoice(Math.max(0,nx.to-done.to));
+    const dl=repLabel(done,segs);
+    m=`${dl}${dl==='마지막'?'이':'가'} 끝났습니다. ${isFinite(actual)?`1킬로미터에 ${fmtPaceVoice(actual)}. `:''}`;
+    const len=nx.end==='time'?vSec(nx.sec):kmLabVoice(Math.max(0,nx.to-done.to));
     if(nx.hard) m+=`이어서 ${repLabel(nx,segs)}.`;
-    else m+=`${nx.nm} ${len}입니다.`;
+    else m+=`${vnm(nx.nm)} ${len}.`;
     return m;
   }
   if(nx.hard){ return VC.counted===S.segIx-1||VC.counted===S.segIx ? '시작합니다.' : `${repLabel(nx,segs)} 시작합니다.`; }
@@ -6521,7 +6541,7 @@ function voiceTick(km,tg,segs,p){
     if(tg.end==='time'&&VOPT.half&&!c.half&&inSeg>=tg.sec/2&&tg.sec>=60){ c.half=1; DEV.speak('절반 왔습니다.'); }
     /* 첫 회차 과속 경고 — 뛴 뒤 결정에서 켠 경우 */
     if(VOPT.firstGuard&&!c.fg&&(tg.rep===1)&&inSeg>30&&isFinite(p)&&tg.pace&&p<tg.pace[0]+S.adj-5){
-      c.fg=1; DEV.speak(`첫 회차가 목표보다 ${Math.round(tg.pace[0]+S.adj-p)}초 빠릅니다. 뒤 회차를 위해 늦추세요.`,true); }
+      c.fg=1; DEV.speak(`첫 번째가 목표보다 ${Math.round(tg.pace[0]+S.adj-p)}초 빠릅니다. 뒤를 위해 늦추세요.`,true); }
   }
 }
 function hrNote(){ const h=S.hr&&S.hr.bpm, e=S.lastHrEnd; if(!h||!e)return '';
@@ -6537,7 +6557,7 @@ function voiceOptsHTML(){
 function wireVoiceOpts(host){
   host.querySelectorAll('[data-vo]').forEach(c=>c.onchange=()=>{ VOPT[c.dataset.vo]=c.checked; DEV.store.set('vopt',VOPT); });
   const r=host.querySelector('[data-vr]'); if(r)r.onchange=()=>{ VOPT.rate=+r.value; DEV.store.set('vopt',VOPT); };
-  const t=host.querySelector('[data-vt]'); if(t)t.onclick=()=>{ VC.beep(880,140); setTimeout(()=>DEV.speak('인터벌 1회차 10초 전입니다.',true),300); };
+  const t=host.querySelector('[data-vt]'); if(t)t.onclick=()=>{ VC.beep(880,140); setTimeout(()=>DEV.speak('첫 번째 10초 전입니다.',true),300); };
 }
 
 /* ══════════ 호흡 실험 — 2:2 · 3:2 · 4:4 ══════════
