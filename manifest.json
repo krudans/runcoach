@@ -1,15 +1,21 @@
 {
-  "name": "런코치",
-  "short_name": "런코치",
-  "description": "계획에 따라 구간별로 코칭하고 기록하는 러닝 앱",
+  "name": "가지런 GAJI RUN",
+  "short_name": "가지런",
+  "description": "고르게, 약속대로 — 계획대로 달리게 돕는 러닝 코치",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#FDFBF6",
+  "background_color": "#2A1638",
   "theme_color": "#FDFBF6",
   "icons": [
+    {
+      "src": "icon/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
