@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#FDFBF6">
+<meta name="theme-color" content="#F4EFF8">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -19,8 +19,8 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
-  --bg:#FDFBF6; --panel:#FFFFFF; --panel-2:#F4F1EA; --line:#E8E4DC;
-  --ink:#1A1D1B; --ink-2:#5F6B64; --ink-3:#9AA5A0;
+  --bg:#F4EFF8; --panel:#FFFFFF; --panel-2:#EEE6F4; --line:#E5DCEE;
+  --ink:#2A1638; --ink-2:#5E4A6E; --ink-3:#9A8AA8;
   --accent:#5B2D86; --on:#FFFFFF;
   --aub:#2A1638; --plum:#5B2D86; --sage:#8DB89A; --bone:#F4F0EA;   /* 브랜드: 가지런 */
   --ok:#0FA68C; --fast:#E35A32; --slow:#3D82D9; --alarm:#CF3B36;
@@ -163,7 +163,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .icbtn .bdg{position:absolute;top:-5px;right:-7px;background:var(--alarm);color:#fff;font-size:9px;
   font-weight:700;border-radius:99px;padding:1px 4px;font-family:var(--mono);line-height:1.5}
 .hero-day{margin:12px 16px 0;border-radius:28px;overflow:hidden;position:relative;
-  background:#1A1D1B;color:#fff}
+  background:#2A1638;color:#fff}
 .hero-day .inner{padding:24px 22px 22px}
 .hero-day .kind{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;
   color:rgba(255,255,255,.78)}
@@ -193,10 +193,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .distrow .unit{font-size:13px;color:rgba(255,255,255,.6);flex:none}
 .distbox .acts{display:flex;gap:8px;margin-top:10px}
 .distbox .acts button{flex:1;padding:10px;border-radius:9px;font-size:13px;font-weight:600}
-.distbox .acts .ok{background:#fff;color:#1A1D1B;font-weight:800}
+.distbox .acts .ok{background:#fff;color:#2A1638;font-weight:800}
 .distbox .acts .rv{background:rgba(255,255,255,.14);color:rgba(255,255,255,.75)}
 .gobtn{display:block;width:100%;margin-top:20px;padding:18px;border-radius:999px;
-  background:#fff;color:#1A1D1B;font-weight:800;font-size:17px;text-align:center}
+  background:#fff;color:#2A1638;font-weight:800;font-size:17px;text-align:center}
 .gobtn.done{background:rgba(255,255,255,.14);color:#fff;font-weight:700}
 .restday{margin:12px 16px 0;border-radius:18px;border:1px dashed var(--line);background:var(--panel);
   padding:30px 20px;text-align:center}
@@ -306,9 +306,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 
 /* ── 평온 — 따뜻한 바탕에 흰 카드 ── */
 #run[data-state="ok"],#run[data-state="soon"]{
-  --rbg:#FDFBF6; --rcard:#FFFFFF; --rcardsh:0 6px 22px rgba(26,29,27,.07);
-  --rink:#1A1D1B; --rsub:#9AA5A0; --rline:#E8E4DC; --rtile:#FFFFFF;
-  --rbtn:#1A1D1B; --rbtnf:#fff; --rfill:#0FA68C;
+  --rbg:#F4EFF8; --rcard:#FFFFFF; --rcardsh:0 6px 22px rgba(42,22,56,.07);
+  --rink:#2A1638; --rsub:#9A8AA8; --rline:#E5DCEE; --rtile:#FFFFFF;
+  --rbtn:#2A1638; --rbtnf:#fff; --rfill:#0FA68C;
   --rpbg:#D9F2EC; --rpink:#0A7A66}
 #run[data-state="soon"]{--rpbg:#FFF3D6; --rpink:#8A6A12}
 
@@ -413,13 +413,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .lockmask{position:fixed;inset:0;z-index:60;background:transparent}
 .lockmask .ub{position:absolute;left:24px;right:24px;
   bottom:calc(26px + env(safe-area-inset-bottom,0px));
-  border-radius:999px;padding:17px;border:none;background:rgba(26,29,27,.86);
+  border-radius:999px;padding:17px;border:none;background:rgba(42,22,56,.86);
   color:#fff;font-family:inherit;font-size:15px;font-weight:700}
 #run[data-state="fast"] .lockmask .ub,#run[data-state="slow"] .lockmask .ub,
 #run[data-state="hr"] .lockmask .ub{background:rgba(255,255,255,.9);color:var(--rbg)}
 .lockmask .chip{position:absolute;left:50%;transform:translateX(-50%);
   top:calc(14px + env(safe-area-inset-top,0px));
-  background:rgba(26,29,27,.78);color:#fff;font-size:12px;font-weight:700;
+  background:rgba(42,22,56,.78);color:#fff;font-size:12px;font-weight:700;
   padding:8px 16px;border-radius:999px}
 
 .alertc{background:#FFF8E8;border:1px solid #F0E2BE;border-radius:20px;
@@ -646,7 +646,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .vol3 u{display:block;height:6px;border-radius:3px;background:#E6E1D6;margin-top:5px;overflow:hidden}.vol3 u s{display:block;height:100%;background:var(--accent)}
 .actsum{font-size:11.5px;color:var(--ink-2);margin-top:9px}
 .bdgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;text-align:center}
-.bdg2 span{display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto;border-radius:50%;color:#fff;font-weight:900;font-size:16px;background:#E8E4DC}
+.bdg2 span{display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto;border-radius:50%;color:#fff;font-weight:900;font-size:16px;background:#E5DCEE}
 .bdg2 b{display:block;font-size:11.5px;margin-top:5px}.bdg2 i{font-style:normal;font-size:9.5px;color:var(--ink-3)}
 .bdg2.lock span{color:#A49A8C;font-size:18px}
 .bnext{margin-top:10px;background:#FFF6E6;border-radius:12px;padding:9px 11px;font-size:11.5px;color:#8A5A0B;line-height:1.5}
@@ -673,7 +673,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .dopt .tags i{font-style:normal;font-size:11px;font-weight:700;background:var(--panel-2);border-radius:7px;padding:2px 7px;color:var(--ink-2)}
 .dopt .tags i.ok{background:#DDF3EA;color:#1E7A4D}.dopt .tags i.bad{background:#FBE1DD;color:#A33427}
 .dfoot{text-align:center;font-size:11px;color:var(--ink-3);margin-top:10px}
-#toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);opacity:0;background:#1A1D1B;color:#fff;font-size:13px;border-radius:12px;padding:11px 16px;z-index:99;transition:.25s;max-width:86%;text-align:center;pointer-events:none}
+#toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);opacity:0;background:#2A1638;color:#fff;font-size:13px;border-radius:12px;padding:11px 16px;z-index:99;transition:.25s;max-width:86%;text-align:center;pointer-events:none}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 .decrow{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px}
 .decrow .dm{font-size:11px;color:var(--ink-3);font-family:var(--num)}.decrow b{display:block;font-size:13.5px;margin-top:3px}
@@ -858,6 +858,30 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .tgoal i{display:block;font-style:normal;font-size:10px;opacity:.9;margin-top:4px}
 .tgoal em{display:block;font-style:normal;font-size:10.5px;font-weight:800;margin-top:3px;text-decoration:underline}
 .tcard .ttl{margin-top:8px}
+/* ── A안: 가지색 기본 — 오늘 카드는 흰 바탕, 훈련 색(--k1,--k2)은 강도를 알리는 곳에만 ── */
+.tcard.lite{background:var(--panel);color:var(--ink);box-shadow:0 6px 22px rgba(42,22,56,.08)}
+.tcard.lite .sym{opacity:.14}
+.tcard.lite .sym [stroke]{stroke:var(--k2)}.tcard.lite .sym [fill="#fff"]{fill:var(--k2)}
+.tcard.lite .tchip{background:color-mix(in srgb,var(--k1) 32%,#fff);color:var(--ink)}
+.tcard.lite .tds{color:var(--ink-2);opacity:1}
+.tcard.lite .tshape{background:color-mix(in srgb,var(--k1) 13%,#fff)}
+.tcard.lite .tshape rect{fill:var(--k1);opacity:.45}.tcard.lite .tshape rect[opacity="0.95"]{fill:var(--k2);opacity:1}
+.tcard.lite .tsl{color:var(--ink)}
+.tcard.lite .tpills i{background:var(--bg);color:var(--ink)}
+.tcard.lite .tdet{background:var(--panel);border:1.5px solid var(--line);color:var(--ink)}
+.tcard.lite .tdet span{color:var(--accent);opacity:1}
+.tcard.lite .tgrow{background:var(--bg)}.tcard.lite .tgrow b{color:var(--ink-2);opacity:1}
+.tcard.lite .gr.A{background:#D9F2EC}.tcard.lite .gr.B{background:#E5EEF9}.tcard.lite .gr.C{background:#FFF1DA}.tcard.lite .gr.D{background:#ECE6FB}
+.tcard.lite .tgoal{background:var(--bg);color:var(--ink)}
+.tcard.lite .tgoal span,.tcard.lite .tgoal em{color:var(--accent)}
+.tcard.lite .tgoal u{background:var(--line)}.tcard.lite .tgoal s{background:var(--accent)}
+.tcard.lite .tgoal i{color:var(--ink-2);opacity:1}
+.tcard.lite .tgo{background:var(--accent);color:#fff}
+.tcard.lite .tgo.done{background:var(--bg);color:var(--accent)}
+.tcard.lite .tsub button{color:var(--ink-2);opacity:1}
+.tcard.lite .tdist{background:var(--bg)}
+.tcard.lite .tdist button{background:var(--panel);color:var(--ink)}
+.tcard.lite .tdist button.ok{background:var(--accent);color:#fff}
 .hhead>div{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
 .hhead h1{line-height:1.35!important;word-break:keep-all}
 .hhead .term{margin-top:0!important}
@@ -1376,7 +1400,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='11.3';
+const APPVER='11.2';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5642,7 +5666,7 @@ const LOOK={
   stride:{bg:'linear-gradient(150deg,#7CC3F0,#3E8FBF)',sym:'<path d="M10 70h30l14-30 14 30h26" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>'},
   hill:{bg:'linear-gradient(150deg,#E2A15E,#B05C1C)',sym:'<path d="M4 88 40 30l18 26 12-14 26 46z" fill="none" stroke="#fff" stroke-width="5.5" stroke-linejoin="round"/>'},
   free:{bg:'linear-gradient(150deg,#8EA69B,#5F7A6E)',sym:'<circle cx="50" cy="50" r="26" fill="none" stroke="#fff" stroke-width="6"/>'},
-  off:{bg:'linear-gradient(160deg,#2C3E78,#141E46)',sym:'<path d="M66 12a36 36 0 1 0 22 52A30 30 0 0 1 66 12z" fill="#F6E7B8"/>'}
+  off:{bg:'linear-gradient(160deg,#4A2370,#2A1638)',sym:'<path d="M66 12a36 36 0 1 0 22 52A30 30 0 0 1 66 12z" fill="#F6E7B8"/>'}
 };
 const symSVG=t=>`<svg class="sym" viewBox="0 0 100 100" aria-hidden="true">${(LOOK[t]||LOOK.free).sym}</svg>`;
 
@@ -5816,7 +5840,7 @@ function renderHome(){
   /* 오늘 카드 */
   if(sess) h+=todayCard(sess,idx);
   else if(inP) h+=restCard(today);
-  else h+=`<div class="tcard" style="background:${LOOK.free.bg}">${symSVG('free')}<div class="tin">
+  else h+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
       <span class="tchip">일정 없음</span><div class="ttl">내 목표로 일정을 만들어 볼까요?</div>
       <div class="tds">목표와 일주일에 며칠 뛸지를 고르면, 쉬는 날까지 넣은 4주 일정을 만듭니다.</div>
       <button class="tgo" id="hGoal">목표 정하고 일정 만들기 ▶</button></div></div>`;
@@ -5867,7 +5891,8 @@ function todayCard(sess,idx){
   const pace = sess.reps ? fmtPace(sess.repTarget+adj) : rangeText(main.pace);
   const mins = Math.round(segDurs(sess).reduce((a,b)=>a+b,0)/60/5)*5;
   const edited = DIST[sess.d]!=null && Math.abs(DIST[sess.d]-BLOCK[idx].dist)>0.01;
-  return `<div class="tcard" style="background:${(LOOK[sess.type]||LOOK.free).bg}"><div class="tin">
+  const [k1,k2]=hexes((LOOK[sess.type]||LOOK.free).bg);
+  return `<div class="tcard lite" style="--k1:${k1};--k2:${k2}"><div class="tin">
     <div class="ttop"><span class="tchip">${T.nm||''}${sess.role?' · '+sess.role:''}</span>${goalBadge()}</div>
     <div class="ttl">${title}</div>
     <div class="tds">${T.desc||''}</div>
@@ -6164,7 +6189,7 @@ function routeSVG(tr,segs,o){
   for(let i=1;i<tr.length;i++){ const c=o.mono||ptColor(tr[i],segs); cur.push(tr[i]); if(c!==col){ flush(); cur=[tr[i]]; col=c; } }
   flush();
   if(o.marks!==false){ const cm=trackCum(tr); let k=1;
-    for(let i=1;i<tr.length;i++) if(cm[i]/1000>=k){ out+=`<g><circle cx="${X(tr[i]).toFixed(1)}" cy="${Y(tr[i]).toFixed(1)}" r="10" fill="#fff" stroke="#3A4A44" stroke-width="1.5"/><text x="${X(tr[i]).toFixed(1)}" y="${(Y(tr[i])+3.6).toFixed(1)}" font-size="10" font-weight="800" text-anchor="middle" fill="#1A1D1B">${k}</text></g>`; k++; } }
+    for(let i=1;i<tr.length;i++) if(cm[i]/1000>=k){ out+=`<g><circle cx="${X(tr[i]).toFixed(1)}" cy="${Y(tr[i]).toFixed(1)}" r="10" fill="#fff" stroke="#3A4A44" stroke-width="1.5"/><text x="${X(tr[i]).toFixed(1)}" y="${(Y(tr[i])+3.6).toFixed(1)}" font-size="10" font-weight="800" text-anchor="middle" fill="#2A1638">${k}</text></g>`; k++; } }
   if(o.ends!==false){ const st=tr[0],en=tr[tr.length-1];
     out+=`<circle cx="${X(st).toFixed(1)}" cy="${Y(st).toFixed(1)}" r="8" fill="#0E9B72" stroke="#fff" stroke-width="3"/><circle cx="${X(en).toFixed(1)}" cy="${Y(en).toFixed(1)}" r="8" fill="#16211D" stroke="#fff" stroke-width="3"/>`; }
   return `<svg viewBox="0 0 ${W} ${H}" class="${o.cls||''}" role="img" aria-label="경로">${out}</svg>`;
@@ -6475,14 +6500,10 @@ function startVoice(s,T,g){
   const how=VE[s.type]||(GL[s.type]||{}).e||'';
   const hard=s.segs.filter(x=>x.hard), len=hard.length?(s.repLen||(hard[0].to-((s.segs[s.segs.indexOf(hard[0])-1]||{to:0}).to))):0;
   const pc=g.pace?fmtPaceVoice(midPace(g.pace)):'';
-  /* 1) 오늘 무엇을 — 쉬운 말 + 러너 용어를 같이: "오늘은 벅차게 뛰는 템포런입니다. 1.5킬로미터씩 두 번 뜁니다." */
-  const TV={long:'엘에스디',tt:'티티'};                     /* 영문 약자는 소리 나는 대로 */
-  const term=TV[s.type]||(GL[s.type]||{}).t||'';
-  const head = s.type==='tt' ? `오늘은 실력 재는 날, ${term}입니다. `
-             : term ? `오늘은 ${how} 뛰는 ${term}입니다. ` : `오늘은 ${how} 뜁니다. `;
-  let m = head + (n>=2 ? `${len?kmLabVoice(len)+'씩 ':''}${vCount(n)} 뜁니다. `
-        : n===1 ? `${len?kmLabVoice(len)+' ':''}한 번 뜁니다. `
-        : `${kmLabVoice(s.dist)} 뜁니다. `);
+  /* 1) 오늘 무엇을 — "오늘은 900미터씩 빠르게 두 번 뜁니다." */
+  let m = n>=2 ? `오늘은 ${len?kmLabVoice(len)+'씩 ':''}${how} ${vCount(n)} 뜁니다. `
+        : n===1 ? `오늘은 ${len?kmLabVoice(len)+' ':''}${how} 뜁니다. `
+        : `오늘은 ${kmLabVoice(s.dist)} ${how} 뜁니다. `;
   /* 2) 첫 구간 — 여러 구간일 때만 */
   if(s.segs.length>1) m+=`먼저 ${vnm(g.nm)} ${g.to?kmLabVoice(g.to):''}${pc?`, 1킬로미터에 ${pc}`:''}.`;
   else if(s.ceiling) m+=`1킬로미터에 ${fmtPaceVoice(s.ceiling)}보다 느리게 가세요.`;
@@ -6759,10 +6780,10 @@ function bandChart(vals,lo,hi,m,o){
   const pts=vals.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
   return `<svg viewBox="0 0 ${W} ${H}"><rect x="${PL}" y="${Y(hi).toFixed(1)}" width="${W-PL-PR}" height="${(Y(lo)-Y(hi)).toFixed(1)}" fill="#DCEFE6" rx="4"/>
     <line x1="${PL}" y1="${Y(m).toFixed(1)}" x2="${W-PR}" y2="${Y(m).toFixed(1)}" stroke="#2E9E6A" stroke-dasharray="3 3"/>
-    <text x="0" y="${(Y(hi)+3).toFixed(1)}" font-size="8" fill="#9AA5A0">${Math.round(hi)}</text><text x="0" y="${(Y(lo)+3).toFixed(1)}" font-size="8" fill="#9AA5A0">${Math.round(lo)}</text>
-    <polyline fill="none" stroke="#1A1D1B" stroke-width="1.8" points="${pts}"/>
+    <text x="0" y="${(Y(hi)+3).toFixed(1)}" font-size="8" fill="#9A8AA8">${Math.round(hi)}</text><text x="0" y="${(Y(lo)+3).toFixed(1)}" font-size="8" fill="#9A8AA8">${Math.round(lo)}</text>
+    <polyline fill="none" stroke="#2A1638" stroke-width="1.8" points="${pts}"/>
     ${vals.map((v,i)=>v>hi||v<lo?`<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3.5" fill="#E8A33D"/>`:'').join('')}
-    <circle cx="${X(vals.length-1).toFixed(1)}" cy="${Y(vals[vals.length-1]).toFixed(1)}" r="4" fill="#1A1D1B"/>
+    <circle cx="${X(vals.length-1).toFixed(1)}" cy="${Y(vals[vals.length-1]).toFixed(1)}" r="4" fill="#2A1638"/>
     <text x="${W-PR}" y="${(Y(vals[vals.length-1])-8).toFixed(1)}" font-size="9" font-weight="800" text-anchor="end">${o.lastLabel||''}</text>
     <text x="${PL}" y="${H-4}" font-size="8" fill="#2E7A50">초록 띠 = 내 평소 범위 (평균 ± 흔들림 2배)</text></svg>`;
 }
@@ -6827,14 +6848,14 @@ function logSkill(){
   const mn=Math.min(...all)-20, mx=Math.max(...all)+20, Y=v=>PT+(v-mn)/(mx-mn)*(H-PT-PB);
   const ticks=[mn+20,(mn+mx)/2,mx-20];
   h+=`<div class="lcard"><div class="bt">앞으로 ${gdLabel(m)} 기록<span>${gs?'목표 '+fmtClock(gs):''}</span></div>
-    <svg viewBox="0 0 ${W} ${H}">${ticks.map(v=>`<line x1="${PL}" x2="${W-PR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="#ECE7DE"/><text x="0" y="${(Y(v)+3).toFixed(1)}" font-size="8" fill="#9AA5A0">${fmtClock(v)}</text>`).join('')}
+    <svg viewBox="0 0 ${W} ${H}">${ticks.map(v=>`<line x1="${PL}" x2="${W-PR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="#ECE4F1"/><text x="0" y="${(Y(v)+3).toFixed(1)}" font-size="8" fill="#9A8AA8">${fmtClock(v)}</text>`).join('')}
       ${gs?`<line x1="${PL}" x2="${W-PR}" y1="${Y(gs).toFixed(1)}" y2="${Y(gs).toFixed(1)}" stroke="#E35A32" stroke-dasharray="4 3"/><text x="${W-PR}" y="${(Y(gs)-4).toFixed(1)}" font-size="8.5" font-weight="800" fill="#E35A32" text-anchor="end">목표 ${fmtClock(gs)}</text>`:''}
       <path d="M${X(0)},${Y(now)} L${X(wks)},${Y(lo)} L${X(wks)},${Y(hi)} Z" fill="#E5EEF9"/>
       ${me?`<line x1="${X(0)}" y1="${Y(now)}" x2="${X(wks)}" y2="${Y(me)}" stroke="#7355D6" stroke-width="2" stroke-dasharray="5 3"/>`:''}
-      ${pts.length>1?`<polyline fill="none" stroke="#1A1D1B" stroke-width="2" points="${pts.map(p=>`${X(p.w).toFixed(1)},${Y(p.sec).toFixed(1)}`).join(' ')}"/>`:''}
-      ${pts.map(p=>`<circle cx="${X(p.w).toFixed(1)}" cy="${Y(p.sec).toFixed(1)}" r="3.5" fill="#1A1D1B"/>`).join('')}
-      <circle cx="${X(0)}" cy="${Y(now)}" r="4.5" fill="#1A1D1B"/><text x="${X(0)-4}" y="${Y(now)+14}" font-size="8.5" font-weight="800" text-anchor="end">지금 ${fmtClock(now)}</text>
-      <text x="${X(wks)}" y="${H-6}" font-size="8" fill="#5F6B64" text-anchor="end">${wks}주 뒤 ${fmtClock(hi)}~${fmtClock(lo)}</text></svg>
+      ${pts.length>1?`<polyline fill="none" stroke="#2A1638" stroke-width="2" points="${pts.map(p=>`${X(p.w).toFixed(1)},${Y(p.sec).toFixed(1)}`).join(' ')}"/>`:''}
+      ${pts.map(p=>`<circle cx="${X(p.w).toFixed(1)}" cy="${Y(p.sec).toFixed(1)}" r="3.5" fill="#2A1638"/>`).join('')}
+      <circle cx="${X(0)}" cy="${Y(now)}" r="4.5" fill="#2A1638"/><text x="${X(0)-4}" y="${Y(now)+14}" font-size="8.5" font-weight="800" text-anchor="end">지금 ${fmtClock(now)}</text>
+      <text x="${X(wks)}" y="${H-6}" font-size="8" fill="#5E4A6E" text-anchor="end">${wks}주 뒤 ${fmtClock(hi)}~${fmtClock(lo)}</text></svg>
     <div class="leg"><span><i style="background:#E5EEF9"></i>보통 범위 (4~6주에 실력 1점) ${GRB('C')}</span>${me?`<span><i style="background:#7355D6"></i>내 추세 (실측 ${tr.n}번) ${GRB('D')}</span>`:''}</div>
     ${gs&&gs<now?(()=>{ const fz=feasible(Object.assign({},g,{sec:gs})); return `<div class="why"><b>${fmtClock(gs)}는 약 ${fz.needWlo}~${fz.needWhi}주 뒤</b>로 보입니다${fz.needWme?` (내 추세로는 ${fz.needWme}주)`:''}. 4주마다 실력 재기(TT)를 하면 부채꼴이 좁아집니다.</div>`; })():''}
     ${!me?`<div class="small">실력을 3주 이상 간격으로 2번 재면 '내 추세'도 그립니다.</div>`:''}</div>`;
