@@ -839,6 +839,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .pdr .m u s{display:block;border-radius:3px;height:100%;text-decoration:none}
 .pdr .v{text-align:right}
 .pdr .v b{display:block;font-family:var(--num);font-size:14px;font-weight:800;white-space:nowrap}
+.pdr .v b.mix,.pdr.hard .v b.mix{color:var(--ink);font-size:13px}.pdr .v b.mix em{font-style:normal}.pdr .v b.mix em.f{color:var(--fast)}.pdr .v b.mix small{font-size:10px;color:var(--ink-3);margin:0 3px}
 .pdr .v i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:3px;white-space:nowrap}
 .pdr.hard .n,.pdr.hard .v b{color:var(--fast)}
 .pdnote{font-size:11.5px;color:var(--ink-3);padding:10px 0 4px;line-height:1.5}
@@ -1706,11 +1707,26 @@ const easy=km=>({type:'easy',dist:km,ceiling:PACE.easyCeil,segs:[
 const long=km=>({type:'long',dist:km,ceiling:PACE.easyCeil,segs:[
   {to:1.5,nm:tm('warm'),pace:PACE.longIn,tol:20},
   {to:km,nm:tm('long'),pace:PACE.long,tol:20}]});
+/* 시간으로 정한 쉬기(예: 2분)는 거리가 정해져 있지 않다. 그 시간을 쉬기 속도의 가운데로
+   뛰었을 때의 거리로 잡는다 (50m 단위). 예전엔 2분 = 350m로 박혀 있어서
+   쉬기 속도(6'27"~7'57")로는 나올 수 없는 거리(5'43")가 표에 찍혔다. */
+const restKm=(sec,pace)=>Math.max(0.05,Math.round(sec/midPace(pace)*20)/20);
+function fixRestDist(sess){
+  if(!sess||!sess.segs||sess.segs.length<2)return sess;
+  const segs=sess.segs, last=segs.length-1; let prev=0, shift=0;
+  segs.forEach((g,i)=>{
+    if(i<last&&g.to!=null)g.to=+(g.to+shift).toFixed(2);
+    if(i<last&&g.end==='time'&&g.sec&&g.pace){
+      const want=restKm(g.sec,g.pace), has=g.to-prev, d=want-has;
+      if(Math.abs(d)>0.001&&segs[last].to-(g.to+d)>0.2){ g.to=+(g.to+d).toFixed(2); shift+=d; } }
+    prev=g.to; });
+  return sess;
+}
 function repsBuild(total,wu,n,len,tgt,recDist,recSec,label){
   const segs=[{to:wu,nm:tm('warm'),pace:PACE.easyIn,tol:20}]; let at=wu;
   for(let i=1;i<=n;i++){
     at+=len; segs.push({to:+at.toFixed(2),nm:i+label,pace:[tgt-3,tgt+3],tol:5,hard:true,rep:i});
-    if(i<n){ at+=recDist;
+    if(i<n){ at+=recSec?restKm(recSec,PACE.recJog):recDist;
       segs.push({to:+at.toFixed(2),nm:tm('rest'),pace:PACE.recJog,tol:'ceil',
                  end:recSec?'time':'dist',sec:recSec||null}); }
   }
@@ -2096,11 +2112,12 @@ function makePlan(opts){
 /* 저장된 일정이 있으면 그걸 쓰고, 없으면 예전 하드코딩 일정을 쓴다 */
 function loadPlan(){
   const base=(PLAN&&PLAN.sessions&&PLAN.sessions.length) ? PLAN.sessions : buildBlock();
-  base.forEach(termSess);
+  base.forEach(termSess); base.forEach(fixRestDist);
   return mergeCustom(base);
 }
 function applyPlan(p){
   PLAN=p; DEV.store.set('plan',p);
+  (p.sessions||[]).forEach(fixRestDist);
   BLOCK=mergeCustom(p.sessions);
   renderHome();
   try{ if(FB.user)FB.sync().catch(()=>{}); }catch(e){}
@@ -7181,13 +7198,15 @@ function planDetailHTML(s,adj,mode){
       const hard=k.parts.some(x=>x.it.g.hard);
       return `<div class="pdr${hard?' hard':''}"><span class="n">${+k.b.toFixed(2)}<i>km</i></span>
         <span class="m"><b>${nm}</b><u>${bar}</u></span>
-        <span class="v"><b>${fmtPace(k.sec/k.len)}</b><i>${fmtClock(k.sec)} · 누적 ${fmtClock(k.cum)}</i></span></div>`; }).join('');
+        <span class="v">${k.parts.length>1
+          ? `<b class="mix">${k.parts.map(x=>`<em${x.it.g.hard?' class="f"':''}>${fmtPace(x.sec/x.km)}</em>`).join('<small>→</small>')}</b>`
+          : `<b>${fmtPace(k.sec/k.len)}</b>`}<i>${fmtClock(k.sec)} · 누적 ${fmtClock(k.cum)}</i></span></div>`; }).join('');
   } else {
     rows=its.map((x,j)=>`<div class="pdr${x.g.hard?' hard':''}"><span class="n">${j+1}</span>
       <span class="m"><b><em style="background:${x.kind.c}"></em>${x.g.nm}</b><i>${x.g.end==='time'?`${fmtClock(x.g.sec||60)} 동안`:kmLab(+x.km.toFixed(2))} · ${+x.from.toFixed(2)}→${+x.to.toFixed(2)}km</i></span>
       <span class="v"><b>${x.ptxt}</b><i>${fmtClock(x.dur)} · 누적 ${fmtClock(x.t1)}</i></span></div>`).join('');
   }
-  return tabs+leg+rows+`<div class="pdnote">시간은 목표 속도의 가운데로 잡은 예상입니다.${mode==='km'?' 1km 속도는 그 안에 든 구간을 섞은 평균입니다.':''}</div>`;
+  return tabs+leg+rows+`<div class="pdnote">시간은 목표 속도의 가운데로 잡은 예상입니다.${mode==='km'?' 구간이 바뀌는 1km는 각 구간의 속도를 차례로 보여 줍니다.':''}</div>`;
 }
 function openTodayPlan(idx){
   const s=sessionOf(idx); if(!s||!s.segs)return;
