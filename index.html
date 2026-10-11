@@ -2140,7 +2140,7 @@ const fmtPaceVoice=s=>{const r=Math.round(s),m=Math.floor(r/60),x=r%60;return x?
 function fmtClock(sec){sec=Math.max(0,Math.round(sec));const h=Math.floor(sec/3600),
   m=Math.floor(sec%3600/60),s=sec%60;return h?`${h}:${pad(m)}:${pad(s)}`:`${m}:${pad(s)}`;}
 const rangeText=p=>!p?'자유':(p[0]===p[1]?fmtPace(p[0]):fmtPace(p[0])+'~'+fmtPace(p[1]));
-const midPace=p=>p?(p[0]+p[1])/2:null;
+function midPace(p){ return p?(p[0]+p[1])/2:null; }   /* 함수 선언 — 위쪽 buildBlock()→restKm()이 먼저 부른다 */
 const hrZone=b=>{for(const[lo,hi,nm]of ZONES)if(b>=lo&&b<hi)return nm;return '—';};
 const hrZoneIx=b=>{for(let i=0;i<ZONES.length;i++){const[lo,hi]=ZONES[i];if(b>=lo&&b<hi)return Math.min(i+1,5);}return 1;};
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
