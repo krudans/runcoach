@@ -300,7 +300,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
    같은 DOM을 쓰고 [data-state] 하나로 두 얼굴을 오간다. */
 #run{display:none}
 #run.on{display:flex;flex-direction:column;height:100dvh;box-sizing:border-box;
-  padding-bottom:calc(60px + env(safe-area-inset-bottom,0px));
+  padding-bottom:calc(78px + env(safe-area-inset-bottom,0px));
   background:var(--rbg);color:var(--rink);
   transition:background .4s cubic-bezier(.4,0,.2,1)}
 
@@ -820,6 +820,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .wkb{display:flex;gap:10px;align-items:flex-end;margin:12px 0 4px}.wkb div{flex:1;text-align:center}
 .wkb i{display:block;width:24px;margin:0 auto;border-radius:5px 5px 0 0;background:var(--accent)}.wkb b{display:block;font-size:14px;margin-top:4px}.wkb span{font-size:10.5px;color:var(--ink-3)}
 .whyl{margin:0;padding-left:18px}.whyl li{margin:3px 0}
+.pz svg path{fill:var(--rbtnf)}
+.pzlab{font-size:12px;font-weight:700;color:var(--rsub);margin-top:-2px}
 </style>
 </head>
 <body>
@@ -1240,6 +1242,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5c.9.9.9 4.1 0 5"/><path d="M19 7c2 2.2 2 7.8 0 10"/></svg>
       </button>
     </div>
+    <div class="pzlab" id="pzLab">일시정지</div>
     <button class="btn danger holdbtn" id="btnStop" hidden><i></i><b>종료 (3초 길게)</b></button>
   </div>
   <div class="rdots" id="rDots" hidden><span class="on" data-p="1"></span><span data-p="2"></span></div>
@@ -2704,11 +2707,12 @@ $('btnStart').onclick=async()=>{
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
   S.act=(pendingIx<0&&ACT_MODE)?ACT_MODE:'run'; ACT_MODE=null;
+  { const rr=$('rRail'); if(rr)rr.style.visibility=(s.d==='free')?'hidden':''; }   /* 자유 러닝엔 진행 막대가 의미 없다 */
   S.cadGoal=null; S.breath=null; const ob=$('optBreath'); if(ob&&ob.checked&&S.act==='run'&&breathEligible(s)){ breathStart(); BREATH.on=true; DEV.store.set('breath',BREATH); }
   else if(ob&&!ob.checked&&BREATH.on){ BREATH.on=false; DEV.store.set('breath',BREATH); }
   renderLaps(); paintLapChips(); buildRail(); runPage(1); $('run').dataset.state='ok';
   $('btnStop').hidden=true; endHold();
-  $('btnPause').textContent='일시정지';
+  setPauseIcon(false);
   HERO=null; setHero();
   show('run');
   if(S.opts.wake)S.wake=await DEV.wake.on();
@@ -3037,7 +3041,7 @@ function onTick(){
     $('rHeroU').textContent=tgPace?`목표 ${rangeText(tgPace)}`:''; }
   else if(S.hero==='segleft'&&segLeft!=null){ $('rHeroK').textContent='남은 거리';
     hv.textContent=segLeft; $('rHeroU').textContent='m'; }
-  else { $('rHeroK').textContent = s.dist?`오늘 ${s.dist}km 중`:'오늘 뛴 거리';
+  else { $('rHeroK').textContent = (s.dist&&s.d!=='free')?`오늘 ${s.dist}km 중`:(S.act&&S.act!=='run'?`${ACTK[S.act].nm} 거리`:'오늘 뛴 거리');
     hv.textContent=km.toFixed(2); $('rHeroU').textContent='km'; }
 
   /* 구간 내 교정 — 허용 오차는 구간마다 다름 */
@@ -3189,7 +3193,7 @@ function renderLaps(){
    일시정지를 눌러야 나타나고, 3초를 눌러 버텨야 실제로 끝난다. */
 $('btnPause').onclick=()=>{
   if(!S.running)return;
-  S.paused=!S.paused; $('btnPause').textContent=S.paused?'계속하기':'일시정지';
+  S.paused=!S.paused; setPauseIcon(S.paused);
   $('btnStop').hidden=!S.paused;
   $('rCtl').classList.toggle('one',!S.paused);
   endHold();
@@ -6999,6 +7003,16 @@ function openDecDetail(id){
     if(b.dataset.dd==='back'){ go('plan'); const t=document.querySelector('#planTabs [data-p="dec"]'); if(t)t.click(); }
     if(b.dataset.dd==='remake')goalStart(); };
   show('dec'); document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==='plan'));
+}
+
+/* 가운데 버튼 — 글자를 넣으면 아이콘이 지워져 빈 원이 된다. 아이콘을 바꾸고 아래에 글씨를 단다 */
+function setPauseIcon(paused){
+  const b=$('btnPause'); if(!b)return;
+  b.innerHTML = paused
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4.2" height="16" rx="1.4"/><rect x="13.8" y="4" width="4.2" height="16" rx="1.4"/></svg>';
+  b.setAttribute('aria-label', paused?'계속하기':'일시정지');
+  const l=$('pzLab'); if(l)l.textContent = paused?'계속하기':'일시정지';
 }
 /* ───────── 부팅 ─────────
    1) 예전 기록에 식별자를 붙인다 — 클라우드와 맞추려면 이름표가 있어야 한다
