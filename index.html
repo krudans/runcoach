@@ -2789,7 +2789,7 @@ $('btnStart').onclick=async()=>{
   Object.assign(S,{session:s,T,adj,
     opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked},
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
-    dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
+    dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,
@@ -2925,7 +2925,8 @@ function onPos(pos){
   if(!S.running||S.paused)return;
   const c=pos.coords,now=pos.timestamp||Date.now(),acc=c.accuracy||99;
   $('rDot').className='dot '+(acc<=12?'good':acc<=25?'weak':'bad');
-  $('rGps').textContent=`GPS 정확도 ±${Math.round(acc)}m`+(acc>25?' — 샘플 무시':'');
+  if(!(S.overSince&&now-S.overSince>10000))
+    $('rGps').textContent=`GPS 정확도 ±${Math.round(acc)}m`+(acc>25?' — 샘플 무시':'');
   if(acc>25)return;
   /* ── 1단계: 좌표 평활화 ──────────────────────────────
      GPS 한 점 한 점은 몇 미터씩 떨린다. 떨린 점끼리 직선거리를 더하면
@@ -2950,7 +2951,18 @@ function onPos(pos){
   if(a){
     const dm=haversine(a,p), dt=(now-a.t)/1000;
     if(dt<1.5){ S.pts.push(p); return; }
-    if(dm/dt>7){ S.pts.push(p); S.anchor=p; return; }   // 튄 좌표
+    /* 발로 낼 수 없는 속도. 한두 점이면 GPS가 튄 것이고, 계속되면 차를 탄 것이다.
+       어느 쪽이든 거리에는 넣지 않되, 계속되면 조용히 버리지 말고 화면과 음성으로 알린다. */
+    const cap=S.act==='bike'?25:7;
+    if(dm/dt>cap){ S.pts.push(p); S.anchor=p;
+      if(!S.overSince)S.overSince=now;
+      if(now-S.overSince>10000){
+        $('rDot').className='dot bad';
+        $('rGps').textContent=`시속 ${Math.round(dm/dt*3.6)}km — ${S.act==='bike'?'자전거':'발'}로 낼 수 없는 속도라 거리에 넣지 않는 중`;
+        if(!S.vehWarn){ S.vehWarn=true; DEV.buzz(BZ.off);
+          DEV.speak(`지금 시속 ${Math.round(dm/dt*3.6)}킬로미터로 움직이고 있습니다. 차를 타고 있다면 이 구간은 거리에 넣지 않습니다.`,true); } }
+      return; }
+    S.overSince=0;
     /* 아직 잡음 범위이거나 사실상 제자리.
        앵커를 8초 넘게 붙들고 있으면 신호등에서 선 시간이 평균속도에 섞여
        다시 뛰어도 한참 안 세게 된다. 그래서 앵커만 당겨둔다. */
@@ -2974,16 +2986,23 @@ function onPos(pos){
   S.win.push({t:now,d:S.dist});
   while(S.win.length>2&&(now-S.win[0].t)>20000)S.win.shift();
 }
-/* 케이던스 보정 — 폰을 손에 들거나 주머니에 넣으면 두 걸음에 한 번만 잡혀
-   실제의 절반으로 나온다. 보폭이 말이 되는지로 판별한다. */
+/* 케이던스 — 폰 가속도로 센 걸음만 보여 준다. 추측으로 숫자를 만들지 않는다.
+   예전엔 130 미만이면 GPS 속도로 보폭을 따져 두 배로 부풀렸는데, 그러면 센서가 아니라
+   GPS가 만든 숫자가 된다(차 안에서도 151이 나왔다). 이제 아래 셋 중 하나라도 걸리면 '—'.
+   1) 간격이 들쭉날쭉 — 발걸음은 일정하다. 차 진동·손 흔들림은 아니다
+   2) 사람 걸음 범위 밖 3) GPS 속도가 발로 낼 수 없는 속도 */
 function cadence(){
-  const raw=S.cad&&S.cad.spm; if(!raw)return null;
-  const p=curPace();
-  if(isFinite(p)&&p>120&&p<900&&raw<130){
-    const stepLen=(1000/p)*60/raw;          // m / 걸음
-    if(stepLen>1.4) return raw*2;           // 회복조깅에서도 나올 수 없는 보폭
-  }
-  return raw;
+  const c=S.cad; if(!c||!c.spm)return null;
+  const sm=c.samples; if(!sm||sm.length<8)return null;
+  const iv=[]; for(let i=1;i<sm.length;i++)iv.push(sm[i]-sm[i-1]);
+  const m=iv.reduce((a,b)=>a+b,0)/iv.length;
+  const sd=Math.sqrt(iv.reduce((a,b)=>a+(b-m)**2,0)/iv.length);
+  if(!(m>0)||sd/m>0.25)return null;
+  const lo=(S.act==='walk'||S.act==='hike')?70:120;
+  if(c.spm<lo||c.spm>230)return null;
+  if(S.overSince)return null;
+  const p=curPace(); if(isFinite(p)&&p<143)return null;
+  return c.spm;
 }
 function curPace(){
   if(!S.win||S.win.length<2)return NaN;
@@ -3011,7 +3030,7 @@ function onTick(){
   const prevTo=S.segIx?segs[S.segIx-1].to:0;
   $('rSegName').textContent=tg.nm;
   $('rSegTgt').textContent = (tg.end==='time'
-    ? `${tg.sec}초 · 목표 ${rangeText(tgPace)}`
+    ? `${fmtClock(tg.sec)} · 목표 ${rangeText(tgPace)}`
     : `목표 ${rangeText(tgPace)}`)+`  ·  ${S.segIx+1}/${segs.length}`;
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
   if(!S.gpsWarn&&S.elapsed>180&&km<0.15&&S.pts.length>60){
@@ -3022,7 +3041,7 @@ function onTick(){
              : (km-prevTo)/Math.max(0.01,tg.to-prevTo);
   paintRail(prog);
   try{ if(S.act==='run')voiceTick(km,tg,segs,curPace()); if(S.breath)breathTick(km); }catch(e){}
-  $('rTime').textContent=fmtClock(S.elapsed);
+  $('rTime').textContent=fmtClock(S.elapsed); $('rDist').textContent=km.toFixed(2);
   const p=curPace();
   /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다.
      페이스가 아니라 거리가 늘고 있는지로 판단한다(페이스가 없어도 동작해야 한다) */
@@ -3090,6 +3109,9 @@ function onTick(){
     if(left>0&&left<=100&&S.segIx<segs.length-1){ state='soon'; pill='곧 바뀝니다'; say=''; }
     else { pill='지금 좋아요'; say=''; }
   }
+  /* 발로 낼 수 없는 속도가 10초 넘게 이어지면 '지금 좋아요'라고 하면 안 된다 */
+  if(S.overSince&&Date.now()-S.overSince>10000){ state='fast'; pill='이동 속도가 너무 빨라요';
+    say='달리기로는 낼 수 없는 속도입니다. 이 구간은 거리에 넣지 않습니다.'; }
   if(state!==S.bannerState){ S.bannerState=state; $('run').dataset.state=state; }
 
   /* 중단 권고 — 이것만 맥박친다. 아끼지 않으면 늑대 소년이 된다. */
@@ -6518,7 +6540,8 @@ function startVoice(s,T,g){
   const hard=s.segs.filter(x=>x.hard), len=hard.length?(s.repLen||(hard[0].to-((s.segs[s.segs.indexOf(hard[0])-1]||{to:0}).to))):0;
   const pc=g.pace?fmtPaceVoice(midPace(g.pace)):'';
   /* 1) 오늘 무엇을 — "오늘은 900미터씩 빠르게 두 번 뜁니다." */
-  let m = n>=2 ? `오늘은 ${len?kmLabVoice(len)+'씩 ':''}${how} ${vCount(n)} 뜁니다. `
+  let m = s.d==='free' ? '자유 러닝을 시작합니다. 목표 없이 기록합니다. '
+        : n>=2 ? `오늘은 ${len?kmLabVoice(len)+'씩 ':''}${how} ${vCount(n)} 뜁니다. `
         : n===1 ? `오늘은 ${len?kmLabVoice(len)+' ':''}${how} 뜁니다. `
         : `오늘은 ${kmLabVoice(s.dist)} ${how} 뜁니다. `;
   /* 2) 첫 구간 — 여러 구간일 때만 */
