@@ -1,7 +1,7 @@
 {
   "name": "가지런 GAJI RUN",
   "short_name": "가지런",
-  "description": "고르게, 약속대로 — 계획대로 달리게 돕는 러닝 코치",
+  "description": "가지런하다 — 고르게, 약속대로 달리게 돕는 러닝 코치",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
