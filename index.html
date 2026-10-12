@@ -942,6 +942,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .happ svg{width:100%;height:100%;display:block}
 .hname b{display:block;font-size:28px;font-weight:900;letter-spacing:-.8px;line-height:1;color:var(--aub)}
 .hname b .hada{font-weight:500;color:var(--plum);margin-left:1px}
+.gt-sub .hc{margin:10px 0 0;padding:12px;background:var(--bg);box-shadow:none}
 .gt-prog{margin-top:12px;border-top:1px solid var(--line)}
 .gt-prog>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;padding:12px 0 2px;min-height:28px}
 .gt-prog>summary::-webkit-details-marker{display:none}
@@ -6135,10 +6136,6 @@ function renderHome(){
       <button class="tgo" id="hGoal">목표 정하고 일정 만들기 ▶</button></div></div>`;
 
   h+=actTiles();
-  h+=fasterCard();
-  h+=weekCard();
-  h+=volumeCard();
-  h+=badgeCard();
   if(planned) h+=`<button class="btn ghost" id="homeGoal2" style="margin:12px 16px 0;width:calc(100% - 32px)">목표 · 일정 다시 짜기</button>`;
   h+=`<div id="alertBox" hidden></div><div id="propBox" hidden></div>`;
   $('hMain').innerHTML=h;
@@ -6281,6 +6278,7 @@ function goalTop(){
       ${steps.length>1?`<div class="gst2">${bars}</div>
       <div class="gt-note">계단 하나는 보통 4~6주에 실력 1점 오르는 속도로 그렸어요 ${GRB('C')} · 실력을 다시 잴 때마다 새로 그려요</div>`:''}
       <button type="button" class="gt-more-btn" data-mygoal="1">내 목표 자세히 보기 ›</button></details>
+    <div class="gt-sub">${weekCard()}${fasterCard()}</div>
     </details>
   </section>`;
 }
