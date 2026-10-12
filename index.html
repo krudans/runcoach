@@ -680,6 +680,18 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .vol3 i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700}.vol3 b{display:block;font-size:21px;font-weight:900;margin-top:3px}
 .vol3 small{font-size:11px;color:var(--ink-3);font-weight:700}.vol3 em{display:block;font-style:normal;font-size:10.5px;color:var(--ink-2);margin-top:4px;line-height:1.4}
 .vol3 u{display:block;height:6px;border-radius:3px;background:#E6E1D6;margin-top:5px;overflow:hidden}.vol3 u s{display:block;height:100%;background:var(--accent)}
+.qgo{padding:16px}
+.qg-k{font-size:12px;font-weight:800;color:var(--ink-3)}
+.qg-acts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.qg-a{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px solid var(--line);background:var(--panel);border-radius:14px;padding:10px 4px;font:inherit;font-size:12px;font-weight:700;color:var(--ink-2);cursor:pointer;min-height:64px}
+.qg-a svg{width:24px;height:24px}
+.qg-a.on{border-color:var(--accent);background:var(--bg);color:var(--accent)}
+.qg-go{display:block;width:100%;margin-top:12px;border:none;border-radius:16px;background:var(--accent);color:#fff;font:inherit;font-size:18px;font-weight:900;padding:17px 0;cursor:pointer}
+.qg-note{font-size:11.5px;color:var(--ink-2);line-height:1.55;margin-top:10px}
+.qslim{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:10px 16px 0;border:1.5px dashed var(--line);background:var(--panel);border-radius:16px;padding:10px 12px;font:inherit;text-align:left;cursor:pointer;min-height:56px}
+.qslim .ai{display:flex;width:34px;height:34px;flex:none;border-radius:10px;background:var(--bg);color:var(--accent);align-items:center;justify-content:center}.qslim .ai svg{width:20px;height:20px}
+.qslim span:nth-child(2){flex:1;min-width:0}.qslim b{display:block;font-size:13.5px;color:var(--ink)}.qslim i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3)}
+.qslim em{font-style:normal;font-size:12.5px;font-weight:800;color:var(--accent);white-space:nowrap}
 .actsum{font-size:11.5px;color:var(--ink-2);margin-top:9px}
 .bdgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;text-align:center}
 .bdg2 span{display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto;border-radius:50%;color:#fff;font-weight:900;font-size:16px;background:#E5DCEE}
@@ -4253,7 +4265,7 @@ $('btnFresh').onclick=async()=>{
    브라우저 저장소는 사용자가 '인터넷 사용 기록 삭제'를 하면 같이 지워진다.
    영구 보관을 요청해 두고(기기 용량이 부족해도 먼저 지워지지 않는다),
    언제든 파일로 빼고 되돌릴 수 있게 한다. */
-const BK_KEYS=['runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc','survey','onboarded','del',
+const BK_KEYS=['lastAct','runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc','survey','onboarded','del',
   'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref'];   /* 목표와 일정도 함께 — 폰을 바꿔도 일정이 남아야 한다 */
 /* API 키는 백업에 넣지 않는다 — 파일로 새어나가면 안 되는 값이다 */
 async function paintStore(){
@@ -6070,6 +6082,24 @@ const ACTICON={
   walk:'<circle cx="12.5" cy="4.5" r="2"/><path d="M9.5 21l2.5-6.5 2.5 2.5v4"/><path d="M8.5 12.5l2.5-4h2.5l2 4.5"/><path d="M12 14.5l.5-6"/>',
   bike:'<circle cx="6" cy="16.5" r="3.5"/><circle cx="18" cy="16.5" r="3.5"/><path d="M6 16.5l4-8h5l3 8"/><path d="M10 8.5l4 8"/><path d="M13.5 5h3"/>',
   hike:'<path d="M3 20l6.5-11 4 6.5 2.5-3.5 5 8z"/><path d="M9.5 9l1.5 2.5"/>'};
+/* ───────── 바로 뛰기 — 계획 없이 매일 그냥 움직이는 사람을 위해 ─────────
+   계획이 없는 날(쉬는 날·일정 없음)은 크게, 계획이 있는 날은 오늘 훈련 아래 얇게.
+   마지막에 고른 종류를 기억한다. 그냥 뛴 기록도 '내 몸 기준'(심박-속도)에 쌓인다. */
+function quickGo(planned){
+  let last='run'; try{ last=DEV.store.get('lastAct','run'); }catch(e){}
+  if(!ACTK[last])last='run';
+  const verb={run:'바로 달리기',walk:'바로 걷기',bike:'바로 자전거 타기',hike:'바로 등산 기록'};
+  if(planned) return `<button type="button" class="qslim" data-act="${last}"><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[last]}</svg></span>
+    <span><b>오늘은 그냥 뛰고 싶다면</b><i>판정 없이 기록만 · ${ACTK[last].nm}</i></span><em>${verb[last]} ▶</em></button>`;
+  let n=0; try{ n=(coachBasis().easy.n)||0; }catch(e){}
+  return `<section class="hc qgo" aria-label="바로 뛰기">
+    <div class="qg-k">계획 없이, 오늘 그냥 움직이기</div>
+    <div class="qg-acts" role="radiogroup" aria-label="종류">${Object.entries(ACTK).map(([k,a])=>`<button type="button" role="radio" aria-checked="${k===last}" class="qg-a${k===last?' on':''}" data-qact="${k}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><span>${a.nm}</span></button>`).join('')}</div>
+    <button type="button" class="qg-go" data-act="${last}" id="qgGo">${verb[last]} ▶</button>
+    <div class="qg-note">그냥 뛴 기록도 쌓여요 — 심박과 함께 뛴 기록으로 '내 몸 기준' 속도를 계산해서, 나중에 목표를 정하면 처음부터 내 몸에 맞춘 일정이 나와요.${n<3?` 지금 ${n}번 · ${3-n}번 더 쌓이면 시작돼요`:` 지금 ${n}번째 기록까지 반영됐어요`}</div>
+  </section>`;
+}
 function actTiles(){
   return `<div class="hc"><div class="hh"><span class="hi">↯</span><b>계획 말고, 그냥 움직이기</b><span class="r">판정 없이 기록만</span></div>
     <div class="acttiles">${Object.entries(ACTK).map(([k,a])=>`<button class="actt" data-act="${k}">
@@ -6135,7 +6165,8 @@ function renderHome(){
       <div class="tds">목표와 일주일에 며칠 뛸지를 고르면, 쉬는 날까지 넣은 4주 일정을 만듭니다.</div>
       <button class="tgo" id="hGoal">목표 정하고 일정 만들기 ▶</button></div></div>`;
 
-  h+=actTiles();
+  /* 계획 있는 날은 얇게, 계획 없는 사람은 크게. 쉬는 날은 쉬는 날 카드의 '그래도 뛰고 싶어요'가 맡는다 */
+  if(sess) h+=quickGo(true); else if(!inP) h+=quickGo(false);
   if(planned) h+=`<button class="btn ghost" id="homeGoal2" style="margin:12px 16px 0;width:calc(100% - 32px)">목표 · 일정 다시 짜기</button>`;
   h+=`<div id="alertBox" hidden></div><div id="propBox" hidden></div>`;
   $('hMain').innerHTML=h;
@@ -6148,7 +6179,10 @@ function wireHome(sess,idx){
     if(k==='miss'){ const x=missedDay(); if(x)openMissed(x); }
     else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift();
     else if(k==='prop')go('alerts'); else if(k==='review')go('review'); });
-  m.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>startAct(b.dataset.act));
+  m.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ try{ DEV.store.set('lastAct',b.dataset.act); }catch(e){} startAct(b.dataset.act); });
+  m.querySelectorAll('[data-qact]').forEach(b=>b.onclick=()=>{ const k=b.dataset.qact;
+    m.querySelectorAll('[data-qact]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-checked',x===b); });
+    const g=$('qgGo'); if(g){ g.dataset.act=k; g.textContent={run:'바로 달리기',walk:'바로 걷기',bike:'바로 자전거 타기',hike:'바로 등산 기록'}[k]+' ▶'; } });
   m.querySelectorAll('[data-mygoal]').forEach(b=>b.onclick=()=>openMyGoal());
   const hg=$('hGoal'); if(hg)hg.onclick=()=>goalStart();
   const hg2=$('homeGoal2'); if(hg2)hg2.onclick=()=>goalStart();
