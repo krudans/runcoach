@@ -688,7 +688,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .qg-a.on{border-color:var(--accent);background:var(--bg);color:var(--accent)}
 .qg-go{display:block;width:100%;margin-top:12px;border:none;border-radius:16px;background:var(--accent);color:#fff;font:inherit;font-size:18px;font-weight:900;padding:17px 0;cursor:pointer}
 .qg-note{font-size:11.5px;color:var(--ink-2);line-height:1.55;margin-top:10px}
-.qslim{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:10px 16px 0;border:1.5px dashed var(--line);background:var(--panel);border-radius:16px;padding:10px 12px;font:inherit;text-align:left;cursor:pointer;min-height:56px}
+.qslim{margin:12px 16px 0;border:1.5px solid var(--line);background:var(--panel);border-radius:16px;box-shadow:0 2px 10px rgba(42,22,56,.05)}
+.qslim>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;min-height:56px}.qslim>summary::-webkit-details-marker{display:none}
+.qslim[open]>summary em{color:var(--ink-3)}.qslim[open]>summary em::before{content:'접기';}.qslim[open]>summary em{font-size:0}.qslim[open]>summary em::before{font-size:12.5px}
+.qs-body{padding:0 12px 12px}
 .qslim .ai{display:flex;width:34px;height:34px;flex:none;border-radius:10px;background:var(--bg);color:var(--accent);align-items:center;justify-content:center}.qslim .ai svg{width:20px;height:20px}
 .qslim span:nth-child(2){flex:1;min-width:0}.qslim b{display:block;font-size:13.5px;color:var(--ink)}.qslim i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3)}
 .qslim em{font-style:normal;font-size:12.5px;font-weight:800;color:var(--accent);white-space:nowrap}
@@ -6089,14 +6092,17 @@ function quickGo(planned){
   let last='run'; try{ last=DEV.store.get('lastAct','run'); }catch(e){}
   if(!ACTK[last])last='run';
   const verb={run:'바로 달리기',walk:'바로 걷기',bike:'바로 자전거 타기',hike:'바로 등산 기록'};
-  if(planned) return `<button type="button" class="qslim" data-act="${last}"><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[last]}</svg></span>
-    <span><b>오늘은 그냥 뛰고 싶다면</b><i>판정 없이 기록만 · ${ACTK[last].nm}</i></span><em>${verb[last]} ▶</em></button>`;
+  const acts=`<div class="qg-acts" role="radiogroup" aria-label="종류">${Object.entries(ACTK).map(([k,a])=>`<button type="button" role="radio" aria-checked="${k===last}" class="qg-a${k===last?' on':''}" data-qact="${k}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><span>${a.nm}</span></button>`).join('')}</div>
+    <button type="button" class="qg-go" data-act="${last}" id="qgGo">${verb[last]} ▶</button>`;
+  /* 계획 있는 날: 접힌 한 줄 → 누르면 종류 고르기 + 시작 버튼이 펼쳐진다 */
+  if(planned) return `<details class="qslim"><summary><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON.run}</svg></span>
+    <span><b>오늘은 그냥 뛰고 싶다면</b><i>계획 대신, 판정 없이 기록만 · 달리기 · 걷기 · 자전거 · 등산</i></span><em>열기</em></summary>
+    <div class="qs-body">${acts}</div></details>`;
   let n=0; try{ n=(coachBasis().easy.n)||0; }catch(e){}
   return `<section class="hc qgo" aria-label="바로 뛰기">
     <div class="qg-k">계획 없이, 오늘 그냥 움직이기</div>
-    <div class="qg-acts" role="radiogroup" aria-label="종류">${Object.entries(ACTK).map(([k,a])=>`<button type="button" role="radio" aria-checked="${k===last}" class="qg-a${k===last?' on':''}" data-qact="${k}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><span>${a.nm}</span></button>`).join('')}</div>
-    <button type="button" class="qg-go" data-act="${last}" id="qgGo">${verb[last]} ▶</button>
+    ${acts}
     <div class="qg-note">그냥 뛴 기록도 쌓여요 — 심박과 함께 뛴 기록으로 '내 몸 기준' 속도를 계산해서, 나중에 목표를 정하면 처음부터 내 몸에 맞춘 일정이 나와요.${n<3?` 지금 ${n}번 · ${3-n}번 더 쌓이면 시작돼요`:` 지금 ${n}번째 기록까지 반영됐어요`}</div>
   </section>`;
 }
