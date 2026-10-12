@@ -613,8 +613,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .hi.g{background:#DDF3EA;color:#0E8A6C}.hi.o{background:#FCE6DE;color:#C2501F}.hi.p{background:#ECE6FB;color:#6E4FCB}.hi.y{background:#FFF1DA;color:#C58A12}
 .btn.dashed{border-style:dashed}
 .acttiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.actt{border:none;border-radius:16px;color:#fff;text-align:left;padding:12px;min-height:84px;font:inherit;display:flex;flex-direction:column;justify-content:flex-end}
-.actt .ai{font-size:20px;margin-bottom:auto}.actt b{font-size:16px}.actt i{font-style:normal;font-size:11px;opacity:.85}
+.actt{border:1.5px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);text-align:left;padding:12px;min-height:84px;font:inherit;display:flex;flex-direction:column;justify-content:flex-end;cursor:pointer}
+.actt:active{background:var(--bg)}
+.actt .ai{display:flex;width:34px;height:34px;border-radius:10px;background:var(--bg);color:var(--accent);align-items:center;justify-content:center;margin-bottom:8px}
+.actt .ai svg{width:20px;height:20px}
+.actt b{font-size:15px;font-weight:800;color:var(--ink)}.actt i{font-style:normal;font-size:11.5px;color:var(--ink-2);margin-top:2px}
 .hc.goal{background:linear-gradient(160deg,#3A2C6E,#5B3E8E);color:#fff}
 /* 홈 맨 위 — 나의 목표 · 지금 어디까지 */
 .hc.gtop{padding:16px 16px 14px;box-shadow:0 6px 22px rgba(42,22,56,.08)}
@@ -1118,6 +1121,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <div class="row" style="margin-bottom:7px">
       <input type="text" id="pRaceT" placeholder="45:46 또는 4546">
     </div>
+    <div class="row" style="margin-bottom:4px">
+      <input type="number" id="pRaceAsc" inputmode="numeric" min="0" max="2000" placeholder="코스 오르막 높이 m (모르면 비워 두기)" aria-label="코스 오르막 높이 (미터)">
+    </div>
+    <div style="font-size:11px;color:var(--ink-3);margin-bottom:8px">언덕 코스였다면 평지 기준으로 바꿔서 실력을 계산해요</div>
     <div class="tagrow" id="pRaceK" style="margin-bottom:10px">
       <button class="tag" data-v="race">대회 기록</button>
       <button class="tag" data-v="solo">혼자 측정</button>
@@ -1578,11 +1585,19 @@ let HRMAX, VDOT, Z, PACE, ZONES;
    추정값이라는 사실을 화면에 표시한다 — 추정 존으로 불합격을 주면 안 된다. */
 const estHrMax = age => Math.round(208 - 0.7*(age||40));
 
+/* 언덕 코스 기록 → 평지 기준. 오르막 1m마다 약 0.8초(내리막에서 일부 돌려받은 뒤의 순손실,
+   경험칙 · C). 지나친 보정을 막으려고 기록의 5%까지만 뺀다. */
+function raceFlat(r){
+  if(!r||!r.sec)return {sec:null,adj:0};
+  const adj = r.asc>0 ? Math.round(Math.min(r.sec*0.05, r.asc*0.8)) : 0;
+  return {sec:r.sec-adj, adj};
+}
 function profVdot(p){
   const r=p&&p.race;
   if(!r||!r.m||!r.sec)return 38;
   /* 혼자 뛴 기록은 레이스보다 보통 2~5% 느리다. 3%로 보정한다 */
-  const sec = r.kind==='solo' ? r.sec*0.97 : r.sec;
+  const f=raceFlat(r).sec;
+  const sec = r.kind==='solo' ? f*0.97 : f;
   return vdotOf(r.m, sec/60);
 }
 
@@ -2277,6 +2292,11 @@ const rangeText=p=>!p?'자유':(p[0]===p[1]?fmtPace(p[0]):fmtPace(p[0])+'~'+fmtP
 const hrZone=b=>{for(const[lo,hi,nm]of ZONES)if(b>=lo&&b<hi)return nm;return '—';};
 const hrZoneIx=b=>{for(let i=0;i<ZONES.length;i++){const[lo,hi]=ZONES[i];if(b>=lo&&b<hi)return Math.min(i+1,5);}return 1;};
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+/* 기록 시각은 toISOString(UTC)으로 저장된다. 앞 10글자를 그대로 쓰면 한국 오전 9시 전 기록이 전날로 잡힌다.
+   시간대가 붙은 값은 이 기기의 현지 날짜로, 붙지 않은 값(직접 입력 'YYYY-MM-DDTHH:MM')은 그대로. */
+function ldate(v){ const s=String(v||'');
+  if(/[zZ]$|[+-]\d\d:?\d\d$/.test(s)){ const d=new Date(s); if(!isNaN(d)) return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  return s.slice(0,10); }
 const dowOf=ds=>{const[y,m,d]=ds.slice(0,10).split('-').map(Number);return '일월화수목금토'[new Date(y,m-1,d).getDay()];};
 const runName=()=>{const h=new Date().getHours();
   return h<6?'새벽 러닝':h<11?'아침 러닝':h<14?'점심 러닝':h<18?'오후 러닝':h<22?'저녁 러닝':'야간 러닝';};
@@ -2538,7 +2558,7 @@ function driftAlert(){
   return null;}
 
 /* ───────── 오늘 탭 ───────── */
-function dayKm(ds){return RUNS.filter(x=>x.date.slice(0,10)===ds).reduce((a,x)=>a+x.km,0);}
+function dayKm(ds){return RUNS.filter(x=>ldate(x.date).slice(0,10)===ds).reduce((a,x)=>a+x.km,0);}
 function segBar(sess){
   const T=TYPES[sess.type]||{}, tot=sess.dist||1; let prev=0, bars='', names=[];
   sess.segs.forEach(g=>{
@@ -3388,6 +3408,7 @@ function onTick(){
       } else if(d===0){ msg+='목표대로입니다. 이대로 유지하세요. '; verdictTxt='목표대로'; }
       else if(d<0){ msg+=`목표보다 ${-d}초 빠릅니다. 속도를 줄이세요. `; verdictTxt=`${-d}초 빠름`; }
       else if(lg.tol==='ceil'){ msg+='천천히 가는 건 괜찮습니다. '; verdictTxt='목표대로'; }
+      else if(T.primary==='hr'&&lapHR&&HZ&&HZ[1]&&lapHR<=HZ[1]&&!lg.hard){ msg+=`목표 속도보다 ${d}초 느리지만 심박 ${lapHR}로 기준 안이라 괜찮습니다. `; verdictTxt='심박 기준 안'; }
       else { msg+=`목표보다 ${d}초 느립니다. 조금 올리세요. `; verdictTxt=`${d}초 느림`; }
       if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1])msg+=`심박 ${lapHR}, 목표 ${HZ[1]}보다 높습니다. `;
     } else if(lapHR){ msg+=`평균 심박 ${lapHR}. `; }
@@ -3924,7 +3945,7 @@ $('btnIcs').onclick=()=>{
    (완료 여부는 RUNS에 planId가 있는지로만 판단하므로 별도 처리가 필요 없다). */
 function deleteRun(idx){
   const r=RUNS[idx]; if(!r)return;
-  if(!confirm(`${r.date.slice(0,10)} · ${r.name}\n${r.km.toFixed(2)}km · ${fmtClock(r.sec)}\n\n이 기록을 삭제합니다. 되돌릴 수 없습니다.`))return;
+  if(!confirm(`${ldate(r.date).slice(0,10)} · ${r.name}\n${r.km.toFixed(2)}km · ${fmtClock(r.sec)}\n\n이 기록을 삭제합니다. 되돌릴 수 없습니다.`))return;
   if(r.shoe){ const sh=SHOES.find(x=>x.name===r.shoe);
     if(sh){ sh.km=Math.max(0,sh.km-r.km); DEV.store.set('shoes',SHOES); } }
   RUNS.splice(idx,1); DEV.store.set('runs',RUNS);
@@ -3946,8 +3967,8 @@ function undoPlanDay(planId){
 function renderLog(){
   const wk=weekMonday(todayStr());
   const sum=a=>a.reduce((s,x)=>s+x.km,0);
-  const tw=RUNS.filter(x=>weekMonday(x.date.slice(0,10))===wk);
-  const tmo=RUNS.filter(x=>x.date.slice(0,7)===todayStr().slice(0,7));
+  const tw=RUNS.filter(x=>weekMonday(ldate(x.date).slice(0,10))===wk);
+  const tmo=RUNS.filter(x=>ldate(x.date).slice(0,7)===todayStr().slice(0,7));
   $('logStats').innerHTML=
     `<div><div class="k">이번 주</div><div class="v">${sum(tw).toFixed(1)} km</div></div>`+
     `<div><div class="k">이번 달</div><div class="v">${sum(tmo).toFixed(1)} km</div></div>`+
@@ -3964,11 +3985,11 @@ function renderLog(){
       : r.distRatio!=null?`거리 ${Math.round(r.distRatio*100)}%`:'';
     b.innerHTML=`<span class="t">${r.name} · ${r.title}</span>`+
       `<span class="d">${r.km.toFixed(2)}<span style="font-size:11px"> km</span></span>`+
-      `<span class="m">${r.date.slice(5,10)} · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}`+
+      `<span class="m">${ldate(r.date).slice(5,10)} · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}`+
       `${r.hrAvg?' · ♥'+r.hrAvg:''}${r.cadAvg?' · 발걸음 '+r.cadAvg:''}${judge?' · '+judge:''}</span>`+
       `<button class="x" aria-label="삭제">✕</button>`;
     b.querySelector('.x').onclick=e=>{ e.stopPropagation(); deleteRun(idx); };
-    b.onclick=()=>alert(`${r.name} · ${r.title}\n${r.date.slice(0,10)} · ${T.nm}\n\n`+
+    b.onclick=()=>alert(`${r.name} · ${r.title}\n${ldate(r.date).slice(0,10)} · ${T.nm}\n\n`+
       `거리 ${r.km.toFixed(2)}km · 시간 ${fmtClock(r.sec)} · 평균 ${fmtPace(r.paceAvg)}\n`+
       `칼로리 ${r.cal} · 고도 ▲${r.asc}m ▼${r.desc}m\n`+
       (r.hrAvg?`심박 평균 ${r.hrAvg} / 최대 ${r.hrMax}\n`:'')+
@@ -4242,7 +4263,7 @@ $('btnReDist').onclick=()=>{
       rows.push({r,old:r.km,neo:+td.toFixed(3)});
   });
   if(!rows.length)return alert('다시 계산할 기록이 없습니다.\n저장된 거리가 모두 경로와 맞습니다.');
-  const list=rows.map(x=>`${x.r.date.slice(5,10)} ${x.r.name}  ${x.old.toFixed(2)} → ${x.neo.toFixed(2)} km`).join('\n');
+  const list=rows.map(x=>`${ldate(x.r.date).slice(5,10)} ${x.r.name}  ${x.old.toFixed(2)} → ${x.neo.toFixed(2)} km`).join('\n');
   if(!confirm(`아래 기록의 거리를 GPS 경로에서 다시 계산합니다.\n\n${list}\n\n진행할까요?`))return;
   rows.forEach(({r,old,neo})=>{
     r.km=neo;
@@ -4503,7 +4524,7 @@ function renderHike(){
   const out=$('hikeOut'), r=ACTS.filter(a=>a.act==='hike').sort((a,b)=>a.date<b.date?1:-1).slice(0,5);
   if(!r.length){out.innerHTML='<span style="color:var(--ink-3);font-size:12.5px">기록이 없습니다</span>';return;}
   out.innerHTML=r.map(h=>`<div style="border-top:1px solid var(--line);padding:9px 0;font-size:12.5px">
-      <b class="num">${h.date.slice(5,10)}</b> · ${fmtClock(h.sec)}${h.asc?` · 오르막 +${h.asc}m`:''}
+      <b class="num">${ldate(h.date).slice(5,10)}</b> · ${fmtClock(h.sec)}${h.asc?` · 오르막 +${h.asc}m`:''}
       <div style="color:var(--ink-3);margin-top:3px">다음날 일정이 힘들게 느껴지면 홈의 '거리 바꾸기'로 정하세요.</div></div>`).join('');
 }
 $('vCalc').onclick=()=>{
@@ -4536,6 +4557,7 @@ function paintProf(){
       (PROF.hrmaxObs&&PROF.hrmaxObs>estHrMax(ag)?` 뛰면서 본 최고 심박 ${PROF.hrmaxObs}이 더 높아서 그 값을 씁니다.`:'');
   const r=PROF.race||{}; pRaceD=r.m||10000; pRaceK=r.kind||'race';
   $('pRaceT').value = r.sec ? fmtClock(r.sec) : '';
+  $('pRaceAsc').value = r.asc ? r.asc : '';
   document.querySelectorAll('#pHRSrc .tag').forEach(b=>b.classList.toggle('on',b.dataset.v===pHRSrc));
   document.querySelectorAll('#pRaceD .tag').forEach(b=>b.classList.toggle('on',+b.dataset.v===pRaceD));
   document.querySelectorAll('#pRaceK .tag').forEach(b=>b.classList.toggle('on',b.dataset.v===pRaceK));
@@ -4564,7 +4586,7 @@ $('pSave').onclick=()=>{
     hrmaxSrc:pHRSrc,
     hrmax: pHRSrc==='measured' ? (+$('pHR').value||estHrMax(ag)) : null,
     rhr:+$('pRHR').value||null,
-    race: sec>60 ? {m:pRaceD, sec:Math.round(sec), kind:pRaceK, at:todayStr()} : PROF.race });
+    race: sec>60 ? {m:pRaceD, sec:Math.round(sec), kind:pRaceK, asc:(+$('pRaceAsc').value>0?Math.min(2000,Math.round(+$('pRaceAsc').value)):null), at:todayStr()} : PROF.race });
   DEV.store.set('prof',PROF);
   recalcProfile(); recalcTypes();
   /* 예전엔 여기서 박혀 있던 예시 일정으로 덮어썼다. 이제 내 일정을 같은 날짜로 새 속도에 맞춰 다시 만든다 */
@@ -5132,7 +5154,7 @@ function obImportDone(got){
   const cut=Date.now()-84*864e5;
   const rec=got.filter(r=>Date.parse(r.date)>=cut);
   const use=rec.length?rec:got;
-  const wks=new Set(use.map(r=>weekMonday(r.date.slice(0,10))));
+  const wks=new Set(use.map(r=>weekMonday(ldate(r.date).slice(0,10))));
   const nw=Math.max(1,wks.size);
   const tot=use.reduce((a,r)=>a+r.km,0);
   const long=Math.max(...use.map(r=>r.km));
@@ -5186,7 +5208,7 @@ function applyTest(r){
   if(!isFinite(vd)||vd<18||vd>85)return null;
   const before=VDOT;
   const oldTT=BLOCK.find(x=>x.type==='tt')||null;   /* 오늘 잰 날은 일정에 남겨둔다 */
-  PROF=Object.assign({},PROF,{race:{m,sec:Math.round(sec),kind:'tt',at:todayStr()}});
+  PROF=Object.assign({},PROF,{race:{m,sec:Math.round(sec),kind:'tt',asc:(!sg&&r.asc>0)?Math.round(r.asc):null,at:todayStr()}});
   DEV.store.set('prof',PROF);
   recalcProfile(); recalcTypes();
   if(PLAN&&PLAN.goal!==undefined) applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start}));
@@ -5426,7 +5448,7 @@ const GSTEP=[
 /* 지금 실제로 일주일에 몇 번 뛰나 — 기록이 있으면 기록, 없으면 설문 */
 function habitDays(){
   const since=Date.now()-28*864e5;
-  const ds=new Set(RUNS.filter(r=>Date.parse(r.date)>=since&&(r.act||'run')==='run').map(r=>r.date.slice(0,10)));
+  const ds=new Set(RUNS.filter(r=>Date.parse(r.date)>=since&&(r.act||'run')==='run').map(r=>ldate(r.date).slice(0,10)));
   if(ds.size>=4) return {n:ds.size/4, src:'기록으로는'};
   if(SURVEY&&SURVEY.freq!=null) return {n:Math.max(1,+SURVEY.freq), src:'설문으로는'};
   if(SURVEY&&SURVEY.days&&SURVEY.days.length) return {n:SURVEY.days.length, src:'설문으로는'};
@@ -5924,7 +5946,7 @@ function inPlan(ds){ return BLOCK.length&&ds>=BLOCK[0].d.slice(0,10)&&ds<=addDay
 function dayStatus(ds){
   const today=todayStr();
   if(ds>today)return 'future';
-  const s=planOn(ds), runs=RUNS.filter(r=>isRun(r)&&String(r.date).slice(0,10)===ds);
+  const s=planOn(ds), runs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds);
   if(!inPlan(ds))return runs.length?'free':'none';
   if(s){
     const r=RUNS.find(x=>x.planId===s.d);
@@ -6028,10 +6050,16 @@ const ACTK={run:{nm:'달리기',sub:'그냥 뛰기 (프리런)',col:'linear-grad
   walk:{nm:'걷기',sub:'산책 · 출퇴근',col:'linear-gradient(150deg,#6EB6F5,#2F7FD0)',ico:'🚶'},
   bike:{nm:'자전거',sub:'라이딩',col:'linear-gradient(150deg,#FFC24A,#E8892B)',ico:'🚲'},
   hike:{nm:'등산',sub:'오르막 중심 기록',col:'linear-gradient(150deg,#7BA866,#3F6E3A)',ico:'⛰'}};
+/* 네 가지를 같은 선 아이콘으로 — 이모지는 기기마다 모양·방향이 달라 한 줄에 섞이면 어수선하다 */
+const ACTICON={
+  run:'<circle cx="15" cy="4.5" r="2"/><path d="M7 21l3.5-6.5 3 2.5v4.5"/><path d="M5.5 11.5l3.5-3.5h5l2.5 4 3 1"/><path d="M10.5 14.5l1.5-6.5"/>',
+  walk:'<circle cx="12.5" cy="4.5" r="2"/><path d="M9.5 21l2.5-6.5 2.5 2.5v4"/><path d="M8.5 12.5l2.5-4h2.5l2 4.5"/><path d="M12 14.5l.5-6"/>',
+  bike:'<circle cx="6" cy="16.5" r="3.5"/><circle cx="18" cy="16.5" r="3.5"/><path d="M6 16.5l4-8h5l3 8"/><path d="M10 8.5l4 8"/><path d="M13.5 5h3"/>',
+  hike:'<path d="M3 20l6.5-11 4 6.5 2.5-3.5 5 8z"/><path d="M9.5 9l1.5 2.5"/>'};
 function actTiles(){
   return `<div class="hc"><div class="hh"><span class="hi">↯</span><b>계획 말고, 그냥 움직이기</b><span class="r">판정 없이 기록만</span></div>
-    <div class="acttiles">${Object.entries(ACTK).map(([k,a])=>`<button class="actt" data-act="${k}" style="background:${a.col}">
-      <span class="ai">${a.ico}</span><b>${a.nm}</b><i>${a.sub}</i></button>`).join('')}</div></div>`;
+    <div class="acttiles">${Object.entries(ACTK).map(([k,a])=>`<button class="actt" data-act="${k}">
+      <span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]||''}</svg></span><b>${a.nm}</b><i>${a.sub}</i></button>`).join('')}</div></div>`;
 }
 function startAct(k){
   if(k==='run'){ ACT_MODE=null; const t=todayStr(), s=planOn(t);
@@ -6234,6 +6262,7 @@ function goalTop(){
     ${race}
     <div class="gt-k" style="margin-top:16px">지금 어디까지 왔나</div>
     <div class="gt-now"><b class="num">${fmtClock(now)}</b><span>지금 실력 (${L} 예상 기록)</span></div>
+    ${(()=>{ const r=PROF.race, f=raceFlat(r); return r&&f.adj>0?`<div class="gt-note">근거: ${gdLabel(r.m)} ${fmtClock(r.sec)} · 오르막 +${r.asc}m → 평지 기준 ${fmtClock(f.sec)} (오르막 1m당 약 0.8초 ${GRB('C')})</div>`:''; })()}
     <div class="gt-line" role="img" aria-label="처음 ${fmtClock(startSec)}에서 목표 ${fmtClock(goalSec)}까지 ${pct}% 왔어요">
       <s style="width:${pct}%"></s><em style="left:${pct}%"></em></div>
     <div class="gt-ends"><span>처음 ${fmtClock(startSec)}</span><span><b>${pct}%</b> 왔어요</span><span>목표 ${fmtClock(goalSec)}</span></div>
@@ -6314,22 +6343,22 @@ function weekCard(){
 function volumeCard(){
   const t=todayStr(), y=addDays(t,-1), mon=weekMonday(t);
   const yk=dayKm(y), ys=dayStatus(y);
-  const wk=RUNS.filter(r=>isRun(r)&&weekMonday(String(r.date).slice(0,10))===mon).reduce((a,r)=>a+r.km,0);
+  const wk=RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===mon).reduce((a,r)=>a+r.km,0);
   const wp=BLOCK.filter(x=>weekMonday(x.d)===mon).reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
   const ym=t.slice(0,7), d0=new Date(); const pm=new Date(d0.getFullYear(),d0.getMonth()-1,1);
   const pms=pm.getFullYear()+'-'+pad(pm.getMonth()+1);
-  const mk=RUNS.filter(r=>isRun(r)&&String(r.date).slice(0,7)===ym).reduce((a,r)=>a+r.km,0);
-  const pk=RUNS.filter(r=>isRun(r)&&String(r.date).slice(0,7)===pms&&+String(r.date).slice(8,10)<=d0.getDate()).reduce((a,r)=>a+r.km,0);
+  const mk=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,7)===ym).reduce((a,r)=>a+r.km,0);
+  const pk=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,7)===pms&&+ldate(r.date).slice(8,10)<=d0.getDate()).reduce((a,r)=>a+r.km,0);
   const ts=planOn(t);
   return `<div class="hc"><div class="hh"><span class="hi p">▥</span><b>뛴 양</b><span class="r">계획만큼이 만점</span></div>
     <div class="vol3"><div><i>어제</i><b class="num">${yk>0?yk.toFixed(1)+'<small>km</small>':(ys==='missed'||ys==='missedOk')?'—':'쉼'}</b><em>${yk>0?'':ys==='restKept'?'쉬는 날 지킴 ✓':ys==='missed'||ys==='missedOk'?'계획 못 함':''}</em></div>
       <div><i>이번 주</i><b class="num">${wk.toFixed(0)}<small> / ${wp.toFixed(0)}km</small></b>
         <u><s style="width:${wp?Math.min(100,wk/wp*100):0}%"></s></u><em>${ts&&!RUNS.some(r=>r.planId===ts.d)&&wp?`오늘 ${ts.dist}km 하면 ${Math.round((wk+ts.dist)/wp*100)}%`:''}</em></div>
       <div><i>${+ym.slice(5)}월</i><b class="num">${mk.toFixed(0)}<small>km</small></b><em>${pk>0?`${+pms.slice(5)}월 같은 날보다 ${mk>=pk?'+':''}${(mk-pk).toFixed(0)}km`:''}</em></div></div>
-    ${ACTS.filter(a=>weekMonday(a.date.slice(0,10))===mon).length?`<div class="actsum">이번 주 그냥 움직이기: ${actWeekSum(mon)}</div>`:''}</div>`;
+    ${ACTS.filter(a=>weekMonday(ldate(a.date).slice(0,10))===mon).length?`<div class="actsum">이번 주 그냥 움직이기: ${actWeekSum(mon)}</div>`:''}</div>`;
 }
 function actWeekSum(mon){
-  const by={}; ACTS.filter(a=>weekMonday(a.date.slice(0,10))===mon).forEach(a=>{ const k=a.act; by[k]=by[k]||{km:0,sec:0,n:0,asc:0}; by[k].km+=a.km||0; by[k].sec+=a.sec||0; by[k].n++; by[k].asc+=a.asc||0; });
+  const by={}; ACTS.filter(a=>weekMonday(ldate(a.date).slice(0,10))===mon).forEach(a=>{ const k=a.act; by[k]=by[k]||{km:0,sec:0,n:0,asc:0}; by[k].km+=a.km||0; by[k].sec+=a.sec||0; by[k].n++; by[k].asc+=a.asc||0; });
   return Object.entries(by).map(([k,v])=>`${ACTK[k]?ACTK[k].nm:k} ${k==='hike'?`${v.n}번 · +${v.asc}m`:k==='walk'?fmtClock(v.sec):v.km.toFixed(1)+'km'}`).join(' · ');
 }
 /* 배지 — 많이 뛴 것이 아니라 '약속 지킨 것'과 '빨라진 것'에 */
@@ -6587,7 +6616,7 @@ function renderResult(host,r,s){
   const sp=(r.splits||[]); const spMin=sp.length?Math.min(...sp.map(x=>x.pace)):0, spMax=sp.length?Math.max(...sp.map(x=>x.pace)):1;
   const splits=sp.map((x,i)=>`<div class="spr"><span>${i+1}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i></div>`).join('');
   host.innerHTML=`
-    <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(r.date.slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
+    <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(r.title||T.nm||'')}</h2>
     ${vd?`<div class="dverd ${vd[1]==='ok'?'':vd[1]}">${vd[0]}</div>`:r.type==='free'?'<div class="dverd mid">그냥 뛰기 — 판정 없음</div>':''}
     <div class="rmap"></div>
@@ -6746,7 +6775,7 @@ function paintShare(){
   $('shPhoto').onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(!f)return;
     const im=new Image(); im.onload=()=>{ SH.opt.photo=im; paintShare(); }; im.src=URL.createObjectURL(f); };
   const blob=()=>new Promise(res=>$('shCv').toBlob(res,'image/png'));
-  const fname=()=>`gajirun_${SH.r.date.slice(0,10)}_${SH.tpl}.png`;
+  const fname=()=>`gajirun_${ldate(SH.r.date).slice(0,10)}_${SH.tpl}.png`;
   $('shSave').onclick=async()=>{ const bl=await blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fname(); document.body.appendChild(a); a.click(); a.remove(); };
   $('shSend').onclick=async()=>{ const bl=await blob(); const f=new File([bl],fname(),{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:'가지런'}); }catch(e){} }
@@ -6773,7 +6802,7 @@ function renderActResult(host,r){
   const kmh=r.sec>0?(r.km/(r.sec/3600)):0;
   const alts=(r.track||[]).map(p=>p.alt).filter(v=>v!=null);
   const big = r.act==='hike' ? [`+${r.asc||0}`,'m 오른 높이'] : r.act==='bike' ? [kmh.toFixed(1),'km/h 평균'] : [r.km.toFixed(2),'km'];
-  host.innerHTML=`<div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(r.date.slice(0,10))} · <span class="tchip2" style="background:${a.col}">${a.nm}</span></div>
+  host.innerHTML=`<div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} · <span class="tchip2" style="background:${a.col}">${a.nm}</span></div>
     <h2 class="rt">${a.nm} · 그냥 움직이기</h2><div class="dverd mid">판정 없이 기록만 남깁니다 · 달리기 거리로 바꾸지 않습니다 ${GRB('B')}</div>
     <div class="actbig"><b class="num">${big[0]}</b><i>${big[1]}</i></div>
     ${alts.length>3?`<div class="rcard"><div class="rh"><b>높이</b><span>▲${r.asc||0}m ▼${r.desc||0}m</span></div>${spark(alts,300,70,false,'#3F6E3A')}</div>`:''}
@@ -6989,7 +7018,7 @@ function timeStats(){
   const g={}; es.filter(r=>Math.abs(r.hrAvg-ref)<=5).forEach(r=>{ const h=r.hour!=null?r.hour:new Date(r.date).getHours(), k=hourGroup(h);
     (g[k]=g[k]||[]).push(r); });
   const out=Object.entries(g).map(([k,a])=>({k,n:a.length,pace:a.reduce((s,r)=>s+r.paceAvg,0)/a.length,hr:a.reduce((s,r)=>s+r.hrAvg,0)/a.length,
-    dow:(()=>{ const c={}; a.forEach(r=>{ const d=dowOf(r.date.slice(0,10)); c[d]=(c[d]||0)+1; }); return Object.entries(c).sort((x,y)=>y[1]-x[1])[0][0]; })()}));
+    dow:(()=>{ const c={}; a.forEach(r=>{ const d=dowOf(ldate(r.date).slice(0,10)); c[d]=(c[d]||0)+1; }); return Object.entries(c).sort((x,y)=>y[1]-x[1])[0][0]; })()}));
   return {ref,groups:out.sort((a,b)=>a.pace-b.pace)};
 }
 function timeStatsHTML(){
@@ -7049,12 +7078,12 @@ function bodyLight(){
 }
 function logSum(){
   const [a,b,lab]=perRange();
-  const R=RUNS.filter(r=>isRun(r)&&r.date.slice(0,10)>=a&&r.date.slice(0,10)<=b);
+  const R=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=a&&ldate(r.date).slice(0,10)<=b);
   const km=R.reduce((s,r)=>s+r.km,0), sec=R.reduce((s,r)=>s+r.sec,0);
   let kept=0,tot=0; for(let d=a<'2020'?(BLOCK[0]?BLOCK[0].d.slice(0,10):b):a; d<=b; d=addDays(d,1)){ const s=dayStatus(d); if(['none','future','free','today','todayRest'].includes(s))continue; tot++; if(['kept','restKept','missedOk'].includes(s))kept++; if(tot>400)break; }
   /* 지난 기간 대비 */
   const days=(Date.parse(b)-Date.parse(a))/864e5+1, pa=addDays(a,-Math.round(days)), pb=addDays(a,-1);
-  const pkm=RUNS.filter(r=>isRun(r)&&r.date.slice(0,10)>=pa&&r.date.slice(0,10)<=pb).reduce((s,r)=>s+r.km,0);
+  const pkm=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=pa&&ldate(r.date).slice(0,10)<=pb).reduce((s,r)=>s+r.km,0);
   const easyKm=R.filter(r=>!isHardT(r.type)).reduce((s,r)=>s+r.km,0);
   return `<div class="per">${[['week','이번 주'],['month','이번 달'],['3m','3달'],['all','전체']].map(p=>`<button class="${LOGPER===p[0]?'on':''}" data-per="${p[0]}">${p[1]}</button>`).join('')}</div>
     ${bodyLight()}
@@ -7070,11 +7099,11 @@ function calCard(){
   const lead=(first.getDay()+6)%7; let h='';
   for(let i=0;i<lead;i++)h+='<div class="cd e"></div>';
   for(let d=1;d<=n;d++){ const ds=`${y}-${pad(m+1)}-${pad(d)}`, st=dayStatus(ds);
-    const rs=RUNS.filter(r=>isRun(r)&&r.date.slice(0,10)===ds), k=rs.reduce((s,r)=>s+r.km,0);
+    const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds), k=rs.reduce((s,r)=>s+r.km,0);
     const ty=rs.length?rs.sort((a,b)=>b.km-a.km)[0].type:null;
     const cls=st==='restKept'?'r':(st==='missed'||st==='missedOk')?'x':ds>t?'f':'';
     const dot=ty?`<b style="width:${Math.min(22,8+k*0.9).toFixed(0)}px;height:${Math.min(22,8+k*0.9).toFixed(0)}px;background:${TCOL[ty]||'#5F7A6E'}"></b>`:'';
-    const act=ACTS.some(x=>x.date.slice(0,10)===ds)?'<s></s>':'';
+    const act=ACTS.some(x=>ldate(x.date).slice(0,10)===ds)?'<s></s>':'';
     h+=`<div class="cd ${cls}${ds===t?' t':''}">${d}${dot}${act}</div>`; }
   return `<div class="lcard"><div class="bt">${m+1}월 달력<span>색 = 훈련 종류 · 크기 = 거리</span></div>
     <div class="cal"><div class="h">월</div><div class="h">화</div><div class="h">수</div><div class="h">목</div><div class="h">금</div><div class="h">토</div><div class="h">일</div>${h}</div>
@@ -7082,9 +7111,9 @@ function calCard(){
 }
 function weekBars(){
   const mon=weekMonday(todayStr()), W=[];
-  for(let i=7;i>=0;i--){ const m=addDays(mon,-7*i), rs=RUNS.filter(r=>isRun(r)&&weekMonday(r.date.slice(0,10))===m);
+  for(let i=7;i>=0;i--){ const m=addDays(mon,-7*i), rs=RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===m);
     W.push({m, e:rs.filter(r=>!isHardT(r.type)&&r.type!=='long').reduce((s,r)=>s+r.km,0), h:rs.filter(r=>isHardT(r.type)).reduce((s,r)=>s+r.km,0),
-      l:rs.filter(r=>r.type==='long').reduce((s,r)=>s+r.km,0), a:ACTS.filter(x=>weekMonday(x.date.slice(0,10))===m).length, now:i===0}); }
+      l:rs.filter(r=>r.type==='long').reduce((s,r)=>s+r.km,0), a:ACTS.filter(x=>weekMonday(ldate(x.date).slice(0,10))===m).length, now:i===0}); }
   const mx=Math.max(10,...W.map(w=>w.e+w.h+w.l));
   if(!W.some(w=>w.e+w.h+w.l>0))return '';
   const bars=W.map(w=>{ const H=v=>(v/mx*96).toFixed(1);
@@ -7116,7 +7145,7 @@ function bulletBar(label,valTxt,v,lo,hi,m,better){
   const L=Math.min(X(lo),X(hi)), Wd=Math.abs(X(hi)-X(lo));
   return `<div class="bbar"><div class="l">${label} <span>${valTxt}</span></div><div class="tr"><div class="band" style="left:${L}%;width:${Wd}%"></div><div class="avg" style="left:${X(m)}%"></div><div class="me" style="left:${X(v)}%;background:${out&&!good?'#E8A33D':'#2E9E6A'}"></div></div></div>`;
 }
-function weekly(fn,weeks){ const mon=weekMonday(todayStr()), out=[]; for(let i=weeks;i>=1;i--){ const m=addDays(mon,-7*i); const v=fn(RUNS.filter(r=>isRun(r)&&weekMonday(r.date.slice(0,10))===m)); if(v!=null)out.push(v); } return out; }
+function weekly(fn,weeks){ const mon=weekMonday(todayStr()), out=[]; for(let i=weeks;i>=1;i--){ const m=addDays(mon,-7*i); const v=fn(RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===m)); if(v!=null)out.push(v); } return out; }
 const msd=a=>{ const m=a.reduce((x,y)=>x+y,0)/a.length, sd=a.length>1?Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/(a.length-1)):0; return [m,sd]; };
 function logBody(){
   let h='';
@@ -7134,7 +7163,7 @@ function logBody(){
     <div class="st2"><span class="ic ${j?'y':'g'}">↗</span><div><b>2주 거리 변화 ${(()=>{ const a=kmBetween(14,0),b=kmBetween(28,14); return b>=10?(a>=b?'+':'')+Math.round((a-b)/b*100)+'%':''; })()}</b><p>30% 넘으면 알려드림 — 연구상 일부 부상 증가 보고 ${GRB('B')}</p></div><span class="chip ${j?'y':'g'}">${j?'살펴봄':'좋음'}</span></div></div>`;
   /* 평균 대비 이번 주 */
   const wk=weekly(a=>a.length?a.reduce((s,r)=>s+r.km,0):null,8);
-  const thisWk=RUNS.filter(r=>isRun(r)&&weekMonday(r.date.slice(0,10))===weekMonday(todayStr()));
+  const thisWk=RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===weekMonday(todayStr()));
   if(wk.length>=4){
     const rows=[];
     const [m1,s1]=msd(wk); rows.push(bulletBar('주간 거리',`${thisWk.reduce((s,r)=>s+r.km,0).toFixed(0)}km · 평균 ${m1.toFixed(0)}`,thisWk.reduce((s,r)=>s+r.km,0),Math.min(...wk),Math.max(...wk),m1,'hi'));
@@ -7244,7 +7273,7 @@ function logList(){
   items=items.filter(x=>LOGFLT==='all'||(LOGFLT==='run'&&x.k==='run')||(LOGFLT==='plan'&&x.k==='run'&&x.r.type!=='free')||(LOGFLT==='free'&&x.k==='run'&&x.r.type==='free')||x.k===LOGFLT)
     .sort((a,b)=>a.r.date<b.r.date?1:-1);
   const rows=items.slice(0,120).map(({r,k})=>{
-    const d=new Date(r.date), when=`${d.getMonth()+1}/${d.getDate()} ${dowOf(r.date.slice(0,10))}`;
+    const d=new Date(r.date), when=`${d.getMonth()+1}/${d.getDate()} ${dowOf(ldate(r.date).slice(0,10))}`;
     if(k==='rest') return `<div class="li"><div class="map rest">☾</div><div class="m"><b>쉬는 날</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#9C8AD8">휴식</span>${r.m.norun?'<span class="chip g">참음 ✓</span>':''}</div>
       <div class="s">${MISSIONS.filter(x=>r.m[x.k]).map(x=>x.t.split(' (')[0]).join(' · ')}</div></div></div>`;
     if(k!=='run'){ const a=ACTK[k]||ACTK.walk;
