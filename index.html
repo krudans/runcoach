@@ -620,24 +620,29 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .actt b{font-size:15px;font-weight:800;color:var(--ink)}.actt i{font-style:normal;font-size:11.5px;color:var(--ink-2);margin-top:2px}
 .hc.goal{background:linear-gradient(160deg,#3A2C6E,#5B3E8E);color:#fff}
 /* 홈 맨 위 — 나의 목표 · 지금 어디까지 */
-.hc.gtop{padding:16px 16px 14px;box-shadow:0 6px 22px rgba(42,22,56,.08)}
+.gt-top{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}.gt-top .gt-goal{flex:1 1 150px;min-width:0}
+.gt-top .gt-race{flex:1 1 130px;margin-top:0;display:flex;flex-direction:column;justify-content:center}
+.hc.gtop{padding:14px 16px 10px;box-shadow:0 6px 22px rgba(42,22,56,.08)}
 .gt-k{font-size:12px;font-weight:800;color:var(--ink-3);letter-spacing:.02em}
-.gt-goal{margin-top:4px}.gt-goal b{display:block;font-size:28px;font-weight:900;letter-spacing:-.5px;color:var(--ink);line-height:1.15}
+.gt-goal{margin-top:4px}.gt-goal b{display:block;font-size:24px;font-weight:900;letter-spacing:-.5px;color:var(--ink);line-height:1.15}
 .gt-goal span{display:block;font-size:12.5px;color:var(--ink-2);margin-top:3px}
 .gt-race{margin-top:12px;background:var(--bg);border-radius:14px;padding:10px 12px}
 .gt-race span{display:block;font-size:12px;font-weight:700;color:var(--accent)}
-.gt-race b{display:block;font-size:20px;font-weight:900;color:var(--ink);margin-top:2px}
+.gt-race b{display:block;font-size:18px;font-weight:900;color:var(--ink);margin-top:2px}
 .gt-race i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-2);margin-top:2px;line-height:1.5}
-.gt-now{display:flex;align-items:baseline;gap:8px;margin-top:4px}.gt-now b{font-size:24px;font-weight:900;color:var(--ink)}.gt-now span{font-size:12px;color:var(--ink-2)}
+.gt-now{display:flex;align-items:baseline;gap:8px;margin-top:2px;flex-wrap:wrap}.gt-now b{font-size:22px;font-weight:900;color:var(--ink)}.gt-now span{font-size:12px;color:var(--ink-2)}
 .gt-line{position:relative;height:8px;border-radius:4px;background:var(--line);margin-top:10px}
 .gt-line s{display:block;height:100%;border-radius:4px;background:var(--accent)}
-.gt-line em{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent);transform:translate(-50%,-50%);box-sizing:border-box}
+.gt-line{margin-top:18px}
+.gt-line em{position:absolute;top:50%;width:34px;height:34px;transform:translate(-50%,-58%);filter:drop-shadow(0 2px 3px rgba(42,22,56,.25));transition:left .6s cubic-bezier(.4,0,.2,1)}
+.gt-line em svg{width:100%;height:100%;display:block}
+.gt-line u{position:absolute;right:-2px;top:50%;width:12px;height:12px;border-radius:50%;border:2.5px solid var(--accent);background:var(--panel);transform:translateY(-50%);box-sizing:border-box}
 .gt-ends{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:6px}.gt-ends b{color:var(--ink);font-weight:800}
 .gt-note{font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.55}
-.gt-plan{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink-2);margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.gt-plan{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink-2);margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
 .gt-plan b{color:var(--ink);font-weight:800}
 .gt-pbar{height:5px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}.gt-pbar s{display:block;height:100%;background:var(--accent)}
-.gt-steps{margin-top:12px}.gt-steps summary{font-size:12.5px;font-weight:700;color:var(--accent);cursor:pointer;padding:6px 0}
+.gt-steps{margin-top:4px}.gt-steps summary{font-size:12.5px;font-weight:700;color:var(--accent);cursor:pointer;padding:10px 0 6px;min-height:24px}
 .gst2{display:flex;align-items:flex-end;gap:4px;height:78px;margin-top:8px}
 .gst2 i{flex:1;position:relative;background:var(--line);border-radius:5px 5px 0 0}.gst2 i.now{background:var(--accent)}
 .gst2 i span{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:9.5px;color:var(--ink-3);white-space:nowrap}
@@ -936,6 +941,14 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .happ{width:54px;height:54px;border-radius:15px;overflow:hidden;flex:none;box-shadow:0 6px 16px rgba(42,22,56,.25)}
 .happ svg{width:100%;height:100%;display:block}
 .hname b{display:block;font-size:28px;font-weight:900;letter-spacing:-.8px;line-height:1;color:var(--aub)}
+.hname b .hada{font-weight:500;color:var(--plum);margin-left:1px}
+.gt-prog{margin-top:12px;border-top:1px solid var(--line)}
+.gt-prog>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;padding:12px 0 2px;min-height:28px}
+.gt-prog>summary::-webkit-details-marker{display:none}
+.gt-prog>summary .gt-sum{font-size:12.5px;color:var(--ink-2);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.gt-prog>summary .gt-sum b{color:var(--ink);font-weight:800}
+.gt-prog>summary .gt-sum::after{content:'›';margin-left:4px;color:var(--ink-3);font-size:16px;transform:rotate(90deg);transition:transform .2s}
+.gt-prog[open]>summary .gt-sum::after{transform:rotate(-90deg)}
 .hname i{display:block;font-style:normal;font-family:var(--num);font-size:11px;font-weight:800;letter-spacing:.42em;color:var(--plum);margin-top:6px}
 .hbrand .streak{margin-left:auto}
 </style>
@@ -6099,7 +6112,7 @@ function renderHome(){
 
   /* 오늘 무엇을 하는지는 바로 아래 카드에 있다 — 여기는 앱 이름과 로고 자리 */
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
-      <div class="hname"><b>가지런</b><i>GAJI RUN</i></div>
+      <div class="hname"><b>가지런<span class="hada">하다</span></b><i>GAJI RUN</i></div>
       ${st>=2?`<span class="streak">🔥 약속 ${st}번 연속</span>`:''}</div>`;
 
   let h=goalTop();
@@ -6216,8 +6229,7 @@ function restCard(t){
 function goalTop(){
   const p=planProgress();
   const g=(PLAN&&PLAN.goal)||GOAL;
-  const prog = p ? `<div class="gt-plan"><span>${p.total}일 일정 중 <b>${p.day}일째</b></span><span>훈련 ${p.n}번 중 <b>${p.done}번</b> 완료</span></div>
-      <div class="gt-pbar" role="img" aria-label="일정 진행 ${p.pct}%"><s style="width:${p.pct}%"></s></div>` : '';
+  const prog = p ? `<div class="gt-plan"><span>일정 <b>${p.day}</b>/${p.total}일</span><span>훈련 <b>${p.done}</b>/${p.n}번 완료</span></div>` : '';
   if(!g||!g.m||!(g.final||g.sec)){
     if(!p)return '';
     return `<section class="hc gtop" aria-label="나의 일정"><div class="gt-k">나의 일정</div>
@@ -6236,10 +6248,10 @@ function goalTop(){
   let race='';
   if(g.date&&dd!=null){
     if(fz.verdict==='already'||fz.verdict==='ok')
-      race=`<div class="gt-race"><span>${md} 대회 · D-${dd}</span><b class="num">${fmtClock(goalSec)}</b><i>이 날짜까지 목표 기록에 닿을 수 있어요</i></div>`;
+      race=`<div class="gt-race"><span>${md} 대회 · D-${dd} · 목표 기록 가능</span><b class="num">${fmtClock(goalSec)}</b></div>`;
     else if(fz.reach&&fz.haveW!=null){
       const r=fz.reach(fz.haveW), fast=Math.min(r.lo,r.hi), slow=Math.max(r.lo,r.hi);
-      race=`<div class="gt-race"><span>${md} 대회 · D-${dd}</span><b class="num">${fmtClock(fast)}~${fmtClock(slow)}</b><i>이번 대회에서 현실적으로 닿을 수 있는 기록 · 최종 목표는 그다음 단계예요</i></div>`;
+      race=`<div class="gt-race"><span>${md} 대회 · D-${dd} · 현실 목표</span><b class="num">${fmtClock(fast)}~${fmtClock(slow)}</b></div>`;
     }
   }
   /* 지금 어디까지 — 처음 잰 실력에서 목표까지 줄 위에 */
@@ -6257,21 +6269,19 @@ function goalTop(){
   const sp2=Math.max(1,now-goalSec);
   const bars=steps.map((st,i)=>`<i class="${i===0?'now':''}" style="height:${Math.max(8,Math.min(100,(now-st.sec)/sp2*100+8)).toFixed(0)}%"><span>${i===0?'지금':st.w+'주'}</span></i>`).join('');
   return `<section class="hc gtop" aria-label="나의 목표">
-    <div class="gt-k">나의 목표</div>
-    <div class="gt-goal"><b class="num">${L} ${fmtClock(goalSec)}</b><span>${reachTxt}</span></div>
-    ${race}
-    <div class="gt-k" style="margin-top:16px">지금 어디까지 왔나</div>
-    <div class="gt-now"><b class="num">${fmtClock(now)}</b><span>지금 실력 (${L} 예상 기록)</span></div>
-    ${(()=>{ const r=PROF.race, f=raceFlat(r); return r&&f.adj>0?`<div class="gt-note">근거: ${gdLabel(r.m)} ${fmtClock(r.sec)} · 오르막 +${r.asc}m → 평지 기준 ${fmtClock(f.sec)} (오르막 1m당 약 0.8초 ${GRB('C')})</div>`:''; })()}
+    <div class="gt-top"><div class="gt-goal"><div class="gt-k">나의 목표</div><b class="num">${L} ${fmtClock(goalSec)}</b><span>${reachTxt}</span></div>${race}</div>
+    <details class="gt-prog"><summary><span class="gt-k">지금 어디까지 왔나</span><span class="gt-sum"><b class="num">${fmtClock(now)}</b> · ${pct}%${p?` · 일정 ${p.day}/${p.total}일`:''}</span></summary>
+    <div class="gt-now"><b class="num">${fmtClock(now)}</b><span>지금 실력${(()=>{ const r=PROF.race, f=raceFlat(r); return r&&f.adj>0?` · 평지 환산 (기록 ${fmtClock(r.sec)}, 오르막 +${r.asc}m)`:''; })()}</span></div>
     <div class="gt-line" role="img" aria-label="처음 ${fmtClock(startSec)}에서 목표 ${fmtClock(goalSec)}까지 ${pct}% 왔어요">
-      <s style="width:${pct}%"></s><em style="left:${pct}%"></em></div>
+      <s style="width:${pct}%"></s><em style="left:${pct}%">${brandSVG({body:'#5B2D86',lane:'#FFFFFF',cap:'#8DB89A',small:true})}</em><u aria-hidden="true"></u></div>
     <div class="gt-ends"><span>처음 ${fmtClock(startSec)}</span><span><b>${pct}%</b> 왔어요</span><span>목표 ${fmtClock(goalSec)}</span></div>
-    <div class="gt-note">${since}</div>
     ${prog}
-    ${steps.length>1?`<details class="gt-steps"><summary>목표까지 4주 단위 계단 보기</summary>
-      <div class="gst2">${bars}</div>
-      <div class="gt-note">계단 하나는 보통 4~6주에 실력 1점 오르는 속도로 그렸어요 ${GRB('C')} · 실력을 다시 잴 때마다 새로 그려요</div></details>`:''}
-    <button type="button" class="gt-more-btn" data-mygoal="1">내 목표 자세히 보기 ›</button>
+    <details class="gt-steps"><summary>계단 · 근거 보기</summary>
+      <div class="gt-note">${since}</div>
+      ${steps.length>1?`<div class="gst2">${bars}</div>
+      <div class="gt-note">계단 하나는 보통 4~6주에 실력 1점 오르는 속도로 그렸어요 ${GRB('C')} · 실력을 다시 잴 때마다 새로 그려요</div>`:''}
+      <button type="button" class="gt-more-btn" data-mygoal="1">내 목표 자세히 보기 ›</button></details>
+    </details>
   </section>`;
 }
 /* 목표 계단 (예전 카드 — 홈에서는 goalTop이 대신한다) */
