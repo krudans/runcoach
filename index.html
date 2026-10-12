@@ -903,6 +903,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .pdr .m u s{display:block;border-radius:3px;height:100%;text-decoration:none}
 .pdr .v{text-align:right}
 .pdr .v b{display:block;font-family:var(--num);font-size:14px;font-weight:800;white-space:nowrap}
+.pdr .v b.ceil{font-size:12.5px;color:var(--ink-2);font-weight:800}
 .pdr .v b.mix,.pdr.hard .v b.mix{color:var(--ink);font-size:13px}.pdr .v b.mix em{font-style:normal}.pdr .v b.mix em.f{color:var(--fast)}.pdr .v b.mix small{font-size:10px;color:var(--ink-3);margin:0 3px}
 .pdr .v i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:3px;white-space:nowrap}
 .pdr.hard .n,.pdr.hard .v b{color:var(--fast)}
@@ -7582,13 +7583,18 @@ function planDetailHTML(s,adj,mode){
         <span class="m"><b>${nm}</b><u>${bar}</u></span>
         <span class="v">${k.parts.length>1
           ? `<b class="mix">${k.parts.map(x=>`<em${x.it.g.hard?' class="f"':''}>${fmtPace(x.sec/x.km)}</em>`).join('<small>→</small>')}</b>`
-          : `<b>${fmtPace(k.sec/k.len)}</b>`}<i>${fmtClock(k.sec)} · 누적 ${fmtClock(k.cum)}</i></span></div>`; }).join('');
+          : k.parts[0]&&k.parts[0].it.g.tol==='ceil'&&k.parts[0].it.p
+            /* 빠른 쪽만 막는 구간 — 가운데 값을 목표처럼 찍지 않는다 */
+            ? `<b class="ceil">${fmtPace(k.parts[0].it.p[0])}보다 느리게</b>`
+            : `<b>${fmtPace(k.sec/k.len)}</b>`}<i>${k.parts.length===1&&k.parts[0].it.g.tol==='ceil'?'예상 ':''}${fmtClock(k.sec)} · 누적 ${fmtClock(k.cum)}</i></span></div>`; }).join('');
   } else {
     rows=pdOverview(s,its)+its.map((x,j)=>`<details class="pdx${x.g.hard?' hard':''}"${j===its.findIndex(y=>y.g.hard)?' open':''}><summary class="pdr${x.g.hard?' hard':''}"><span class="n">${j+1}</span>
       <span class="m"><b><em style="background:${x.kind.c}"></em>${x.g.nm}</b><i>${x.g.end==='time'?`${fmtClock(x.g.sec||60)} 동안`:kmLab(+x.km.toFixed(2))} · ${+x.from.toFixed(2)}→${+x.to.toFixed(2)}km</i></span>
       <span class="v"><b>${x.ptxt}</b><i>${fmtClock(x.dur)} · 누적 ${fmtClock(x.t1)}</i></span></summary>${pdDetail(s,its,j)}</details>`).join('');
   }
-  return tabs+leg+rows+`<div class="pdnote">시간은 목표 속도의 가운데로 잡은 예상입니다.${mode==='km'?' 구간이 바뀌는 1km는 각 구간의 속도를 차례로 보여 줍니다.':''}</div>`;
+  const hasCeil=its.some(x=>x.g.tol==='ceil'&&!x.g.hard&&x.kind.k!=='rest'), T=TYPES[s.type]||{};
+  const hrNote = hasCeil&&T.primary==='hr'&&T.hrZone&&T.hrZone[1] ? ` '느리게'라고 적힌 구간은 그보다 느린 건 얼마든 괜찮아요. 심박계가 있으면 속도보다 심박 ${T.hrZone[1]} 아래가 기준이에요.` : hasCeil ? ` '느리게'라고 적힌 구간은 그보다 느린 건 얼마든 괜찮아요.` : '';
+  return tabs+leg+rows+`<div class="pdnote">시간은 목표 속도의 가운데로 잡은 예상입니다.${mode==='km'?' 구간이 바뀌는 1km는 각 구간의 속도를 차례로 보여 줍니다.':''}${hrNote}</div>`;
 }
 /* ───────── 항목별 자세히 — 구간마다 왜·얼마나·어떤 느낌·어떻게·앱은 무엇을 ─────────
    숫자는 모두 구간 데이터(pace·tol·to·sec)와 TYPES·PACE·VOPT에서 계산한다. 앱 동작 설명은
