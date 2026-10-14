@@ -293,6 +293,14 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .brief .bv{color:var(--ink-2)} .brief .bv b{color:var(--ink);font-weight:600}
 /* 기본은 핵심 두 줄만. 나머지는 '자세히'로 접어둔다 */
 .brief .bi.warn{background:#FCEBEA} .brief .bi.warn .bk{color:var(--alarm)}
+#gBody details.bmore{background:var(--card,#fff);border-radius:14px;margin:10px 0}
+#gBody details.bmore>summary{list-style:none;padding:12px 16px;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer}
+#gBody details.bmore>summary::-webkit-details-marker{display:none}#gBody details.bmore>summary::after{content:' ▾'}#gBody details.bmore[open]>summary::after{content:' ▴'}
+#gBody details.bmore[open]{padding:0 12px 12px}
+.brief .bmore .more{display:block}
+.brief .bi.key{display:flex;align-items:center;gap:8px;color:var(--accent)}.brief .bi.key b{color:var(--ink);font-size:14.5px;font-weight:800}
+.brief .bmore>summary{list-style:none;padding:11px 16px;font-size:12.5px;font-weight:700;color:var(--accent);cursor:pointer}
+.brief .bmore>summary::-webkit-details-marker{display:none}.brief .bmore>summary::after{content:' ▾'}.brief .bmore[open]>summary::after{content:' ▴'}
 .brief .more{display:none}
 .brief.open .more{display:block}
 .brief .tog{width:100%;padding:11px 16px;font-size:12.5px;color:var(--accent);font-weight:600;
@@ -683,6 +691,88 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .disc.sm{margin-top:10px;padding:9px 11px;font-size:11.5px;line-height:1.6;color:#5A3A2C}.disc.sm b{display:inline;font-size:11.5px;margin-right:3px}
 .ack{display:flex;gap:9px;align-items:flex-start;margin:10px 2px 4px;font-size:12.5px;line-height:1.6;color:var(--ink);cursor:pointer}
 .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
+/* ═════ 홈 — 러닝 앱처럼: 목표 레인 · 이번 주 막대 · 오늘 큰 카드 ═════ */
+#home .hbrand{padding:2px 18px 0;gap:10px}
+#home .happ{width:34px;height:34px;border-radius:10px;box-shadow:none}
+#home .hname b{font-size:21px;letter-spacing:-.5px}
+#home .streak{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-family:var(--num);font-weight:800;font-size:13px;color:#B04416;background:#FFEFE6;border-radius:999px;padding:5px 10px}
+/* 알림 */
+details.noti{margin:12px 16px 0;padding:0;border:none;box-shadow:none;background:none}
+details.noti>summary{list-style:none;display:flex;align-items:center;gap:8px;background:#D9412B;color:#fff;border-radius:999px;padding:10px 14px;cursor:pointer;min-height:44px;box-shadow:0 6px 18px rgba(217,65,43,.28)}
+details.noti>summary::-webkit-details-marker{display:none}
+details.noti>summary b{font-size:14px;font-weight:900;flex:none}
+.noti-first{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.95}
+.noti-chev{flex:none;transition:transform .2s;font-size:18px}details.noti[open] .noti-chev{transform:rotate(90deg)}
+details.noti .noti-dot,.noti1 .noti-dot{background:#fff;flex:none}
+.noti1{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:12px 16px 0;border:none;background:#D9412B;color:#fff;border-radius:999px;padding:8px 8px 8px 16px;font:inherit;text-align:left;cursor:pointer;min-height:48px;box-shadow:0 6px 18px rgba(217,65,43,.28)}
+.noti1 b{flex:1;min-width:0;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.noti1 .sig-go{background:#fff;color:#B4321C}
+details.noti[open]{background:var(--panel);border-radius:20px;padding:6px;box-shadow:0 8px 24px rgba(217,65,43,.14)}
+details.noti .sigc{margin:6px 0}
+/* 목표 */
+.gstrip{margin:12px 16px 0;padding:14px 16px 6px;background:var(--panel);border-radius:22px}
+.gs-row{display:flex;align-items:center;gap:8px}
+.gs-ic{width:28px;height:28px;flex:none;border-radius:9px;background:var(--bg);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.gs-row b{font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-.3px}
+.gs-side{margin-left:auto;font-size:14px;font-weight:900;color:#fff;background:var(--accent);border-radius:999px;padding:4px 10px}
+.gs-sub{font-size:12.5px;color:var(--ink-2);margin:4px 0 0 36px}
+.lane{position:relative;height:30px;margin:16px 4px 0;border-radius:15px;background:#E9DFF2;overflow:visible}
+.lane-l{position:absolute;left:12px;right:12px;height:0;border-top:1.5px dashed rgba(255,255,255,.9)}
+.lane-l:nth-child(1){top:9px}.lane-l:nth-child(2){top:19px}
+.lane-fill{position:absolute;left:0;top:0;bottom:0;border-radius:15px;background:linear-gradient(90deg,#B79AD4,var(--accent))}
+.lane em{position:absolute;top:50%;width:40px;height:40px;transform:translate(-50%,-55%);filter:drop-shadow(0 3px 4px rgba(42,22,56,.3))}
+.lane em svg{width:100%;height:100%;display:block}
+.lane u{position:absolute;right:4px;top:50%;transform:translateY(-50%);color:var(--accent);text-decoration:none;display:flex}
+.lane-ends{display:flex;justify-content:space-between;font-family:var(--num);font-size:11.5px;font-weight:700;color:var(--ink-3);margin:6px 4px 0}
+.gs-more>summary{list-style:none;font-size:12px;font-weight:700;color:var(--ink-3);text-align:center;padding:8px 0 4px;cursor:pointer}
+.gs-more>summary::-webkit-details-marker{display:none}.gs-more>summary::after{content:' ▾'}.gs-more[open]>summary::after{content:' ▴'}
+.gs-more .hc{margin:10px 0 0;padding:12px;background:var(--bg);box-shadow:none}
+/* 이번 주 */
+.wstrip{margin:10px 16px 0;padding:12px 14px 10px;background:var(--panel);border-radius:22px}
+.ws-h{display:flex;align-items:baseline;justify-content:space-between}
+.ws-h>b{font-size:13px;font-weight:800;color:var(--ink-2)}.ws-h span{font-size:12px;color:var(--ink-3)}.ws-h span b{font-size:16px;color:var(--ink);font-weight:900}
+.ws-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:8px}
+.wk-d{display:flex;flex-direction:column;align-items:center;gap:4px}
+.wk-bar{position:relative;width:100%;max-width:30px;height:52px;border-radius:9px;background:var(--bg);display:flex;align-items:flex-end;overflow:hidden}
+.wk-bar i{display:block;width:100%;border-radius:9px;opacity:.38}
+.wk-d.done .wk-bar i{opacity:1}
+.wk-d.miss .wk-bar i{opacity:.18;filter:grayscale(1)}
+.wk-bar span{position:absolute;left:0;right:0;bottom:4px;display:flex;justify-content:center;color:#fff;font-size:12px;font-weight:900}
+.wk-d.miss .wk-bar span{color:var(--ink-3)}
+.wk-d:not(.done):not(.miss) .wk-bar span{color:var(--ink-3)}
+.wk-d b{font-size:11.5px;font-weight:700;color:var(--ink-3)}
+.wk-d.now .wk-bar{box-shadow:0 0 0 2.5px var(--accent)}.wk-d.now b{color:var(--accent);font-weight:900}
+/* 오늘 */
+.hero{position:relative;overflow:hidden;margin:12px 16px 0;padding:16px 18px 14px;background:var(--panel);border-radius:28px;box-shadow:0 10px 30px rgba(42,22,56,.10)}
+.hero-lanes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hero-lanes path{fill:none;stroke:color-mix(in srgb,var(--k1) 22%,transparent);stroke-width:14}
+.hero>*:not(.hero-lanes){position:relative}
+.hero-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hero-chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--ink);background:color-mix(in srgb,var(--k1) 22%,#fff);border-radius:999px;padding:5px 11px}
+.hero-chip i{width:9px;height:9px;border-radius:50%;background:var(--k2)}
+.hero-basis{margin-left:auto}.hero-basis>summary{list-style:none;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--bg);border-radius:999px;padding:5px 10px;cursor:pointer}
+.hero-basis>summary::-webkit-details-marker{display:none}
+.hero-basis p{position:absolute;right:0;top:30px;z-index:3;width:240px;margin:0;background:var(--ink);color:#fff;font-size:12px;line-height:1.55;border-radius:12px;padding:10px 12px}
+.hero-km{display:flex;align-items:baseline;gap:6px;margin-top:10px}
+.hero-km b{font-size:68px;font-weight:900;line-height:.95;letter-spacing:-2px;color:var(--ink)}
+.hero-km span{font-size:18px;font-weight:800;color:var(--ink-2)}
+.hero-what{font-size:15px;font-weight:800;color:var(--ink-2);margin-top:2px}
+.hero-shape{display:block;width:100%;margin:14px 0 0;padding:0;border:none;background:none;cursor:pointer}
+.hero-shape svg{display:block;width:100%;height:56px}
+.hero-stats{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.hero-stats span{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-2)}
+.hero-stats svg{color:var(--k2)}.hero-stats b{font-size:17px;font-weight:900;color:var(--ink)}
+.hero-go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:64px;margin-top:16px;border:none;border-radius:32px;background:var(--accent);color:#fff;font:inherit;font-size:20px;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(91,45,134,.35)}
+.hero-go.done{background:var(--bg);color:var(--accent);box-shadow:none}
+.hero-links{display:flex;justify-content:center;gap:18px;margin-top:10px}
+.hero-links button{background:none;border:none;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2);padding:6px 2px;cursor:pointer}
+.hero .tdist{background:var(--bg)}.hero .tdist button{background:var(--panel);color:var(--ink)}.hero .tdist button.ok{background:var(--accent);color:#fff}
+/* 그냥 뛰기 줄 */
+.qrow{display:flex;align-items:center;gap:6px;margin:12px 16px 0;padding:8px 10px;background:var(--panel);border-radius:18px}
+.qrow>span{font-size:12px;font-weight:800;color:var(--ink-3);flex:none;margin-right:2px}
+.qr-a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;color:var(--accent);font:inherit;cursor:pointer;min-height:48px;padding:4px 0;border-radius:12px}
+.qr-a:active{background:var(--bg)}.qr-a svg{width:22px;height:22px}.qr-a i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--ink-2)}
+.hlink{display:block;margin:14px auto 0;background:none;border:none;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-3);text-decoration:underline;padding:8px}
 .hsec{margin:20px 20px 0;font-size:13px;font-weight:800;color:var(--ink-2)}
 .hc.goal .hh .r{color:#D8CCF7}.hc.goal .hi{background:rgba(255,255,255,.15);color:#FFD27A}
 .gnow{display:flex;align-items:baseline;gap:9px;margin-top:9px}.gnow b{font-size:36px;font-weight:900}.gnow span{font-size:12px;opacity:.8}
@@ -914,6 +1004,16 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .pdleg span{display:flex;align-items:center;gap:5px}
 .pdleg em,.pdr .m b em{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
 .pdo{background:var(--bg);border-radius:14px;padding:12px 13px;margin:4px 0 10px}
+.pdo .pdo-r{display:flex;align-items:center;gap:7px;margin:0;color:var(--accent)}.pdo .pdo-r b{color:var(--ink);font-size:13.5px}
+.pdo .pdo-n span{display:inline-flex;align-items:center;gap:4px;font-family:var(--num);font-weight:800;color:var(--ink-2);font-size:12.5px}.pdo .pdo-n span.f{color:var(--fast)}
+.pdd-chips{display:flex;flex-wrap:wrap;gap:6px}.pdd-chips span{display:inline-flex;align-items:center;gap:4px;font-family:var(--num);font-size:12px;font-weight:800;color:var(--ink);background:var(--bg);border-radius:8px;padding:5px 8px}
+.pdd-chips svg{color:var(--accent)}
+.pdd-feel{display:flex;align-items:center;gap:8px;margin-top:9px}.pdd-feel em{font-style:normal;font-size:12px;color:var(--ink-2)}
+.rpe{display:inline-flex;align-items:center;gap:2px}.rpe i{width:9px;height:12px;border-radius:2px;background:var(--line)}.rpe i.on{background:var(--sage)}.rpe i.h{background:var(--fast)}
+.rpe b{font-family:var(--num);font-size:12px;margin-left:4px;color:var(--ink)}
+.pdd-tip{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:var(--ink);font-weight:600}.pdd-tip svg{color:var(--sage);flex:none}
+.pdd-app{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:9px}.pdd-k{font-size:11px;font-weight:800;color:var(--ink-3);margin-right:2px}
+.pdd-app i{font-style:normal;font-size:11px;font-weight:700;color:var(--accent);border:1.5px solid #DCCCEA;border-radius:999px;padding:3px 8px}
 .pdo-k{font-size:11.5px;font-weight:800;color:var(--accent)}
 .pdo-t{font-size:14px;font-weight:800;color:var(--ink);margin-top:3px;line-height:1.45;word-break:keep-all}
 .pdo-g,.pdo-r{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.55;word-break:keep-all}.pdo-g b,.pdo-r b{color:var(--ink);font-weight:800;margin-right:4px}
@@ -1250,28 +1350,24 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
     <h1 style="text-align:center">오늘 뭘 하나</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad">
     <div class="card"><h2 id="cTitle">—</h2><div class="meta" id="cMeta">—</div></div>
-    <div class="lbl" style="margin:14px 0 8px">오늘 계획 — 구간별로 보기</div>
+
     <div class="card" style="padding:10px 16px 8px"><div class="seglist" id="cSegs" style="margin-top:0"></div></div>
     <div class="brief" id="cBrief"></div>
     <div class="note" id="cNote" hidden></div>
     <button class="btn sm ghost" id="cUnpaste" style="margin:12px 0 0" hidden>받아적은 것 지우고 원래 일정으로</button>
-    <div class="lbl" style="margin:16px 0 10px">코칭 설정</div>
-    <div class="opt"><input type="checkbox" id="optVoice" checked><label for="optVoice">음성 안내
-      <span class="hint">구간이 바뀔 때 · 너무 빠르거나 느릴 때 · 1km마다 (랩)</span></label></div>
+    <details class="cset"><summary>코칭 설정 · 음성 · 걸음 · 화면</summary>
+    <div class="opt"><input type="checkbox" id="optVoice" checked><label for="optVoice">음성 안내</label></div>
     <div id="vOptBox"></div>
-    <div class="opt"><input type="checkbox" id="optCad" checked><label for="optCad">걸음 수 재기 (케이던스)
-      <span class="hint">1분에 몇 걸음 뛰는지</span></label></div>
-    <div class="opt"><input type="checkbox" id="optWake" checked><label for="optWake">화면 계속 켜두기</label></div>
+    <div class="opt"><input type="checkbox" id="optCad" checked><label for="optCad">걸음 수 재기</label></div>
+    <div class="opt"><input type="checkbox" id="optWake" checked><label for="optWake">화면 계속 켜두기</label></div></details>
     <div class="opt" hidden><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
     <button class="btn ghost" id="btnHR">기기 연결 — 워치 또는 가슴 스트랩</button>
-    <div style="font-size:12px;color:var(--ink-3);margin-top:7px;text-align:center" id="hrState">미연결 — 심박 없이도 진행됩니다</div>
-    <div style="font-size:11.5px;color:var(--ink-3);margin-top:6px;text-align:center">
-      워치에서 심박 송출을 먼저 켜고, 목록에서 워치 이름을 고르세요.
-    </div>
+    <div style="font-size:12px;color:var(--ink-3);margin-top:7px;text-align:center" id="hrState">미연결 — 심박 없이도 돼요</div>
     <button class="btn" id="btnStart">시작</button>
   </div>
 </div>
 
+<style>.cset{margin:14px 0 6px;background:var(--panel);border-radius:12px;padding:0 14px}.cset>summary{list-style:none;padding:13px 0;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}.cset>summary::-webkit-details-marker{display:none}.cset>summary::after{content:' ▾';color:var(--ink-3)}.cset[open]>summary::after{content:' ▴'}</style>
 <div class="view" id="intro">
   <div class="ipad">
     <div class="itop"><span class="brandmark" data-bm="light"></span><span><b>가지런</b><i>GAJI RUN <span id="verIntro" style="opacity:.55;letter-spacing:.1em"></span></i></span></div>
@@ -2154,7 +2250,7 @@ function makePlan(opts){
   if(fz&&(fz.verdict==='short'||fz.verdict==='maybe')&&g.m&&!opts.practiceSec){
     ladder = fz.ladderSec;
     gPaceSec = fz.ladderSec/(g.m/1000);
-    why.push(`목표 ${fmtClock(fz.goalSec)}은 그대로 두고, ${fz.haveW}주 뒤에 닿을 수 있는 ${fmtClock(fz.ladderSec)}~${fmtClock(fz.ladderFast)} 중 느린 쪽을 연습 목표로 썼습니다. 빨리 오르면 결산에서 당깁니다.`);
+    why.push(`목표 ${fmtClock(fz.goalSec)}은 그대로 두고, ${fz.haveW}주 뒤에 닿을 수 있는 ${fmtClock(Math.min(fz.ladderSec,fz.ladderFast))}~${fmtClock(Math.max(fz.ladderSec,fz.ladderFast))} 중 느린 쪽을 연습 목표로 썼습니다. 빨리 오르면 결산에서 당깁니다.`);
   }
   if(opts.practiceSec&&g&&g.m){
     gPaceSec = opts.practiceSec/(g.m/1000); ladder = opts.practiceSec;
@@ -2754,8 +2850,7 @@ function renderPlan(){
         $('plWhy').textContent=b.hidden?'왜 이렇게 되었나':'접기'; };
     } else {
       hd.innerHTML=`<div class="card tight" style="margin:12px 0 4px">
-        <div class="meta" style="line-height:1.8">아직 <b>내 목표로 만든 일정</b>이 아닙니다.
-          지금 보이는 것은 예시 일정입니다. 목표를 정하면 가능한 날·요즘 뛰는 양에 맞춰 4주를 만들어 드립니다.</div>
+        <div class="meta" style="line-height:1.8">예시 일정이에요. 목표를 정하면 내게 맞춘 4주를 짜드려요.</div>
         <button class="btn sm" id="plMake" style="margin:11px 0 0">내 일정 만들기</button></div>`;
       $('plMake').onclick=()=>goalStart();
     }
@@ -2773,9 +2868,9 @@ function renderPlan(){
     b.className='day'+(isToday?' today':'')+(did?' did':'');
     if(sx.type==='off')b.disabled=true;
     b.innerHTML=`<span class="dt">${sx.d.slice(5,10).replace('-','.')}<br>${dowOf(sx.d)}</span>`+
-      `<span class="ti"><span class="tdot" style="background:${T.col}"></span>${ESC(sv.t)}</span>`+
+      `<span class="ti"><span class="tdot" style="background:${hexes((LOOK[sx.type]||LOOK.free).bg)[0]}"></span>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}</span>`+
       `<span class="go">${sx.type==='off'?'':(did?'완료 ✓':isToday?'오늘 ›':'›')}</span>`+
-      `<span class="mt">${sx.dist?summary(sv)+(DIST[sx.d]?` · ${km}km로 수정됨`:''):tm('off')}${T.desc?`<br><span style="color:var(--ink-3)">${T.desc}</span>`:''}</span>`;
+      `<span class="mt">${sx.dist?summary(sv)+(DIST[sx.d]?` · ${km}km로 바꿈`:''):''}</span>`;
     b.onclick=()=>openConfirm(i);
     host.appendChild(b);
   });
@@ -2926,18 +3021,18 @@ function openConfirm(i){
     (T.hint?`<div class="bi more"><div class="bk">알아둘 것</div><div class="bv">${T.hint}</div></div>`:'')+
     '';   /* 문헌 인용은 화면에 안 쓴다. 계산에만 쓴다. */
   br.innerHTML=
-    `<div class="bi"><div class="bk">오늘 왜 이렇게 뛰나</div><div class="bv">${T.develops||'—'}</div></div>`+
+    (T.primaryLabel?`<div class="bi key">${ic('flag',16)}<b>${T.primaryLabel}</b></div>`:'')+
+    auditSession(s).map(w=>`<div class="bi warn"><div class="bv">${w.m}</div></div>`).join('')+
+    `<details class="bmore"><summary>왜 이렇게 뛰나</summary><div class="bi"><div class="bv">${T.develops||'—'}</div></div>`+
     (GROWS[s.type]?`<div class="bi"><div class="bk">오늘 기르는 것</div><div class="bv">${GROWS[s.type].g.map(x=>`${x[0]} ${GRB(x[1])}`).join('<br>')}${GROWS[s.type].when?`<br><span style="color:var(--ink-3)">언제 좋아지나: ${GROWS[s.type].when} ${GRB(GROWS[s.type].wg)}</span>`:''}</div></div>`:'')+
-    (T.primaryLabel?`<div class="bi"><div class="bk">이것만 지키면 됩니다</div><div class="bv"><b>${T.primaryLabel}</b></div></div>`:'')+
-    auditSession(s).map(w=>`<div class="bi warn"><div class="bk">참고</div><div class="bv">${w.m}</div></div>`).join('')+
-    extra+(extra?`<button class="tog" id="cTog">자세히 ▾</button>`:'');
+    extra+`</details>`;
   const tg=$('cTog');
   if(tg)tg.onclick=()=>{ br.classList.toggle('open');
     tg.textContent=br.classList.contains('open')?'접기 ▴':'자세히 ▾'; };
   const host=$('cSegs'); host.innerHTML=''; let prev=0;
   if(i<0){ host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">'+
     '목표 없이 기록만 남깁니다.</span></div>'; }
-  else { const paintSegs=()=>{ host.innerHTML=planDetailHTML(s,adj,TDMODE);
+  else { const paintSegs=()=>{ host.innerHTML=planDetailHTML(s,adj,TDMODE,true);
       host.querySelectorAll('[data-pdm]').forEach(b=>b.onclick=()=>{ TDMODE=b.dataset.pdm; paintSegs(); }); };
     paintSegs(); }
   const n=$('cNote'); if(s.note){n.textContent=s.note;n.hidden=false;}else n.hidden=true;
@@ -5493,7 +5588,7 @@ function gGoal(){ const d=GB.d;
 
 const GSTEP=[
 /* ───── 1. 무엇을 하고 싶은가 ───── */
-{q:'무엇을 하고<br>싶으신가요?', s:'고른 것에 따라 일정이 통째로 달라집니다.',
+{q:'무엇을 하고<br>싶으신가요?', s:'',
  body(){ return GOALS.map(g=>`
    <button type="button" class="gcard${GB.d.kind===g.k?' on':''}" data-k="${g.k}">
      <span class="ic">${g.ico}</span>
@@ -5504,7 +5599,7 @@ const GSTEP=[
  ok(){ return GB.d.kind?true:'하나 골라주세요.'; }},
 
 /* ───── 2. 숫자 ───── */
-{q:'얼마나,<br>언제까지?', s:'정확하지 않아도 됩니다. 나중에 바꿀 수 있습니다.',
+{q:'얼마나,<br>언제까지?', s:'나중에 바꿀 수 있어요.',
  body(){ const d=GB.d, k=d.kind;
    if(k==='aero') return aeroBody();
    if(k==='weight'||k==='health'||k==='back')
@@ -5555,7 +5650,7 @@ const GSTEP=[
 /* ───── 3. 일주일에 며칠 ─────
    며칠이 맞는지는 연구로 못 정한다(#10·#27, D). 그래서 사용자가 고르고,
    앱은 '지금 실제로 뛰는 횟수'에서 크게 바꾸지 않는 쪽으로 의견만 낸다. */
-{q:'일주일에<br>며칠 훈련할까요?', s:'쉬는 날도 훈련입니다. 몸은 쉬는 날에 강해집니다.',
+{q:'일주일에<br>며칠 훈련할까요?', s:'',
  body(){ const d=GB.d, cur=habitDays(), rec=Math.max(3,Math.min(7,Math.round(cur.n)));
    if(!d.days) d.days=defDays(rec);
    const n=d.days.length, sh=planShape(shapeKind(Object.assign({},d,{kind:d.kind||'health'})),n);
@@ -5564,21 +5659,18 @@ const GSTEP=[
    const chips=['월','화','수','목','금','토','일'].map(x=>`<button type="button" class="daychip${d.days.includes(x)?' on':''}" data-d="${x}">${x}</button>`).join('');
    const diff=n-cur.n;
    const op = Math.abs(diff)<1.5
-     ? `<b>${n}일 좋습니다.</b> 지금 ${cur.src} 주 ${cur.n.toFixed(cur.n%1?1:0)}번과 비슷합니다.`
-     : diff>0 ? `지금 ${cur.src} 주 ${cur.n.toFixed(cur.n%1?1:0)}번인데 <b>${n}일은 ${Math.round(diff)}번 늘어납니다.</b> 막지는 않습니다. 앱의 의견은 첫 4주는 ${rec}~${rec+1}일로 시작하고 결산 때 늘리는 것입니다.`
-     : `지금 ${cur.src} 주 ${cur.n.toFixed(cur.n%1?1:0)}번보다 줄어듭니다. 줄이는 건 언제든 괜찮습니다.`;
+     ? `<b>좋아요.</b> 지금과 비슷해요.`
+     : diff>0 ? `<b>지금보다 ${Math.round(diff)}번 늘어요.</b> 처음엔 ${rec}~${rec+1}일 추천.`
+     : `지금보다 줄어요. 괜찮아요.`;
    const nextMon=addDays(weekMonday(todayStr()),7);
    return `<div class="obgrid c5" id="gN">${opts}</div>
      <div class="oblab">무슨 요일에</div><div class="daychips" id="gDays">${chips}</div>
-     ${dateField('gStart',d.start||null,'언제부터 시작',`비워두면 이번 주(오늘부터) 시작합니다.`,[['오늘',todayStr()],['내일',addDays(todayStr(),1)],['다음 주 월요일',nextMon]],true)}
+     ${dateField('gStart',d.start||null,'언제부터 시작',`비우면 오늘부터`,[['오늘',todayStr()],['내일',addDays(todayStr(),1)],['다음 주 월요일',nextMon]],true)}
      <div class="card tight" style="margin-top:14px;line-height:1.75;font-size:13px">
        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
          <span class="pill">달리는 날 ${n}</span><span class="pill fast">빠르게 뛰는 날 ${sh.hard}</span>
          <span class="pill rest">쉬는 날 ${7-n}${restD.length?' · '+restD.join('·'):''}</span></div>
        ${op}
-       <div class="meta" style="margin-top:8px">${n>=7?'매일 뛰면 하루는 회복조깅(리커버리런)으로 아주 가볍게 넣습니다.':
-         `쉬는 날(${restD.join('·')})은 <b>훈련 같은 휴식</b> — 잠·스트레칭 미션을 드리고, 지키면 약속 연속에 들어갑니다.`}</div>
-       <div class="meta" style="margin-top:6px">근거: 주 며칠이 좋은지는 연구로 정해지지 않았습니다 <span class="gr D">D</span> · 빠른 날은 2일까지, 나머지는 쉬운 날 <span class="gr B">B</span></div>
      </div>`; },
  wire(){
    $('gN').onclick=e=>{ const b=e.target.closest('[data-n]'); if(!b)return; GB.d.days=defDays(+b.dataset.n); gPaint(); };
@@ -5593,7 +5685,7 @@ const GSTEP=[
 
 /* ───── 4. 목표까지 가는 길 — 날짜까지 어려울 때만 ─────
    목표를 앱이 덮어쓰지 않는다. 가는 길을 고르게 한다. */
-{q:'목표까지<br>어떻게 갈까요?', s:'목표를 바꾸라는 게 아니라, 가는 길을 고르시라는 겁니다.',
+{q:'목표까지<br>어떻게 갈까요?', s:'',
  skip(){ const fz=feasible(gGoal()); return !(fz&&(fz.verdict==='short'||fz.verdict==='maybe')); },
  body(){ const g=gGoal(), fz=feasible(g); GB.fz=fz;
    if(!GB.d.path)GB.d.path='A';
@@ -5605,21 +5697,21 @@ const GSTEP=[
        <div><b class="num" style="color:var(--fast)">${fmtClock(fz.goalSec)}</b><i>목표</i></div>
        <div><b class="num">${fz.haveW}주</b><i>남은 기간</i></div></div>
      <div class="meta" style="margin:8px 2px 12px;line-height:1.7">${fz.verdict==='maybe'
-       ? `빠르게 오르면 닿고, 보통이면 조금 모자랍니다. 보통 실력 점수는 <b>4~6주에 1점</b> 오릅니다(Daniels, 경험칙 <span class="gr C">C</span>)${mine}.`
-       : `${fz.haveW}주로는 어렵습니다. 보통 실력 점수는 <b>4~6주에 1점</b> 오르는데(Daniels, 경험칙 <span class="gr C">C</span>), 이 목표는 ${fz.gap.toFixed(1)}점이 필요합니다${mine}.`}</div>
-     ${card('A','목표는 그대로, 계단으로','최종 목표는 홈에 그대로 둡니다. 이번 대회는 닿을 수 있는 기록으로 연습하고, 4주마다 다시 재서 다음 계단을 같이 정합니다.',
-        `<i>이번 대회 예상 ${fmtClock(r.lo)}~${fmtClock(r.hi)}</i><i>${fmtClock(fz.goalSec)} 예상 ${fmtYM(fz.dateFast)}~${fmtYM(fz.dateOk)}</i><i class="ok">다칠 위험 낮음</i>`)}
-     ${card('B','대회 날짜를 뒤로',`${fmtClock(fz.goalSec)}를 노릴 날짜를 ${fmtYM(fz.dateOk)} 이후로 잡습니다. 원래 대회는 연습 삼아 뜁니다.`,
-        `<i>약 ${fz.needWhi}주 — 4주씩 이어서 짭니다</i><i class="ok">다칠 위험 낮음</i>`)}
-     ${card('C','더 세게','빠르게 뛰는 날을 하나 늘리고 주간 거리를 3주 동안 10%씩 늘립니다.',
-        `<i>4주 안에 기록이 얼마나 더 줄지 근거 있는 숫자는 없음</i><i class="bad">다칠 위험 높아짐 <span class="gr B">B</span></i>`)}
-     ${card('D','대회 날만 목표 속도로 도전',`훈련은 A대로 하고, 대회 날엔 1km ${fmtPace(fz.goalSec/(g.m/1000))}로 안내합니다. 앱은 말리지만, 고르시면 그대로 안내합니다.`,
-        `<i class="bad">지금 실력보다 1km ${Math.round((fz.nowSec-fz.goalSec)/(g.m/1000))}초 빠름 — 후반에 크게 느려질 가능성 <span class="gr C">C</span></i>`)}`; },
+       ? `빠르면 닿고, 보통이면 조금 모자라요${mine}.`
+       : `${fz.haveW}주로는 어려워요 · ${fz.gap.toFixed(1)}점 필요 (보통 4~6주에 1점)${mine}.`}</div>
+     ${card('A','계단으로','목표는 두고, 닿을 기록부터 연습',
+        `<i>이번 대회 ${fmtClock(Math.min(r.lo,r.hi))}~${fmtClock(Math.max(r.lo,r.hi))}</i><i>${fmtClock(fz.goalSec)} 예상 ${fmtYM(fz.dateFast)}~${fmtYM(fz.dateOk)}</i><i class="ok">다칠 위험 낮음</i>`)}
+     ${card('B','날짜를 뒤로',`${fmtYM(fz.dateOk)} 이후로 미루기`,
+        `<i>약 ${fz.needWhi}주</i><i class="ok">다칠 위험 낮음</i>`)}
+     ${card('C','더 세게','빠른 날 +1 · 거리 +10%/주',
+        `<i class="bad">다칠 위험 높아짐 <span class="gr B">B</span></i>`)}
+     ${card('D','대회 날만 도전',`훈련은 A, 대회 날 1km ${fmtPace(fz.goalSec/(g.m/1000))}`,
+        `<i class="bad">1km ${Math.round((fz.nowSec-fz.goalSec)/(g.m/1000))}초 빠름 · 후반 무너질 수 있음</i>`)}`; },
  wire(){ $('gBody').onclick=e=>{ const b=e.target.closest('[data-p]'); if(!b)return; GB.d.path=b.dataset.p; GB.adj={}; gPaint(); }; },
  ok(){ return true; }},
 
 /* ───── 5. 일정 보기 + 직접 조절 ───── */
-{q:'이렇게<br>짜보았습니다', s:'숫자를 직접 바꿔도 됩니다. 바꿀 때마다 결과가 바로 바뀝니다.', next:'이 일정으로 하기',
+{q:'이렇게<br>짜보았습니다', s:'숫자는 직접 바꿀 수 있어요.', next:'이 일정으로 하기',
  body(){
    const g0=gGoal(), fz0=feasible(g0), g=gGoalEff(), fz=feasible(g), path=GB.d.path||'A';
    GB.adj=GB.adj||{};
@@ -5632,16 +5724,13 @@ const GSTEP=[
        ${path==='B'?`새 목표 날짜 ${fmtYM(g.date)} · `:''}연습 목표 <b>${fmtClock(p.ladder||fz0.goalSec)}</b> · 최종 목표 ${fmtClock(fz0.goalSec)}${path==='D'?` · 대회 날 1km ${fmtPace(fz0.goalSec/(g0.m/1000))} 안내`:''}</div>`;
    } else if(fz&&fz.verdict==='ok'){
      head=`<div class="note green" style="margin:0 0 12px;line-height:1.8">
-       <b>해볼 만합니다.</b> 지금 ${gdLabel(g.m)} ${fmtClock(fz.nowSec)} → 목표 ${fmtClock(fz.goalSec)}.
-       보통 ${fz.needWlo}~${fz.needWhi}주 걸리는데 ${fz.haveW}주 남았습니다.</div>`;
+       <b>해볼 만해요.</b> ${fmtClock(fz.nowSec)} → ${fmtClock(fz.goalSec)} · ${fz.haveW}주</div>`;
    } else if(fz&&fz.verdict==='already'){
      head=`<div class="note green" style="margin:0 0 12px;line-height:1.8">
-       <b>이미 그 기록을 낼 실력입니다.</b> 지금 ${gdLabel(g.m)}를 ${fmtClock(fz.nowSec)}에 뛸 수 있습니다.
-       더 높게 잡아도 됩니다.</div>`;
+       <b>이미 닿는 기록이에요.</b> 지금 ${fmtClock(fz.nowSec)} · 더 높여도 돼요.</div>`;
    } else if(fz&&fz.verdict==='noDate'){
      head=`<div class="note blue" style="margin:0 0 12px;line-height:1.8">
-       지금 ${gdLabel(g.m)} ${fmtClock(fz.nowSec)} → 목표 ${fmtClock(fz.goalSec)}.
-       보통 <b>${fz.needWlo}~${fz.needWhi}주쯤</b> 걸리는 거리입니다(경험칙 <span class="gr C">C</span>).</div>`;
+       ${fmtClock(fz.nowSec)} → ${fmtClock(fz.goalSec)} · 보통 <b>${fz.needWlo}~${fz.needWhi}주</b></div>`;
    }
    const w={1:0,2:0,3:0,4:0}; p.sessions.forEach(s=>{w[s.wk]=(w[s.wk]||0)+(s.dist||0);});
    const mx=Math.max(1,...[1,2,3,4].map(i=>w[i]));
@@ -5663,13 +5752,14 @@ const GSTEP=[
         <div style="display:flex;align-items:flex-end">${wkRow}</div></div>
       <div class="lbl" style="margin:16px 0 8px">첫 주는 이렇습니다</div>
       <div class="card tight" style="padding:2px 16px">${first}
-        ${restD.length?`<div class="srow"><span class="r">쉬는 날</span><span class="nm">${restD.join('·')} — 훈련 같은 휴식</span><span class="t"></span></div>`:''}</div>
-      ${gStairs(fz0)}
-      <div class="lbl" style="margin:16px 0 8px">왜 이렇게 되었나</div>
-      <div class="card tight"><ul style="margin:0;padding-left:17px;font-size:12.5px;line-height:1.95;color:var(--ink-2)">
-        ${p.why.map(x=>`<li>${x}</li>`).join('')}</ul></div>
-      ${disclaimBox(false)}
-      <label class="ack"><input type="checkbox" id="gAck"${GB.ack?' checked':''}> 위 내용을 읽었고, 일정은 제안일 뿐이며 몸 상태와 결과에 대한 책임이 나에게 있음을 확인합니다.</label>`;
+        ${restD.length?`<div class="srow"><span class="r">쉬는 날</span><span class="nm">${restD.join('·')}</span><span class="t"></span></div>`:''}</div>
+      <details class="bmore" style="margin-top:14px"><summary>왜 이렇게 짰나</summary>
+        ${gStairs(fz0)}
+        <ul style="margin:8px 0 0;padding-left:17px;font-size:12.5px;line-height:1.85;color:var(--ink-2)">
+        ${p.why.map(x=>`<li>${x}</li>`).join('')}</ul></details>
+      ${disclaimBox(true)}
+      <details class="bmore"><summary>안내 전문</summary>${disclaimBox(false)}</details>
+      <label class="ack"><input type="checkbox" id="gAck"${GB.ack?' checked':''}> 확인했어요 — 책임은 나에게 있어요</label>`;
  },
  wire(){ gOvWire(); const ak=$('gAck'); if(ak)ak.onchange=()=>{ GB.ack=ak.checked; };
    const box=$('gAdj'); if(!box)return;
@@ -5756,7 +5846,7 @@ function gStairs(fz){
 const DISCLAIM_T='이 훈련 일정은 제안일 뿐입니다';
 const DISCLAIM='가지런의 일정과 속도·심박·거리·시간은 공개된 연구와 경험칙을 바탕으로 정한 절차에 따라 계산해 제안하는 것뿐입니다. 의학적 진단이나 처방이 아니며, 개인의 건강 상태를 알고 만든 것이 아닙니다. 훈련을 할지, 얼마나 할지는 본인이 판단하며, 몸 상태와 능력 향상(또는 부상)에 대한 책임은 본인에게 있습니다. 통증·어지러움·가슴 답답함·숨이 비정상적으로 찰 때는 즉시 멈추고, 질환이 있거나 걱정되면 시작 전에 의사와 상의하세요.';
 function disclaimBox(small){ return small
-  ? `<div class="disc sm"><b>${DISCLAIM_T}</b> 몸 상태와 능력 향상에 대한 책임은 본인에게 있습니다. 통증·어지러움·가슴 답답함이 있으면 즉시 멈추세요.</div>`
+  ? `<div class="disc sm"><b>제안일 뿐이에요.</b> 몸 상태와 결과의 책임은 본인에게 있어요. 아프면 바로 멈추세요.</div>`
   : `<div class="disc" role="note"><b>${DISCLAIM_T}</b><p>${DISCLAIM}</p></div>`; }
 /* ───── 내 기준 직접 정하기 — 앱의 제안을 보여주고, 바꾸면 일정이 바로 다시 짜인다 ───── */
 function gOvBox(){
@@ -6464,14 +6554,15 @@ function quickGo(planned){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><span>${a.nm}</span></button>`).join('')}</div>
     <button type="button" class="qg-go" data-act="${last}" id="qgGo">${verb[last]} ▶</button>`;
   /* 계획 있는 날: 접힌 한 줄 → 누르면 종류 고르기 + 시작 버튼이 펼쳐진다 */
-  if(planned) return `<details class="qslim"><summary><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON.run}</svg></span>
+  if(planned) return `<div class="qrow"><span>그냥 뛰기</span>${Object.entries(ACTK).map(([k,a])=>`<button type="button" class="qr-a" data-act="${k}" aria-label="${a.nm} 바로 시작"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><i>${a.nm}</i></button>`).join('')}</div>`;
+  if(false) return `<details class="qslim"><summary><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON.run}</svg></span>
     <span><b>오늘은 그냥 뛰고 싶다면</b><i>계획 대신, 판정 없이 기록만 · 달리기 · 걷기 · 자전거 · 등산</i></span><em>열기</em></summary>
     <div class="qs-body">${acts}</div></details>`;
   let n=0; try{ n=(coachBasis().easy.n)||0; }catch(e){}
   return `<section class="hc qgo" aria-label="바로 뛰기">
-    <div class="qg-k">계획 없이, 오늘 그냥 움직이기</div>
+    <div class="qg-k">오늘 그냥 움직이기</div>
     ${acts}
-    <div class="qg-note">그냥 뛴 기록도 쌓여요 — 심박과 함께 뛴 기록으로 '내 몸 기준' 속도를 계산해서, 나중에 목표를 정하면 처음부터 내 몸에 맞춘 일정이 나와요.${n<3?` 지금 ${n}번 · ${3-n}번 더 쌓이면 시작돼요`:` 지금 ${n}번째 기록까지 반영됐어요`}</div>
+    <div class="qg-note">뛴 기록이 쌓일수록 내 몸에 맞춰져요${n<3?` · ${n}/3`:''}</div>
   </section>`;
 }
 function actTiles(){
@@ -6516,10 +6607,11 @@ function renderHome(){
 
   /* 오늘 무엇을 하는지는 바로 아래 카드에 있다 — 여기는 앱 이름과 로고 자리 */
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
-      <div class="hname"><b>가지런<span class="hada">하다</span></b><i>GAJI RUN</i></div>
-      ${st>=2?`<span class="streak">🔥 약속 ${st}번 연속</span>`:''}</div>`;
+      <div class="hname"><b>가지런<span class="hada">하다</span></b></div>
+      ${st>=2?`<span class="streak" title="약속 ${st}번 연속"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}</span>`:''}</div>`;
 
-  let h=goalTop();
+  /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
+  let h=goalStrip()+weekStrip();
   /* 몸 신호 · 못 한 날 · 물어볼 것 — 결정 카드로 */
   const sig=[]; const j=jumpInfo(); if(j)sig.push(['jump',`2주 사이 ${j.pct}% 늘었어요`,'다음 주 거리를 그대로 둘지 정하기']);
   if(rhrAlert())sig.push(['rhr','아침 심박이 평소 범위 위예요','오늘 훈련을 그대로 할지 정하기']);
@@ -6530,24 +6622,22 @@ function renderHome(){
   if(typeof reviewDue==='function'&&reviewDue())sig.push(['review','지난주 결산','지난주 약속을 돌아보고 이번 주 정하기']);
   /* 알림 — 왔다는 사실이 먼저 눈에 들어오게: 위쪽 종에 숫자, 홈 맨 위에 '새 알림 N' 묶음 */
   paintBell(pendingCount()+sig.length);
-  if(sig.length) h=`<section class="noti" aria-label="새 알림 ${sig.length}개">
-    <div class="noti-h"><span class="noti-dot" aria-hidden="true"></span><b>새 알림 ${sig.length}</b><span>지금 정하면 일정이 바로 맞춰져요</span></div>
+  if(sig.length===1) h=`<button type="button" class="noti1" data-sig="${sig[0][0]}"><span class="noti-dot" aria-hidden="true"></span><b>${ESC(sig[0][1])}</b><span class="sig-go">정하기</span></button>`+h;
+  else if(sig.length) h=`<details class="noti"><summary aria-label="새 알림 ${sig.length}개"><span class="noti-dot" aria-hidden="true"></span><b>알림 ${sig.length}</b><span class="noti-first">${ESC(sig[0][1])}</span><span class="noti-chev" aria-hidden="true">›</span></summary>
     ${('Notification' in window)&&Notification.permission==='default'?`<button type="button" class="noti-perm" id="notiPerm">휴대폰 알림창으로도 받기</button>`:''}
-    ${sig.map(s=>`<button class="sigc" data-sig="${s[0]}"><i class="sig-ic" aria-hidden="true">!</i><span class="sig-t"><b>${ESC(s[1])}</b><em>${s[2]}</em></span><span class="sig-go">정하기 ›</span></button>`).join('')}</section>`+h;   /* 알림은 목표보다 위 — 맨 먼저 보이게 */
+    ${sig.map(s=>`<button class="sigc" data-sig="${s[0]}"><i class="sig-ic" aria-hidden="true">!</i><span class="sig-t"><b>${ESC(s[1])}</b></span><span class="sig-go">정하기</span></button>`).join('')}</details>`+h;   /* 알림은 목표보다 위 — 맨 먼저 보이게 */
   sysNotify(sig);
 
   /* 오늘 카드 */
-  h+=`<div class="hsec">${sess?'오늘의 훈련':inP?'오늘은 쉬는 날':'오늘'}</div>`;
   if(sess) h+=todayCard(sess,idx);
   else if(inP) h+=restCard(today);
   else h+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
-      <span class="tchip">일정 없음</span><div class="ttl">내 목표로 일정을 만들어 볼까요?</div>
-      <div class="tds">목표와 일주일에 며칠 뛸지를 고르면, 쉬는 날까지 넣은 4주 일정을 만듭니다.</div>
-      <button class="tgo" id="hGoal">목표 정하고 일정 만들기 ▶</button></div></div>`;
+      <span class="tchip">일정 없음</span><div class="ttl">목표를 정하면<br>4주 일정을 짜드려요</div>
+      <button class="tgo" id="hGoal">목표 정하기</button></div></div>`;
 
   /* 계획 있는 날은 얇게, 계획 없는 사람은 크게. 쉬는 날은 쉬는 날 카드의 '그래도 뛰고 싶어요'가 맡는다 */
   if(sess) h+=quickGo(true); else if(!inP) h+=quickGo(false);
-  if(planned) h+=`<button class="btn ghost" id="homeGoal2" style="margin:12px 16px 0;width:calc(100% - 32px)">목표 · 일정 다시 짜기</button>`;
+  if(planned) h+=`<button class="hlink" id="homeGoal2">목표·일정 다시 짜기</button>`;
   h+=`<div id="alertBox" hidden></div><div id="propBox" hidden></div>`;
   $('hMain').innerHTML=h;
   wireHome(sess,idx);
@@ -6570,7 +6660,7 @@ function wireHome(sess,idx){
   const hg2=$('homeGoal2'); if(hg2)hg2.onclick=()=>goalStart();
   const go1=$('goToday'); if(go1)go1.onclick=()=>openConfirm(idx);
   const tdt=$('todayDet'); if(tdt)tdt.onclick=()=>openTodayPlan(idx);
-  m.querySelectorAll('.tcard .tshape').forEach(x=>{ x.style.cursor='pointer'; x.onclick=()=>openTodayPlan(idx); });
+  m.querySelectorAll('.tcard .tshape,[data-plan]').forEach(x=>{ x.style.cursor='pointer'; x.onclick=()=>openTodayPlan(idx); });
   const un=$('undoToday'); if(un)un.onclick=()=>undoPlanDay(sess.d);
   const de=$('distEdit'); if(de)de.onclick=()=>{ const b=$('distBox'); b.hidden=!b.hidden; };
   m.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{ const el=$('dVal'); el.value=Math.max(0.5,Math.round(((+el.value||0)+ +b.dataset.dd)*10)/10); });
@@ -6584,31 +6674,52 @@ function wireHome(sess,idx){
     setMis(t,k,c.checked); renderHome(); });
 }
 
+const IC={
+  clock:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/>',
+  pace:'<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/>',
+  heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  play:'<path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none"/>'};
+const ic=(k,sz)=>`<svg viewBox="0 0 24 24" width="${sz||18}" height="${sz||18}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+/* 오늘 훈련 모양 — 글 없이 막대로. 높을수록 빠르게, 폭은 시간 */
+function heroShape(sess,k1,k2){
+  const segs=sess.segs||[]; if(!segs.length)return '';
+  const durs=segDurs(sess), tot=durs.reduce((a,b)=>a+b,0)||1, W=300, H=56, gap=3; let x=0, bars='';
+  segs.forEach((g,i)=>{ const w=Math.max(3,durs[i]/tot*(W-gap*(segs.length-1)));
+    const warm=/준비|마무리|웜업|쿨다운/.test(g.nm), rest=/사이 쉬기|회복 조깅|걷/.test(g.nm);
+    const h=g.hard?H:warm?H*.34:rest?H*.22:H*.55;
+    bars+=`<rect x="${x.toFixed(1)}" y="${(H-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${g.hard?k2:k1}" opacity="${g.hard?1:.5}"/>`; x+=w+gap; });
+  return `<button type="button" class="hero-shape" data-plan="1" aria-label="오늘 계획 자세히 보기"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${bars}</svg></button>`;
+}
 function todayCard(sess,idx){
   const T=TYPES[sess.type]||{}, g0=GL[sess.type]||{e:'뛰기',t:''}, adj=ADJ[sess.type]||0;
   const main=sess.segs[sess.segs.length-1];
   const done=RUNS.some(x=>x.planId===sess.d);
-  const title = sess.reps ? `${kmLab(sess.repLen)}씩 ${g0.e}<br>${sess.reps}번` : `${g0.e} ${sess.dist}km`;
-  const pace = sess.reps ? fmtPace(sess.repTarget+adj) : rangeText(main.pace);
-  const _its = planItems(sess,adj), mins = _its.length ? Math.round(_its[_its.length-1].t1/60) : 0;   /* 자세히 보기·확인 화면과 같은 계산 */
+  const what = sess.reps ? `${kmLab(sess.repLen)} × ${sess.reps}` : '';
+  const pace = sess.reps ? fmtPace(sess.repTarget+adj) : (main.tol==='ceil'&&main.pace?fmtPace(main.pace[0])+'↓':rangeText(main.pace));
+  const _its=planItems(sess,adj), mins=_its.length?Math.round(_its[_its.length-1].t1/60):0;
   const edited = DIST[sess.d]!=null && Math.abs(DIST[sess.d]-BLOCK[idx].dist)>0.01;
   const [k1,k2]=hexes((LOOK[sess.type]||LOOK.free).bg);
-  return `<div class="tcard lite" style="--k1:${k1};--k2:${k2}"><div class="tin">
-    <div class="ttop"><span class="tchip">${T.nm||''}${sess.role?' · '+sess.role:''}</span></div>
-    <div class="ttl">${title}</div>
-    <div class="tds">${T.desc||''}</div>
-    ${basisLine(sess)}
-    ${shapeSVG(sess)}
-    <div class="tpills"><i>${pace} /km</i><i>${sess.dist} km${edited?' · 바꿈':''}</i>${mins?`<i>${mins}분쯤</i>`:''}${sess.ceiling?`<i>${fmtPace(sess.ceiling)}보다 느리게</i>`:''}</div>
-    <button type="button" class="tdet" id="todayDet"><b>오늘 계획 자세히 보기</b><span>항목별 · 1km씩 ›</span></button>
-    <div class="tgrow"><b>오늘 기르는 것</b> ${growLine(sess.type)}</div>
-    ${(()=>{ const tp=DEV.store.get('timePref',null); if(!tp||!['interval','threshold','goalpace','tt'].includes(sess.type)||(Date.now()-Date.parse(tp.at))>56*864e5)return '';
-      return `<div class="tgrow"><b>정한 것</b> 빠른 날 하나는 ${HGN[tp.k]||''}에 뛰어 보기 ${GRB('D')}</div>`; })()}
-    ${cadGoal(sess)?`<div class="tgrow"><b>정한 것</b> 발걸음 1분에 ${cadGoal(sess)}걸음 해보기 — 속도는 그대로 ${GRB('B')}</div>`:''}
-    <button class="tgo${done?' done':''}" id="goToday">${done?'오늘 완료 ✓ — 다시 하기':'시작하기 ▶'}</button>
-    <div class="tsub"><button id="distEdit">거리 바꾸기</button>${done?'<button id="undoToday">완료 취소</button>':''}</div>
+  const hz=T.hrZone&&T.hrZone[1]&&T.primary==='hr'?T.hrZone[1]:null;
+  const b=['recovery','easy','long'].includes(sess.type)?coachBasis():null;
+  return `<section class="hero" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
+    <svg class="hero-lanes" viewBox="0 0 400 220" preserveAspectRatio="none" aria-hidden="true"><path d="M-20 200 C120 200 160 40 420 30"/><path d="M-20 222 C130 222 175 62 420 52"/><path d="M-20 244 C140 244 190 84 420 74"/></svg>
+    <div class="hero-top"><span class="hero-chip"><i></i>${g0.e}${sess.role?' · '+ESC(sess.role):''}</span>
+      ${b?`<details class="hero-basis"><summary>${b.easy.src==='D'?'내 몸 기준':'임시 기준'}</summary><p>${b.easy.note}${b.easy.warn?'<br>'+b.easy.warn:''}</p></details>`:''}</div>
+    <div class="hero-km"><b class="num">${sess.dist}</b><span>km${edited?' · 바꿈':''}</span></div>
+    ${what?`<div class="hero-what">${what} · ${g0.e}</div>`:''}
+    ${heroShape(sess,k1,k2)}
+    <div class="hero-stats">
+      ${mins?`<span>${ic('clock')}<b class="num">${mins}</b>분</span>`:''}
+      <span>${ic('pace')}<b class="num">${pace}</b>/km</span>
+      ${hz?`<span>${ic('heart')}<b class="num">${hz}</b>↓</span>`:''}
+    </div>
+    <button class="hero-go${done?' done':''}" id="goToday">${done?ic('check',22)+'완료 · 다시':ic('play',22)+'시작'}</button>
+    <div class="hero-links"><button type="button" id="todayDet">계획 보기</button><button type="button" id="distEdit">거리 바꾸기</button>${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">바꾸면?</button></div>
-  </div></div>`;
+  </section>`;
 }
 /* 오늘 무엇을 기준으로 코칭하나 — 실측이 있으면 내 몸 기준, 없으면 임시 기준이라고 밝힌다 */
 function basisLine(sess){
@@ -6626,15 +6737,14 @@ function restCard(t){
   const wkRest=rdays.length, nth=rdays.filter(d=>d<=t).length;
   const prev=BLOCK.filter(x=>x.d.slice(0,10)<t&&x.type!=='off').slice(-1)[0];
   return `<div class="tcard rest" style="background:${LOOK.off.bg}">${symSVG('off')}<div class="tin">
-    <div class="ttop"><span class="tchip">쉬는 날 · 이번 주 ${wkRest}번 중 ${nth}번째</span></div>
-    <div class="ttl">쉬는 것도<br>훈련입니다</div>
-    <div class="tds">${prev?`${ESC(prev.t)}의 자극이 `:''}쉬는 동안 몸에 자리 잡습니다 ${GRB('C')}</div>
+    <div class="ttop"><span class="tchip">쉬는 날 ${nth}/${wkRest}</span></div>
+    <div class="ttl">쉬는 것도<br>훈련</div>
     <div class="mis">${MISSIONS.map(x=>`<label class="mrow"><input type="checkbox" data-mis="${x.k}"${m[x.k]?' checked':''}>
-      <span><b>${x.t}</b><i>${x.d} ${GRB(x.g)}</i></span></label>`).join('')}</div>
+      <span><b>${x.t}</b></span></label>`).join('')}</div>
     <div class="mprog"><span>회복 미션</span><i><em style="width:${nDone/MISSIONS.length*100}%"></em></i><b>${nDone}/${MISSIONS.length}</b></div>
   </div></div>
-  ${nx?`<div class="hc slim"><span class="nxic" style="background:${(LOOK[nx.type]||LOOK.free).bg}"></span><div><b>${dowOf(nx.d)}요일 · ${ESC(nx.t)}</b><i>오늘 아낀 힘으로</i></div></div>`:''}
-  <button class="btn ghost dashed" id="wantRun" style="margin:10px 16px 0;width:calc(100% - 32px)">그래도 뛰고 싶어요 →</button>`;
+  ${nx?`<div class="hc slim"><span class="nxic" style="background:${(LOOK[nx.type]||LOOK.free).bg}"></span><div><b>${dowOf(nx.d)}요일 · ${ESC(nx.t)}</b></div></div>`:''}
+  <button class="btn ghost dashed" id="wantRun" style="margin:10px 16px 0;width:calc(100% - 32px)">그래도 뛰기</button>`;
 }
 
 /* ───────── 홈 맨 위 — 나의 목표 · 지금 어디까지 ─────────
@@ -6717,6 +6827,62 @@ function goalTop(){
     <div class="gt-sub">${weekCard()}${fasterCard()}</div>
     </details>
   </section>`;
+}
+/* ───────── 목표 — 한 줄 + 트랙 레인. 레인 위를 가지가 달린다 ───────── */
+function laneHTML(pct,a,b){
+  return `<div class="lane" role="img" aria-label="${a}에서 ${b}까지 ${pct}%">
+    <i class="lane-l"></i><i class="lane-l"></i><i class="lane-fill" style="width:${pct}%"></i>
+    <em style="left:${pct}%">${brandSVG({body:'#5B2D86',lane:'#FFFFFF',cap:'#8DB89A',small:true})}</em>
+    <u aria-hidden="true">${ic('flag',14)}</u></div>
+    <div class="lane-ends"><span>${a}</span><span>${b}</span></div>`;
+}
+function goalStrip(){
+  const p=planProgress(), g=(PLAN&&PLAN.goal)||GOAL;
+  let title='', side='', sub='', pct=0, a='', b='', more='';
+  if(g&&g.kind==='aero'&&g.aero){ const x=g.aero, sp=x.mode==='speed';
+    const cur=sp?aeroPaceAt(x.hrCap):aeroHrAt(x.ref), nowV=sp?cur.pace:cur.hr, v0=sp?x.pace0:x.hr0, vT=sp?x.paceT:x.hrT, f=v=>sp?fmtPace(v):String(v);
+    pct=nowV!=null?Math.max(0,Math.min(100,Math.round((v0-nowV)/Math.max(1,v0-vT)*100))):0;
+    title=sp?`♥${x.hrCap}에서 ${fmtPace(vT)}`:`${fmtPace(x.ref)}에서 ♥${vT}`; side=nowV!=null?`지금 ${f(nowV)}`:''; sub=sp?'편한 달리기 · 속도':'편한 달리기 · 심박';
+    a=f(v0); b=f(vT);
+  } else if(g&&g.m&&(g.final||g.sec)){
+    const goalSec=g.final||g.sec, fz=feasible(Object.assign({},g,{sec:goalSec})); if(!fz)return '';
+    const L=gdLabel(g.m), now=fz.nowSec, dd=p&&p.gd!=null&&p.gd>=0?p.gd:null;
+    const h=(PROF.vhist||[]).filter(x=>x&&x.v), v0=h.length?h[0].v:VDOT, st0=Math.round(raceTime(v0,g.m)*60);
+    pct=Math.max(0,Math.min(100,Math.round((st0-now)/Math.max(1,st0-goalSec)*100)));
+    title=`${L} ${fmtClock(goalSec)}`; side=dd!=null?`D-${dd}`:''; a=`지금 ${fmtClock(now)}`; b=fmtClock(goalSec);
+    if(g.date&&dd!=null&&fz.reach&&fz.haveW!=null&&!(fz.verdict==='already'||fz.verdict==='ok')){ const r=fz.reach(fz.haveW);
+      sub=`이번 대회 ${fmtClock(Math.min(r.lo,r.hi))}~${fmtClock(Math.max(r.lo,r.hi))}`; }
+    else if(fz.needWlo!=null&&fz.verdict!=='already') sub=`약 ${fz.needWlo}~${fz.needWhi}주`;
+    const steps=[]; if(fz.reach&&fz.gap>0){ for(let w=0;w<=96&&steps.length<12;w+=4){ const r=fz.reach(w); steps.push({w,sec:Math.round((r.lo+r.hi)/2)}); if(r.lo<=goalSec)break; } }
+    const sp2=Math.max(1,now-goalSec);
+    if(steps.length>1) more=`<div class="gst2">${steps.map((x,i)=>`<i class="${i===0?'now':''}" style="height:${Math.max(8,Math.min(100,(now-x.sec)/sp2*100+8)).toFixed(0)}%"><span>${i===0?'지금':x.w+'주'}</span></i>`).join('')}</div>`;
+  } else if(p){ title=g?goalLabel(g):'내 일정'; pct=p.pct; side=`${p.day}/${p.total}일`; a='시작'; b='끝'; }
+  else return '';
+  return `<section class="gstrip" aria-label="나의 목표">
+    <div class="gs-row"><span class="gs-ic">${ic('flag',16)}</span><b class="num">${title}</b>${side?`<span class="gs-side num">${side}</span>`:''}</div>
+    ${sub?`<div class="gs-sub">${sub}</div>`:''}
+    ${laneHTML(pct,a,b)}
+    <details class="gs-more"><summary>자세히</summary>${more}${p?`<div class="gt-plan"><span>일정 <b>${p.day}</b>/${p.total}일</span><span>훈련 <b>${p.done}</b>/${p.n}번</span></div>`:''}${fasterCard()}
+      <button type="button" class="gt-more-btn" data-mygoal="1">내 목표 자세히 보기</button></details>
+  </section>`;
+}
+/* ───────── 이번 주 — 7일 막대. 높이 = 거리, 색 = 훈련 종류, 체크 = 완료 ───────── */
+function weekStrip(){
+  if(!BLOCK.length)return '';
+  const t=todayStr(), mon=weekMonday(t);
+  const days=[0,1,2,3,4,5,6].map(i=>{ const d=addDays(mon,i), ix=BLOCK.findIndex(x=>x.d.slice(0,10)===d&&x.type!=='off'), s=ix>=0?sessionOf(ix):null;
+    return {d,s,km:s?(s.dist||0):0,ran:dayKm(d),st:dayStatus(d)}; });
+  const mx=Math.max(1,...days.map(x=>Math.max(x.km,x.ran)));
+  const planKm=days.reduce((a,x)=>a+x.km,0), ranKm=days.reduce((a,x)=>a+x.ran,0);
+  const cells=days.map(x=>{ const col=x.s?hexes((LOOK[x.s.type]||LOOK.free).bg)[0]:'var(--line)';
+    const done=['kept','free','over','under'].includes(x.st)||x.ran>0, miss=x.st==='missed'||x.st==='missedOk';
+    const h=Math.max(x.km,x.ran)/mx*100;
+    const mark=done?ic('check',12):miss?'×':(!x.s&&x.d<=t&&inPlan(x.d))?ic('moon',11):'';
+    return `<div class="wk-d${x.d===t?' now':''}${done?' done':''}${miss?' miss':''}" title="${dowOf(x.d)} ${x.s?ESC(x.s.t):'쉬는 날'}">
+      <div class="wk-bar">${h?`<i style="height:${Math.max(10,h).toFixed(0)}%;background:${col}"></i>`:''}<span>${mark}</span></div><b>${dowOf(x.d)}</b></div>`; }).join('');
+  return `<section class="wstrip" aria-label="이번 주 ${ranKm.toFixed(1)}km / ${planKm.toFixed(0)}km">
+    <div class="ws-h"><b>이번 주</b><span class="num"><b>${ranKm.toFixed(1)}</b> / ${planKm.toFixed(0)} km</span></div>
+    <div class="ws-days">${cells}</div></section>`;
 }
 /* 목표 계단 (예전 카드 — 홈에서는 goalTop이 대신한다) */
 function goalCard(){
@@ -7065,7 +7231,7 @@ function renderResult(host,r,s){
   if(reps.length>=2){
     const ps=reps.map(g=>g.pace), lo=Math.min(...ps,tgt||1e9)-8, hi=Math.max(...ps,tgt||0)+8, span=hi-lo||1;
     const Y=p=>((p-lo)/span*100);
-    repsH=`<div class="rh"><b>회차별 속도</b><span>막대가 짧을수록 빠름 · 띠 = 목표 ±3초</span></div>
+    repsH=`<div class="rh"><b>회차별 속도</b><span></span></div>
       <div class="repbars">${tgt?`<i class="band" style="bottom:${(100-Y(tgt+3)).toFixed(1)}%;height:${(6/span*100).toFixed(1)}%"></i>`:''}
       ${reps.map((g,i)=>`<div class="rb"><em>${fmtPace(g.pace)}</em><span class="${g.pass===false?'bad':''}" style="height:${Math.max(8,100-Y(g.pace)).toFixed(1)}%"></span><i>${i+1}회</i></div>`).join('')}</div>`;
   }
@@ -7084,15 +7250,14 @@ function renderResult(host,r,s){
     ${r.learnNote||r.drift?`<div class="tbasis" style="margin:12px 0 0"><b>실시간 맞춤 코칭</b>${r.drift?`<span>${r.drift.bpm>0?`같은 속도에서 심박이 ${r.drift.bpm} 올랐어요 (${fmtClock(r.drift.at)}쯤). 다음 쉬운 날은 조금 더 천천히 시작해요.`:''}</span>`:''}${r.learnNote?`<span>${ESC(r.learnNote)}</span>`:''}</div>`:''}
     ${pr.rows.length?`<div class="dl">약속 ↔ 결과</div><div class="dbox">${pr.rows.map(x=>`<div class="dr"><span>${x[0]}</span><b class="${x[2]}">${x[1]}</b></div>`).join('')}</div>`:''}
     ${repsH?`<div class="rcard">${repsH}</div>`:''}
-    ${segs?`<div class="rcard"><div class="rh"><b>구간표</b><span>계획 대비</span></div><div class="sgh"><span>구간</span><span>거리</span><span>속도</span><span>차이</span></div>${segs}</div>`:''}
-    ${splits?`<div class="rcard"><div class="rh"><b>1km마다 (스플릿)</b><span>막대가 길수록 빠름</span></div>${splits}</div>`:''}
+    ${segs?`<div class="rcard"><div class="rh"><b>구간표</b><span></span></div><div class="sgh"><span>구간</span><span>거리</span><span>속도</span><span>차이</span></div>${segs}</div>`:''}
+    ${splits?`<div class="rcard"><div class="rh"><b>1km마다</b><span></span></div>${splits}</div>`:''}
     ${r.breath&&r.breath.length?`<div class="rcard"><div class="rh"><b>호흡 실험 · 구간별</b><span>편함 1(힘듦)~5(편함)</span></div>
       ${r.breath.map((b,i)=>`<div class="bcomf"><b class="num">${b.ratio}</b><span style="font-size:11.5px;color:var(--ink-2)">${b.pace?fmtPace(b.pace):'—'} · ${b.hr?'♥'+b.hr:'심박 없음'}</span>
         <span><span class="cs">${[1,2,3,4,5].map(n=>`<button data-bc="${i}:${n}" class="${b.comfort===n?'on':''}">${n}</button>`).join('')}</span>
         <label><input type="checkbox" data-bs="${i}"${b.stitch?' checked':''}>결림</label></span></div>`).join('')}</div>`:''}
     <div class="rsZones"></div>
-    ${GROWS[r.type]?`<div class="rcard grow1"><b>오늘 기른 것</b> ${GROWS[r.type].g.map(x=>`${x[0]} ${GRB(x[1])}`).join(' · ')}</div>`:''}
-    <button class="btn ghost" data-rs="share">사진으로 공유하기</button>`;
+        <button class="btn ghost" data-rs="share">사진으로 공유하기</button>`;
   paintZones(host.querySelector('.rsZones'),r.zones,T);
   paintMap(host.querySelector('.rmap'),r.track,r.segments);
   host.querySelector('[data-rs="share"]').onclick=()=>openShare(r,s);
@@ -7999,7 +8164,7 @@ function planKms(its){
   }
   return out;
 }
-function planDetailHTML(s,adj,mode){
+function planDetailHTML(s,adj,mode,compact){
   const its=planItems(s,adj);
   const kinds=[]; its.forEach(x=>{ if(!kinds.some(k=>k.nm===x.kind.nm))kinds.push(x.kind); });
   const tabs=`<div class="ltabs pdtabs"><button type="button" data-pdm="item" class="${mode!=='km'?'on':''}">항목별</button><button type="button" data-pdm="km" class="${mode==='km'?'on':''}">거리별 (1km씩)</button></div>`;
@@ -8021,109 +8186,75 @@ function planDetailHTML(s,adj,mode){
             ? `<b class="ceil">${fmtPace(k.parts[0].it.p[0])}보다 느리게</b>`
             : `<b>${fmtPace(k.sec/k.len)}</b>`}<i>${k.parts.length===1&&k.parts[0].it.g.tol==='ceil'?'예상 ':''}${fmtClock(k.sec)} · 누적 ${fmtClock(k.cum)}</i></span></div>`; }).join('');
   } else {
-    rows=pdOverview(s,its)+its.map((x,j)=>`<details class="pdx${x.g.hard?' hard':''}"${j===its.findIndex(y=>y.g.hard)?' open':''}><summary class="pdr${x.g.hard?' hard':''}"><span class="n">${j+1}</span>
+    rows=(compact?'':pdOverview(s,its))+its.map((x,j)=>`<details class="pdx${x.g.hard?' hard':''}"${j===its.findIndex(y=>y.g.hard)?' open':''}><summary class="pdr${x.g.hard?' hard':''}"><span class="n">${j+1}</span>
       <span class="m"><b><em style="background:${x.kind.c}"></em>${x.g.nm}</b><i>${x.g.end==='time'?`${fmtClock(x.g.sec||60)} 동안`:kmLab(+x.km.toFixed(2))} · ${+x.from.toFixed(2)}→${+x.to.toFixed(2)}km</i></span>
       <span class="v"><b>${x.ptxt}</b><i>${fmtClock(x.dur)} · 누적 ${fmtClock(x.t1)}</i></span></summary>${pdDetail(s,its,j)}</details>`).join('');
   }
   const hasCeil=its.some(x=>x.g.tol==='ceil'&&!x.g.hard&&x.kind.k!=='rest'), T=TYPES[s.type]||{};
-  const hrNote = hasCeil&&T.primary==='hr'&&T.hrZone&&T.hrZone[1] ? ` '느리게'라고 적힌 구간은 그보다 느린 건 얼마든 괜찮아요. 심박계가 있으면 속도보다 심박 ${T.hrZone[1]} 아래가 기준이에요.` : hasCeil ? ` '느리게'라고 적힌 구간은 그보다 느린 건 얼마든 괜찮아요.` : '';
-  return tabs+leg+rows+disclaimBox(true)+`<div class="pdnote">시간은 목표 속도의 가운데로 잡은 예상입니다.${mode==='km'?' 구간이 바뀌는 1km는 각 구간의 속도를 차례로 보여 줍니다.':''}${hrNote}</div>`;
+  const hrNote = hasCeil&&T.primary==='hr'&&T.hrZone&&T.hrZone[1] ? `심박계가 있으면 ♥${T.hrZone[1]} 아래가 기준` : '';
+  return tabs+leg+rows+disclaimBox(true)+(hrNote?`<div class="pdnote">${hrNote}</div>`:'');
 }
 /* ───────── 항목별 자세히 — 구간마다 왜·얼마나·어떤 느낌·어떻게·앱은 무엇을 ─────────
    숫자는 모두 구간 데이터(pace·tol·to·sec)와 TYPES·PACE·VOPT에서 계산한다. 앱 동작 설명은
    voiceTick·checkOff·onTick에 실제로 있는 것만 쓴다. */
 const kmh=p=>(3600/p).toFixed(1);
+/* 느낌 — 말하기 정도와 힘든 정도(10칸) */
 const FEEL={
-  warm:['대화가 편하게 되는 정도','2~3'], cool:['대화가 편하게 되는 정도','2~3'], rest:['숨을 고르는 정도','2'],
-  recovery:['콧노래가 나올 만큼 편하게','2'], easy:['옆 사람과 대화가 되는 정도','3~4'], long:['대화가 되는 정도 — 후반에도','3~5'], free:['편한 대로','—'],
-  threshold:['짧은 문장만 말할 수 있는 정도. 벅차지만 20분은 버틸 수 있는 느낌','7'],
-  interval:['몇 단어만 겨우 말할 수 있는 정도','8~9'], goalpace:['대회 날 그 속도의 느낌','6~7'], mpace:['대회 날 그 속도의 느낌','6~7'],
-  rep:['아주 빠르지만 힘을 뺀 채로, 짧게','9'], stride:['빠르지만 힘을 뺀 채로','8'], hill:['오르막을 힘 있게','8'], tt:['힘껏, 고르게 나눠서','9~10']};
+  warm:['대화 편함',3], cool:['대화 편함',3], rest:['숨 고르기',2],
+  recovery:['콧노래 가능',2], easy:['대화 가능',3], long:['대화 가능',4], free:['편한 대로',3],
+  threshold:['짧은 문장만',7], interval:['몇 단어만',8], goalpace:['대회 그 느낌',7], mpace:['대회 그 느낌',6],
+  rep:['아주 빠르게, 힘 빼고',9], stride:['빠르게, 힘 빼고',8], hill:['힘 있게',8], tt:['힘껏, 고르게',9]};
+const rpeBar=n=>`<span class="rpe" role="img" aria-label="힘든 정도 ${n}/10">${[1,2,3,4,5,6,7,8,9,10].map(i=>`<i class="${i<=n?(n>=7?'h':'on'):''}"></i>`).join('')}<b>${n}</b></span>`;
 function pdOverview(s,its){
-  const T=TYPES[s.type]||{}, g=GL[s.type]||{}, hard=its.filter(x=>x.g.hard), tot=its.length?its[its.length-1].t1:0;
+  const hard=its.filter(x=>x.g.hard), tot=its.length?its[its.length-1].t1:0;
   const hp=hard.length&&hard[0].p?rangeText(hard[0].p):'';
-  const rule = s.type==='threshold'&&hard.length ? `${hard.length}세트 모두 ${hp} 안에서 고르게 — 첫 세트를 빠르게 시작하지 않는 게 핵심이에요`
-    : s.type==='interval'&&hard.length ? `${hard.length}회 모두 ${hp} — 마지막 회차가 첫 회차보다 늦어지지 않게 나눠 쓰세요`
-    : (s.type==='goalpace'||s.type==='mpace')&&hard.length ? `목표 속도 ${hp}를 몸에 익히는 날 — 더 빨리 뛰면 연습이 아니라 시험이 돼요`
-    : s.type==='recovery' ? `속도보다 몸이 편한 게 기준이에요. ${T.hrZone&&T.hrZone[1]?`심박계가 있으면 ${T.hrZone[1]} 아래, 없으면 `:''}${s.ceiling?fmtPace(s.ceiling)+'보다 느리게':'숨이 차지 않게'}`
-    : s.type==='easy' ? `대화가 되는 속도로 끝까지. ${T.hrZone&&T.hrZone[1]?`심박 ${T.hrZone[1]} 아래가 기준이에요`:''}`
-    : s.type==='long' ? `거리를 채우는 게 목표예요. 처음부터 끝까지 같은 속도로, 후반에 빨라지지 않게`
-    : s.type==='tt' ? `힘껏 뛰어 지금 실력을 재요 — 앞에서 다 쓰지 말고 고르게 나눠야 정확해요`
+  const T=TYPES[s.type]||{};
+  const rule = s.type==='threshold'&&hard.length ? `${hard.length}세트 모두 ${hp} — 첫 세트를 빠르게 시작하지 않기`
+    : s.type==='interval'&&hard.length ? `${hard.length}회 모두 ${hp} — 마지막까지 고르게`
+    : (s.type==='goalpace'||s.type==='mpace')&&hard.length ? `목표 속도 ${hp} 익히기 — 더 빠르면 시험이 돼요`
+    : s.type==='recovery' ? (T.hrZone&&T.hrZone[1]?`♥ ${T.hrZone[1]} 아래 · 숨이 차지 않게`:'숨이 차지 않게')
+    : s.type==='easy' ? (T.hrZone&&T.hrZone[1]?`♥ ${T.hrZone[1]} 아래 · 대화되는 속도`:'대화되는 속도')
+    : s.type==='long' ? '처음부터 끝까지 같은 속도로'
+    : s.type==='tt' ? '고르게 나눠 힘껏'
     : (T.primaryLabel||'');
   const hk=hard.reduce((a,x)=>a+x.km,0);
-  return `<div class="pdo"><div class="pdo-k">오늘 훈련의 핵심</div>
-    <div class="pdo-t">${g.d?ESC(g.d):''}</div>
-    ${GROWS[s.type]?`<div class="pdo-g"><b>기르는 것</b> ${growLine(s.type)}</div>`:''}
-    <div class="pdo-r"><b>오늘의 약속</b> ${rule}</div>
-    <div class="pdo-n"><span>${s.dist}km · 약 ${Math.round(tot/60)}분</span>${hk?`<span>빠르게 ${+hk.toFixed(1)}km (${hard.length}번)</span>`:''}<span>구간을 누르면 자세히 볼 수 있어요</span></div></div>`;
+  return `<div class="pdo"><div class="pdo-r">${ic('flag',15)}<b>${rule}</b></div>
+    <div class="pdo-n"><span>${ic('pace',14)}${s.dist}km</span><span>${ic('clock',14)}${Math.round(tot/60)}분</span>${hk?`<span class="f">${+hk.toFixed(1)}km 빠르게</span>`:''}</div></div>`;
 }
 function pdDetail(s,its,j){
-  const x=its[j], g=x.g, k=x.kind.k, T=TYPES[s.type]||{}, nxt=its[j+1], prv=its[j-1];
-  const hardIx=its.filter(y=>y.g.hard).indexOf(x), nHard=its.filter(y=>y.g.hard).length;
-  const p=x.p, Rc=TYPES.recovery&&TYPES.recovery.hrZone;
-  /* 회복조깅 날은 준비·마무리도 회복 상한으로, 다른 날은 편함(Z2) 상한으로 */
-  const E=s.type==='recovery'&&Rc?Rc:(TYPES.easy&&TYPES.easy.hrZone);
-  const L=[];
-  /* 목적 */
-  let why='';
-  if(k==='warm') why=`심박을 천천히 올리고 다리 근육과 힘줄을 데워요.${nxt&&nxt.g.hard?' 데우지 않고 바로 빠르게 들어가면 첫 세트에서 숨이 먼저 차고 속도가 흔들려요.':''}`;
-  else if(k==='fast') why=`오늘의 핵심 자극이에요. ${GROWS[s.type]?growLine(s.type):''}`;
-  else if(k==='rest') why=`심박을 내려서 다음 세트를 같은 속도로 뛸 수 있게 해요. 짧게 쉬는 대신 멈추지 않고 이어 가는 게 이 훈련의 설계예요.`;
-  else if(k==='cool') why=`심박과 호흡을 천천히 내려요. 빠르게 뛰다 갑자기 멈추면 어지러울 수 있어요.`;
-  else why=(GL[s.type]&&GL[s.type].d?GL[s.type].d+'. ':'')+(GROWS[s.type]?growLine(s.type):'');
-  L.push(['목적',why]);
-  /* 목표 */
-  const tg=[];
-  if(p){
-    tg.push(`${rangeText(p)} /km (시속 ${kmh(p[1])}~${kmh(p[0])}km)`);
-    if(g.end==='time'){ const d0=(g.sec||60)/p[1], d1=(g.sec||60)/p[0];
-      tg.push(`${fmtClock(g.sec||60)} 동안 · 이 속도면 ${Math.round(d0*1000/10)*10}~${Math.round(d1*1000/10)*10}m를 가요 — 거리는 그때그때 달라도 괜찮아요`); }
-    else if(x.km>0) tg.push(`${kmLab(+x.km.toFixed(2))}에 ${fmtClock(x.km*p[0])}~${fmtClock(x.km*p[1])}`);
-  } else if(g.hard) tg.push('정해진 속도 없음 — 낼 수 있는 만큼 고르게');
-  else tg.push(s.ceiling?`${fmtPace(s.ceiling)}보다 느리게`:'편한 속도');
-  if(g.tol==='ceil') tg.push(`빠른 쪽만 지키면 돼요 — ${p?fmtPace(p[0]):''}보다 느린 건 괜찮아요`);
-  else if(typeof g.tol==='number') tg.push(`목표 범위에서 ${g.tol}초 넘게 벗어나면 안내해요`);
-  /* 심박 */
-  if(g.hard&&T.hrZone&&T.hrZone[0]) tg.push(`심박은 세트 후반에 ${T.hrZone[0]}~${T.hrZone[1]} 근처까지 올라가요 (심박은 30~60초 늦게 따라와요)`);
-  else if(k==='main'&&T.hrZone&&T.hrZone[1]) tg.push(`심박 ${T.hrZone[1]} 아래${T.primary==='hr'?' — 오늘은 이게 1순위 기준이에요':''}`);
-  else if(!g.hard&&E&&E[1]) tg.push(k==='rest'?`심박은 다음 세트 전까지 ${E[1]} 아래로`:`심박 ${E[1]} 아래`);
-  L.push(['목표',tg.join('<br>')]);
-  /* 느낌 */
-  const fk=k==='fast'||k==='main'?s.type:k, f=FEEL[fk]||FEEL.easy;
-  L.push(['느낌',`${f[0]} · 힘든 정도 ${f[1]}/10`]);
-  /* 이렇게 뛰세요 */
-  let tips=[];
-  if(k==='warm') tips=['처음 500m는 범위의 느린 쪽으로 시작하세요', nxt&&nxt.g.hard?'마지막 200~300m는 조금씩 속도를 올려 다음 세트 속도를 몸에 미리 알려 주세요':'몸이 풀리면 자연스럽게 범위 안으로 들어오면 돼요'];
-  else if(k==='fast'&&hardIx===0) tips=['처음 200~300m가 가장 빨라지기 쉬워요. 범위의 느린 쪽으로 들어가세요','어깨와 손에 힘을 빼고 발걸음은 짧고 빠르게'];
-  else if(k==='fast'&&hardIx===nHard-1) tips=['마지막이라고 앞 세트보다 빨리 가지 마세요 — 오늘의 목표는 고른 세트예요','후반에 자세가 무너지기 쉬워요. 팔치기로 리듬을 잡고 상체를 세우세요'];
-  else if(k==='fast') tips=['앞 세트와 같은 속도가 목표예요 — 더 빨리 뛰지 않기','숨이 거칠어져도 리듬을 일정하게, 상체는 곧게'];
-  else if(k==='rest') tips=['멈추지 말고 아주 천천히 뛰거나 걸으세요','다음 세트 30초 전에는 호흡을 정돈하세요'];
-  else if(k==='cool') tips=['범위의 느린 쪽으로, 심박이 내려오는 걸 느끼면서 뛰세요','기록이 끝난 뒤 2~3분 걷기로 마무리하세요'];
-  else if(s.type==='recovery') tips=['숨이 차면 너무 빠른 거예요 — 걸어도 괜찮아요','오르막에서는 속도 말고 숨과 심박을 지키세요'];
-  else if(s.type==='long') tips=['처음 3km는 일부러 느리게 — 후반에 남겨 둔 만큼 편해져요','5km마다 물을 조금씩, 날이 더우면 더 자주'];
-  else tips=['대화가 끊기면 속도를 늦추세요','후반에 같은 속도인데 숨이 차오르면 조금 내리세요'];
-  L.push(['이렇게 뛰세요',tips.map(t=>'· '+t).join('<br>')]);
-  /* 앱이 이렇게 도와줘요 — 실제로 있는 동작만 */
+  const x=its[j], g=x.g, k=x.kind.k, T=TYPES[s.type]||{}, nxt=its[j+1];
+  const hard=its.filter(y=>y.g.hard), hardIx=hard.indexOf(x), nHard=hard.length, p=x.p;
+  const Rc=TYPES.recovery&&TYPES.recovery.hrZone, E=s.type==='recovery'&&Rc?Rc:(TYPES.easy&&TYPES.easy.hrZone);
+  /* 목표 — 숫자만 */
+  const chips=[];
+  if(p){ if(g.end==='time'){ const d0=(g.sec||60)/p[1], d1=(g.sec||60)/p[0]; chips.push(`${ic('pace',13)}${Math.round(d0*100)*10}~${Math.round(d1*100)*10}m`); }
+    else if(x.km>0) chips.push(`${ic('clock',13)}${fmtClock(x.km*p[0])}~${fmtClock(x.km*p[1])}`); }
+  if(g.hard&&T.hrZone&&T.hrZone[0]) chips.push(`${ic('heart',13)}${T.hrZone[0]}~${T.hrZone[1]}`);
+  else if(!g.hard&&E&&E[1]) chips.push(`${ic('heart',13)}${E[1]}↓`);
+  if(g.tol==='ceil'&&p) chips.push(`${fmtPace(p[0])}보다 느리면 OK`);
+  else if(typeof g.tol==='number') chips.push(`±${g.tol}초`);
+  /* 요령 하나 */
+  const tip = k==='warm' ? (nxt&&nxt.g.hard?'마지막 200m만 살짝 올리기':'느린 쪽에서 시작')
+    : k==='fast'&&hardIx===0 ? '처음 300m를 참기 — 범위의 느린 쪽으로'
+    : k==='fast'&&hardIx===nHard-1 ? '앞 세트와 같은 속도로, 자세 유지'
+    : k==='fast' ? '앞 세트와 같은 속도'
+    : k==='rest' ? '멈추지 말고 천천히 — 걸어도 OK'
+    : k==='cool' ? '느린 쪽으로, 끝나고 2~3분 걷기'
+    : s.type==='recovery' ? '숨이 차면 걷기' : s.type==='long' ? '처음 3km는 일부러 느리게' : '대화가 끊기면 늦추기';
+  /* 앱이 하는 일 — 아이콘 칩으로 */
   const ap=[];
-  if(nxt&&nxt.g.hard&&VOPT.pre) ap.push(g.end==='time'?'다음 세트 30초·10초 전에 미리 알려요':'다음 세트 300m·100m 전에 미리 알려요');
-  if(nxt&&nxt.g.hard&&VOPT.count) ap.push('출발 5초 전부터 삐 소리와 5·4·3·2·1');
-  if(g.hard){
-    if(VOPT.quiet20) ap.push('시작 20초는 교정하지 않아요 — 속도가 아직 안 잡히는 구간이에요');
-    if(typeof g.tol==='number') ap.push(`목표 범위에서 ${g.tol}초 넘게 벗어나면 "조금 빠릅니다/느립니다" — 15초에 한 번까지만`);
-    if(VOPT.half&&g.end!=='time'&&x.km>=0.5) ap.push('"절반 왔습니다", "100미터 남았습니다"');
-    if(VOPT.half&&g.end==='time'&&(g.sec||0)>=60) ap.push('"절반 왔습니다"');
-    ap.push('끝나면 그 세트의 평균 속도와 다음 구간을 알려요');
-  }
-  if(g.end==='time'&&!g.hard) ap.push(`${fmtClock(g.sec||60)}가 지난 지점에서 다음 구간이 시작되고, 다음 세트 거리는 거기서부터 다시 재요`);
-  if(!g.hard&&T.primary==='hr'&&k==='main'){
-    ap.push(`심박계가 있으면 심박이 기준: 심박이 ${T.hrZone&&T.hrZone[1]?T.hrZone[1]:'상한'} 위로 25초 넘게 가면 얼마나 늦추면 되는지 알려요. 심박이 괜찮으면 속도가 느려도 재촉하지 않아요`);
-    ap.push('같은 속도인데 심박이 6 넘게 오르면(표류) 알려요');
-    if(s.ceiling) ap.push(`심박계가 없으면 ${fmtPace(s.ceiling)}보다 빠를 때 알려요`);
-    try{ const b=coachBasis(); ap.push(`실시간 맞춤 코칭: ${b.easy.note}`); }catch(e){}
-  } else if(!g.hard&&k==='main'&&s.ceiling) ap.push(`${fmtPace(s.ceiling)}보다 빠르면 알려요`);
-  if(!g.hard&&(k==='main'||k==='cool'||k==='warm')) ap.push(VOPT.kmBuzzOnly&&s.reps?'1km마다 진동만 — 세트 안내와 겹치지 않게':'1km마다 속도와 판정을 음성으로 알려요');
-  if(ap.length) L.push(['앱이 이렇게 도와줘요',ap.map(t=>'· '+t).join('<br>')]);
-  return `<div class="pdd">${L.map(r=>`<div class="pdd-r"><b>${r[0]}</b><div>${r[1]}</div></div>`).join('')}</div>`;
+  if(nxt&&nxt.g.hard&&VOPT.pre) ap.push(g.end==='time'?'30·10초 전 예고':'300·100m 전 예고');
+  if(nxt&&nxt.g.hard&&VOPT.count) ap.push('5·4·3·2·1');
+  if(g.hard){ if(typeof g.tol==='number')ap.push(`±${g.tol}초 벗어나면 안내`); if(VOPT.half)ap.push('절반·100m 안내'); ap.push('끝나면 평균 속도'); }
+  if(g.end==='time'&&!g.hard) ap.push('끝난 지점부터 다음 세트');
+  if(!g.hard&&T.primary==='hr'&&k==='main') ap.push('심박 기준 코칭','심박 표류 알림');
+  const f=FEEL[k==='fast'||k==='main'?s.type:k]||FEEL.easy;
+  return `<div class="pdd">
+    <div class="pdd-chips">${chips.map(c=>`<span>${c}</span>`).join('')}</div>
+    <div class="pdd-feel">${rpeBar(f[1])}<em>${f[0]}</em></div>
+    <div class="pdd-tip">${ic('check',14)}${tip}</div>
+    ${ap.length?`<div class="pdd-app"><span class="pdd-k">앱이 해줘요</span>${ap.map(t=>`<i>${t}</i>`).join('')}</div>`:''}
+  </div>`;
 }
 function openTodayPlan(idx){
   const s=sessionOf(idx); if(!s||!s.segs)return;
