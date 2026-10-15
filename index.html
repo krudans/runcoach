@@ -1685,6 +1685,12 @@ details.noti .sigc{margin:6px 0}
 .st-mv p{margin:0;font-size:11.5px;color:var(--ink-2);line-height:1.4;word-break:keep-all}
 .st-tips{margin:0 14px 10px;padding:10px 12px;border-radius:14px;background:#FFF6D9;display:flex;flex-direction:column;gap:4px}
 .st-tips b{font-size:12px;color:#B07A00}.st-tips i{font-style:normal;font-size:12.5px;color:var(--ink-2)}.st-tips i::before{content:'✓ ';color:#2E9B5C;font-weight:900}
+.st-mv{cursor:pointer}.st-how{font-size:10.5px;font-weight:800;color:var(--tc);margin-top:4px}
+.st-steps{list-style:none;counter-reset:st;margin:12px 0 4px;padding:0;text-align:left;display:flex;flex-direction:column;gap:6px}
+.st-steps li{counter-increment:st;display:flex;gap:10px;align-items:center;background:var(--panel);border-radius:12px;padding:9px 12px;font-size:13.5px;font-weight:600}
+.st-steps li::before{content:counter(st);flex:none;width:22px;height:22px;border-radius:50%;background:var(--tc);color:#fff;font-size:12px;font-weight:900;display:grid;place-items:center}
+.st-warn{font-size:12.5px;color:#C2410C;font-weight:700;margin:6px 0 0;text-align:left}
+.st-fig.big{width:220px;height:220px}
 .msheet.strun{opacity:1}.msheet.strun .ms-card{transform:none}
 .st-card2{text-align:center}
 .st-top{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:var(--tc)}.st-top i{font-style:normal;color:var(--ink-3)}
@@ -1708,6 +1714,22 @@ details.noti .sigc{margin:6px 0}
 .tc-chk i{font-style:normal;font-size:13px;font-weight:600}.tc-chk i::before{content:'✓ ';color:var(--tc);font-weight:900}
 .tc-more{border-top:1px solid var(--line)}.tc-more>summary{list-style:none;padding:12px 14px;font-size:13px;font-weight:700;color:var(--tc);cursor:pointer}
 .tc-more>summary::-webkit-details-marker{display:none}.tc-more>summary::after{content:' ▾'}.tc-more[open]>summary::after{content:' ▴'}
+.gw-wrap{border-bottom:1px solid #2a2a30}.gw-wrap:last-child{border-bottom:none}.gw-wrap .gw-r{border-bottom:none;position:relative}
+.gw-chev{position:absolute;right:4px;top:14px;color:#77707f;font-size:12px}
+.gw-tag{display:inline-block;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;background:#2e2e36;color:#b9b3c2;margin-right:4px}.gw-tag.on{background:#F6C27A;color:#2A1638}
+.gw-ed{padding:4px 4px 14px 34px}
+.gw-seg{display:flex;background:#222228;border-radius:10px;padding:3px;margin-bottom:10px}.gw-seg button{flex:1;border:none;background:none;color:#a9a3b4;font:inherit;font-size:13px;font-weight:700;padding:8px 0;border-radius:8px;cursor:pointer}
+.gw-seg button.on{background:#fff;color:#111}
+.gw-form{display:flex;flex-direction:column;gap:7px}
+.gw-f{display:grid;grid-template-columns:1fr 112px 34px;align-items:center;gap:6px;font-size:12.5px;color:#d6d0de}
+.gw-f input{background:#1c1c22;border:1.5px solid #3a3a44;border-radius:9px;color:#fff;font:inherit;font-family:var(--num);font-size:15px;font-weight:700;padding:8px 9px;width:100%;min-width:0}
+.gw-f input:focus{outline:none;border-color:#F6C27A}.gw-f em{font-style:normal;font-size:11px;color:#8d879a}
+.gw-src{font-size:12px;line-height:1.6;color:#b9b3c2;margin:0}.gw-hint{font-size:12px;color:#F6A07A;margin:2px 0 0;min-height:0}
+.ab{display:flex;gap:12px;align-items:center;background:linear-gradient(120deg,#5B2D86,#7A4CC2);color:#fff;border-radius:16px;padding:13px 15px;margin:12px 0 4px;box-shadow:0 6px 18px rgba(91,45,134,.22)}
+.ab-ic{flex:none;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center;color:#F6C27A}
+.ab b{display:block;font-size:14px;line-height:1.4;word-break:keep-all}.ab i{display:block;font-style:normal;font-size:11.5px;color:#E3D6F0;margin-top:3px}
+.ab-mini{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--accent);background:var(--panel-2);padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;white-space:nowrap}
+.gd-sec h3{display:flex;align-items:center;flex-wrap:wrap}
 .gwatch{display:flex;flex-direction:column;align-items:center;margin:0 0 18px}
 .gw-band{width:46%;height:26px;background:#2b2b31;border-radius:10px 10px 0 0;background-image:radial-gradient(circle,#18181c 4px,transparent 5px);background-size:22px 13px}
 .gw-band:last-of-type{border-radius:0 0 10px 10px}
@@ -1959,7 +1981,7 @@ function raceFlat(r){
   return {sec:r.sec-adj, adj};
 }
 function profVdot(p){
-  const r=p&&p.race;
+  const r=(p&&p.ov&&p.ov.race)||(p&&p.race);
   if(!r||!r.m||!r.sec)return 38;
   /* 혼자 뛴 기록은 레이스보다 보통 2~5% 느리다. 3%로 보정한다 */
   const f=raceFlat(r).sec;
@@ -3332,7 +3354,8 @@ setInterval(()=>{ const v=$('settings');
 /* ───────── 케이던스 ─────────
    '170~180 권장'은 근거가 아니다(#7). Heiderscheit 2011: 내 평소보다 5~10% 올리면
    무릎 부담이 줄었다. 그래서 숫자는 늘 '내 평소' 대비로 말한다. */
-function cadUsual(){ const c=RUNS.filter(r=>r.cadAvg&&(r.act||'run')==='run').slice(-10).map(r=>r.cadAvg).sort((a,b)=>a-b);
+function cadUsual(){ const o=(typeof ovGet==='function')&&ovGet().cad; return o||cadAuto(); }
+function cadAuto(){ const c=RUNS.filter(r=>r.cadAvg&&(r.act||'run')==='run').slice(-10).map(r=>r.cadAvg).sort((a,b)=>a-b);
   return c.length>=3 ? c[Math.floor((c.length-1)/2)] : null; }
 function onMotion(e){
   if(!S.running||S.paused)return;
@@ -5950,7 +5973,7 @@ const GSTEP=[
         <span class="r">${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)}</span>
         <span class="nm">${s.t}</span>
         <span class="t">${s.dist?s.dist+'km':''}</span></div>`).join('');
-   return head+gAdjBox(p,fz)+gOvBox()+
+   return autoBanner()+head+gAdjBox(p,fz)+gOvBox()+
      `<div class="card tight" style="margin-top:12px"><div class="meta" style="margin-bottom:6px">주마다 뛸 거리 (km)</div>
         <div style="display:flex;align-items:flex-end">${wkRow}</div></div>
       <div class="lbl" style="margin:16px 0 8px">첫 주는 이렇습니다</div>
@@ -8471,6 +8494,7 @@ function openTodayPlan(idx){
       <div class="pdsum"><div><b class="num">${s.dist}</b><i>km</i></div><div><b class="num">${Math.round(tot/60)}</b><i>분쯤</i></div>
         ${fastKm?`<div><b class="num">${+fastKm.toFixed(1)}</b><i>km 빠르게</i></div>`:''}
         <div><b class="num">${pad(end.getHours())}:${pad(end.getMinutes())}</b><i>지금 뛰면 끝</i></div></div></div>
+      ${autoBanner()}
       <div class="card" style="padding:10px 16px 8px">${planDetailHTML(s,adj,TDMODE)}</div>
       <button class="btn" id="tpGo">이대로 시작하기 ▶</button>
       <div class="st-pair"><button type="button" data-stgo="dyn">출발 전 동적 스트레칭 ▶</button><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
@@ -8737,7 +8761,16 @@ const MIC=(()=>{ const s=(d,f)=>`<svg viewBox="0 0 24 24" aria-hidden="true" ${f
 
 /* ═════════════════════ 훈련 원리 — 무엇이고, 어떻게 계산하나 ═════════════════════
    앱이 실제로 쓰는 식과 상수를 그대로 보여준다. 숫자는 지금 내 프로필로 계산한 값. */
-let GUIDE_BACK='settings';
+
+/* ── "실제 값으로 자동 계산" 안내 띠 ── */
+function autoBanner(mini){
+  const n=(RUNS||[]).filter(r=>(r.act||'run')==='run'&&Date.now()-Date.parse(r.date)<42*864e5).length, nOv=Object.keys(ovGet()).length;
+  const ic=`<svg viewBox="0 0 24 24" width="${mini?14:22}" height="${mini?14:22}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><path d="M9 12l2 2 4-4"/></svg>`;
+  if(mini) return `<span class="ab-mini">${ic}내 값으로 자동 계산</span>`;
+  return `<div class="ab" role="note"><span class="ab-ic">${ic}</span><div><b>모든 값은 사용자의 실제 값으로 자동 계산됩니다.</b>
+    <i>최근 6주 기록 ${n}회${nOv?` · 직접 입력 ${nOv}개`:''} 반영 · 새로 뛸 때마다 다시 계산</i></div></div>`;
+}
+let GUIDE_BACK='settings', GW_OPEN=null; const GW_MAN={};
 function guideShape(k,col){
   /* 운동 모양 썸네일 — [길이, 높이] 막대 */
   const P={easy:[[10,.35]],recovery:[[10,.22]],long:[[16,.35]],
@@ -8766,7 +8799,7 @@ function renderGuide(){
   const hz=k=>{ const z=(TYPES[k]||{}).hrZone; return z?(z[0]?`♥ ${z[0]}~${z[1]}`:`♥ ${z[1]} 아래`):''; };
   const th=(typeof judgeTh==='function'&&typeof RUNS!=='undefined')?judgeTh():{spread:5,ceil:.1,hrOver:.2,dist:.9,src:{}};
   const L=LEARN||{n:0}, hs=coachBasis().hrmax;
-  const rc=PROF.race, rf=rc?raceFlat(rc):null;
+  const rc=ovGet().race||PROF.race, rf=rc?raceFlat(rc):null;
   const item=(id,tile,nm,one,mine,body)=>`<details class="gd-it" id="gd-${id}"><summary>
       <span class="gd-tile">${tile}</span><span class="gd-nm"><b>${nm}</b><i>${one}</i></span>${mine?`<em class="gd-mine">${mine}</em>`:''}</summary>
       <div class="gd-bd">${body}</div></details>`;
@@ -8968,7 +9001,7 @@ function renderGuide(){
       <div class="gc-h"><i>${N}</i><b>${nm}</b><em>${en}</em></div>
       <div class="gc-b"><span class="gc-art">${art}</span><p>${txt}</p></div>${me?`<span class="gc-me">${me}</span>`:''}</${focus?'button':'div'}>`; };
   const band=(nm,col,cells)=>`<section class="gband" style="--bc:${col}"><div class="gb-side">${nm}</div><div class="gb-cells">${cells.join('')}</div></section>`;
-  const strideM=cu?(1000/pNow*60/cu):null;
+  const strideM=ovGet().stride||(cu?(1000/pNow*60/cu):null);
   const basic=`<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gbg"><stop offset="0" stop-color="#19A47C"/><stop offset=".5" stop-color="#E2B33B"/><stop offset="1" stop-color="#CF3B36"/></linearGradient></defs></svg>`+
   band('기본 개념','#2E8B57',[
     cell('페이스','Pace',gauge(angOf(pNow)),'1km 달리는 데 걸린 시간 · <b>낮을수록 빠름</b>',`이지 ${fp(pNow)}`,'pace'),
@@ -9007,23 +9040,43 @@ function renderGuide(){
     [big('<path d="M4 34h40v4H4z"/><path d="M4 34l4-12h11l6 6h10l9 6"/>','#2E8B57'),'장비보다 나','몸에 맞는 신발'],
     [`<svg viewBox="0 0 48 44" width="40" height="38" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#E0454B"/></svg>`,'즐기기','달리기는 취미']
   ].map(t=>`<div class="gt">${t[0]}<b>${t[1]}</b><i>${t[2]}</i></div>`).join('')}</div></section>`;
-  const sec=(t,x)=>`<div class="gd-sec"><h3>${t}</h3>${x.join('')}</div>`;
-    /* ── 달릴 때 보는 6가지 — 시계 화면 ── */
+  const sec=(t,x)=>`<div class="gd-sec"><h3>${t}${autoBanner(true)}</h3>${x.join('')}</div>`;
+  /* ── 달릴 때 보는 6가지 — 시계 화면 + 내 맞춤 값 등록 (자동 = 최근 훈련 · 직접 입력 우선) ── */
   const lr=runs.slice().reverse().find(r=>r.paceAvg&&(r.cadAvg||r.hrAvg))||lastRun;
-  const wp=lr&&lr.paceAvg||pNow, wc=lr&&lr.cadAvg||cu, wh=lr&&lr.hrAvg||null;
+  const O=ovGet(), wp=lr&&lr.paceAvg||pNow, wc=lr&&lr.cadAvg||cu, wh=lr&&lr.hrAvg||null;
   const wz=wh?hrZoneIx(wh):2, ws=wc?(1000/wp*60/wc):null, zc=['','var(--z1)','var(--z2)','var(--z3)','var(--z4)','var(--z5)'][wz];
-  const WR=[['pace','#4C9BE8',big('<circle cx="24" cy="27" r="16"/><path d="M24 27V18M20 6h8M24 6v5"/><path d="M24 27L24 11A16 16 0 0 1 38 22z" fill="currentColor" stroke="none" opacity=".9"/>','#4C9BE8'),fp(wp),'/km','1km를 몇 분에?'],
-    ['cad','#3FBF7F',big('<path d="M16 6c3 0 4 4 4 8s-2 7-5 7-5-3-5-7 3-8 6-8zM11 25h8M33 16c3 0 5 4 5 8s-2 7-5 7-5-3-5-7 2-8 5-8zM29 35h8"/>','#3FBF7F'),wc||'—','spm','1분에 몇 걸음?'],
-    ['cad','#F28C28',big('<path d="M6 26l4-10h12l5 5h9l6 5v4H6z"/><path d="M8 40h32M8 40l4-3M8 40l4 3M40 40l-4-3M40 40l-4 3"/>','#F28C28'),ws?ws.toFixed(2):'—','m','한 걸음 보폭은?'],
-    ['hrmax','#F0525A',`<svg viewBox="0 0 48 44" width="40" height="38" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#F0525A"/><path d="M8 22h8l3-6 5 12 3-6h13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,wh||'—','bpm','지금 얼마나 열심히?'],
-    ['zone',zc,`<span class="gw-z" style="background:${zc}">Z${wz}</span>`,`Zone ${wz}`,'',wz===2?'편한 유산소 구간이에요':'존 2가 편한 유산소'],
-    [null,'#F5C542',`<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="#F5C542"/><circle cx="17" cy="20" r="2.6" fill="#2A1638"/><circle cx="31" cy="20" r="2.6" fill="#2A1638"/><path d="M15 29c4.5 5.5 13.5 5.5 18 0" fill="none" stroke="#2A1638" stroke-width="3" stroke-linecap="round"/></svg>`,'러너스 하이','','숫자로는 못 재요 — 기분 좋은 그 느낌']];
-  const watch=`<div class="gwatch"><div class="gw-band"></div><div class="gw-face">${WR.map((r,i)=>`<${r[0]?`button type="button" data-gfocus="${r[0]}"`:'div'} class="gw-r">
+  const ca=typeof cadAuto==='function'?cadAuto():null;
+  const myStride=O.stride||(cu?+(1000/midPace(PACE.easy)*60/cu).toFixed(2):null);
+  const rcA=PROF.race, rcM=O.race||rcA, dlab=m=>m>=42000?'풀':m>=21000?'하프':(m/1000)+'km';
+  const tag=k=>`<span class="gw-tag${k?' on':''}">${k?'직접':'자동'}</span>`;
+  const seg=(k,on)=>`<div class="gw-seg" role="group"><button type="button" data-mmode="${k}:auto" class="${on?'':'on'}">자동</button><button type="button" data-mmode="${k}:man" class="${on?'on':''}">직접 입력</button></div>`;
+  const fld=(k,lab,val,unit,ph)=>`<label class="gw-f"><span>${lab}</span><input type="text" data-mset="${k}" value="${val==null?'':val}" placeholder="${ph||''}" inputmode="${unit==='bpm'||unit==='spm'?'numeric':'text'}" autocomplete="off"><em>${unit}</em></label>`;
+  const autoNote=s=>`<p class="gw-src">${s}</p>`;
+  const L0=LEARN||{n:0}, hsrc=coachBasis().hrmax.src;
+  const ED={
+    pace:{man:!!(O.E||O.T||O.I||O.race||GW_MAN.pace), mine:`편하게 ${pr(PACE.easy)} · 템포 ${fp(PACE.T)}`,
+      auto:autoNote(`편하게 ${pr(SUG.E||PACE.easy)} · 템포 ${fp(SUG.T)} · 인터벌 ${fp(SUG.I)}<br>${L0.applied?`최근 기록 ${L0.n}번의 심박으로 맞춤`:`기준 기록 ${rcA&&rcA.sec?dlab(rcA.m)+' '+fmtClock(rcA.sec):'없음'}으로 계산`}`),
+      form:fld('race','기준 기록',rcM&&rcM.sec?`${dlab(rcM.m)} ${fmtClock(rcM.sec)}`:'','','10km 45:46')+fld('E0','편하게 · 빠른 끝',mmss(PACE.easy[0]),'/km')+fld('E1','편하게 · 느린 끝',mmss(PACE.easy[1]),'/km')+fld('T','템포',mmss(PACE.T),'/km')+fld('I','인터벌',mmss(PACE.I),'/km')},
+    cad:{man:!!(O.cad||GW_MAN.cad), mine:cu?`평소 ${cu}`:'평소 —', auto:autoNote(ca?`최근 10번 평균의 가운데 값 ${ca}`:'기록 3번 이상 쌓이면 자동으로 들어가요'), form:fld('cad','평소 케이던스',O.cad||ca||'','spm','175')},
+    stride:{man:!!(O.stride||GW_MAN.stride), mine:myStride?`편하게 ${myStride.toFixed(2)}m`:'—', auto:autoNote('보폭 = 속도(m/분) ÷ 케이던스 · 편한 속도 기준'), form:fld('stride','평소 보폭',O.stride||myStride||'','m','1.00')+autoNote('표시용 — 코칭에는 쓰지 않아요')},
+    hr:{man:!!(O.hrmax||GW_MAN.hr), mine:`최대 ${HRMAX}`, auto:autoNote(`최대 ${SUG.hrmax} · ${hsrc==='measured'?'직접 잰 값':hsrc==='observed'?'달리며 30초 넘게 유지된 최고':'나이로 추정 (±10 오차)'}`), form:fld('hrmax','최대 심박',O.hrmax||HRMAX,'bpm','185')},
+    zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`존2 ${ZONES[1][0]}~${ZONES[1][1]}`, auto:autoNote(`존2 상한 = 최대 심박 × 0.80 = ${SUG.easyCap}`), form:fld('easyCap','존2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
+  };
+  const WR=[['pace','#4C9BE8',big('<circle cx="24" cy="27" r="16"/><path d="M24 27V18M20 6h8M24 6v5"/><path d="M24 27L24 11A16 16 0 0 1 38 22z" fill="currentColor" stroke="none" opacity=".9"/>','#4C9BE8'),fp(wp),'/km'],
+    ['cad','#3FBF7F',big('<path d="M16 6c3 0 4 4 4 8s-2 7-5 7-5-3-5-7 3-8 6-8zM11 25h8M33 16c3 0 5 4 5 8s-2 7-5 7-5-3-5-7 2-8 5-8zM29 35h8"/>','#3FBF7F'),wc||'—','spm'],
+    ['stride','#F28C28',big('<path d="M6 26l4-10h12l5 5h9l6 5v4H6z"/><path d="M8 40h32M8 40l4-3M8 40l4 3M40 40l-4-3M40 40l-4 3"/>','#F28C28'),ws?ws.toFixed(2):'—','m'],
+    ['hr','#F0525A',`<svg viewBox="0 0 48 44" width="40" height="38" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#F0525A"/><path d="M8 22h8l3-6 5 12 3-6h13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,wh||'—','bpm'],
+    ['zone',zc,`<span class="gw-z" style="background:${zc}">Z${wz}</span>`,`Zone ${wz}`,''],
+    [null,'#F5C542',`<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="#F5C542"/><circle cx="17" cy="20" r="2.6" fill="#2A1638"/><circle cx="31" cy="20" r="2.6" fill="#2A1638"/><path d="M15 29c4.5 5.5 13.5 5.5 18 0" fill="none" stroke="#2A1638" stroke-width="3" stroke-linecap="round"/></svg>`,'러너스 하이','']];
+  const nMan=Object.values(ED).filter(e=>e.man).length;
+  const watch=`<div class="gwatch"><div class="gw-band"></div><div class="gw-face">${WR.map((r,i)=>{ const e=r[0]&&ED[r[0]], open=GW_OPEN===r[0];
+      return `<div class="gw-wrap${open?' open':''}"><${e?`button type="button" data-mine="${r[0]}" aria-expanded="${open}"`:'div'} class="gw-r">
       <span class="gw-n" style="color:${r[1]}">${i+1}</span><span class="gw-ic">${r[2]}</span>
       <span class="gw-v"><b class="${/[가-힣]/.test(String(r[3]))?'sm':'num'}">${r[3]}</b>${r[4]?`<i style="color:${r[1]}">${r[4]}</i>`:''}</span>
-      <em class="gw-q">${r[5]}</em></${r[0]?'button':'div'}>`).join('')}</div><div class="gw-band"></div>
-      <p class="gw-cap">${lr?`최근 달리기 ${String(lr.date).slice(5,10).replace('-','.')} 평균`:'내 기준 값'} · 달리는 화면에도 그대로 나와요</p></div>`;
-$('gdBody').innerHTML=`<div class="gd-hero"><b>달릴 때 보는 6가지</b><i>누르면 계산 기준</i></div>${watch}<div class="gd-hero"><b>러닝 필수 용어 ${N}</b><i>누르면 계산 기준이 열려요</i></div>${basic}`+sec('기준 숫자',base)+sec('훈련법',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+sec('측정',meas)+sec('일정 · 판정',sys)+
+      <em class="gw-q">${e?`${tag(e.man)} 내 기준 ${e.mine}`:'숫자로는 못 재요 — 기분 좋은 그 느낌'}</em>${e?`<span class="gw-chev">${open?'▴':'▾'}</span>`:''}</${e?'button':'div'}>
+      ${e&&open?`<div class="gw-ed" data-ed="${r[0]}">${seg(r[0],e.man)}${e.man?`<div class="gw-form">${e.form}<p class="gw-hint" id="gwHint"></p></div>`:e.auto}</div>`:''}</div>`; }).join('')}</div><div class="gw-band"></div>
+      <p class="gw-cap">${lr?`큰 숫자 = 최근 달리기 ${String(lr.date).slice(5,10).replace('-','.')} 평균`:'큰 숫자 = 내 기준 값'} · 줄을 눌러 내 값 등록 · 직접 ${nMan}개</p></div>`;
+$('gdBody').innerHTML=autoBanner()+`<div class="gd-hero"><b>달릴 때 보는 6가지</b><i>줄을 눌러 내 값 등록</i></div>${watch}<div class="gd-hero"><b>러닝 필수 용어 ${N}</b>${autoBanner(true)}</div>${basic}`+sec('기준 숫자',base)+sec('훈련법',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+sec('측정',meas)+sec('일정 · 판정',sys)+
     `<p class="gd-src" style="text-align:center;margin:18px 0 0">근거 등급 — B 연구 있음 · C 경험칙 · D 내 기록</p>`;
 }
 function openGuide(focus,back){
@@ -9032,7 +9085,32 @@ function openGuide(focus,back){
   const el=focus&&$('gd-'+focus);
   if(el){ el.open=true; setTimeout(()=>el.scrollIntoView({block:'start'}),50); } else window.scrollTo(0,0);
 }
+function mineSave(patch){ const o=Object.assign({},PROF.ov||{},patch); Object.keys(o).forEach(k=>{ if(o[k]==null)delete o[k]; });
+  PROF=Object.assign({},PROF,{ov:o}); DEV.store.set('prof',PROF); recalcProfile(); recalcTypes();
+  try{ BLOCK=loadPlan(); }catch(e){} const y=scrollY; renderGuide(); scrollTo(0,y); }
+const MINE_KEYS={pace:['E','T','I','race'],cad:['cad'],stride:['stride'],hr:['hrmax'],zone:['easyCap']};
+function mineInput(el){ const k=el.dataset.mset, v=el.value.trim(), hint=t=>{ const h=$('gwHint'); if(h)h.textContent=t; };
+  const t=x=>{ const n=parseLoose(x); return isNaN(n)?null:Math.round(n); }, I=x=>{ const n=parseFloat(x); return isNaN(n)?null:n; };
+  const O=ovGet();
+  if(k==='E0'||k==='E1'){ const e=(O.E||[Math.round(PACE.easy[0]),Math.round(PACE.easy[1])]).slice(); e[k==='E0'?0:1]=t(v);
+    if(!(e[0]>=150&&e[1]<=1000&&e[0]<e[1]))return hint('빠른 끝이 느린 끝보다 작아야 해요 (예: 6:00 ~ 6:50)'); return mineSave({E:e}); }
+  if(k==='T'||k==='I'){ const n=t(v); if(!(n>=150&&n<=900))return hint('분:초로 넣어주세요 (예: 4:50)'); return mineSave({[k]:n}); }
+  if(k==='race'){ const m=v.match(/풀|하프|(\d+(?:\.\d+)?)\s*k?m?/i); const dist=!m?null:/풀/.test(m[0])?42195:/하프/.test(m[0])?21097:Math.round(parseFloat(m[1])*1000);
+    const rest=v.replace(m?m[0]:'','').trim(), sec=t(rest);
+    if(!(dist>=1000&&dist<=42195&&sec>=180&&sec<=8*3600))return hint('거리와 시간을 같이 (예: 10km 45:46, 하프 1:45:00)');
+    const vd=vdotOf(dist,sec/60); if(!(vd>=18&&vd<=85))return hint('기록을 다시 확인해 주세요');
+    return mineSave({race:{m:dist,sec,kind:'race',at:todayStr()}}); }
+  if(k==='cad'){ const n=Math.round(I(v)); if(!(n>=120&&n<=230))return hint('120~230 사이로 넣어주세요'); return mineSave({cad:n}); }
+  if(k==='stride'){ const n=I(v); if(!(n>=0.4&&n<=2.5))return hint('0.4~2.5m 사이로 넣어주세요'); return mineSave({stride:+n.toFixed(2)}); }
+  if(k==='hrmax'){ const n=Math.round(I(v)); if(!(n>=140&&n<=225))return hint('140~225 사이로 넣어주세요'); return mineSave({hrmax:n}); }
+  if(k==='easyCap'){ const n=Math.round(I(v)); if(!(n>=100&&n<=190))return hint('100~190 사이로 넣어주세요'); return mineSave({easyCap:n}); }
+}
+document.addEventListener('change',e=>{ if(e.target.dataset&&e.target.dataset.mset&&e.target.closest('#guide'))mineInput(e.target); });
 document.addEventListener('click',e=>{
+  const mr=e.target.closest('[data-mine]'); if(mr){ GW_OPEN=GW_OPEN===mr.dataset.mine?null:mr.dataset.mine; const y=scrollY; renderGuide(); scrollTo(0,y); return; }
+  const mm=e.target.closest('[data-mmode]'); if(mm){ const [k,mode]=mm.dataset.mmode.split(':');
+    if(mode==='auto'){ GW_MAN[k]=false; const p={}; MINE_KEYS[k].forEach(x=>p[x]=null); mineSave(p); }
+    else{ GW_MAN[k]=true; const y=scrollY; renderGuide(); scrollTo(0,y); } return; }
   if(e.target.closest('#setGuide')) return openGuide(null,'settings');
   if(e.target.closest('#gdBack')) return (GUIDE_BACK==='home'||GUIDE_BACK==='plan')?go(GUIDE_BACK):show(GUIDE_BACK);
   const g=e.target.closest('[data-guide]'); if(g) return openGuide(g.dataset.guide);
@@ -9044,7 +9122,7 @@ document.addEventListener('click',e=>{
 const STR_COL={dyn:'#E07A1F',stat:'#2F8F83'};
 /* 자세 = 관절 좌표 (100×100, 땅 y=94). la/aa = 앞쪽(진한), lb/ab = 뒤쪽(옅은). arr = 빨간 방향 화살표 */
 const RA='#E0454B', AR=(d)=>`<path d="${d}" fill="none" stroke="${RA}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
-const STAND={n:[50,25],p:[50,54],la:[[47,74],[46,93]],lb:[[53,74],[54,93]]};
+const STAND={n:[50,25],p:[50,54],la:[[45,74],[43,93]],lb:[[55,74],[57,93]]};
 const POSE={
   neckA:Object.assign({},STAND,{h:[45,15],aa:[[45,40],[44,54]],ab:[[55,40],[56,54]],arr:AR('M30 18a10 10 0 0 1 6-10m-1 6l1-6-6 1')+AR('M70 18a10 10 0 0 0-6-10m1 6l-1-6 6 1')}),
   neckB:Object.assign({},STAND,{h:[55,15],aa:[[45,40],[44,54]],ab:[[55,40],[56,54]],arr:AR('M30 18a10 10 0 0 1 6-10m-1 6l1-6-6 1')+AR('M70 18a10 10 0 0 0-6-10m1 6l-1-6 6 1')}),
@@ -9058,21 +9136,64 @@ const POSE={
   fold:{h:[70,64],n:[62,56],p:[44,50],la:[[46,72],[47,93]],lb:[[42,72],[40,93]],aa:[[64,72],[55,88]],ab:[[62,73],[51,89]],arr:AR('M80 66v18m-5-5l5 5 5-5')},
   calf:{h:[72,22],n:[66,31],p:[48,57],la:[[58,75],[60,93]],lb:[[34,76],[22,93]],aa:[[76,33],[86,30]],ab:[[74,37],[86,38]],wall:1,arr:AR('M18 70l12-12m-7 0h7v7')},
   lunge:{h:[52,22],n:[51,33],p:[48,60],la:[[66,62],[67,93]],lb:[[36,82],[22,92]],aa:[[58,46],[64,58]],ab:[[56,48],[62,60]],arr:AR('M40 62v12m-4-4l4 4 4-4')},
+  toekickA:{h:[48,13],n:[48,24],p:[48,53],la:[[48,73],[48,93]],lb:[[62,48],[76,42]],aa:[[62,34],[75,40]],ab:[[40,36],[33,46]],arr:AR('M84 64a20 20 0 0 0-6-18m-1 6l1-6 6 2')},
+  toekickB:{h:[48,13],n:[48,24],p:[48,53],la:[[48,73],[48,93]],lb:[[52,73],[54,93]],aa:[[60,32],[70,28]],ab:[[40,36],[33,46]],arr:AR('M84 64a20 20 0 0 0-6-18m-1 6l1-6 6 2')},
+  gateOpenA:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[53,60],[54,76]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M58 64q14 4 18-10m-6 1l6-1 1 6')},
+  gateOpenB:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[70,55],[68,72]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M58 64q14 4 18-10m-6 1l6-1 1 6')},
+  gateCloseA:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[70,55],[68,72]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M78 54q-4 14-18 10m5-5l-5 5 6 2')},
+  gateCloseB:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[53,60],[54,76]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M78 54q-4 14-18 10m5-5l-5 5 6 2')},
+  jogA:{h:[50,12],n:[50,23],p:[50,51],la:[[58,63],[54,78]],lb:[[49,71],[50,90]],aa:[[42,35],[44,45]],ab:[[58,34],[62,26]],arr:AR('M20 90v-10m-4 4l4-4 4 4')+AR('M80 90v-10m-4 4l4-4 4 4')},
+  jogB:{h:[50,12],n:[50,23],p:[50,51],la:[[49,71],[50,90]],lb:[[58,63],[54,78]],aa:[[58,34],[62,26]],ab:[[42,35],[44,45]],arr:AR('M20 90v-10m-4 4l4-4 4 4')+AR('M80 90v-10m-4 4l4-4 4 4')},
   ham:{h:[56,58],n:[47,66],p:[30,88],la:[[55,89],[80,89]],lb:[[55,90],[80,90]],aa:[[62,73],[77,83]],ab:[[60,76],[74,86]]},
   glute:{h:[12,84],n:[23,85],p:[50,86],la:[[70,88],[90,90]],lb:[[44,64],[60,70]],aa:[[34,72],[44,64]],ab:[[34,75],[46,68]]},
   hip:{h:[52,26],n:[51,37],p:[48,65],la:[[66,66],[68,93]],lb:[[36,92],[18,93]],aa:[[58,50],[66,63]],ab:[[56,52],[64,64]]},
   side:{h:[58,17],n:[52,27],p:[50,55],la:[[46,74],[55,93]],lb:[[54,74],[44,93]],aa:[[46,14],[66,6]],ab:[[42,40],[46,52]]}
 };
-function figSVG(P,col){ const L=(a,b,w,o)=>`<path d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${o||1}"/>`;
-  const limb=(from,j,o)=>L(from,j[0],5.5,o)+L(j[0],j[1],5.5,o);
-  return `${P.wall?'<rect x="86" y="8" width="6" height="86" rx="2" fill="#D9CFE3"/>':''}<path d="M4 94h92" stroke="#D9CFE3" stroke-width="3" stroke-linecap="round"/>
-    ${limb(P.p,P.lb,.45)}${limb(P.n,P.ab,.45)}${L(P.n,P.p,7)}${limb(P.p,P.la)}${limb(P.n,P.aa)}<circle cx="${P.h[0]}" cy="${P.h[1]}" r="7.5" fill="${col}"/>${P.arr||''}`; }
+/* 사람 그림 — 몸통 · 두께 있는 팔다리 · 셔츠/반바지/피부/운동화 · 손 · 머리카락 */
+function figSVG(P,col){
+  const SK='#F1C6A0', SH='#2B2335', HAIR='#3A2A22';
+  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+  const seg=(a,b,w,c,o)=>`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)}L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" opacity="${o||1}"/>`;
+  const leg=(j,o)=>{ const k=j[0], f=j[1], horiz=Math.abs(f[1]-k[1])<Math.abs(f[0]-k[0])*0.6;
+      const dir=P.face||1, toe=horiz?[f[0],f[1]-6]:[f[0]+6*dir,f[1]];
+      return `<g opacity="${o||1}">${seg(P.p,k,9,SK)}${seg(P.p,mix(P.p,k,.55),10,SH)}${seg(k,f,7,SK)}${seg(f,toe,5.5,SH)}${seg(mix(f,toe,.1),toe,1.6,'#fff')}</g>`; };
+  const arm=(j,o)=>{ const e=j[0], h=j[1];
+      return `<g opacity="${o||1}">${seg(P.n,e,6.5,SK)}${seg(P.n,mix(P.n,e,.5),7.5,col)}${seg(e,h,5.5,SK)}<circle cx="${h[0]}" cy="${h[1]}" r="3" fill="${SK}"/></g>`; };
+  /* 몸통 — 어깨 쪽이 넓은 사다리꼴 */
+  const dx=P.p[0]-P.n[0], dy=P.p[1]-P.n[1], ln=Math.hypot(dx,dy)||1, px=-dy/ln, py=dx/ln, ws=6.5, wh=5.5;
+  const N=[P.n[0]+dx/ln*1.5,P.n[1]+dy/ln*1.5];
+  const torso=`<path d="M${(N[0]+px*ws).toFixed(1)} ${(N[1]+py*ws).toFixed(1)}L${(P.p[0]+px*wh).toFixed(1)} ${(P.p[1]+py*wh).toFixed(1)}L${(P.p[0]-px*wh).toFixed(1)} ${(P.p[1]-py*wh).toFixed(1)}L${(N[0]-px*ws).toFixed(1)} ${(N[1]-py*ws).toFixed(1)}Z" fill="${col}" stroke="${col}" stroke-width="4" stroke-linejoin="round"/>`;
+  const shorts=`<circle cx="${P.p[0]}" cy="${P.p[1]}" r="4.6" fill="${SH}"/>`;
+  const hx=P.h[0]-P.n[0], hy=P.h[1]-P.n[1], hl=Math.hypot(hx,hy)||1;
+  const neck=seg(P.n,[P.n[0]+hx/hl*5,P.n[1]+hy/hl*5],4.5,SK);
+  const head=`<circle cx="${P.h[0]}" cy="${P.h[1]}" r="7" fill="${SK}"/><path d="M${(P.h[0]-7*hy/hl- 7*hx/hl*0).toFixed(1)} ${(P.h[1]+7*hx/hl).toFixed(1)}A7 7 0 0 0 ${(P.h[0]+7*hy/hl).toFixed(1)} ${(P.h[1]-7*hx/hl).toFixed(1)}Z" fill="${HAIR}" transform="rotate(0)"/>`;
+  return `${P.wall?'<rect x="86" y="8" width="7" height="86" rx="2" fill="#E4DCEB"/><path d="M86 8v86" stroke="#CFC3DA" stroke-width="1.5"/>':''}<ellipse cx="50" cy="95" rx="40" ry="2.6" fill="#E4DCEB"/>
+    ${leg(P.lb,.55)}${arm(P.ab,.55)}${neck}${torso}${shorts}${leg(P.la)}${arm(P.aa)}${head}${P.arr||''}`; }
+/* 동작마다 하는 법 · 주의 */
+const STEPS={
+  neck:[['바르게 서서 어깨 힘 빼기','턱을 당겨 천천히 크게 원 그리기','오른쪽 5바퀴 → 왼쪽 5바퀴'],'빠르게 돌리지 않기'],
+  shoulder:[['손끝을 양 어깨에 올리기','팔꿈치로 크게 원 그리기','앞으로 10번 → 뒤로 10번'],'어깨가 귀로 올라가지 않게'],
+  arm:[['팔을 옆으로 어깨 높이까지','작은 원 → 점점 큰 원','앞으로 10번 → 뒤로 10번'],'허리를 젖히지 않기'],
+  waist:[['발 어깨너비, 손은 허리에','골반으로 크게 원 그리기','오른쪽 → 왼쪽 같은 수'],'상체는 가능한 한 고정'],
+  quad:[['한 손으로 벽이나 기둥 잡기','반대 손으로 발목 잡아 뒤꿈치를 엉덩이 쪽으로','무릎끼리 모으고 15~20초'],'허리가 꺾이지 않게 배에 힘'],
+  fold:[['발 골반너비, 무릎 살짝 굽히기','엉덩이를 뒤로 빼며 상체 숙이기','손을 발등 쪽으로 15~20초'],'반동 주지 않기'],
+  calf:[['벽을 두 손으로 밀기','한 발 뒤로 크게, 뒤꿈치는 바닥에','앞 무릎 굽히며 15~20초'],'뒤 발끝은 정면'],
+  lunge:[['크게 한 걸음 앞으로','뒷무릎이 바닥 가까이 갈 때까지 내려가기','일어나며 반대 발로'],'앞 무릎이 발끝보다 나가지 않게'],
+  toekick:[['바르게 서서 한 팔을 앞으로 뻗기','반대쪽 다리를 쭉 편 채 차올리기','손끝-발끝 터치 후 걸으며 반대쪽'],'무릎 펴고, 높이는 되는 만큼만'],
+  gateOpen:[['무릎을 굽혀 몸 앞으로 들기','그대로 옆으로 90° 돌리기','내린 뒤 반대쪽 다리'],'상체가 따라 돌지 않게'],
+  gateClose:[['무릎을 굽혀 옆 90°로 들기','앞으로 모아 몸 정면으로','내린 뒤 반대쪽 다리'],'골반은 정면 유지'],
+  jog:[['제자리에서 가볍게 뛰기','발 앞쪽으로 착지','팔은 앞뒤로 자연스럽게'],'점점 빠르게 — 마지막 10초는 경쾌하게'],
+  ham:[['앉아서 두 다리 앞으로 쭉','등을 편 채 배꼽을 허벅지 쪽으로','손은 발끝 쪽, 숨 내쉬며 30초'],'등을 둥글게 말지 않기'],
+  glute:[['등을 대고 누워 다리 펴기','한쪽 무릎을 두 손으로 잡기','가슴 쪽으로 당겨 30초'],'반대 다리는 바닥에 편 채'],
+  hip:[['한쪽 무릎을 바닥에 꿇기','앞 발은 90°로 세우기','골반을 앞으로 밀며 30초'],'허리를 젖히지 않기'],
+  side:[['한 팔을 머리 위로 뻗기','반대쪽으로 천천히 기울이기','옆구리 당김 느끼며 30초'],'몸이 앞으로 숙여지지 않게']
+};
 /* 동작: [자세, 이름, 효과 한 줄, 하는 법, 양쪽?] */
 const STR={
   dyn:{en:'WARM-UP',ko:'러닝 전 준비운동',when:'훈련 전',sec:30,key:'짧게 깨우고, 가볍게 출발',
-    desc:'위에서 아래로 — 목·어깨·팔·허리를 돌려 풀고, 다리를 짧게 늘린 뒤 출발해요.',
+    desc:'위에서 아래로 — 목·어깨·팔·허리를 돌려 풀고, 다리를 짧게 늘리고, 움직이며 데운 뒤 제자리 뛰기로 출발해요.',
     chk:['각 동작 20~30초','좌우 모두','호흡은 자연스럽게','아프지 않은 범위'],
-    tips:['끝나면 1~2분 제자리 걷기나 천천히 뛰기로 데우기','추운 날엔 조금 더 길게'],
+    tips:['끝나면 첫 1km는 천천히 출발','추운 날엔 조금 더 길게'],
     moves:[['neck','목 돌리기','목 주변 긴장을 풀어요','천천히 크게 원 그리기 · 양방향',false],
            ['shoulder','어깨 돌리기','상체가 부드럽게 움직여요','손끝을 어깨에, 팔꿈치로 원 그리기',false],
            ['arm','팔 돌리기','팔·가슴 근육을 풀어요','팔을 옆으로 뻗어 앞으로 · 뒤로',false],
@@ -9080,7 +9201,11 @@ const STR={
            ['quad','허벅지 앞','무릎 부담을 줄여요','발목 잡고 뒤꿈치를 엉덩이 쪽으로',true],
            ['fold','허벅지 뒤','다리 뒤가 유연해져요','무릎 살짝 굽혀 상체 숙이기',true],
            ['calf','종아리','발목·아킬레스건을 보호해요','벽 밀며 뒤꿈치 바닥에',true],
-           ['lunge','런지','엉덩이·허벅지를 깨워요','크게 한 걸음, 골반을 아래로',true]]},
+           ['lunge','런지','엉덩이·허벅지를 깨워요','크게 한 걸음, 골반을 아래로',true],
+           ['toekick','토 터치 킥','햄스트링을 움직이며 풀어요','다리 쭉 펴 차올리고 반대 손으로 발끝 터치 · 좌우 번갈아',false],
+           ['gateOpen','고관절 열기','고관절을 바깥으로 열어요','무릎 굽혀 앞으로 들고 → 옆으로 90° → 내리기 · 좌우 번갈아',false],
+           ['gateClose','고관절 닫기','고관절을 안쪽으로 모아요','옆 90°에서 무릎 들고 → 앞으로 → 내리기 · 좌우 번갈아',false],
+           ['jog','제자리 뛰기','심박을 올려 출발 준비','가볍게 통통, 팔도 같이',false]]},
   stat:{en:'COOL-DOWN',ko:'러닝 후 정적 스트레칭',when:'훈련 후',sec:30,key:'멈춘 자세로 천천히 늘려요',
     desc:'달리기로 짧아진 근육을 반동 없이 늘려요. 아프지 않고 당기는 정도로.',chk:['훈련 후','반동 없이 30초','양쪽 모두'],tips:[],
     moves:[['calf','종아리','달리며 가장 많이 쓴 곳','벽 밀며 뒤꿈치 누르기',true],['ham','햄스트링','허벅지 뒤를 풀어요','앉아서 발끝 쪽으로',true],
@@ -9096,7 +9221,7 @@ function stretchCard(kind,opt){ opt=opt||{}; const S=STR[kind], c=STR_COL[kind],
     <div class="tc-hd"><span class="tc-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${kind==='dyn'?'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>':'<path d="M12 3c-3 4-6 6-6 10a6 6 0 0 0 12 0c0-4-3-6-6-10z"/>'}</svg></span>
       <div><b>${S.en}</b><i>${S.ko}</i></div><em>${S.moves.length}가지 · ${Math.round(tot/60)}분</em></div>
     ${opt.compact?'':`<div class="tc-key"><span>핵심 포인트</span><b>${S.key}</b><p>${S.desc}</p></div>`}
-    <div class="st-grid">${S.moves.map((m,i)=>`<div class="st-mv"><span class="st-no">${i+1}</span><b>${m[1]}</b>${moveSVG(kind,m[0],c)}<p>${m[2]}</p><em>${S.sec}초${m[4]?' × 좌우':''}</em></div>`).join('')}</div>
+    <div class="st-grid">${S.moves.map((m,i)=>`<div class="st-mv" role="button" tabindex="0" data-stat="${kind}:${i}"><span class="st-no">${i+1}</span><b>${m[1]}</b>${moveSVG(kind,m[0],c)}<p>${m[2]}</p><em>${S.sec}초${m[4]?' × 좌우':''}</em><span class="st-how">하는 법 ›</span></div>`).join('')}</div>
     ${opt.compact?'':`<div class="tc-chk"><span>체크리스트</span>${S.chk.map(x=>`<i>${x}</i>`).join('')}</div>`}
     ${!opt.compact&&S.tips.length?`<div class="st-tips"><b>추가 꿀팁</b>${S.tips.map(x=>`<i>${x}</i>`).join('')}</div>`:''}
     <button type="button" class="st-go" data-stgo="${kind}">▶ 따라하기 ${Math.round(tot/60)}분</button>
@@ -9104,7 +9229,7 @@ function stretchCard(kind,opt){ opt=opt||{}; const S=STR[kind], c=STR_COL[kind],
   </article>`; }
 /* ── 따라하기 ── */
 const ST={kind:null,i:0,t:0,side:0,timer:null,paused:false};
-function stOpen(kind){ ST.kind=kind; ST.i=0; ST.side=0; ST.paused=false; $('strRun').hidden=false; stStart(); }
+function stOpen(kind,at,paused){ ST.kind=kind; ST.i=at||0; ST.side=0; ST.paused=!!paused; $('strRun').hidden=false; stStart(); }
 function stTotal(){ return STR[ST.kind].sec; }
 function stStart(){ const S=STR[ST.kind], m=S.moves[ST.i]; ST.t=stTotal();
   try{ DEV.speak(ST.side?'반대쪽':`${m[1]}. ${m[3].replace(/·/g,',')}${m[4]?'. 한쪽부터':''}`,true); }catch(e){}
@@ -9123,13 +9248,15 @@ function stPaint(){ const S=STR[ST.kind], m=S.moves[ST.i], c=STR_COL[ST.kind], n
   $('stBody').innerHTML=`<div class="st-top" style="--tc:${c}"><span>${S.ko}</span><i>${ST.i+1} / ${S.moves.length}</i></div>
     <div class="st-dots">${S.moves.map((_,k)=>`<i class="${k<ST.i?'d':k===ST.i?'on':''}" style="--tc:${c}"></i>`).join('')}</div>
     <div class="st-stage">${moveSVG(ST.kind,m[0],c,true)}</div>
-    <div class="st-nm"><b>${m[1]}${m[4]?`<small style="color:${c}"> · ${ST.side?'반대쪽':'한쪽'}</small>`:''}</b><i>${m[3]}</i></div>
+    <div class="st-nm"><b>${m[1]}${m[4]?`<small style="color:${c}"> · ${ST.side?'반대쪽':'한쪽'}</small>`:''}</b><i>${m[2]}</i></div>
+    ${STEPS[m[0]]?`<ol class="st-steps" style="--tc:${c}">${STEPS[m[0]][0].map(x=>`<li>${x}</li>`).join('')}</ol><p class="st-warn">⚠ ${STEPS[m[0]][1]}</p>`:''}
     <div class="st-ring"><svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--line)" stroke-width="9"/>
       <circle cx="60" cy="60" r="${R}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" transform="rotate(-90 60 60)"/></svg><b class="num">${ST.t}</b></div>
     <div class="st-ctl"><button type="button" data-stp="1">${ST.paused?'▶ 계속':'❚❚ 멈춤'}</button><button type="button" data-stn="1">다음 ›</button></div>
     ${nx?`<div class="st-next">다음 · ${moveSVG(ST.kind,nx[0],c)}<b>${nx[1]}</b></div>`:''}`; }
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-stgo]'); if(g){ stOpen(g.dataset.stgo); return; }
+  const sa=e.target.closest('[data-stat]'); if(sa){ const [k,i]=sa.dataset.stat.split(':'); stOpen(k,+i,true); return; }
   if(!e.target.closest('#strRun'))return;
   if(e.target.closest('[data-stx]')||e.target.id==='strRun'||e.target.closest('#stClose')) return stClose();
   if(e.target.closest('[data-stp]')){ ST.paused=!ST.paused; stPaint(); return; }
