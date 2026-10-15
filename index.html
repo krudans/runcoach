@@ -1690,7 +1690,12 @@ details.noti .sigc{margin:6px 0}
 .st-steps li{counter-increment:st;display:flex;gap:10px;align-items:center;background:var(--panel);border-radius:12px;padding:9px 12px;font-size:13.5px;font-weight:600}
 .st-steps li::before{content:counter(st);flex:none;width:22px;height:22px;border-radius:50%;background:var(--tc);color:#fff;font-size:12px;font-weight:900;display:grid;place-items:center}
 .st-warn{font-size:12.5px;color:#C2410C;font-weight:700;margin:6px 0 0;text-align:left}
-.st-fig.big{width:220px;height:220px}
+.st-fig.big{width:min(300px,78vw,36vh);height:min(300px,78vw,36vh)}
+.st-card2{max-height:none!important;overflow:visible!important;padding-bottom:calc(14px + env(safe-area-inset-bottom))!important}
+.st-card2 .ms-hd{padding:8px 0 4px}.st-card2 .st-stage{margin:4px 0 6px}
+.st-card2 .st-ring{width:96px;height:96px;margin:8px auto 4px}.st-card2 .st-ring svg{width:96px;height:96px}.st-card2 .st-ring b{font-size:32px}
+.st-card2 .st-ctl{margin:4px 0 8px}.st-card2 .st-ctl button{padding:10px 20px}
+.st-card2 .st-nm b{font-size:20px}
 .msheet.strun{opacity:1}.msheet.strun .ms-card{transform:none}
 .st-card2{text-align:center}
 .st-top{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:var(--tc)}.st-top i{font-style:normal;color:var(--ink-3)}
@@ -9122,53 +9127,67 @@ document.addEventListener('click',e=>{
 const STR_COL={dyn:'#E07A1F',stat:'#2F8F83'};
 /* 자세 = 관절 좌표 (100×100, 땅 y=94). la/aa = 앞쪽(진한), lb/ab = 뒤쪽(옅은). arr = 빨간 방향 화살표 */
 const RA='#E0454B', AR=(d)=>`<path d="${d}" fill="none" stroke="${RA}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
-const STAND={n:[50,25],p:[50,54],la:[[45,74],[43,93]],lb:[[55,74],[57,93]]};
+const F=(o)=>Object.assign({front:1,h:[50,13],n:[50,24],p:[50,52],la:[[45,72],[44,92]],lb:[[55,72],[56,92]],aa:[[38,40],[37,52]],ab:[[62,40],[63,52]]},o);
+const ARR_NECK=AR('M28 20a12 12 0 0 1 8-12m-2 6l2-6-6 0')+AR('M72 20a12 12 0 0 0-8-12m2 6l-2-6 6 0');
+const ARR_SH=AR('M24 30a7 7 0 1 1 6 7m-5-2l5 2-1-5')+AR('M76 30a7 7 0 1 0-6 7m5-2l-5 2 1-5');
+const ARR_ARM=AR('M10 30a12 12 0 0 1 3-17m-1 6l1-6-6 1')+AR('M90 30a12 12 0 0 0-3-17m1 6l-1-6 6 1');
+const ARR_HIP=`<ellipse cx="50" cy="55" rx="22" ry="5.5" fill="none" stroke="${RA}" stroke-width="2.8"/>`+AR('M67 59l6-1-3-5');
 const POSE={
-  neckA:Object.assign({},STAND,{h:[45,15],aa:[[45,40],[44,54]],ab:[[55,40],[56,54]],arr:AR('M30 18a10 10 0 0 1 6-10m-1 6l1-6-6 1')+AR('M70 18a10 10 0 0 0-6-10m1 6l-1-6 6 1')}),
-  neckB:Object.assign({},STAND,{h:[55,15],aa:[[45,40],[44,54]],ab:[[55,40],[56,54]],arr:AR('M30 18a10 10 0 0 1 6-10m-1 6l1-6-6 1')+AR('M70 18a10 10 0 0 0-6-10m1 6l-1-6 6 1')}),
-  shoulderA:Object.assign({},STAND,{h:[50,14],aa:[[37,21],[44,25]],ab:[[63,21],[56,25]],arr:AR('M28 30a8 8 0 1 1 6 8m-5-1l5 1-1-5')+AR('M72 30a8 8 0 1 0-6 8m5-1l-5 1 1-5')}),
-  shoulderB:Object.assign({},STAND,{h:[50,14],aa:[[39,36],[44,26]],ab:[[61,36],[56,26]],arr:AR('M28 30a8 8 0 1 1 6 8m-5-1l5 1-1-5')+AR('M72 30a8 8 0 1 0-6 8m5-1l-5 1 1-5')}),
-  armA:Object.assign({},STAND,{h:[50,14],aa:[[36,20],[22,14]],ab:[[64,20],[78,14]],arr:AR('M12 30a12 12 0 0 1 4-18m0 6l0-6-6 1')+AR('M88 30a12 12 0 0 0-4-18m0 6l0-6 6 1')}),
-  armB:Object.assign({},STAND,{h:[50,14],aa:[[36,28],[22,30]],ab:[[64,28],[78,30]],arr:AR('M12 30a12 12 0 0 1 4-18m0 6l0-6-6 1')+AR('M88 30a12 12 0 0 0-4-18m0 6l0-6 6 1')}),
-  waistA:{h:[49,14],n:[49,25],p:[45,54],la:[[45,74],[46,93]],lb:[[51,74],[54,93]],aa:[[39,38],[43,50]],ab:[[59,38],[55,50]],arr:`<ellipse cx="50" cy="56" rx="22" ry="6" fill="none" stroke="${RA}" stroke-width="3"/>`+AR('M66 60l6-1-3-5')},
-  waistB:{h:[51,14],n:[51,25],p:[55,54],la:[[49,74],[46,93]],lb:[[55,74],[54,93]],aa:[[41,38],[45,50]],ab:[[61,38],[57,50]],arr:`<ellipse cx="50" cy="56" rx="22" ry="6" fill="none" stroke="${RA}" stroke-width="3"/>`+AR('M66 60l6-1-3-5')},
+  neckA:F({h:[46,14],arr:ARR_NECK}), neckB:F({h:[54,14],arr:ARR_NECK}),
+  shoulderA:F({aa:[[33,19],[40,25]],ab:[[67,19],[60,25]],arr:ARR_SH}), shoulderB:F({aa:[[35,37],[40,27]],ab:[[65,37],[60,27]],arr:ARR_SH}),
+  armA:F({aa:[[28,22],[16,17]],ab:[[72,22],[84,17]],arr:ARR_ARM}), armB:F({aa:[[28,29],[16,33]],ab:[[72,29],[84,33]],arr:ARR_ARM}),
+  waistA:F({h:[51,13],n:[51,24],p:[46,52],la:[[43,72],[44,92]],lb:[[52,72],[56,92]],aa:[[32,40],[41,50]],ab:[[69,40],[56,50]],arr:ARR_HIP}),
+  waistB:F({h:[49,13],n:[49,24],p:[54,52],la:[[48,72],[44,92]],lb:[[57,72],[56,92]],aa:[[31,40],[44,50]],ab:[[68,40],[59,50]],arr:ARR_HIP}),
+  side:F({h:[60,16],n:[55,26],p:[50,52],aa:[[42,10],[60,3]],ab:[[72,38],[61,48]],arr:AR('M78 22a14 14 0 0 0-10-12m2 6l-2-6 6-1')}),
+  gateOpenA:F({lb:[[57,63],[57,79]],aa:[[33,40],[41,50]],ab:[[67,40],[59,50]],arr:AR('M60 66q12 2 14-10m-5 2l5-2 2 5')}),
+  gateOpenB:F({lb:[[72,57],[70,74]],aa:[[33,40],[41,50]],ab:[[67,40],[59,50]],arr:AR('M60 66q12 2 14-10m-5 2l5-2 2 5')}),
+  gateCloseA:F({lb:[[72,57],[70,74]],aa:[[33,40],[41,50]],ab:[[67,40],[59,50]],arr:AR('M76 52q-2 12-14 12m4-4l-4 4 5 2')}),
+  gateCloseB:F({lb:[[57,63],[57,79]],aa:[[33,40],[41,50]],ab:[[67,40],[59,50]],arr:AR('M76 52q-2 12-14 12m4-4l-4 4 5 2')}),
+  jogA:F({la:[[45,63],[45,79]],aa:[[36,38],[40,30]],ab:[[64,40],[62,49]],arr:AR('M22 90v-9m-4 4l4-4 4 4')+AR('M78 90v-9m-4 4l4-4 4 4')}),
+  jogB:F({lb:[[55,63],[55,79]],aa:[[36,40],[38,49]],ab:[[64,38],[60,30]],arr:AR('M22 90v-9m-4 4l4-4 4 4')+AR('M78 90v-9m-4 4l4-4 4 4')}),
   quad:{h:[50,13],n:[50,24],p:[50,53],la:[[50,73],[50,93]],lb:[[50,73],[38,57]],aa:[[60,34],[70,40]],ab:[[44,42],[38,55]],arr:AR('M28 70a14 14 0 0 1 2-16m-5 3l5-3 2 6')},
   fold:{h:[70,64],n:[62,56],p:[44,50],la:[[46,72],[47,93]],lb:[[42,72],[40,93]],aa:[[64,72],[55,88]],ab:[[62,73],[51,89]],arr:AR('M80 66v18m-5-5l5 5 5-5')},
   calf:{h:[72,22],n:[66,31],p:[48,57],la:[[58,75],[60,93]],lb:[[34,76],[22,93]],aa:[[76,33],[86,30]],ab:[[74,37],[86,38]],wall:1,arr:AR('M18 70l12-12m-7 0h7v7')},
   lunge:{h:[52,22],n:[51,33],p:[48,60],la:[[66,62],[67,93]],lb:[[36,82],[22,92]],aa:[[58,46],[64,58]],ab:[[56,48],[62,60]],arr:AR('M40 62v12m-4-4l4 4 4-4')},
   toekickA:{h:[48,13],n:[48,24],p:[48,53],la:[[48,73],[48,93]],lb:[[62,48],[76,42]],aa:[[62,34],[75,40]],ab:[[40,36],[33,46]],arr:AR('M84 64a20 20 0 0 0-6-18m-1 6l1-6 6 2')},
   toekickB:{h:[48,13],n:[48,24],p:[48,53],la:[[48,73],[48,93]],lb:[[52,73],[54,93]],aa:[[60,32],[70,28]],ab:[[40,36],[33,46]],arr:AR('M84 64a20 20 0 0 0-6-18m-1 6l1-6 6 2')},
-  gateOpenA:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[53,60],[54,76]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M58 64q14 4 18-10m-6 1l6-1 1 6')},
-  gateOpenB:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[70,55],[68,72]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M58 64q14 4 18-10m-6 1l6-1 1 6')},
-  gateCloseA:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[70,55],[68,72]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M78 54q-4 14-18 10m5-5l-5 5 6 2')},
-  gateCloseB:{h:[50,13],n:[50,24],p:[50,53],la:[[46,74],[45,93]],lb:[[53,60],[54,76]],aa:[[39,38],[43,50]],ab:[[61,38],[57,50]],arr:AR('M78 54q-4 14-18 10m5-5l-5 5 6 2')},
-  jogA:{h:[50,12],n:[50,23],p:[50,51],la:[[58,63],[54,78]],lb:[[49,71],[50,90]],aa:[[42,35],[44,45]],ab:[[58,34],[62,26]],arr:AR('M20 90v-10m-4 4l4-4 4 4')+AR('M80 90v-10m-4 4l4-4 4 4')},
-  jogB:{h:[50,12],n:[50,23],p:[50,51],la:[[49,71],[50,90]],lb:[[58,63],[54,78]],aa:[[58,34],[62,26]],ab:[[42,35],[44,45]],arr:AR('M20 90v-10m-4 4l4-4 4 4')+AR('M80 90v-10m-4 4l4-4 4 4')},
   ham:{h:[56,58],n:[47,66],p:[30,88],la:[[55,89],[80,89]],lb:[[55,90],[80,90]],aa:[[62,73],[77,83]],ab:[[60,76],[74,86]]},
   glute:{h:[12,84],n:[23,85],p:[50,86],la:[[70,88],[90,90]],lb:[[44,64],[60,70]],aa:[[34,72],[44,64]],ab:[[34,75],[46,68]]},
   hip:{h:[52,26],n:[51,37],p:[48,65],la:[[66,66],[68,93]],lb:[[36,92],[18,93]],aa:[[58,50],[66,63]],ab:[[56,52],[64,64]]},
-  side:{h:[58,17],n:[52,27],p:[50,55],la:[[46,74],[55,93]],lb:[[54,74],[44,93]],aa:[[46,14],[66,6]],ab:[[42,40],[46,52]]}
 };
-/* 사람 그림 — 몸통 · 두께 있는 팔다리 · 셔츠/반바지/피부/운동화 · 손 · 머리카락 */
+/* 사람 그림 — 앞모습(front: 어깨·골반 두 점) / 옆모습 */
 function figSVG(P,col){
-  const SK='#F1C6A0', SH='#2B2335', HAIR='#3A2A22';
-  const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
-  const seg=(a,b,w,c,o)=>`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)}L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round" opacity="${o||1}"/>`;
-  const leg=(j,o)=>{ const k=j[0], f=j[1], horiz=Math.abs(f[1]-k[1])<Math.abs(f[0]-k[0])*0.6;
-      const dir=P.face||1, toe=horiz?[f[0],f[1]-6]:[f[0]+6*dir,f[1]];
-      return `<g opacity="${o||1}">${seg(P.p,k,9,SK)}${seg(P.p,mix(P.p,k,.55),10,SH)}${seg(k,f,7,SK)}${seg(f,toe,5.5,SH)}${seg(mix(f,toe,.1),toe,1.6,'#fff')}</g>`; };
-  const arm=(j,o)=>{ const e=j[0], h=j[1];
-      return `<g opacity="${o||1}">${seg(P.n,e,6.5,SK)}${seg(P.n,mix(P.n,e,.5),7.5,col)}${seg(e,h,5.5,SK)}<circle cx="${h[0]}" cy="${h[1]}" r="3" fill="${SK}"/></g>`; };
-  /* 몸통 — 어깨 쪽이 넓은 사다리꼴 */
-  const dx=P.p[0]-P.n[0], dy=P.p[1]-P.n[1], ln=Math.hypot(dx,dy)||1, px=-dy/ln, py=dx/ln, ws=6.5, wh=5.5;
-  const N=[P.n[0]+dx/ln*1.5,P.n[1]+dy/ln*1.5];
-  const torso=`<path d="M${(N[0]+px*ws).toFixed(1)} ${(N[1]+py*ws).toFixed(1)}L${(P.p[0]+px*wh).toFixed(1)} ${(P.p[1]+py*wh).toFixed(1)}L${(P.p[0]-px*wh).toFixed(1)} ${(P.p[1]-py*wh).toFixed(1)}L${(N[0]-px*ws).toFixed(1)} ${(N[1]-py*ws).toFixed(1)}Z" fill="${col}" stroke="${col}" stroke-width="4" stroke-linejoin="round"/>`;
-  const shorts=`<circle cx="${P.p[0]}" cy="${P.p[1]}" r="4.6" fill="${SH}"/>`;
-  const hx=P.h[0]-P.n[0], hy=P.h[1]-P.n[1], hl=Math.hypot(hx,hy)||1;
-  const neck=seg(P.n,[P.n[0]+hx/hl*5,P.n[1]+hy/hl*5],4.5,SK);
-  const head=`<circle cx="${P.h[0]}" cy="${P.h[1]}" r="7" fill="${SK}"/><path d="M${(P.h[0]-7*hy/hl- 7*hx/hl*0).toFixed(1)} ${(P.h[1]+7*hx/hl).toFixed(1)}A7 7 0 0 0 ${(P.h[0]+7*hy/hl).toFixed(1)} ${(P.h[1]-7*hx/hl).toFixed(1)}Z" fill="${HAIR}" transform="rotate(0)"/>`;
-  return `${P.wall?'<rect x="86" y="8" width="7" height="86" rx="2" fill="#E4DCEB"/><path d="M86 8v86" stroke="#CFC3DA" stroke-width="1.5"/>':''}<ellipse cx="50" cy="95" rx="40" ry="2.6" fill="#E4DCEB"/>
-    ${leg(P.lb,.55)}${arm(P.ab,.55)}${neck}${torso}${shorts}${leg(P.la)}${arm(P.aa)}${head}${P.arr||''}`; }
+  const SK='#EFC39C', SKD='#E2AE84', SH='#2B2335', HAIR='#3A2A22';
+  const f1=x=>x.toFixed(1), mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+  const seg=(a,b,w,c,o)=>`<path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${o?` opacity="${o}"`:''}/>`;
+  const front=!!P.front, dir=P.face||1;
+  const shoe=(k,f)=>{ if(front) return seg([f[0]-2.6,f[1]+1],[f[0]+2.6,f[1]+1],5,SH);
+      const horiz=Math.abs(f[1]-k[1])<Math.abs(f[0]-k[0])*0.6, toe=horiz?[f[0],f[1]-6]:[f[0]+6*dir,f[1]+0.5];
+      return seg(f,toe,5,SH); };
+  const leg=(hip,j,o,sk)=>{ const k=j[0], f=j[1];
+      return `<g${o?` opacity="${o}"`:''}>${seg(hip,k,8,sk)}${seg(k,f,6.5,sk)}${seg(hip,mix(hip,k,.45),9,SH)}${shoe(k,f)}</g>`; };
+  const arm=(sh,j,o,sk)=>{ const e=j[0], h=j[1];
+      return `<g${o?` opacity="${o}"`:''}>${seg(sh,e,5.5,sk)}${seg(e,h,4.8,sk)}${seg(sh,mix(sh,e,.42),6.8,col)}<circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="2.7" fill="${sk}"/></g>`; };
+  const tx=P.p[0]-P.n[0], ty=P.p[1]-P.n[1], tl=Math.hypot(tx,ty)||1, ux=tx/tl, uy=ty/tl, px=-uy, py=ux;
+  let body='';
+  if(front){
+    const S=[[P.n[0]+px*9.5+ux*2,P.n[1]+py*9.5+uy*2],[P.n[0]-px*9.5+ux*2,P.n[1]-py*9.5+uy*2]];
+    const H=[[P.p[0]+px*6,P.p[1]+py*6],[P.p[0]-px*6,P.p[1]-py*6]];
+    const torso=`<path d="M${f1(S[0][0])} ${f1(S[0][1])}L${f1(S[1][0])} ${f1(S[1][1])}L${f1(H[1][0])} ${f1(H[1][1])}L${f1(H[0][0])} ${f1(H[0][1])}Z" fill="${col}" stroke="${col}" stroke-width="3" stroke-linejoin="round"/>`;
+    const shorts=`<path d="M${f1(H[0][0]+px*1.5)} ${f1(H[0][1]+py*1.5-2)}L${f1(H[1][0]-px*1.5)} ${f1(H[1][1]-py*1.5-2)}L${f1(H[1][0]-px*1.5)} ${f1(H[1][1]+5)}L${f1(H[0][0]+px*1.5)} ${f1(H[0][1]+5)}Z" fill="${SH}" stroke="${SH}" stroke-width="2" stroke-linejoin="round"/>`;
+    body=`${leg(H[0],P.la,0,SK)}${leg(H[1],P.lb,0,SK)}${shorts}${torso}${arm(S[0],P.aa,0,SK)}${arm(S[1],P.ab,0,SK)}`;
+  } else {
+    const SHp=[P.n[0]+ux*2.5,P.n[1]+uy*2.5];
+    body=`${leg(P.p,P.lb,.6,SKD)}${arm(SHp,P.ab,.6,SKD)}${seg([P.n[0]+ux*1,P.n[1]+uy*1],[P.p[0]-ux*1,P.p[1]-uy*1],12.5,col)}${seg(P.p,[P.p[0]-ux*3,P.p[1]-uy*3],11,SH)}${leg(P.p,P.la,0,SK)}${arm(SHp,P.aa,0,SK)}`;
+  }
+  /* 목 · 머리 · 머리카락 · 눈 */
+  const hx=P.h[0]-P.n[0], hy=P.h[1]-P.n[1], hl=Math.hypot(hx,hy)||1, vx=hx/hl, vy=hy/hl;
+  const neck=seg(P.n,[P.n[0]+vx*4,P.n[1]+vy*4],5,SK);
+  const r=6.6, hair=`<path d="M${f1(P.h[0]+vy*r)} ${f1(P.h[1]-vx*r)}A${r} ${r} 0 0 1 ${f1(P.h[0]-vy*r)} ${f1(P.h[1]+vx*r)}Z" fill="${HAIR}"/>`;
+  const eyes=front?`<circle cx="${f1(P.h[0]-2.3)}" cy="${f1(P.h[1]+1)}" r=".9" fill="${HAIR}"/><circle cx="${f1(P.h[0]+2.3)}" cy="${f1(P.h[1]+1)}" r=".9" fill="${HAIR}"/>`
+      :`<circle cx="${f1(P.h[0]+dir*3*Math.abs(vy)+vx*1)}" cy="${f1(P.h[1]+1-dir*0)}" r=".9" fill="${HAIR}"/>`;
+  return `${P.wall?'<rect x="86" y="8" width="7" height="86" rx="2" fill="#E4DCEB"/>':''}<ellipse cx="50" cy="95" rx="38" ry="2.4" fill="#E4DCEB"/>
+    ${body}${neck}<circle cx="${f1(P.h[0])}" cy="${f1(P.h[1])}" r="${r}" fill="${SK}"/>${hair}${eyes}${P.arr||''}`; }
 /* 동작마다 하는 법 · 주의 */
 const STEPS={
   neck:[['바르게 서서 어깨 힘 빼기','턱을 당겨 천천히 크게 원 그리기','오른쪽 5바퀴 → 왼쪽 5바퀴'],'빠르게 돌리지 않기'],
@@ -9221,7 +9240,7 @@ function stretchCard(kind,opt){ opt=opt||{}; const S=STR[kind], c=STR_COL[kind],
     <div class="tc-hd"><span class="tc-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${kind==='dyn'?'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>':'<path d="M12 3c-3 4-6 6-6 10a6 6 0 0 0 12 0c0-4-3-6-6-10z"/>'}</svg></span>
       <div><b>${S.en}</b><i>${S.ko}</i></div><em>${S.moves.length}가지 · ${Math.round(tot/60)}분</em></div>
     ${opt.compact?'':`<div class="tc-key"><span>핵심 포인트</span><b>${S.key}</b><p>${S.desc}</p></div>`}
-    <div class="st-grid">${S.moves.map((m,i)=>`<div class="st-mv" role="button" tabindex="0" data-stat="${kind}:${i}"><span class="st-no">${i+1}</span><b>${m[1]}</b>${moveSVG(kind,m[0],c)}<p>${m[2]}</p><em>${S.sec}초${m[4]?' × 좌우':''}</em><span class="st-how">하는 법 ›</span></div>`).join('')}</div>
+    <div class="st-grid">${S.moves.map((m,i)=>`<div class="st-mv" role="button" tabindex="0" data-stat="${kind}:${i}"><span class="st-no">${i+1}</span><b>${m[1]}</b>${moveSVG(kind,m[0],c)}<p>${m[2]}</p><em>${S.sec}초${m[4]?' × 좌우':''}</em><span class="st-how">여기서 시작 ›</span></div>`).join('')}</div>
     ${opt.compact?'':`<div class="tc-chk"><span>체크리스트</span>${S.chk.map(x=>`<i>${x}</i>`).join('')}</div>`}
     ${!opt.compact&&S.tips.length?`<div class="st-tips"><b>추가 꿀팁</b>${S.tips.map(x=>`<i>${x}</i>`).join('')}</div>`:''}
     <button type="button" class="st-go" data-stgo="${kind}">▶ 따라하기 ${Math.round(tot/60)}분</button>
@@ -9249,7 +9268,6 @@ function stPaint(){ const S=STR[ST.kind], m=S.moves[ST.i], c=STR_COL[ST.kind], n
     <div class="st-dots">${S.moves.map((_,k)=>`<i class="${k<ST.i?'d':k===ST.i?'on':''}" style="--tc:${c}"></i>`).join('')}</div>
     <div class="st-stage">${moveSVG(ST.kind,m[0],c,true)}</div>
     <div class="st-nm"><b>${m[1]}${m[4]?`<small style="color:${c}"> · ${ST.side?'반대쪽':'한쪽'}</small>`:''}</b><i>${m[2]}</i></div>
-    ${STEPS[m[0]]?`<ol class="st-steps" style="--tc:${c}">${STEPS[m[0]][0].map(x=>`<li>${x}</li>`).join('')}</ol><p class="st-warn">⚠ ${STEPS[m[0]][1]}</p>`:''}
     <div class="st-ring"><svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--line)" stroke-width="9"/>
       <circle cx="60" cy="60" r="${R}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" transform="rotate(-90 60 60)"/></svg><b class="num">${ST.t}</b></div>
     <div class="st-ctl"><button type="button" data-stp="1">${ST.paused?'▶ 계속':'❚❚ 멈춤'}</button><button type="button" data-stn="1">다음 ›</button></div>
