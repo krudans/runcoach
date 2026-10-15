@@ -1108,6 +1108,7 @@ details.noti .sigc{margin:6px 0}
 <div class="view on" id="home">
   <div class="topline"><b id="tlDate">—</b><span id="tlBlock" style="font-family:var(--num);font-size:11px"></span>
     <span class="right" id="tlWk">—</span>
+    <button id="btnMusic" class="icbtn mus-hb" style="margin-left:9px" aria-label="음악"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
     <button id="bellWrap" class="icbtn" style="margin-left:9px" aria-label="알림">🔔</button>
     <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button>
     <button id="btnPower" class="icbtn" style="margin-left:11px;color:var(--alarm)" aria-label="앱 끄기"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button></div>
@@ -1210,6 +1211,10 @@ details.noti .sigc{margin:6px 0}
     <button class="btn sm ghost" id="btnBT" style="margin:0">기기 검색 · 연결</button>
   </div>
 
+  <div class="lbl" style="margin:20px 0 9px">훈련 원리</div>
+  <button class="btn sm ghost" id="setGuide" style="margin:0">훈련법 · 계산 기준 보기</button>
+  <div class="lbl" style="margin:20px 0 9px">음악</div>
+  <button class="btn sm ghost" id="setMusic" style="margin:0">내 음악 · 플레이리스트</button>
   <div class="lbl" style="margin:20px 0 9px">AI 코치</div>
   <div class="card tight">
     <div class="meta" style="margin-bottom:10px">
@@ -1361,6 +1366,8 @@ details.noti .sigc{margin:6px 0}
     <div class="opt"><input type="checkbox" id="optCad" checked><label for="optCad">걸음 수 재기</label></div>
     <div class="opt"><input type="checkbox" id="optWake" checked><label for="optWake">화면 계속 켜두기</label></div></details>
     <div class="opt" hidden><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
+    <div id="cStretch"></div>
+    <button type="button" class="mpick" id="cMusic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><b>음악 넣기</b><i>▾</i></button>
     <button class="btn ghost" id="btnHR">기기 연결 — 워치 또는 가슴 스트랩</button>
     <div style="font-size:12px;color:var(--ink-3);margin-top:7px;text-align:center" id="hrState">미연결 — 심박 없이도 돼요</div>
     <button class="btn" id="btnStart">시작</button>
@@ -1368,6 +1375,65 @@ details.noti .sigc{margin:6px 0}
 </div>
 
 <style>.cset{margin:14px 0 6px;background:var(--panel);border-radius:12px;padding:0 14px}.cset>summary{list-style:none;padding:13px 0;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}.cset>summary::-webkit-details-marker{display:none}.cset>summary::after{content:' ▾';color:var(--ink-3)}.cset[open]>summary::after{content:' ▴'}</style>
+<div class="msheet strun" id="strRun" hidden><div class="ms-card st-card2" role="dialog" aria-label="스트레칭 따라하기">
+  <div class="ms-hd"><b>따라하기</b><button type="button" id="stClose" aria-label="닫기">✕</button></div><div id="stBody"></div></div></div>
+<div class="msheet" id="musSheet" hidden><div class="ms-card" role="dialog" aria-label="음악">
+  <div class="ms-hd"><b>음악</b><button type="button" id="musClose" aria-label="닫기">✕</button></div>
+  <div id="musBody"></div><div class="mus-busy" id="musBusy" hidden></div></div></div>
+<style>
+.mus-hb svg{display:block}.mus-hb.on{color:var(--accent)}
+.mpick{display:flex;align-items:center;gap:10px;width:100%;margin:12px 0 10px;padding:13px 16px;border-radius:14px;border:1.5px dashed var(--line);background:var(--panel);color:var(--ink-2);font:inherit;cursor:pointer}
+.mpick svg{width:20px;height:20px;flex:none}.mpick b{flex:1;text-align:left;font-size:14px}.mpick i{font-style:normal;color:var(--ink-3)}
+.mpick.on{border-style:solid;border-color:var(--accent);color:var(--accent)}
+.mbar{display:flex;align-items:center;gap:4px;width:100%;max-width:420px;background:var(--panel-2);border-radius:14px;padding:4px 6px 4px 14px}
+.mbar .mb-t{flex:1;min-width:0;text-align:left;background:none;border:none;font:inherit;font-size:13px;font-weight:700;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:10px 0;cursor:pointer}
+.mbar.on .mb-t{color:var(--ink)}
+.mbar [data-m]{width:40px;height:40px;border:none;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;border-radius:10px}
+.mbar [data-m] svg{width:20px;height:20px}.mbar [data-m=toggle]{background:var(--accent);color:#fff}
+.msheet{position:fixed;inset:0;z-index:80;background:rgba(42,22,56,.38);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .2s}
+.msheet.up{opacity:1}
+.ms-card{width:100%;max-width:520px;max-height:88vh;overflow:auto;background:var(--bg);border-radius:22px 22px 0 0;padding:6px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(30px);transition:transform .2s}
+.msheet.up .ms-card{transform:none}
+.ms-hd{display:flex;justify-content:space-between;align-items:center;padding:12px 0 8px}.ms-hd b{font-size:18px}
+.ms-hd button{border:none;background:var(--panel-2);width:34px;height:34px;border-radius:50%;font-size:14px;color:var(--ink-2);cursor:pointer}
+.mus-empty{text-align:center;padding:18px 0 8px}.mus-empty p{color:var(--ink-2);font-size:14px;line-height:1.6;margin:14px 0 0}
+.mus-disc{width:120px;height:120px;margin:0 auto;border-radius:50%;background:radial-gradient(circle,var(--bg) 0 14%,var(--plum) 15% 100%);display:grid;place-items:center;color:#fff;box-shadow:0 10px 26px rgba(91,45,134,.25)}
+.mus-disc svg{display:none}
+.mus-pick{display:flex;gap:10px;margin:16px 0 4px}
+.mus-add{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:16px;border:none;background:var(--panel);color:var(--accent);font:inherit;cursor:pointer}
+.mus-add svg{width:26px;height:26px}.mus-add b{font-size:13.5px;color:var(--ink)}
+.mus-now{display:flex;gap:14px;align-items:center;margin:4px 0 12px}
+.mn-art,.mt-art{display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,hsl(var(--h) 45% 46%),hsl(calc(var(--h) + 50) 55% 30%))}
+.mn-art{width:72px;height:72px;border-radius:18px;flex:none}.mn-art svg{width:30px;height:30px}
+.mn-t{min-width:0}.mn-t b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mn-t i{font-style:normal;font-size:12.5px;color:var(--ink-3)}
+.mus-pos{-webkit-appearance:none;appearance:none;width:100%;height:6px!important;min-height:0!important;padding:0!important;border:none!important;box-shadow:none!important;border-radius:3px;background:linear-gradient(90deg,var(--accent) var(--p,0%),var(--line) var(--p,0%));margin:6px 0 0}
+.mus-pos::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.mus-pos::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff}
+.mus-time{font-family:var(--num);font-size:11.5px;color:var(--ink-3);text-align:right;margin-top:4px}
+.mus-ctl{display:flex;justify-content:space-between;align-items:center;margin:8px 4px 16px}
+.mus-ctl button{border:none;background:none;color:var(--ink);width:48px;height:48px;display:grid;place-items:center;border-radius:50%;cursor:pointer}
+.mus-ctl button svg{width:24px;height:24px}
+.mus-ctl .mc-s{color:var(--ink-3)}.mus-ctl .mc-s svg{width:21px;height:21px}.mus-ctl .mc-s.on{color:var(--accent);background:var(--panel-2)}
+.mus-ctl .mc-p{width:64px;height:64px;background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(91,45,134,.3)}.mus-ctl .mc-p svg{width:28px;height:28px}
+.mus-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mus-tile{border:none;background:none;padding:0;text-align:left;font:inherit;color:var(--ink);cursor:pointer;min-width:0}
+.mt-art{aspect-ratio:1;border-radius:14px;margin-bottom:6px;outline:3px solid transparent;outline-offset:2px}.mt-art svg{width:24px;height:24px}
+.mus-tile.sel .mt-art{outline-color:var(--accent)}
+.mus-tile b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mus-tile i{font-style:normal;font-size:11px;color:var(--ink-3)}
+.mus-trs{margin:14px 0 0;background:var(--panel);border-radius:14px;padding:0 6px}
+.mus-trs>summary{list-style:none;padding:12px 10px;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}.mus-trs>summary::-webkit-details-marker{display:none}
+.mus-trs>summary::after{content:' ▾'}.mus-trs[open]>summary::after{content:' ▴'}
+.mus-tr{display:flex;gap:8px;align-items:center;width:100%;border:none;border-top:1px solid var(--line);background:none;padding:11px 8px;font:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+.mus-tr span{width:16px;flex:none;color:var(--accent)}.mus-tr span svg{width:14px;height:14px}
+.mus-tr b{font-weight:500;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mus-tr.cur b{font-weight:800;color:var(--accent)}
+.mus-opts{display:flex;flex-direction:column;gap:2px;margin:12px 2px 0}.mus-opts label{display:flex;gap:9px;align-items:center;font-size:13.5px;padding:8px 0;color:var(--ink-2)}
+.mus-opts input{width:18px;height:18px;accent-color:var(--accent)}
+.mus-wipe{display:block;margin:10px auto 0;border:none;background:none;color:var(--ink-3);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer;padding:8px}
+.mus-busy{position:sticky;bottom:0;text-align:center;background:var(--ink);color:#fff;border-radius:12px;padding:10px;font-size:13px;margin-top:10px}
+@keyframes eqb{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.eq1,.eq2,.eq3{transform-origin:50% 100%;transform-box:fill-box;animation:eqb .9s ease-in-out infinite}.eq2{animation-delay:-.3s}.eq3{animation-delay:-.6s}
+@media (prefers-reduced-motion:reduce){.eq1,.eq2,.eq3{animation:none}}
+</style>
 <div class="view" id="intro">
   <div class="ipad">
     <div class="itop"><span class="brandmark" data-bm="light"></span><span><b>가지런</b><i>GAJI RUN <span id="verIntro" style="opacity:.55;letter-spacing:.1em"></span></i></span></div>
@@ -1490,7 +1556,7 @@ details.noti .sigc{margin:6px 0}
       <button class="cell" data-h="pace"><div class="k">속도</div><div class="v num" id="rPace">--'--"</div><div class="u" id="rPaceU">(페이스)</div></button>
       <button class="cell" data-h="time"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
       <button class="cell" data-h="hr"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
-      <button class="cell" data-h="cad"><div class="k">걸음</div><div class="v num" id="rCad">—</div><div class="u">분당</div></button>
+      <button class="cell" data-h="cad"><div class="k">걸음</div><div class="v num" id="rCad">—</div><div class="u" id="rCadU">분당</div></button>
     </div>
   </div>
 
@@ -1514,6 +1580,11 @@ details.noti .sigc{margin:6px 0}
   </div>
 
   <div class="rctl" id="rCtl">
+    <div class="mbar" id="mBar" hidden>
+      <button class="mb-t" type="button"></button>
+      <button type="button" data-m="prev" aria-label="이전 곡"></button>
+      <button type="button" data-m="toggle" aria-label="재생/일시정지"></button>
+      <button type="button" data-m="next" aria-label="다음 곡"></button></div>
     <div class="rrow">
       <button class="sidebtn" id="btnLock" aria-label="화면 잠금">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
@@ -1534,6 +1605,7 @@ details.noti .sigc{margin:6px 0}
 <div class="view" id="sum"><div class="bar"><h1>세션 결과</h1><span class="sub" id="sumDate">—</span></div>
   <div class="pad">
     <div id="sNew"></div>
+    <div id="sStretch"></div>
     <div id="sOld" hidden>
     <div class="card">
       <div class="meta" id="sName">—</div>
@@ -1595,6 +1667,133 @@ details.noti .sigc{margin:6px 0}
 <div class="view" id="share"><div class="bar"><h1>사진으로 공유</h1><span class="sub"></span></div><div class="pad" id="shBody" style="padding-bottom:100px"></div></div>
 <div class="view" id="rview"><div class="bar"><button class="sub" id="rvwBack">← 일지</button><h1 style="text-align:center">기록</h1><span class="sub"><button class="sub" id="rvwDel" style="color:var(--alarm)">삭제</button></span></div><div class="pad" id="rvwBody" style="padding-bottom:100px"></div></div>
 <div class="view" id="dec"><div class="pad decpad" id="decBody"></div></div>
+<div class="view" id="guide"><div class="bar"><button class="sub" id="gdBack">← 뒤로</button><h1 style="text-align:center">훈련 원리</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="gdBody" style="padding-bottom:110px"></div></div>
+<style>
+.st-card{margin:12px 0}
+.st-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 14px 4px}
+.st-mv{display:flex;flex-direction:column;align-items:center;text-align:center;background:color-mix(in srgb,var(--tc) 7%,transparent);border-radius:14px;padding:8px 4px 9px}
+.st-mv b{font-size:12.5px;margin-top:2px}.st-mv i{font-style:normal;font-size:10.5px;color:var(--ink-3);line-height:1.35;word-break:keep-all}.st-mv em{font-style:normal;font-size:10.5px;font-weight:800;color:var(--tc);margin-top:3px}
+.st-fig{width:64px;height:64px;display:block}.st-fig.big{width:200px;height:200px}
+.st-fig.anim .pb{animation:stB 1.1s steps(1) infinite}.st-fig.anim .pa{animation:stA 1.1s steps(1) infinite}
+@keyframes stA{0%{opacity:1}50%{opacity:0}}@keyframes stB{0%{opacity:0}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.st-fig.anim .pb{animation:none;opacity:0}.st-fig.anim .pa{animation:none}}
+.st-go{display:block;width:calc(100% - 28px);margin:10px 14px 14px;height:46px;border:none;border-radius:14px;background:var(--tc);color:#fff;font:inherit;font-size:15px;font-weight:800;cursor:pointer}
+.st-pair{display:flex;gap:8px;margin:10px 0 0}.st-pair button{flex:1;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:11px 6px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer}
+.st-grid{grid-template-columns:repeat(2,1fr)!important}
+.st-mv{position:relative;padding:10px 6px 10px!important}.st-mv .st-fig{width:96px;height:96px;margin:2px 0}
+.st-no{position:absolute;left:8px;top:8px;width:22px;height:22px;border-radius:50%;background:#E0454B;color:#fff;font-size:12px;font-weight:900;display:grid;place-items:center}
+.st-mv p{margin:0;font-size:11.5px;color:var(--ink-2);line-height:1.4;word-break:keep-all}
+.st-tips{margin:0 14px 10px;padding:10px 12px;border-radius:14px;background:#FFF6D9;display:flex;flex-direction:column;gap:4px}
+.st-tips b{font-size:12px;color:#B07A00}.st-tips i{font-style:normal;font-size:12.5px;color:var(--ink-2)}.st-tips i::before{content:'✓ ';color:#2E9B5C;font-weight:900}
+.msheet.strun{opacity:1}.msheet.strun .ms-card{transform:none}
+.st-card2{text-align:center}
+.st-top{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:var(--tc)}.st-top i{font-style:normal;color:var(--ink-3)}
+.st-dots{display:flex;gap:4px;margin:8px 0}.st-dots i{flex:1;height:5px;border-radius:3px;background:var(--line)}.st-dots i.d{background:color-mix(in srgb,var(--tc) 45%,transparent)}.st-dots i.on{background:var(--tc)}
+.st-stage{display:flex;justify-content:center;background:var(--panel);border-radius:20px;margin:6px 0 10px}
+.st-nm b{display:block;font-size:22px;font-weight:900}.st-nm small{font-size:15px}.st-nm i{display:block;font-style:normal;font-size:13px;color:var(--ink-2);margin-top:3px}
+.st-ring{position:relative;width:120px;height:120px;margin:12px auto 6px}.st-ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-size:38px;font-weight:800}
+.st-ctl{display:flex;gap:10px;justify-content:center;margin:6px 0 10px}.st-ctl button{border:none;background:var(--panel-2);border-radius:12px;padding:12px 22px;font:inherit;font-weight:800;color:var(--ink);cursor:pointer}
+.st-next{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;color:var(--ink-3)}.st-next .st-fig{width:40px;height:40px}.st-next b{color:var(--ink-2)}
+.st-done{display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 0 10px}.st-done b{font-size:20px}.st-done .btn{width:100%}
+.tc{background:var(--panel);border-radius:20px;margin:0 0 12px;overflow:hidden;border:1.5px solid color-mix(in srgb,var(--tc) 30%,transparent)}
+.tc-hd{display:flex;align-items:center;gap:12px;padding:14px 14px 10px}
+.tc-ic{flex:none;width:46px;height:46px;border-radius:50%;background:var(--tc);color:#fff;display:grid;place-items:center}
+.tc-hd div{flex:1;min-width:0}.tc-hd b{display:block;font-size:24px;font-weight:900;letter-spacing:-.5px;color:var(--tc);line-height:1.05}.tc-hd i{display:block;font-style:normal;font-size:15px;font-weight:800;color:var(--tc);margin-top:2px}
+.tc-hd em{flex:none;font-style:normal;font-family:var(--num);font-size:12px;font-weight:700;color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);padding:4px 9px;border-radius:999px;max-width:120px;text-align:center}
+.tc-scn{display:block;width:100%;height:auto;aspect-ratio:320/130}
+.tc-key{padding:12px 14px 4px}.tc-key span,.tc-chk span{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:var(--tc);padding:3px 9px;border-radius:999px}
+.tc-key b{display:block;font-size:16px;margin:8px 0 4px}.tc-key p{margin:0;font-size:12.5px;line-height:1.65;color:var(--ink-2)}
+.tc-chk{margin:10px 14px 12px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--tc) 8%,transparent);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.tc-chk span{background:none;color:var(--tc);padding:0;width:100%;font-size:12px}
+.tc-chk i{font-style:normal;font-size:13px;font-weight:600}.tc-chk i::before{content:'✓ ';color:var(--tc);font-weight:900}
+.tc-more{border-top:1px solid var(--line)}.tc-more>summary{list-style:none;padding:12px 14px;font-size:13px;font-weight:700;color:var(--tc);cursor:pointer}
+.tc-more>summary::-webkit-details-marker{display:none}.tc-more>summary::after{content:' ▾'}.tc-more[open]>summary::after{content:' ▴'}
+.gwatch{display:flex;flex-direction:column;align-items:center;margin:0 0 18px}
+.gw-band{width:46%;height:26px;background:#2b2b31;border-radius:10px 10px 0 0;background-image:radial-gradient(circle,#18181c 4px,transparent 5px);background-size:22px 13px}
+.gw-band:last-of-type{border-radius:0 0 10px 10px}
+.gw-face{width:100%;max-width:360px;background:#0d0d10;border:7px solid #5b5b63;border-radius:30px;padding:6px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.gw-r{display:grid;grid-template-columns:20px 44px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;width:100%;border:none;background:none;font:inherit;color:#fff;text-align:left;padding:10px 4px;border-bottom:1px solid #2a2a30;cursor:pointer}
+div.gw-r{cursor:default}.gw-r:last-child{border-bottom:none}
+.gw-n{grid-row:1/3;font-family:var(--num);font-size:22px;font-weight:800}
+.gw-ic{grid-row:1/3;display:grid;place-items:center}.gw-ic svg{width:40px;height:40px}
+.gw-v{display:flex;align-items:baseline;gap:6px}.gw-v b.num{font-family:var(--num);font-size:30px;font-weight:800;line-height:1}.gw-v b.sm{font-size:19px;font-weight:800}
+.gw-v i{font-style:normal;font-size:13px;font-weight:700}
+.gw-q{grid-column:3;font-style:normal;font-size:11.5px;color:#a9a3b4;margin-top:3px}
+.gw-z{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:15px}
+.gw-cap{font-size:11px;color:var(--ink-3);margin:8px 0 0;text-align:center}
+.gd-hero{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 10px}.gd-hero b{font-size:21px;font-weight:900}.gd-hero i{font-style:normal;font-size:11.5px;color:var(--ink-3)}
+.gband{display:flex;background:var(--panel);border-radius:16px;overflow:hidden;margin-bottom:10px;border:1.5px solid color-mix(in srgb,var(--bc) 35%,transparent)}
+.gb-side{flex:none;width:26px;background:var(--bc);color:#fff;font-size:12px;font-weight:800;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:2px;display:flex;align-items:center;justify-content:center;padding:8px 0}
+.gb-cells{flex:1;display:grid;grid-template-columns:1fr 1fr;min-width:0}
+.gc{display:flex;flex-direction:column;gap:6px;text-align:left;border:none;background:none;font:inherit;color:var(--ink);padding:11px 10px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.gc:nth-child(2n){border-right:none}.gc.w{grid-column:span 2;border-right:none}
+button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
+.gc-h{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}.gc-h i{font-style:normal;font-size:10.5px;font-weight:800;color:#fff;background:var(--bc);border-radius:5px;min-width:17px;height:17px;display:inline-grid;place-items:center;align-self:center}
+.gc-h b{font-size:13.5px;word-break:keep-all}.gc-h em{font-style:normal;font-size:10px;color:var(--bc);font-weight:700}
+.gc-b{display:flex;flex-direction:column;gap:6px}.gc.w .gc-b{flex-direction:row;align-items:center;gap:12px}
+.gc-art{display:flex;align-items:center;min-height:42px}.gc-art svg{display:block}
+.gc-b p{margin:0;font-size:11.5px;line-height:1.5;color:var(--ink-2);word-break:keep-all}.gc-b p b{color:var(--ink)}
+.gc-me{align-self:flex-start;font-family:var(--num);font-size:11px;font-weight:700;color:var(--bc);background:color-mix(in srgb,var(--bc) 12%,transparent);padding:2px 8px;border-radius:999px}
+.gc-dual{display:flex;align-items:flex-end;gap:6px}
+.gc-z{display:flex;align-items:flex-end;gap:3px;height:34px}.gc-z i{width:10px;border-radius:3px;background:var(--c)}
+.gc-timer{background:var(--ink);color:#fff;font-size:15px!important;padding:6px 9px;border-radius:8px;letter-spacing:1px}
+.gb-tips{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:10px 4px}
+.gt{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px}.gt svg{width:34px;height:34px}.gt b{font-size:11.5px;word-break:keep-all}.gt i{font-style:normal;font-size:10px;color:var(--ink-3);line-height:1.3;word-break:keep-all}
+.gb-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.gb{background:var(--panel);border-radius:16px;padding:12px;min-width:0}.gb.c2{grid-column:span 2}.gb.c4{grid-column:span 4}
+.gb h4{margin:0 0 10px;font-size:14px;display:flex;align-items:center;gap:7px}
+.gb h4 i{font-style:normal;width:20px;height:20px;border-radius:6px;background:var(--accent);color:#fff;font-size:11.5px;display:grid;place-items:center}
+.gb-units{display:flex;justify-content:space-between;gap:4px}.gb-units span{display:flex;flex-direction:column;align-items:center;gap:4px}
+.gb-units b{width:42px;height:42px;border-radius:50%;background:var(--panel-2);display:grid;place-items:center;font-size:15px}.gb-units i{font-style:normal;font-size:10.5px;color:var(--ink-3)}
+.gb-watch,.gb-gauge{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px}
+.gb .num{font-family:var(--num);font-size:20px;font-weight:800;line-height:1.1}.gb .num small{font-size:11px;font-weight:600;color:var(--ink-3)}
+.gb-watch i,.gb-gauge i{font-style:normal;font-size:11px;color:var(--ink-3);line-height:1.4}
+.gb-speed{display:flex;align-items:center;gap:6px;margin:6px 0 10px}
+.gb-fx{font-size:11px;line-height:1.6;background:var(--panel-2);border-radius:10px;padding:7px 9px;color:var(--ink-2)}
+.gb-hr{display:flex;align-items:center;gap:14px}.gb-hr i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:3px}
+.gb-zbar{display:flex;gap:3px;margin:12px 0 6px}.gb-zbar span{flex:1;height:22px;border-radius:6px;background:var(--c);display:grid;place-items:center}.gb-zbar em{font-style:normal;font-size:10.5px;font-weight:800;color:#fff}
+.gb-note{font-size:11px;color:var(--ink-3);margin:6px 0 0}
+.gb-ints{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.gb-ints button{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:var(--panel-2);border-radius:12px;padding:10px 2px;font:inherit;cursor:pointer;min-width:0}
+.gb-ints b{font-size:12px}.gb-ints i{font-style:normal;font-size:10px;color:var(--ink-3);text-align:center;line-height:1.3}.gb-ints em{font-style:normal;font-size:12px!important;color:var(--ink)}
+.gb-two{display:grid;grid-template-columns:1fr;gap:14px}
+.gb-li{display:flex;gap:10px;align-items:center;margin-bottom:8px}.gb-li[data-gfocus]{cursor:pointer}
+.gb-li span{flex:none;width:38px;height:38px;border-radius:11px;background:var(--panel-2);display:grid;place-items:center;color:var(--accent)}.gb-li span svg{width:22px;height:22px}
+.gb-li p{margin:0;font-size:12px;color:var(--ink-2);line-height:1.45}.gb-li b{display:block;font-size:13px;color:var(--ink)}
+.gd-terms{background:var(--aub);border-radius:18px;padding:6px;display:flex;flex-direction:column;gap:4px}
+.gd-term{display:grid;grid-template-columns:26px 40px 74px 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center;text-align:left;border:none;border-radius:13px;background:rgba(255,255,255,.06);color:#fff;font:inherit;padding:10px 10px;cursor:pointer}
+.gd-term:disabled{cursor:default}
+.gd-term:not(:disabled):active{background:rgba(255,255,255,.12)}
+.gt-no{grid-row:1/3;font-family:var(--num);font-size:17px;font-weight:800;color:#C9E36B}
+.gt-ic{grid-row:1/3;width:40px;height:40px;border-radius:11px;background:rgba(255,255,255,.1);display:grid;place-items:center;color:#F1E9F8}
+.gt-nm{grid-row:1/3;min-width:0}.gt-nm b{display:block;font-size:13.5px;line-height:1.25;word-break:keep-all}.gt-nm i{display:block;font-style:normal;font-size:10px;color:#BBA9CB;line-height:1.3}
+.gt-tx{min-width:0}.gt-tx b{display:block;font-size:12px;font-weight:600;line-height:1.45;word-break:keep-all}.gt-tx i{display:block;font-style:normal;font-size:11px;line-height:1.45;color:#C9B8D8;margin-top:2px;word-break:keep-all}
+.gt-me{grid-column:4;justify-self:start;margin-top:6px;font-style:normal;font-family:var(--num);font-size:11.5px;font-weight:700;color:#2A1638;background:#F6C27A;padding:2px 8px;border-radius:999px}
+.gd-sec h3{font-size:13px;font-weight:800;color:var(--ink-3);margin:20px 4px 8px}
+.gd-it{background:var(--panel);border-radius:16px;margin:0 0 8px;overflow:hidden}
+.gd-it>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+.gd-it>summary::-webkit-details-marker{display:none}
+.gd-tile{flex:none;width:64px;height:44px;border-radius:12px;background:var(--panel-2);display:grid;place-items:center;color:var(--accent)}
+.gd-sh svg{display:block}
+.gd-nm{flex:1;min-width:0}.gd-nm b{display:block;font-size:14.5px}.gd-nm i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-mine{flex:none;font-style:normal;font-family:var(--num);font-size:12.5px;font-weight:700;color:var(--accent);background:var(--panel-2);padding:4px 9px;border-radius:999px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-it[open]>summary{border-bottom:1px solid var(--line)}
+.gd-bd{padding:12px 14px 14px}
+.gd-fx{font-family:var(--mono);font-size:12px;line-height:1.85;background:var(--aub);color:#F1E9F8;border-radius:12px;padding:12px 14px;margin:10px 0;overflow-x:auto}
+.gd-fx b{color:#F6C27A;font-weight:700}.gd-fx sup{font-size:9px}
+.gd-kv{display:grid;grid-template-columns:auto 1fr;gap:7px 12px;font-size:12.5px;margin:6px 0}
+.gd-kv span{color:var(--ink-3);white-space:nowrap}.gd-kv b{font-weight:600;color:var(--ink)}
+.gd-p{font-size:12.5px;line-height:1.7;color:var(--ink-2);margin:6px 0}
+.gd-src{font-size:11px;color:var(--ink-3);margin:8px 0 0}
+.gd-row{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:var(--ink-2);margin-bottom:8px}
+.gd-rpe{display:flex;gap:2px}.gd-rpe i{width:9px;height:14px;border-radius:2px;background:var(--line)}.gd-rpe i.on{background:linear-gradient(var(--z5),var(--z4))}
+.gd-rpe i.on:nth-child(-n+3){background:var(--z2)}.gd-rpe i.on:nth-child(n+4):nth-child(-n+6){background:var(--z3)}
+.gd-zones{display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
+.gd-zones>div{display:grid;grid-template-columns:8px 1fr auto 56px;gap:10px;align-items:center;font-size:12.5px}
+.gd-zones i{width:8px;height:22px;border-radius:3px;background:var(--c)}.gd-zones span{font-family:var(--num);font-weight:700}.gd-zones em{font-style:normal;color:var(--ink-3);text-align:right}
+.hlinks{display:flex;justify-content:center;gap:18px}.hlinks .hlink{margin-left:0;margin-right:0}
+.gd-link{display:block;margin:10px auto 0;border:none;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:8px}
+</style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
 <div class="nav" id="nav">
@@ -1656,6 +1855,7 @@ const DEV = {
     try{ if(typeof VC!=='undefined')VC.keepAlive(true);
       const go=()=>{ const u=new SpeechSynthesisUtterance('. . '+text); u.lang='ko-KR'; u.rate=(typeof VOPT!=='undefined'&&VOPT.rate)||1.05;
         const ko=(speechSynthesis.getVoices()||[]).find(v=>/^ko/i.test(v.lang)); if(ko)u.voice=ko;
+        try{ if(typeof MUS!=='undefined')MUS.duck(); }catch(e){}
         speechSynthesis.speak(u); };
       if(force&&(speechSynthesis.speaking||speechSynthesis.pending)){ speechSynthesis.cancel(); setTimeout(go,250); } else go(); }catch(e){} },
   /* 진동 문법 — 셋뿐이다. 뛰면서 다섯 가지를 구분할 수 없다.
@@ -3172,6 +3372,7 @@ function countdown(sec,label){
   });
 }
 $('btnStart').onclick=async()=>{
+  try{ MUS.onRunStart(); }catch(e){}
   const s=sessionOf(pendingIx), T=TYPES[s.type]||{}, adj=ADJ[s.type]||0;
   /* GPS를 먼저 켜서 카운트 도는 동안 위성을 잡게 한다 */
   let warm=null; try{ warm=DEV.geo.start(()=>{},()=>{}); }catch(e){}
@@ -3449,6 +3650,7 @@ function onTick(){
   const moving = !!S.lastMove && (Date.now()-S.lastMove)<8000;
   const cadNow = moving ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
+  { const u=$('rCadU'); if(u)u.textContent=(cadNow&&isFinite(p)&&p>0)?`보폭 ${(1000/p*60/cadNow).toFixed(2)}m`:'분당'; }
   if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
   if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
     /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다 */
@@ -3827,6 +4029,7 @@ $('btnStop').addEventListener('pointerdown',startHold);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>
   $('btnStop').addEventListener(ev,endHold));
 function finish(completed){
+  try{ MUS.onRunEnd(); }catch(e){}
   try{ VC.keepAlive(false); }catch(e){}
   if(typeof setLock==='function'&&LOCKED)setLock(false);
   if(S.breath){ try{ breathClose(S.dist/1000); }catch(e){} breathBeatStop(); }
@@ -6637,7 +6840,7 @@ function renderHome(){
 
   /* 계획 있는 날은 얇게, 계획 없는 사람은 크게. 쉬는 날은 쉬는 날 카드의 '그래도 뛰고 싶어요'가 맡는다 */
   if(sess) h+=quickGo(true); else if(!inP) h+=quickGo(false);
-  if(planned) h+=`<button class="hlink" id="homeGoal2">목표·일정 다시 짜기</button>`;
+  if(planned) h+=`<div class="hlinks"><button class="hlink" id="homeGoal2">목표·일정 다시 짜기</button><button class="hlink" data-guide="">훈련 원리</button></div>`;
   h+=`<div id="alertBox" hidden></div><div id="propBox" hidden></div>`;
   $('hMain').innerHTML=h;
   wireHome(sess,idx);
@@ -8269,7 +8472,9 @@ function openTodayPlan(idx){
         ${fastKm?`<div><b class="num">${+fastKm.toFixed(1)}</b><i>km 빠르게</i></div>`:''}
         <div><b class="num">${pad(end.getHours())}:${pad(end.getMinutes())}</b><i>지금 뛰면 끝</i></div></div></div>
       <div class="card" style="padding:10px 16px 8px">${planDetailHTML(s,adj,TDMODE)}</div>
-      <button class="btn" id="tpGo">이대로 시작하기 ▶</button>`;
+      <button class="btn" id="tpGo">이대로 시작하기 ▶</button>
+      <div class="st-pair"><button type="button" data-stgo="dyn">출발 전 동적 스트레칭 ▶</button><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
+      <button type="button" class="gd-link" data-guide="${ESC(s.type)}">이 훈련은 어떻게 계산되나 ›</button>`;
     $('tpBody').querySelectorAll('[data-pdm]').forEach(b=>b.onclick=()=>{ TDMODE=b.dataset.pdm; paint(); });
     $('tpGo').onclick=()=>openConfirm(idx);
   };
@@ -8336,6 +8541,601 @@ function openMyGoal(){
   if(d){ await BT.connect(d); if(!BT.dev)BT.retry(); }
   else BT.paint();
 }catch(e){} })();
+
+/* ═════════════════════ 음악 — 내 폴더의 노래·플레이리스트 재생 ═════════════════════
+   · 폴더(또는 파일)를 한 번 고르면 폰 안(IndexedDB)에 담아 둔다 — 다음부터 다시 고를 필요 없음
+   · 플레이리스트 = .m3u/.m3u8 파일 + 하위 폴더 + 전체
+   · 랜덤 · 반복(끔/전체/한 곡) · 이전/다음 · 위치 바 · 잠금화면 조작(Media Session)
+   · 앱 안내 음성이 나오면 음악을 살짝 줄였다가(30%) 끝나면 되돌린다 */
+const MDB={db:null,
+  open(){ if(this.db)return Promise.resolve(this.db);
+    return new Promise((ok,no)=>{ try{ const r=indexedDB.open('gajirun_music',1);
+      r.onupgradeneeded=()=>{ const d=r.result; if(!d.objectStoreNames.contains('files'))d.createObjectStore('files',{keyPath:'id'});
+        if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv'); };
+      r.onsuccess=()=>{ this.db=r.result; ok(this.db); }; r.onerror=()=>no(r.error); }catch(e){ no(e); } }); },
+  async tx(st,mode,fn){ const d=await this.open(); return new Promise((ok,no)=>{ const t=d.transaction(st,mode), s=t.objectStore(st);
+    let out; try{ out=fn(s); }catch(e){ no(e); return; }
+    t.oncomplete=()=>ok(out&&'result' in out?out.result:out); t.onerror=()=>no(t.error); t.onabort=()=>no(t.error); }); },
+  get(st,k){ return this.tx(st,'readonly',s=>s.get(k)); },
+  put(st,v,k){ return this.tx(st,'readwrite',s=>k===undefined?s.put(v):s.put(v,k)); },
+  all(st){ return this.tx(st,'readonly',s=>s.getAll()); },
+  clear(){ return Promise.all([this.tx('files','readwrite',s=>s.clear()),this.tx('kv','readwrite',s=>s.clear())]); }
+};
+const MUS_EXT=/\.(mp3|m4a|aac|ogg|oga|opus|wav|flac|webm|mp4)$/i, M3U_EXT=/\.m3u8?$/i;
+const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
+  st:Object.assign({sel:null,shuf:false,rep:'all',duck:true,auto:true,vol:1},DEV.store.get('music',{})),
+  canVol:true,ducked:false,duckT:null,ready:false,
+  save(){ DEV.store.set('music',this.st); },
+  el(){ if(this.a)return this.a;
+    const a=this.a=new Audio(); a.preload='auto';
+    try{ a.volume=0.5; this.canVol=Math.abs(a.volume-0.5)<0.01; a.volume=this.st.vol; }catch(e){ this.canVol=false; }
+    a.addEventListener('ended',()=>{ if(this.st.rep==='one'){ a.currentTime=0; a.play().catch(()=>{}); } else this.next(true); });
+    ['play','pause'].forEach(ev=>a.addEventListener(ev,()=>this.paint()));
+    a.addEventListener('timeupdate',()=>this.paintPos());
+    a.addEventListener('error',()=>{ if(this.cur){ this.toast('재생할 수 없는 파일 — 다음 곡'); setTimeout(()=>this.next(true),400); } });
+    this.media(); return a; },
+  /* ── 라이브러리 ── */
+  async init(){ try{ const fs=await MDB.all('files'); this.files={}; fs.forEach(f=>{ this.files[f.id]={id:f.id,name:f.name,path:f.path,size:f.size,title:f.title}; });
+      const m3u=(await MDB.get('kv','m3u'))||[]; this.build(m3u); }catch(e){ this.lists=[]; }
+    this.ready=true; this.paint(); },
+  title(f){ return (f&&(f.title||String(f.name).replace(/\.[^.]+$/,'').replace(/_/g,' ')))||''; },
+  build(m3u){ const fs=Object.values(this.files).sort((a,b)=>String(a.path).localeCompare(String(b.path),'ko'));
+    const by={}; fs.forEach(f=>{ const k=String(f.name).toLowerCase(); (by[k]=by[k]||[]).push(f.id); });
+    const L=[];
+    m3u.forEach(m=>{ const ids=[]; let ext=null;
+      String(m.text).split(/\r?\n/).forEach(l=>{ l=l.trim(); if(!l)return;
+        if(/^#EXTINF/i.test(l)){ ext=l.split(',').slice(1).join(',').trim()||null; return; } if(l[0]==='#')return;
+        let p=l; try{ p=decodeURIComponent(l); }catch(e){} p=p.replace(/\\/g,'/'); const b=p.split('/').pop().toLowerCase();
+        const hit=(by[b]||[])[0]; if(hit){ ids.push(hit); if(ext&&!this.files[hit].title)this.files[hit].title=ext; } ext=null; });
+      if(ids.length)L.push({id:'m:'+m.name,nm:m.name.replace(M3U_EXT,''),ids,kind:'m3u'}); });
+    const dirs={}; fs.forEach(f=>{ const p=String(f.path||'').split('/'); if(p.length>1){ const d=p.slice(0,-1).join('/'); (dirs[d]=dirs[d]||[]).push(f.id); } });
+    const dk=Object.keys(dirs); if(dk.length>1||(dk.length===1&&dirs[dk[0]].length<fs.length))
+      dk.forEach(d=>L.push({id:'d:'+d,nm:d.split('/').pop(),ids:dirs[d],kind:'dir'}));
+    if(fs.length)L.unshift({id:'all',nm:'전체',ids:fs.map(f=>f.id),kind:'all'});
+    this.lists=L;
+    if(this.st.sel&&!L.some(x=>x.id===this.st.sel)){ this.st.sel=L.length?L[0].id:null; this.save(); } },
+  async add(fileList){ const arr=[...fileList]; const au=arr.filter(f=>!M3U_EXT.test(f.name)&&(MUS_EXT.test(f.name)||/^audio\//.test(f.type))), pl=arr.filter(f=>M3U_EXT.test(f.name));
+    if(!au.length&&!pl.length){ this.toast('음악 파일이 없어요'); return; }
+    try{ if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist(); }catch(e){}
+    const need=au.reduce((a,f)=>a+f.size,0);
+    try{ if(navigator.storage&&navigator.storage.estimate){ const e=await navigator.storage.estimate(); if(e.quota&&e.usage+need>e.quota*0.9){ this.toast('저장 공간이 모자라요'); return; } } }catch(e){}
+    this.busy(`담는 중 0/${au.length}`);
+    let n=0;
+    for(const f of au){ const path=f.webkitRelativePath||f.name, id=path+'|'+f.size;
+      let blob=f; try{ await MDB.put('files',{id,name:f.name,path,size:f.size,type:f.type,blob}); }
+      catch(e){ try{ blob=new Blob([await f.arrayBuffer()],{type:f.type||'audio/mpeg'}); await MDB.put('files',{id,name:f.name,path,size:f.size,type:f.type,blob}); }catch(e2){ continue; } }
+      this.files[id]={id,name:f.name,path,size:f.size}; n++; this.busy(`담는 중 ${n}/${au.length}`); }
+    const m3u=(await MDB.get('kv','m3u'))||[];
+    for(const f of pl){ try{ const text=await f.text(); const i=m3u.findIndex(x=>x.name===f.name); const v={name:f.name,text}; if(i>=0)m3u[i]=v; else m3u.push(v); }catch(e){} }
+    try{ await MDB.put('kv',m3u,'m3u'); }catch(e){}
+    this.build(m3u); if(!this.st.sel&&this.lists.length){ this.st.sel=this.lists[0].id; this.save(); }
+    this.busy(null); this.toast(`${n}곡${pl.length?` · 목록 ${pl.length}개`:''} 담았어요`); this.paint(); },
+  async wipe(){ this.stop(); await MDB.clear().catch(()=>{}); this.files={}; this.lists=[]; this.st.sel=null; this.save(); this.paint(); },
+  list(id){ return this.lists.find(x=>x.id===(id||this.st.sel)); },
+  /* ── 재생 ── */
+  queue(id,startId){ const L=this.list(id); if(!L)return false; this.st.sel=L.id; this.save();
+    let q=L.ids.slice(); if(this.st.shuf){ for(let i=q.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [q[i],q[j]]=[q[j],q[i]]; } }
+    if(startId){ q=q.filter(x=>x!==startId); q.unshift(startId); }
+    this.q=q; this.i=0; return true; },
+  async load(i,autoplay=true){ if(!this.q.length)return; this.i=(i+this.q.length)%this.q.length;
+    const id=this.q[this.i], a=this.el(); let rec=null; try{ rec=await MDB.get('files',id); }catch(e){}
+    if(!rec||!rec.blob){ this.toast('파일을 찾을 수 없어요'); return; }
+    if(this.url)URL.revokeObjectURL(this.url); this.url=URL.createObjectURL(rec.blob); this.cur=id;
+    a.src=this.url; this.applyVol();
+    if(autoplay){ try{ await a.play(); }catch(e){} }
+    this.meta(); this.paint(); },
+  play(id,startId){ if(!this.queue(id,startId))return this.open(); this.load(0); },
+  toggle(){ const a=this.el(); if(!this.cur){ return this.play(); } if(a.paused)a.play().catch(()=>{}); else a.pause(); },
+  next(auto){ if(!this.q.length)return; if(this.i>=this.q.length-1){ if(auto&&this.st.rep==='off'){ this.a.pause(); this.paint(); return; }
+      if(this.st.shuf){ const last=this.q[this.i]; this.queue(this.st.sel); if(this.q[0]===last&&this.q.length>1)this.q.push(this.q.shift()); return this.load(0); } }
+    this.load(this.i+1); },
+  prev(){ const a=this.el(); if(a.currentTime>3){ a.currentTime=0; return; } this.load(this.i-1); },
+  stop(fade){ const a=this.a; if(!a||a.paused)return; if(!fade){ a.pause(); return; }
+    const v0=a.volume; let k=0; const t=setInterval(()=>{ k++; try{ a.volume=Math.max(0,v0*(1-k/10)); }catch(e){} if(k>=10){ clearInterval(t); a.pause(); this.applyVol(); } },120); },
+  setShuf(v){ this.st.shuf=v; this.save(); if(this.cur){ const c=this.cur; this.queue(this.st.sel,c); } this.paint(); },
+  cycleRep(){ this.st.rep={off:'all',all:'one',one:'off'}[this.st.rep]||'all'; this.save(); this.paint(); },
+  /* ── 안내 음성이 나올 때 살짝 줄이기 ── */
+  applyVol(){ const a=this.a; if(!a)return; try{ a.volume=this.ducked&&this.st.duck?this.st.vol*0.3:this.st.vol; }catch(e){} },
+  ramp(to,ms){ const a=this.a; if(!a||!this.canVol)return; clearInterval(this.rampT); const from=a.volume, n=Math.max(1,Math.round(ms/40)); let k=0;
+    this.rampT=setInterval(()=>{ k++; try{ a.volume=Math.min(1,Math.max(0,from+(to-from)*k/n)); }catch(e){} if(k>=n)clearInterval(this.rampT); },40); },
+  duck(){ if(!this.st.duck||!this.a||this.a.paused)return;
+    if(!this.ducked){ this.ducked=true; this.ramp(this.st.vol*0.3,220); }
+    clearInterval(this.duckT); let quiet=0;
+    this.duckT=setInterval(()=>{ let busy=false; try{ busy=speechSynthesis.speaking||speechSynthesis.pending; }catch(e){}
+      quiet=busy?0:quiet+1; if(quiet>=2){ clearInterval(this.duckT); this.ducked=false; this.ramp(this.st.vol,700); } },300); },
+  /* ── 잠금화면 · 이어폰 버튼 ── */
+  media(){ if(!('mediaSession' in navigator))return; const ms=navigator.mediaSession;
+    const set=(k,f)=>{ try{ ms.setActionHandler(k,f); }catch(e){} };
+    set('play',()=>this.toggle()); set('pause',()=>this.toggle()); set('nexttrack',()=>this.next()); set('previoustrack',()=>this.prev());
+    set('seekto',d=>{ if(this.a&&d.seekTime!=null)this.a.currentTime=d.seekTime; }); },
+  meta(){ if(!('mediaSession' in navigator)||!this.cur)return; const f=this.files[this.cur], L=this.list();
+    try{ navigator.mediaSession.metadata=new MediaMetadata({title:this.title(f),artist:'가지런',album:L?L.nm:'',
+      artwork:[{src:'icon-192.png',sizes:'192x192',type:'image/png'},{src:'icon-512.png',sizes:'512x512',type:'image/png'}]}); }catch(e){} },
+  /* ── 달리기와 연결 ── */
+  onRunStart(){ if(this.st.auto&&this.st.sel&&this.list()&&(!this.a||this.a.paused)){ if(this.cur&&this.q.length)this.a.play().catch(()=>{}); else this.play(this.st.sel); } },
+  onRunEnd(){ this.stop(true); },
+  /* ── 화면 ── */
+  toast(t){ try{ if(typeof toast==='function')return toast(t); }catch(e){} const d=$('musToast'); if(!d)return; d.textContent=t; d.hidden=false; clearTimeout(this.tt); this.tt=setTimeout(()=>d.hidden=true,2200); },
+  busy(t){ const b=$('musBusy'); if(b){ b.hidden=!t; b.textContent=t||''; } },
+  fmt(s){ s=Math.max(0,Math.floor(s||0)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); },
+  hue(s){ let h=0; for(const c of String(s))h=(h*31+c.charCodeAt(0))%360; return h; },
+  paintPos(){ const a=this.a; if(!a)return; const p=a.duration?a.currentTime/a.duration:0;
+    document.querySelectorAll('.mus-pos').forEach(r=>{ if(!r.matches(':active'))r.value=Math.round(p*1000); r.style.setProperty('--p',(p*100).toFixed(1)+'%'); });
+    const t=$('musT'); if(t)t.textContent=`${this.fmt(a.currentTime)} / ${this.fmt(a.duration)}`; },
+  paint(){ const a=this.a, on=!!(a&&!a.paused), f=this.files[this.cur], L=this.list(), has=this.lists.length>0;
+    const ttl=f?this.title(f):(L?L.nm:'음악');
+    const bar=$('mBar'); if(bar){ bar.hidden=!has; bar.classList.toggle('on',on);
+      bar.querySelector('.mb-t').textContent=ttl; bar.querySelector('[data-m=toggle]').innerHTML=MIC[on?'pause':'play']; }
+    const hb=$('btnMusic'); if(hb)hb.classList.toggle('on',on);
+    const cm=$('cMusic'); if(cm){ cm.querySelector('b').textContent=has?(this.st.auto&&L?L.nm:'음악 없이'):'음악 넣기'; cm.classList.toggle('on',!!(has&&this.st.auto&&L)); }
+    if(!$('musSheet').hidden)this.render(); },
+  open(){ const s=$('musSheet'); s.hidden=false; this.render(); requestAnimationFrame(()=>s.classList.add('up')); },
+  close(){ const s=$('musSheet'); s.classList.remove('up'); setTimeout(()=>s.hidden=true,200); },
+  render(){ const b=$('musBody'); if(!b)return; const a=this.a, on=!!(a&&!a.paused), f=this.files[this.cur], L=this.list();
+    const canDir='webkitdirectory' in document.createElement('input');
+    const pick=`<div class="mus-pick">${canDir?`<button class="mus-add" data-m="dir">${MIC.folder}<b>폴더 고르기</b></button>`:''}
+      <button class="mus-add" data-m="files">${MIC.note}<b>파일 고르기</b></button></div>`;
+    if(!this.lists.length){ b.innerHTML=`<div class="mus-empty"><div class="mus-disc">${MIC.note}</div>
+      <p>폴더를 고르면 안의 노래와<br>플레이리스트(.m3u)를 불러와요</p></div>${pick}`; return; }
+    const tile=x=>`<button class="mus-tile${x.id===this.st.sel?' sel':''}" data-l="${ESC(x.id)}">
+      <span class="mt-art" style="--h:${this.hue(x.nm)}">${x.kind==='m3u'?MIC.list:x.kind==='dir'?MIC.folder:MIC.note}</span>
+      <b>${ESC(x.nm)}</b><i>${x.ids.length}곡</i></button>`;
+    const tracks=L?L.ids.map(id=>{ const t=this.files[id]; return t?`<button class="mus-tr${id===this.cur?' cur':''}" data-t="${ESC(id)}">
+      <span>${id===this.cur&&on?MIC.eq:''}</span><b>${ESC(this.title(t))}</b></button>`:''; }).join(''):'';
+    b.innerHTML=`<div class="mus-now">
+        <div class="mn-art" style="--h:${this.hue(L?L.nm:'')}">${on?MIC.eq:MIC.note}</div>
+        <div class="mn-t"><b>${ESC(f?this.title(f):'고른 곡 없음')}</b><i>${ESC(L?L.nm:'')}</i></div></div>
+      <input type="range" class="mus-pos" min="0" max="1000" value="0" aria-label="재생 위치"><div class="mus-time" id="musT">0:00 / 0:00</div>
+      <div class="mus-ctl">
+        <button class="mc-s${this.st.shuf?' on':''}" data-m="shuf" aria-label="랜덤 재생">${MIC.shuf}</button>
+        <button data-m="prev" aria-label="이전 곡">${MIC.prev}</button>
+        <button class="mc-p" data-m="toggle" aria-label="${on?'일시정지':'재생'}">${MIC[on?'pause':'play']}</button>
+        <button data-m="next" aria-label="다음 곡">${MIC.next}</button>
+        <button class="mc-s${this.st.rep!=='off'?' on':''}" data-m="rep" aria-label="반복 ${{off:'끔',all:'전체',one:'한 곡'}[this.st.rep]}">${this.st.rep==='one'?MIC.rep1:MIC.rep}</button></div>
+      <div class="mus-tiles">${this.lists.map(tile).join('')}</div>
+      <details class="mus-trs"><summary>곡 목록 ${L?L.ids.length:0}</summary>${tracks}</details>
+      <div class="mus-opts">
+        <label><input type="checkbox" data-o="auto"${this.st.auto?' checked':''}> 달리기 시작하면 재생</label>
+        <label><input type="checkbox" data-o="duck"${this.st.duck?' checked':''}> 안내 나올 때 음악 줄이기</label></div>
+      ${pick}<button class="mus-wipe" data-m="wipe">담은 음악 모두 지우기</button>`;
+    this.paintPos(); }
+};
+const MIC=(()=>{ const s=(d,f)=>`<svg viewBox="0 0 24 24" aria-hidden="true" ${f?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'}>${d}</svg>`;
+  return {play:s('<path d="M7 4.5v15l13-7.5z"/>',1),pause:s('<rect x="6" y="4.5" width="4.2" height="15" rx="1.3"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.3"/>',1),
+    next:s('<path d="M5 5v14l10-7z"/><rect x="16" y="5" width="3" height="14" rx="1"/>',1),prev:s('<path d="M19 5v14L9 12z"/><rect x="5" y="5" width="3" height="14" rx="1"/>',1),
+    shuf:s('<path d="M3 7h3.5c2 0 3.2 1 4.3 2.6l2.4 4.8c1.1 1.6 2.3 2.6 4.3 2.6H21"/><path d="M18 14l3 3-3 3"/><path d="M3 17h3.5c1.4 0 2.4-.5 3.2-1.3"/><path d="M14.3 8.3c.8-.8 1.8-1.3 3.2-1.3H21"/><path d="M18 4l3 3-3 3"/>'),
+    rep:s('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>'),
+    rep1:s('<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/><path d="M11 10l1.5-1v6"/>'),
+    note:s('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
+    folder:s('<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/>'),
+    list:s('<path d="M4 6h11M4 12h11M4 18h7"/><path d="M19 15V5l2-.5"/><circle cx="17.5" cy="16.5" r="2"/>'),
+    eq:s('<rect class="eq1" x="4" y="8" width="3.2" height="12" rx="1"/><rect class="eq2" x="10.4" y="4" width="3.2" height="16" rx="1"/><rect class="eq3" x="16.8" y="10" width="3.2" height="10" rx="1"/>',1)}; })();
+(function musWire(){
+  const inp=(dir)=>{ const i=document.createElement('input'); i.type='file'; i.multiple=true;
+    i.accept='audio/*,.mp3,.m4a,.aac,.ogg,.opus,.wav,.flac,.m3u,.m3u8'; if(dir){ i.webkitdirectory=true; i.setAttribute('webkitdirectory',''); }
+    i.onchange=()=>{ if(i.files&&i.files.length)MUS.add(i.files); }; i.click(); };
+  document.addEventListener('click',e=>{
+    const m=e.target.closest('[data-m]'); const inMus=e.target.closest('#musSheet,#mBar');
+    if(e.target.closest('#btnMusic,#cMusic,#setMusic')){ MUS.open(); return; }
+    if(e.target.id==='musSheet'||e.target.closest('#musClose')){ MUS.close(); return; }
+    if(!inMus)return;
+    if(e.target.closest('#mBar .mb-t')){ MUS.open(); return; }
+    const l=e.target.closest('[data-l]'); if(l){ MUS.play(l.dataset.l); return; }
+    const t=e.target.closest('[data-t]'); if(t){ MUS.play(MUS.st.sel,t.dataset.t); return; }
+    if(!m)return; const k=m.dataset.m;
+    if(k==='toggle')MUS.toggle(); else if(k==='next')MUS.next(); else if(k==='prev')MUS.prev();
+    else if(k==='shuf')MUS.setShuf(!MUS.st.shuf); else if(k==='rep')MUS.cycleRep();
+    else if(k==='dir')inp(true); else if(k==='files')inp(false);
+    else if(k==='wipe'){ if(m.dataset.sure){ MUS.wipe(); } else { m.dataset.sure='1'; m.textContent='한 번 더 누르면 지워요'; setTimeout(()=>{ if(m.isConnected){ delete m.dataset.sure; m.textContent='담은 음악 모두 지우기'; } },3000); } }
+  });
+  document.addEventListener('input',e=>{ if(e.target.classList&&e.target.classList.contains('mus-pos')&&MUS.a&&MUS.a.duration){
+    MUS.a.currentTime=e.target.value/1000*MUS.a.duration; } });
+  document.addEventListener('change',e=>{ const o=e.target.dataset&&e.target.dataset.o; if(o&&e.target.closest('#musSheet')){ MUS.st[o]=e.target.checked; MUS.save(); MUS.paint(); } });
+  document.querySelectorAll('#mBar [data-m]').forEach(b=>b.innerHTML=MIC[b.dataset.m]||MIC.play);
+  MUS.init();
+})();
+
+/* ═════════════════════ 훈련 원리 — 무엇이고, 어떻게 계산하나 ═════════════════════
+   앱이 실제로 쓰는 식과 상수를 그대로 보여준다. 숫자는 지금 내 프로필로 계산한 값. */
+let GUIDE_BACK='settings';
+function guideShape(k,col){
+  /* 운동 모양 썸네일 — [길이, 높이] 막대 */
+  const P={easy:[[10,.35]],recovery:[[10,.22]],long:[[16,.35]],
+    threshold:[[2,.3],[3,.7],[.6,.25],[3,.7],[2,.3]],interval:[[2,.3],[1.4,.95],[.6,.2],[1.4,.95],[.6,.2],[1.4,.95],[2,.3]],
+    rep:[[2,.3],[.6,1],[.8,.18],[.6,1],[.8,.18],[.6,1],[.8,.18],[.6,1],[2,.3]],
+    stride:[[6,.32],[.3,.85],[.6,.25],[.3,.85],[.6,.25],[.3,.85],[.6,.25],[.3,.85]],
+    tt:[[2,.3],[3,1],[1.4,.28]],goalpace:[[2,.3],[2.6,.75],[.6,.25],[2.6,.75],[2,.3]],
+    hill:[[2,.3],[.8,.9],[.8,.2],[.8,.9],[.8,.2],[.8,.9],[2,.3]]}[k]||[[10,.35]];
+  const tot=P.reduce((a,p)=>a+p[0],0), W=64, H=34, g=1.2; let x=0;
+  const r=P.map(p=>{ const w=Math.max(1.4,p[0]/tot*(W-g*(P.length-1))), h=Math.max(4,p[1]*H);
+    const s=`<rect x="${x.toFixed(1)}" y="${(H-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.6" fill="${p[1]>=.6?col:col+'66'}"/>`; x+=w+g; return s; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">${r}</svg>`;
+}
+function guideIcon(k){ const s=d=>`<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  return {vdot:s('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),hrmax:s('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'),
+    zone:s('<path d="M3 12h4l2-5 3 10 2-5h7"/>'),pace:s('<circle cx="12" cy="13" r="8"/><path d="M12 13l4-3M12 3v2"/>'),
+    learn:s('<path d="M4 19l5-6 4 3 7-9"/><circle cx="20" cy="7" r="1.5"/>'),gps:s('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
+    cad:s('<path d="M8 4c1.5 0 2 2 2 4s-1 4-2.5 4S5 10 5 8s1.5-4 3-4zM16 10c1.5 0 2.5 2 2.5 4s-1 4-2.5 4-2.5-2-2.5-4 1-4 2.5-4z"/>'),
+    breath:s('<path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/>'),
+    plan:s('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+    judge:s('<path d="M5 12l4 4 10-10"/>'),live:s('<path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9.5c.9.9.9 4.1 0 5M19 7c2 2.2 2 7.8 0 10"/>'),
+    grow:s('<path d="M4 20l6-7 4 3 6-9"/><path d="M14 7h6v6"/>'),aero:s('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M8 12h2l1-2 2 4 1-2h2"/>')}[k]||'';
+}
+function renderGuide(){
+  const fp=x=>x?fmtPace(x):'—', pr=r=>r?`${fp(r[0])}~${fp(r[1])}`:'—', pct=(f)=>Math.round(f*HRMAX);
+  const hz=k=>{ const z=(TYPES[k]||{}).hrZone; return z?(z[0]?`♥ ${z[0]}~${z[1]}`:`♥ ${z[1]} 아래`):''; };
+  const th=(typeof judgeTh==='function'&&typeof RUNS!=='undefined')?judgeTh():{spread:5,ceil:.1,hrOver:.2,dist:.9,src:{}};
+  const L=LEARN||{n:0}, hs=coachBasis().hrmax;
+  const rc=PROF.race, rf=rc?raceFlat(rc):null;
+  const item=(id,tile,nm,one,mine,body)=>`<details class="gd-it" id="gd-${id}"><summary>
+      <span class="gd-tile">${tile}</span><span class="gd-nm"><b>${nm}</b><i>${one}</i></span>${mine?`<em class="gd-mine">${mine}</em>`:''}</summary>
+      <div class="gd-bd">${body}</div></details>`;
+  const ic=k=>`<span class="gd-ic">${guideIcon(k)}</span>`;
+  const sh=k=>`<span class="gd-sh">${guideShape(k,(TYPES[k]||{}).col||'#5B2D86')}</span>`;
+  const fx=s=>`<div class="gd-fx">${s}</div>`;
+  const kv=rows=>`<div class="gd-kv">${rows.map(r=>`<span>${r[0]}</span><b>${r[1]}</b>`).join('')}</div>`;
+  const note=s=>`<p class="gd-p">${s}</p>`;
+  const src=s=>`<p class="gd-src">${s}</p>`;
+  const rpe=n=>`<span class="gd-rpe" aria-label="힘든 정도 ${n}/10">${Array.from({length:10},(_,i)=>`<i${i<n?' class="on"':''}></i>`).join('')}</span>`;
+  const T=k=>TYPES[k]||{};
+
+  const base=[
+    item('vdot',ic('vdot'),'실력 점수 (VDOT)','기록 하나로 모든 속도를 정하는 점수',VDOT.toFixed(1),
+      note('대회·실력 재기 기록에서 "그 기록을 낼 때 쓴 산소 섭취량"을 역산한 값이에요. 앱의 모든 목표 속도가 이 점수에서 나와요.')+
+      fx(`v = 거리(m) ÷ 시간(분)<br>VO₂(v) = −4.60 + 0.182258·v + 0.000104·v²<br>%최대(t) = 0.8 + 0.1894393·e<sup>−0.012778t</sup> + 0.2989558·e<sup>−0.1932605t</sup><br><b>VDOT = VO₂(v) ÷ %최대(t)</b>`)+
+      kv([['내 기록',rc&&rc.sec?`${rc.m>=42000?'풀':rc.m>=21000?'하프':(rc.m/1000)+'km'} ${fmtClock(rc.sec)}`:'없음 → 기본값 38'],
+          ['언덕 보정',rf&&rf.adj?`−${rf.adj}초 (오르막 1m당 0.8초, 최대 5%)`:'없음'],
+          ['혼자 뛴 기록',rc&&rc.kind==='solo'?'× 0.97 (레이스보다 약 3% 느림)':'보정 안 함'],['실력 점수',VDOT.toFixed(1)]])+
+      src('Daniels & Gilbert 식 · 함수 vdotOf(m, 분) — 이분법으로 풀어요')),
+    item('hrmax',ic('hrmax'),'최대 심박','심박 구간의 기준',`${HRMAX}`,
+      fx(`직접 잰 값이 있으면 → 그 값<br>없으면 <b>max(208 − 0.7 × 나이, 뛰면서 30초 넘게 유지된 최고 심박)</b>`)+
+      kv([['지금 쓰는 값',`${HRMAX} · ${hs.src==='measured'?'직접 잼':hs.src==='observed'?'달리며 관측':'나이로 추정'}`],['나이 추정',PROF.age?`208 − 0.7×${PROF.age} = ${estHrMax(PROF.age)}`:'나이 없음'],['관측 최고',PROF.hrmaxObs||'—']])+
+      note('"30초 유지" = 연속 30개 측정값의 최솟값이 가장 높았던 값. 순간 튀는 값은 안 써요. 225 이상은 버려요.')+
+      src('Tanaka 2001 · 개인 오차 ±10 · 함수 estHrMax, heldMax')),
+    item('zone',ic('zone'),'심박 구간 (Z1~Z5)','최대 심박의 비율로 나눠요',`Z2 ≤${ZONES[1][1]}`,
+      `<div class="gd-zones">${ZONES.map((z,i)=>`<div style="--c:var(--z${Math.min(5,i+1)})"><i></i><b>${z[2].replace(/\s*\(.*\)/,'')}</b><span>${z[0]||0}~${z[1]>=999?'':z[1]}</span><em>${['~70','70~80','80~85','85~90','90~95','95~'][i]}%</em></div>`).join('')}</div>`+
+      fx(`구간 경계 = round(최대 심박 × 0.70 / 0.80 / 0.85 / 0.90 / 0.95)`)+src('ZONES — 최대 심박이 바뀌면 다시 계산')),
+    item('pace',ic('pace'),'훈련 속도 5가지','E · M · T · I · R',`T ${fp(Z.T)}`,
+      kv([['E 천천히',`${pr(Z.E)} — VDOT의 59~74% 산소에 해당하는 속도`],['M 마라톤',`${fp(Z.M)} — 풀코스 예상 기록 ÷ 42.195`],
+          ['T 템포',`${fp(Z.T)} — 60분 동안 낼 수 있는 거리의 속도`],['I 인터벌',`${fp(Z.I)} — 3km 예상 기록 속도`],['R 레페티션',`${fp(Z.R)} — 1.2km 예상 기록 속도`]])+
+      fx(`E = 1 ÷ v(VO₂ = VDOT × 0.74 ~ 0.59)<br>T = 60분 ÷ (60분에 갈 거리)<br>I = 3000m 예상 시간 ÷ 3<br>R = 1200m 예상 시간 ÷ 1.2`)+
+      note('직접 바꾼 값이 있으면 그 값이 먼저예요.')+src('Daniels Running Formula · 함수 zonesOf(VDOT)')),
+    item('learn',ic('learn'),'내 몸 기준 쉬운 속도','심박으로 내 몸에 맞춰요',L.applied?'적용 중':`${L.n||0}/3`,
+      note('천천히 뛴 날의 1km 기록마다 (속도, 심박) 점을 모아 직선을 그어요. 편함 상한 심박에서의 속도가 공식보다 느리면 그 속도로 바꿔요. 더 빠르게는 안 바꿔요.')+
+      fx(`심박 = a + b × 속도(m/s) — 최소제곱 직선<br>상한 속도 = (상한 심박 − a) ÷ b<br>쉬운 속도 빠른 끝 = min(상한 속도, 공식 느린 끝 + 45초)`)+
+      kv([['쓰는 기록','최근 42일 · 천천히/회복/길게/자유 · 첫 1km 뺌'],['필요','3번 이상 · 점 8개 이상 · b > 5 · 속도 폭 0.15m/s 이상'],
+          ['상한 심박',L.cap||'—'],['지금',L.applied?`${fp(L.paceAtCap)}로 맞춤${L.capped?' (45초 제한)':''}`:L.paceAtCap?'공식과 같음':'기록 모으는 중']])+
+      src('함수 learnEasy · 직선이 안 맞으면 상한 ±4 심박 기록의 가운데 값'))
+  ];
+
+  /* ── 훈련법 카드 — 큰 제목 · 그림 · 핵심 포인트 · 한눈에 기억하기 · 계산 기준(접기) ── */
+  const RN=(c,x,y,sc,flip)=>`<g transform="translate(${x} ${y}) scale(${flip?-sc:sc} ${sc})"><circle cx="14.5" cy="3.6" r="2.4" fill="#F2C9A5"/><path d="M9.6 7.4l4.2-.9c.8-.2 1.6.2 2 .9l1.6 2.8 2.7.9-.6 1.8-3.4-1.1-1-1.6-1.2 3.7 2.6 2.4-.8 5.6h-2.1l.6-4.6-3-2.5-1.5 3.6-4.4 1.6-.8-1.8 3.6-1.4 2.6-6.4-1.6.4-1.6 2.8-1.8-.9z" fill="${c}"/></g>`;
+  const tree=(x,y,c)=>`<rect x="${x-1.5}" y="${y}" width="3" height="16" fill="#8A6A4A"/><circle cx="${x}" cy="${y-2}" r="11" fill="${c}"/>`;
+  const SCN={
+    easy:c=>`<rect width="320" height="130" fill="#EAF6EE"/>${[[30,52,22],[58,38,18],[200,46,26],[232,30,20],[256,50,22]].map(b=>`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${110-b[1]}" fill="#CFE6D7"/>`).join('')}${tree(22,88,'#7CC795')}${tree(290,84,'#69B985')}${tree(276,94,'#8BD1A2')}<rect y="108" width="320" height="22" fill="#BFE3C9"/>${RN(c,130,30,3.4)}`,
+    long:c=>`<rect width="320" height="130" fill="#E8F0FB"/><path d="M0 92L60 40l40 30 50-46 60 52 40-24 70 40v38H0z" fill="#B9CBE8"/><path d="M0 100h320v30H0z" fill="#9CC3E6"/><path d="M90 130c30-12 60-14 110-20s80-6 120-8v28z" fill="#E7D9BE"/>${tree(30,84,'#7CB58D')}${RN(c,150,22,3.4)}`,
+    recovery:c=>`<rect width="320" height="130" fill="#EAF2FA"/><circle cx="250" cy="96" r="38" fill="#FFE2A8"/><rect y="104" width="320" height="26" fill="#CFE0F0"/>${RN(c,120,34,3.1)}<text x="200" y="40" font-size="16" font-weight="800" fill="${c}" opacity=".55">z z</text>`,
+    interval:c=>`<rect width="320" height="130" fill="#FFF3E6"/>${[0,1,2,3].map(i=>RN(i%2?'#3D63C8':c,14+i*76,22,2.6))+[0,1,2].map(i=>`<path d="M${74+i*76} 52h14m-5-5 5 5-5 5" stroke="#B4561A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}${['빠르게','천천히','빠르게','천천히'].map((t,i)=>`<text x="${44+i*76}" y="100" text-anchor="middle" font-size="11.5" font-weight="700" fill="${i%2?'#3D63C8':c}">${t}</text>`).join('')}<path d="M40 112q120 18 240 0" stroke="#E9B98E" stroke-dasharray="4 4" fill="none" stroke-width="2"/><text x="160" y="126" text-anchor="middle" font-size="11" font-weight="800" fill="#B4561A">반복</text>`,
+    threshold:c=>`<rect width="320" height="130" fill="#F3EEFB"/>${[0,1,2,3,4].map(i=>`<rect x="${20+i*56}" y="88" width="54" height="16" fill="${c}" opacity="${.25+i*.17}" rx="${i===0||i===4?4:0}"/>`).join('')}<path d="M224 80l-8-10h16z" fill="${c}"/>${RN(c,190,4,2.7)}${['편안','보통','힘듦','매우 힘듦'].map((t,i)=>`<text x="${[30,130,224,290][i]}" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6B5A80">${t}</text>`).join('')}`,
+    rep:c=>`<rect width="320" height="130" fill="#FDEEE6"/>${[0,1,2,3,4].map(i=>`<rect x="${30+i*58}" y="${30}" width="16" height="74" rx="3" fill="${c}"/><rect x="${48+i*58}" y="94" width="36" height="10" rx="3" fill="${c}" opacity=".25"/>`).join('')}<text x="160" y="122" text-anchor="middle" font-size="11" font-weight="700" fill="#9A4A1F">짧게 아주 빠르게 · 완전 휴식</text>`,
+    stride:c=>`<rect width="320" height="130" fill="#E8F3FA"/><rect y="84" width="320" height="30" fill="#E07B5C" opacity=".85"/>${[92,104].map(y=>`<path d="M0 ${y}h320" stroke="#fff" stroke-width="1.5" opacity=".7"/>`).join('')}${RN(c,40,8,2.9)}${[0,1,2,3].map(i=>`<path d="M${130+i*44} 60h26" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`).join('')}<text x="215" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="${c}">20초 × 4~6</text>`,
+    tt:c=>`<rect width="320" height="130" fill="#FCEBEB"/><circle cx="96" cy="70" r="40" fill="#fff" stroke="${c}" stroke-width="6"/><path d="M96 70V44M96 70l16 10M88 22h16M96 22v8" stroke="${c}" stroke-width="5" stroke-linecap="round"/><path d="M200 108V26" stroke="#2A1638" stroke-width="4" stroke-linecap="round"/><path d="M202 28h70l-14 18 14 18h-70z" fill="${c}"/><text x="236" y="52" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">2km</text>`,
+    goalpace:c=>`<rect width="320" height="130" fill="#F1ECFA"/>${[0,1,2,3].map(i=>`<rect x="${30+i*70}" y="48" width="54" height="40" rx="4" fill="${c}" opacity=".85"/>`).join('')}<path d="M20 44h290" stroke="${c}" stroke-dasharray="5 5" stroke-width="2"/><text x="160" y="112" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5B3F86">모든 구간 같은 목표 속도</text>`,
+    buildup:c=>`<rect width="320" height="130" fill="#E6F5F2"/>${[0,1,2,3,4,5].map(i=>`<rect x="${110+i*34}" y="${104-(i+1)*14}" width="32" height="${(i+1)*14}" fill="${c}" opacity="${.3+i*.12}"/>`).join('')}<path d="M110 92L310 14" stroke="${c}" stroke-width="3.5"/><path d="M300 12l12 1-6 10" fill="none" stroke="${c}" stroke-width="3.5" stroke-linejoin="round"/>${RN(c,30,40,2.6)}<text x="44" y="122" font-size="10.5" font-weight="700" fill="#2C6E62">천천히 시작</text><text x="300" y="122" text-anchor="end" font-size="10.5" font-weight="700" fill="#2C6E62">점점 빠르게</text>`
+  };
+  const TIC={easy:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="none"/>',long:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
+    recovery:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',interval:'<path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>',
+    threshold:'<path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/>',rep:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',stride:'<path d="M4 17h4l3-8 3 8h6"/><path d="M15 5l3 3-3 3"/>',
+    tt:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',goalpace:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',buildup:'<path d="M3 18l6-6 4 4 8-9"/><path d="M15 7h6v6"/>'};
+  const TM={
+    easy:['EASY RUN','이지런','#1E9B5C','편안하게 달리는 러닝','숨이 지나치게 차지 않고, 대화를 나눌 수 있을 만큼 편하게 달려요.',['편하게','대화 가능','오래 지속 가능']],
+    long:['LSD','롱런 · 엘에스디','#2F6FD0','긴 거리를 천천히','느린 속도로 오래 달려 끝까지 버티는 지구력을 키워요.',['길게','천천히','지구력 향상']],
+    recovery:['RECOVERY RUN','회복런','#4A8FC9','힘든 다음 날, 가볍게','몸을 풀고 회복을 돕는 아주 느린 조깅이에요.',['이지런보다 느리게','몸 풀기','빠르면 실패']],
+    interval:['INTERVAL','인터벌','#EE7A1E','빠르게 ↔ 회복 반복','빠른 구간과 천천히 회복하는 구간을 반복해요. 속도와 심폐 능력이 좋아져요.',['빠르게','회복(천천히)','반복','회차 속도 고르게']],
+    threshold:['TEMPO RUN','템포런','#7A4CC2','힘들지만 유지 가능한 속도','이지런보다 빠르지만 전력질주는 아닌, 조금 힘든 속도를 일정 시간 유지해요.',['이지런보다 빠르게','힘들지만 유지','20분은 갈 속도']],
+    rep:['REPETITION','레페티션','#D9572B','짧게 아주 빠르게','1~2분 안의 빠른 질주 후 완전히 쉬고 다시. 같은 속도를 덜 힘들게 뛰는 몸을 만들어요.',['아주 빠르게','힘 빼고','완전 휴식']],
+    stride:['STRIDES','스트라이드','#2C8FC0','20초쯤 치고 나가기','쉬운 날 끝에 가볍게 빨리 몇 번. 폼과 다리 탄력을 깨워요.',['20초','가볍게 빠르게','걸으며 회복']],
+    tt:['TIME TRIAL','실력 재기','#CF3B36','지금 실력을 재는 날','2km를 힘껏 고르게. 이 기록으로 모든 목표 속도를 다시 계산해요.',['앞뒤는 천천히','가운데만 힘껏','4주마다']],
+    goalpace:['GOAL PACE','목표 속도로','#6E4BB0','대회 속도에 익숙해지기','목표 기록에서 나온 속도로 같은 구간을 고르게 반복해요.',['목표 속도','고르게','대회 그 느낌']],
+    buildup:['BUILD-UP RUN','빌드업 런','#1E8E7E','천천히 시작 → 점점 빠르게','처음엔 천천히, 후반으로 갈수록 속도를 조금씩 올려요. 후반 뒷심이 생기고 초반 오버페이스를 막아요.',['천천히 시작','점점 빠르게','후반 가속']]
+  };
+  const tcard=(k,mine,body)=>{ const m=TM[k]; if(!m)return ''; const c=m[2];
+    return `<article class="tc" id="gd-${k}" style="--tc:${c}">
+      <div class="tc-hd"><span class="tc-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TIC[k]}</svg></span>
+        <div><b>${m[0]}</b><i>${m[1]}</i></div>${mine?`<em>${mine}</em>`:''}</div>
+      <svg class="tc-scn" viewBox="0 0 320 130" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${SCN[k](c)}</svg>
+      <div class="tc-key"><span>핵심 포인트</span><b>${m[3]}</b><p>${m[4]}</p></div>
+      <div class="tc-chk"><span>한눈에 기억하기</span>${m[5].map(x=>`<i>${x}</i>`).join('')}</div>
+      ${body?`<details class="tc-more"><summary>계산 기준</summary><div class="gd-bd">${body}</div></details>`:''}</article>`; };
+  const tr=(k,one,mine,body)=>tcard(k,mine,body);
+  const types=[
+    tr('easy','대화가 되는 속도',pr(PACE.easy),
+      `<div class="gd-row">${rpe(3)}<span>대화 가능</span></div>`+
+      kv([['속도',`E 범위 ${pr(PACE.easy)} · 허용 ±15초`],['심박',hz('easy')+' (최대의 70~80%)'],['판정','구간의 80% 이상이 범위 안']])+
+      fx(`목표 = [E 빠른 끝, E 느린 끝]<br>준비 1km = E 범위의 느린 절반, 허용 ±20초`)+src(T('easy').src)),
+    tr('recovery','이지런보다 더 느리게',pr(PACE.rec),
+      `<div class="gd-row">${rpe(2)}<span>콧노래 가능</span></div>`+
+      kv([['속도',`E 범위의 느린 절반 ${pr(PACE.rec)}`],['상한',`${fp(PACE.recCeil)}보다 빠르면 안 됨 (느린 건 통과)`],['심박',hz('recovery')+' (최대의 70%)'],
+          ['판정',`상한보다 5초 넘게 빠른 시간 ≤ ${Math.round(th.ceil*100)}%`]])+
+      fx(`회복 = [(E₀ + E₁) ÷ 2, E₁]`)+src(T('recovery').src)),
+    tr('long','천천히 오래',`≤150분`,
+      `<div class="gd-row">${rpe(4)}<span>대화 가능</span></div>`+
+      kv([['속도',`E 범위 ${pr(PACE.long)} · 허용 ±20초`],['거리','max(4km, 주간 거리 × 24~34%) — 목표마다 다름'],['시간','150분 이내'],['판정',`계획 거리의 ${Math.round(th.dist*100)}% 이상`]])+
+      src(T('long').src)),
+    tr('threshold','말이 끊기지만 20분은 가는 속도',fp(PACE.T),
+      `<div class="gd-row">${rpe(7)}<span>짧은 문장만</span></div>`+
+      kv([['속도',`T ${fp(PACE.T)} → 일정 목표 T + 8초 · 허용 ±5초`],['구성','2km·1.5km·1km × 2~4세트, 사이 2분 천천히'],['양','주간 거리의 10% 이내'],
+          ['심박',hz('threshold')+' (최대의 85~92%)'],['판정',`세트 간 속도 차이 ≤ ${th.spread}초`]])+
+      fx(`빠른 양 = min(주간 km × 0.10)<br>세트 수 = clamp(빠른 양 ÷ 세트 길이, 2, 4)`)+src(T('threshold').src)),
+    tr('interval','숨이 턱까지, 3~5분씩',fp(PACE.I),
+      `<div class="gd-row">${rpe(8)}<span>몇 단어만</span></div>`+
+      kv([['속도',`I ${fp(PACE.I)} → 일정 목표 I + 6초 · 허용 ±5초`],['한 번 길이',`240초 ÷ I 속도 = ${(Math.min(1.6,Math.max(0.4,240/Z.I))).toFixed(2)}km (0.4~1.6)`],
+          ['횟수','min(10km, 주간 × 8%) ÷ 길이 → 2~6번'],['사이','0.5km 천천히 · 판정 안 함'],['심박',hz('interval')+' (최대의 90~95%)'],['판정',`회차 간 차이(최고−최저) ≤ ${th.spread}초`]])+
+      fx(`길이 = clamp(240 ÷ I, 0.4, 1.6) km<br>차이 = max(회차 속도) − min(회차 속도)`)+src(T('interval').src)),
+    tr('rep','1~2분 아주 빠르게',fp(PACE.R),
+      `<div class="gd-row">${rpe(9)}<span>아주 빠르게, 힘 빼고</span></div>`+
+      kv([['속도',`R ${fp(PACE.R)}`],['양','주간 거리의 5% · 최대 8km'],['심박','안 봐요 — 올라오기 전에 끝나요'],['판정',`회차 간 차이 ≤ ${th.spread}초`]])+src(T('rep').src)),
+    tr('stride','20초쯤 가볍게 빠르게','10~20초',
+      `<div class="gd-row">${rpe(8)}<span>빠르게, 힘 빼고</span></div>`+
+      kv([['구성','10~20초 × 여러 번, 걸으며 완전 회복'],['속도·심박','안 봐요 — 100m는 GPS로 못 재요'],['판정','횟수와 폼'],['일정','자동 일정에는 아직 안 넣어요']])+src(T('stride').src)),
+    tr('tt','지금 실력을 재는 날','2km',
+      `<div class="gd-row">${rpe(9)}<span>힘껏, 고르게</span></div>`+
+      kv([['구성','준비 1.5km 천천히 → <b>2km 힘껏</b> → 마무리 1km'],['쓰는 값','가운데 2km 기록만'],['조건','0.8km 넘게 · 90초 넘게 · 점수 18~85'],['결과','실력 점수 → 모든 속도·일정 다시 계산']])+
+      fx(`새 VDOT = vdotOf(가운데 거리, 가운데 시간)`)+src('함수 applyTest · 혼자 잰 TT는 0.97 보정 안 함')),
+    tr('goalpace','대회에서 낼 속도에 익숙해지기','목표÷거리',
+      `<div class="gd-row">${rpe(7)}<span>대회 그 느낌</span></div>`+
+      kv([['속도','목표 기록 ÷ 대회 거리'],['구성','2km × n, 2~3주차'],['판정',`회차 간 차이 ≤ ${th.spread}초`]])+src(T('goalpace').src)),
+    tcard('buildup','자동 일정엔 아직 없음',null)
+  ];
+
+  const meas=[
+    item('gps',ic('gps'),'거리 · 속도 (GPS)','흔들리는 위치를 걸러서 재요','20초 창',
+      kv([['버림','정확도 25m 넘는 위치 · 10초 안에 12m/s 넘게 튄 점'],['멈춤·잡음','이동 < max(1m, 0.3×정확도) 또는 < 0.4m/s → 안 더함'],['차량','7m/s(자전거 25) 넘게 10초 → 경고, 거리 안 더함']])+
+      fx(`위치 다듬기 w = 1 − e<sup>−Δt/2.5</sup><br>지금 속도 = 최근 20초 Δ시간 ÷ (Δ거리/1000)<br>(12m 미만·5초 미만이면 표시 안 함)`)+
+      note('끝나고 전체 궤적 길이와 0.8~1.25배 넘게 차이 나면 궤적 거리로 바꿔요.')+src('함수 onPos, curPace')),
+    item('cad',ic('cad'),'케이던스 (발걸음)','폰 흔들림에서 걸음을 세요','분당',
+      fx(`a = |가속도(중력 포함)| · 최근 24개 평균 m, 표준편차 sd<br>걸음 = a가 m + 0.6·sd를 위로 넘는 순간 (sd > 0.45, 230ms 간격)<br><b>spm = 15초 안 걸음 수 ÷ 걸린 초 × 60</b>`)+
+      kv([['표시 안 함','걸음 간격이 고르지 않음(변동 25% 넘음) · 120 미만/230 초과 · 차량 의심'],['2배 보정','안 해요 — 잰 그대로'],['내 평소','최근 10번 평균의 가운데 값']])+src('함수 onMotion, cadence')),
+    item('hr',ic('hrmax'),'심박','워치·가슴 스트랩에서 받아요','BPM',
+      kv([['연결','블루투스 표준 심박 서비스(0x180D)'],['상한 넘음','25초 이어지면 안내'],['위험',`최대의 95%(${pct(.95)}) 이상이 120초 누적 → "멈추세요"`],['심박 표류','10분 넘는 구간에서 같은 속도인데 뒷부분 심박이 6 넘게 오름 → 안내']])+
+      fx(`권하는 속도 = 1000 ÷ (지금 속도(m/s) − (심박 − 상한 + 2) ÷ b)<br>(b = 내 몸 기준 직선의 기울기, 90초 넘게 늦추진 않음)`)+src('onTick')),
+    item('breath',ic('breath'),'호흡법','박자 소리로 안내하고 내 몸으로 비교','2:2 · 3:2 · 4:4',
+      kv([['대상','천천히·길게·회복 · 4km 이상 · 켰을 때'],['블록','1km 뒤 시작 · 한 비율 4분 · 사이 20초 · 6블록 섞어서'],['박자','들숨 첫 걸음 높은음(740Hz), 날숨 첫 걸음 낮은음(520Hz)']])+
+      fx(`박자 간격(ms) = 60000 ÷ 케이던스 (모르면 165)<br>비교 = 블록 평균 심박 − 그날 평균 심박`)+
+      note('비율마다 4번 이상 쌓이면, 심박이 확실히 낮은 비율(평균+편차가 다음 비율의 평균−편차보다 낮음)을 추천해요. 차이가 없으면 편했던 비율로.')+
+      src('특정 비율이 기록을 올린다는 근거는 없어요(B) — 그래서 내 몸으로 재요'))
+  ];
+
+  const sys=[
+    item('grow',ic('grow'),'실력이 오르는 속도','목표까지 몇 주 걸리나','4~6주에 1점',
+      fx(`필요 점수 = vdotOf(목표 거리, 목표 시간) − 지금 VDOT<br>걸리는 주 = 필요 점수 ÷ (1/4 ~ 1/6 점/주)`)+
+      note('실력 재기가 3주 넘는 간격으로 2번 이상 쌓이면 내 추세(점수 차 ÷ 주)도 같이 써요.')+src('Daniels 경험칙 (C) · 함수 feasible')),
+    item('plan',ic('plan'),'4주 일정 만들기','주간 거리 · 빠른 날 · 긴 날','×1.05~1.10',
+      kv([['시작 거리','최근 4주 평균 (없으면 설문, 기본 12km) · 6~120km'],['늘리기','1주 ×1 → 2주 ×g → 3주 ×g² → 4주 ×0.72 (쉬어가기)'],
+          ['g','대회·속도 1.08 · 완주 1.10 · 체중 1.07 · 복귀 1.05'],['빠른 날','5일 이상 2번 · 3~4일 1번 · 그 아래 0'],
+          ['간격','빠른 날끼리 2일 · 긴 날과 1.5일 띄움'],['대회 2주 전','거리 절반 · 빠른 날 1번']])+
+      fx(`쉬운 날 거리 = 남은 거리 ÷ (쉬운 날 수 + 1.15 × 빠른 날 수)`)+
+      note('최근 14일이 그 전 14일보다 30% 넘게 늘면 알려줘요.')+src('함수 makePlan, planShape')),
+    item('live',ic('live'),'실시간 코칭 규칙','언제 말하나',`${th.spread}초`,
+      kv([['벗어남','목표 ± 허용(천천히 15 · 준비 20 · 빠른 회차 5초)'],['확인','0.5초마다 재고, 같은 쪽으로 2번 연속'],['조용히','구간 시작 20초(첫 구간 30초)'],
+          ['다시 말하기','빠른 구간 15초 · 나머지 45초 뒤'],['우선순위','멈춤 > 구간 바뀜 > 교정 > 정보']])+
+      note('심박이 기준인 날은 심박이 괜찮으면 "느려요"라고 하지 않아요.')+src('함수 checkOff, VC.gate')),
+    item('judge',ic('judge'),'끝나고 판정','약속을 지켰나',th.src&&th.src.spread==='D'?'내 기록 기준':'임시 기준',
+      kv([['회차 차이',`≤ ${th.spread}초`],['상한 넘은 시간',`≤ ${Math.round(th.ceil*100)}%`],['심박 넘은 시간',`≤ ${Math.round(th.hrOver*100)}%`],['거리',`≥ ${Math.round(th.dist*100)}%`]])+
+      fx(`기록 3번 이상 쌓이면 내 값으로:<br>회차 차이 = 내 차이들의 가운데 값 (3~12초)<br>상한 넘음 = 상위 25% 지점 + 3% (5~25%)<br>심박 넘음 = 상위 25% 지점 + 5% (10~35%)`)+
+      note('GPS·내 흔들림만큼은 봐주자는 뜻이에요.')+src('함수 judgeTh')),
+    item('aero',ic('aero'),'편한 달리기 능력','같은 심박에 더 빠르게 · 같은 속도에 더 낮은 심박','',
+      kv([['기준 심박',`편함 상한 ${ZONES[1][1]} (최대의 80%)`],['속도 모드','지금 = 기준 심박에서의 속도 → 목표 = 15초 빠르게'],['심박 모드','지금 = 기준 속도 ±12초 1km들의 심박 가운데 값 → 목표 = 6 낮게']])+
+      src('함수 aeroSuggest · 최근 42일 · 첫 1km 뺌'))
+  ];
+  /* ── 러닝 용어 표 — 아이콘 · 용어 · 뜻 · 활용 팁 · 내 값 ── */
+  const runs=(RUNS||[]).filter(r=>(r.act||'run')==='run'), now=Date.now();
+  const kmIn=d=>runs.filter(r=>now-Date.parse(r.date)<d*864e5).reduce((a,r)=>a+(+r.km||0),0);
+  const mon=todayStr().slice(0,7), kmMon=runs.filter(r=>String(r.date).slice(0,7)===mon).reduce((a,r)=>a+(+r.km||0),0);
+  const cu=typeof cadUsual==='function'?cadUsual():null;
+  const pb=rc&&rc.sec?`${rc.m>=42000?'풀':rc.m>=21000?'하프':(rc.m/1000)+'km'} ${fmtClock(rc.sec)}`:'—';
+  const ti=d=>`<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const TERMS=[
+    ['pace',ti('<path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/><path d="M6.5 11.5l1 .8M12 8v1.3M17.5 11.5l-1 .8"/>'),'페이스','Pace','1km 달리는 데 걸리는 시간 (5분 30초/km)','km/h 대신 러너가 쓰는 속도 단위',`T ${fp(Z.T)}`],
+    ['cad',ti('<path d="M8 3c1.6 0 2.2 2.2 2.2 4.3S9.1 11 7.5 11 5 9.4 5 7.3 6.4 3 8 3zM6 13.5h3.5M16.5 9c1.6 0 2.5 2.2 2.5 4.3s-1.1 3.7-2.6 3.7-2.6-1.6-2.6-3.7S15 9 16.5 9zM14.5 19.5H18"/>'),'케이던스','Cadence','1분에 발이 땅에 닿는 걸음 수 (SPM)','정답 숫자는 없어요. 키·속도마다 달라요 — 내 평소보다 5% 늘려보는 게 시작',cu?`${cu} spm`:'—'],
+    ['plan',ti('<path d="M4 20L10 4h4l6 16"/><path d="M12 8v2M12 13v2M12 18v1"/>'),'마일리지','Mileage','주간·월간 누적 거리 (km)','갑자기 늘리면 다쳐요 — 이 앱은 주 5~10%씩',`주 ${kmIn(7).toFixed(0)} · 월 ${kmMon.toFixed(0)}km`],
+    ['vdot',ti('<circle cx="12" cy="9" r="5"/><path d="M8.5 13l-2 8 5.5-3 5.5 3-2-8"/><path d="M12 6.8l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z"/>'),'PB / PR','Personal Best','거리별 내 역대 최고 기록','최근 기록이 실력 점수(VDOT)가 되어 모든 속도를 정해요',pb],
+    ['zone',ti('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M7.5 12h2.2l1.2-2.4 2 4.6 1.3-2.2h2.3"/>'),'존 2','Zone 2','최대 심박의 70~80% — 편한 유산소 구간','옆 사람과 대화가 되면 존 2',`♥ ${ZONES[1][0]}~${ZONES[1][1]}`],
+    ['long',ti('<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>'),'LSD','Long Slow Distance','천천히 오래 달리는 훈련','지구력 엔진 — 느려져도 끝까지 가면 성공',`${fp(PACE.long[0])}~`],
+    ['interval',ti('<path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>'),'인터벌','Interval','빠른 질주와 느린 조깅을 반복','심폐 능력(VO₂max) 향상 — 회차 속도를 고르게',`${fp(PACE.I)}`],
+    [null,ti('<path d="M3 18l6-6 4 4 8-9"/><path d="M15 7h6v6"/>'),'빌드업','Build-up','천천히 시작해 갈수록 속도를 올림','후반 뒷심 · 초반 오버페이스 방지 — 자동 일정엔 아직 없음','—'],
+    ['threshold',ti('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>'),'지속주 · 템포런','Tempo Run','힘들지만 20~60분 버틸 빠르기로 유지','젖산 역치를 올려 빠른 속도를 오래 유지',`${fp(PACE.T)}`],
+    ['recovery',ti('<circle cx="14" cy="4.5" r="1.8"/><path d="M8 21l3-6 3 2v4M7 10l4-3 3 3 3 1M11 15l1-5"/>'),'회복주','Recovery Run','힘든 훈련 다음 날 아주 가볍게','몸을 푸는 날 — 빠르게 뛰는 게 유일한 실패',`${fp(PACE.rec[0])}~`],
+    ['stride',ti('<path d="M4 17h4l3-8 3 8h6"/><path d="M14 5l3 3-3 3"/>'),'스트라이드','Strides','20초쯤 가볍게 빠르게 치고 나가기','쉬운 날 끝에 4~6번 — 폼을 깨워요','10~20초'],
+    ['tt',ti('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),'TT · 실력 재기','Time Trial','정해진 거리를 힘껏 뛰어 실력 측정','4주마다 — 모든 목표 속도를 다시 계산','2km']
+  ];
+  const termRows=`<div class="gd-terms">${TERMS.map((t,i)=>`<button type="button" class="gd-term"${t[0]?` data-gfocus="${t[0]}"`:' disabled'}>
+      <span class="gt-no">${String(i+1).padStart(2,'0')}</span><span class="gt-ic">${t[1]}</span>
+      <span class="gt-nm"><b>${t[2]}</b><i>${t[3]}</i></span>
+      <span class="gt-tx"><b>${t[4]}</b><i>${t[5]}</i></span>
+      ${t[6]&&t[6]!=='—'?`<em class="gt-me">${t[6]}</em>`:''}</button>`).join('')}</div>`;
+  /* ── 러닝 필수 용어 — 분류 띠 + 그림 카드 + 내 값 ── */
+  const pNow=PACE.easy[0], kmh=x=>(3600/x).toFixed(1);
+  const lastRun=runs.slice().reverse().find(r=>r.paceAvg&&r.km);
+  const gauge=(a,lab)=>`<svg viewBox="0 0 120 70" width="78" height="46" aria-hidden="true"><path d="M14 62a46 46 0 0 1 92 0" fill="none" stroke="url(#gbg)" stroke-width="12" stroke-linecap="round"/>
+      <g transform="rotate(${a.toFixed(0)} 60 62)"><path d="M60 62L57.5 24h5z" fill="var(--ink)"/></g><circle cx="60" cy="62" r="6" fill="var(--ink)"/>${lab?`<text x="60" y="48" text-anchor="middle" font-size="13" font-weight="800" fill="var(--ink-2)">${lab}</text>`:''}</svg>`;
+  const angOf=x=>Math.max(-80,Math.min(80,(420-(x||420))/180*80));
+  const runner=c=>`<svg viewBox="0 0 24 24" width="30" height="30" fill="${c}" aria-hidden="true"><circle cx="14.5" cy="3.6" r="2.2"/><path d="M9.6 7.4l4.2-.9c.8-.2 1.6.2 2 .9l1.6 2.8 2.7.9-.6 1.8-3.4-1.1-1-1.6-1.2 3.7 2.6 2.4-.8 5.6h-2.1l.6-4.6-3-2.5-1.5 3.6-4.4 1.6-.8-1.8 3.6-1.4 2.6-6.4-1.6.4-1.6 2.8-1.8-.9z"/></svg>`;
+  const big=(d,c)=>`<svg viewBox="0 0 48 48" width="46" height="46" fill="none" stroke="${c||'var(--ink)'}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const bars=(arr,c)=>`<svg viewBox="0 0 60 34" width="60" height="34" aria-hidden="true">${arr.map((h,i)=>`<rect x="${i*(60/arr.length)+1}" y="${34-h*34}" width="${60/arr.length-2}" height="${h*34}" rx="1.5" fill="${c}"/>`).join('')}</svg>`;
+  let N=0;
+  const cell=(nm,en,art,txt,me,focus,w)=>{ N++; return `<${focus?`button type="button" data-gfocus="${focus}"`:'div'} class="gc${w?' w':''}">
+      <div class="gc-h"><i>${N}</i><b>${nm}</b><em>${en}</em></div>
+      <div class="gc-b"><span class="gc-art">${art}</span><p>${txt}</p></div>${me?`<span class="gc-me">${me}</span>`:''}</${focus?'button':'div'}>`; };
+  const band=(nm,col,cells)=>`<section class="gband" style="--bc:${col}"><div class="gb-side">${nm}</div><div class="gb-cells">${cells.join('')}</div></section>`;
+  const strideM=cu?(1000/pNow*60/cu):null;
+  const basic=`<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gbg"><stop offset="0" stop-color="#19A47C"/><stop offset=".5" stop-color="#E2B33B"/><stop offset="1" stop-color="#CF3B36"/></linearGradient></defs></svg>`+
+  band('기본 개념','#2E8B57',[
+    cell('페이스','Pace',gauge(angOf(pNow)),'1km 달리는 데 걸린 시간 · <b>낮을수록 빠름</b>',`이지 ${fp(pNow)}`,'pace'),
+    cell('속도','Speed',runner('#2E8B57'),'속도 = 거리 ÷ 시간<br>km/h = 3600 ÷ 페이스(초)',`${fp(pNow)} = ${kmh(pNow)}km/h`),
+    cell('거리','Distance',big('<path d="M12 18s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="8" r="2"/><path d="M36 42s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10z"/><path d="M14 24c2 8 10 4 14 10" stroke-dasharray="3 4"/>','#2E8B57'),'달린 총 거리 · km<br>1mi = 1.61km','', 'gps'),
+    cell('시간','Time',big('<circle cx="24" cy="27" r="16"/><path d="M24 27V18M24 27l6 4M20 6h8M24 6v5M37 13l3-3"/>'),'운동에 걸린 총 시간<br>시:분:초 (0:45:30)',''),
+    cell('평균 페이스','Average Pace',gauge(angOf(lastRun&&lastRun.paceAvg),'AVG'),'전체 시간 ÷ 전체 거리',lastRun?`최근 ${fp(lastRun.paceAvg)}`:'',null,true)
+  ])+
+  band('훈련 종류','#3D63C8',[
+    ...[['easy','이지런','Easy Run','대화가 되는 속도 · 기초 체력',PACE.easy[0]],['threshold','템포런','Tempo Run','조금 힘들지만 지속 · 젖산 역치',PACE.T],
+        ['interval','인터벌','Interval','빠르게 · 천천히 반복 · 심폐',PACE.I],['long','롱런 · LSD','Long Run','평소보다 길게 천천히 · 지구력',PACE.long[1]],
+        ['recovery','회복런','Recovery Run','가볍게 몸을 푸는 날',PACE.rec[0]],['rep','레페티션','Repetition','짧게 아주 빠르게, 완전 휴식',PACE.R]]
+      .map(x=>cell(x[1],x[2],`<span class="gc-dual">${runner(T(x[0]).col)}${guideShape(x[0],T(x[0]).col)}</span>`,x[3],fp(x[4]),x[0])),
+    cell('빌드업 런','Build-up Run',bars([.25,.4,.55,.7,.85,1],'#3D63C8'),'천천히 시작해 갈수록 빠르게 · 오버페이스 방지','자동 일정엔 아직 없음'),
+    cell('네거티브 스플릿','Negative Split',`<svg viewBox="0 0 60 34" width="60" height="34" aria-hidden="true"><path d="M4 26H30" stroke="#9DB1E6" stroke-width="5" stroke-linecap="round"/><path d="M30 10H56" stroke="#3D63C8" stroke-width="5" stroke-linecap="round"/><circle cx="30" cy="18" r="3" fill="#3D63C8"/></svg>`,'후반을 전반보다 빠르게<br>후반 평균 페이스 &lt; 전반',''),
+    cell('스트라이드 (드릴)','Strides',guideShape('stride',T('stride').col),'20초쯤 가볍게 빠르게 × 4~6번','10~20초','stride'),
+    cell('TT · 실력 재기','Time Trial',guideShape('tt',T('tt').col),'2km 힘껏 → 모든 속도 다시 계산',`VDOT ${VDOT.toFixed(1)}`,'tt')
+  ])+
+  band('운동 지표','#E07A1F',[
+    cell('심박수','Heart Rate',`<svg viewBox="0 0 48 44" width="46" height="42" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#E0454B"/><path d="M8 22h8l3-6 5 12 3-6h13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,'1분에 심장이 뛰는 수 (bpm)',`최대 ${HRMAX}`,'hrmax'),
+    cell('심박수 존','HR Zone',`<span class="gc-z">${ZONES.slice(0,5).map((z,i)=>`<i style="--c:var(--z${i+1});height:${10+i*5}px"></i>`).join('')}</span>`,'최대 심박의 % 로 나눈 강도 구간',`Z2 ${ZONES[1][0]}~${ZONES[1][1]}`,'zone'),
+    cell('케이던스','Cadence',big('<path d="M16 6c3 0 4 4 4 8s-2 7-5 7-5-3-5-7 3-8 6-8zM11 25h8M33 16c3 0 5 4 5 8s-2 7-5 7-5-3-5-7 2-8 5-8zM29 35h8"/>','#E07A1F'),'1분에 디딘 걸음 수 (spm) · 정답 숫자는 없음',cu?`내 평소 ${cu}`:'','cad'),
+    cell('보폭','Stride Length',big('<path d="M8 30c2 0 3 2 3 4s-1 4-3 4-3-2-3-4 1-4 3-4zM38 22c2 0 3 2 3 4s-1 4-3 4-3-2-3-4 1-4 3-4z"/><path d="M8 42h32M8 39v6M40 39v6"/>','#E07A1F'),'보폭(m) = 속도(m/분) ÷ 케이던스<br>억지로 늘리면 부상 위험',strideM?`이지 ${strideM.toFixed(2)}m`:'')
+  ])+
+  band('기타 용어','#7A4CC2',[
+    cell('PB','Personal Best',big('<circle cx="24" cy="30" r="11"/><path d="M17 4l7 12 7-12M24 24l2 4 4 .5-3 3 .8 4-3.8-2-3.8 2 .8-4-3-3 4-.5z"/>','#C79A1E'),'거리별 내 최고 기록',pb,'vdot'),
+    cell('Sub','Sub X',`<span class="gc-timer num">1:00:00</span>`,'정한 시간 안에 완주<br>Sub 60 = 1시간 이내',''),
+    cell('드롭','Drop',big('<path d="M4 34h40v4H4z"/><path d="M4 34l4-12h11l6 6h10l9 6"/><path d="M40 24v8M37 27l3-3 3 3" stroke-width="2.2"/>','#7A4CC2'),'신발 뒤꿈치와 앞꿈치 높이 차이 (mm)',''),
+    cell('착지','Foot Strike',big('<path d="M16 42c-4 0-6-3-6-8 0-6 3-17 8-17s6 5 6 9-2.5 6-2.5 9S20 42 16 42z"/><circle cx="27" cy="12" r="2"/><circle cx="31" cy="17" r="1.8"/><circle cx="33" cy="23" r="1.6"/>','#7A4CC2'),'뒤꿈치 · 중간 · 앞꿈치 — 자연스러운 게 우선',''),
+    cell('마일리지','Mileage',big('<path d="M8 44L20 4h8l12 40"/><path d="M24 10v5M24 21v5M24 33v6"/>','#7A4CC2'),'주간 · 월간 누적 거리 · 주 5~10%씩만',`주 ${kmIn(7).toFixed(0)} · 월 ${kmMon.toFixed(0)}km`,'plan',true)
+  ])+
+  `<section class="gband tips" style="--bc:#D9455F"><div class="gb-side">꿀팁</div><div class="gb-tips">${[
+    [big('<path d="M18 36h12M19 41h10M24 4a12 12 0 0 0-7 21.8V31h14v-5.2A12 12 0 0 0 24 4z"/>','#D9A21E'),'꾸준히','매일 조금이라도'],
+    [big('<rect x="10" y="6" width="28" height="36" rx="3"/><path d="M17 16h14M17 24h14M17 32h8"/>','#3D63C8'),'몸의 신호','아프면 쉬기'],
+    [big('<circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="2" fill="currentColor"/>','#E0454B'),'목표 정하기','짧게 · 길게'],
+    [big('<path d="M4 34h40v4H4z"/><path d="M4 34l4-12h11l6 6h10l9 6"/>','#2E8B57'),'장비보다 나','몸에 맞는 신발'],
+    [`<svg viewBox="0 0 48 44" width="40" height="38" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#E0454B"/></svg>`,'즐기기','달리기는 취미']
+  ].map(t=>`<div class="gt">${t[0]}<b>${t[1]}</b><i>${t[2]}</i></div>`).join('')}</div></section>`;
+  const sec=(t,x)=>`<div class="gd-sec"><h3>${t}</h3>${x.join('')}</div>`;
+    /* ── 달릴 때 보는 6가지 — 시계 화면 ── */
+  const lr=runs.slice().reverse().find(r=>r.paceAvg&&(r.cadAvg||r.hrAvg))||lastRun;
+  const wp=lr&&lr.paceAvg||pNow, wc=lr&&lr.cadAvg||cu, wh=lr&&lr.hrAvg||null;
+  const wz=wh?hrZoneIx(wh):2, ws=wc?(1000/wp*60/wc):null, zc=['','var(--z1)','var(--z2)','var(--z3)','var(--z4)','var(--z5)'][wz];
+  const WR=[['pace','#4C9BE8',big('<circle cx="24" cy="27" r="16"/><path d="M24 27V18M20 6h8M24 6v5"/><path d="M24 27L24 11A16 16 0 0 1 38 22z" fill="currentColor" stroke="none" opacity=".9"/>','#4C9BE8'),fp(wp),'/km','1km를 몇 분에?'],
+    ['cad','#3FBF7F',big('<path d="M16 6c3 0 4 4 4 8s-2 7-5 7-5-3-5-7 3-8 6-8zM11 25h8M33 16c3 0 5 4 5 8s-2 7-5 7-5-3-5-7 2-8 5-8zM29 35h8"/>','#3FBF7F'),wc||'—','spm','1분에 몇 걸음?'],
+    ['cad','#F28C28',big('<path d="M6 26l4-10h12l5 5h9l6 5v4H6z"/><path d="M8 40h32M8 40l4-3M8 40l4 3M40 40l-4-3M40 40l-4 3"/>','#F28C28'),ws?ws.toFixed(2):'—','m','한 걸음 보폭은?'],
+    ['hrmax','#F0525A',`<svg viewBox="0 0 48 44" width="40" height="38" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#F0525A"/><path d="M8 22h8l3-6 5 12 3-6h13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,wh||'—','bpm','지금 얼마나 열심히?'],
+    ['zone',zc,`<span class="gw-z" style="background:${zc}">Z${wz}</span>`,`Zone ${wz}`,'',wz===2?'편한 유산소 구간이에요':'존 2가 편한 유산소'],
+    [null,'#F5C542',`<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="#F5C542"/><circle cx="17" cy="20" r="2.6" fill="#2A1638"/><circle cx="31" cy="20" r="2.6" fill="#2A1638"/><path d="M15 29c4.5 5.5 13.5 5.5 18 0" fill="none" stroke="#2A1638" stroke-width="3" stroke-linecap="round"/></svg>`,'러너스 하이','','숫자로는 못 재요 — 기분 좋은 그 느낌']];
+  const watch=`<div class="gwatch"><div class="gw-band"></div><div class="gw-face">${WR.map((r,i)=>`<${r[0]?`button type="button" data-gfocus="${r[0]}"`:'div'} class="gw-r">
+      <span class="gw-n" style="color:${r[1]}">${i+1}</span><span class="gw-ic">${r[2]}</span>
+      <span class="gw-v"><b class="${/[가-힣]/.test(String(r[3]))?'sm':'num'}">${r[3]}</b>${r[4]?`<i style="color:${r[1]}">${r[4]}</i>`:''}</span>
+      <em class="gw-q">${r[5]}</em></${r[0]?'button':'div'}>`).join('')}</div><div class="gw-band"></div>
+      <p class="gw-cap">${lr?`최근 달리기 ${String(lr.date).slice(5,10).replace('-','.')} 평균`:'내 기준 값'} · 달리는 화면에도 그대로 나와요</p></div>`;
+$('gdBody').innerHTML=`<div class="gd-hero"><b>달릴 때 보는 6가지</b><i>누르면 계산 기준</i></div>${watch}<div class="gd-hero"><b>러닝 필수 용어 ${N}</b><i>누르면 계산 기준이 열려요</i></div>${basic}`+sec('기준 숫자',base)+sec('훈련법',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+sec('측정',meas)+sec('일정 · 판정',sys)+
+    `<p class="gd-src" style="text-align:center;margin:18px 0 0">근거 등급 — B 연구 있음 · C 경험칙 · D 내 기록</p>`;
+}
+function openGuide(focus,back){
+  GUIDE_BACK=back||(document.querySelector('.view.on')||{}).id||'home';
+  renderGuide(); show('guide');
+  const el=focus&&$('gd-'+focus);
+  if(el){ el.open=true; setTimeout(()=>el.scrollIntoView({block:'start'}),50); } else window.scrollTo(0,0);
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#setGuide')) return openGuide(null,'settings');
+  if(e.target.closest('#gdBack')) return (GUIDE_BACK==='home'||GUIDE_BACK==='plan')?go(GUIDE_BACK):show(GUIDE_BACK);
+  const g=e.target.closest('[data-guide]'); if(g) return openGuide(g.dataset.guide);
+  const f=e.target.closest('[data-gfocus]'); if(f){ const el=$('gd-'+f.dataset.gfocus); if(el){ el.open=true; el.scrollIntoView({behavior:'smooth',block:'start'}); } }
+});
+
+/* ═════════════════════ 스트레칭 — 훈련 전 동적 · 훈련 후 정적 ═════════════════════
+   동작 그림(막대 인형) + 따라하기(타이머 · 음성). 동적은 두 자세를 번갈아 보여 움직임을 그린다. */
+const STR_COL={dyn:'#E07A1F',stat:'#2F8F83'};
+/* 자세 = 관절 좌표 (100×100, 땅 y=94). la/aa = 앞쪽(진한), lb/ab = 뒤쪽(옅은). arr = 빨간 방향 화살표 */
+const RA='#E0454B', AR=(d)=>`<path d="${d}" fill="none" stroke="${RA}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+const STAND={n:[50,25],p:[50,54],la:[[47,74],[46,93]],lb:[[53,74],[54,93]]};
+const POSE={
+  neckA:Object.assign({},STAND,{h:[45,15],aa:[[45,40],[44,54]],ab:[[55,40],[56,54]],arr:AR('M30 18a10 10 0 0 1 6-10m-1 6l1-6-6 1')+AR('M70 18a10 10 0 0 0-6-10m1 6l-1-6 6 1')}),
+  neckB:Object.assign({},STAND,{h:[55,15],aa:[[45,40],[44,54]],ab:[[55,40],[56,54]],arr:AR('M30 18a10 10 0 0 1 6-10m-1 6l1-6-6 1')+AR('M70 18a10 10 0 0 0-6-10m1 6l-1-6 6 1')}),
+  shoulderA:Object.assign({},STAND,{h:[50,14],aa:[[37,21],[44,25]],ab:[[63,21],[56,25]],arr:AR('M28 30a8 8 0 1 1 6 8m-5-1l5 1-1-5')+AR('M72 30a8 8 0 1 0-6 8m5-1l-5 1 1-5')}),
+  shoulderB:Object.assign({},STAND,{h:[50,14],aa:[[39,36],[44,26]],ab:[[61,36],[56,26]],arr:AR('M28 30a8 8 0 1 1 6 8m-5-1l5 1-1-5')+AR('M72 30a8 8 0 1 0-6 8m5-1l-5 1 1-5')}),
+  armA:Object.assign({},STAND,{h:[50,14],aa:[[36,20],[22,14]],ab:[[64,20],[78,14]],arr:AR('M12 30a12 12 0 0 1 4-18m0 6l0-6-6 1')+AR('M88 30a12 12 0 0 0-4-18m0 6l0-6 6 1')}),
+  armB:Object.assign({},STAND,{h:[50,14],aa:[[36,28],[22,30]],ab:[[64,28],[78,30]],arr:AR('M12 30a12 12 0 0 1 4-18m0 6l0-6-6 1')+AR('M88 30a12 12 0 0 0-4-18m0 6l0-6 6 1')}),
+  waistA:{h:[49,14],n:[49,25],p:[45,54],la:[[45,74],[46,93]],lb:[[51,74],[54,93]],aa:[[39,38],[43,50]],ab:[[59,38],[55,50]],arr:`<ellipse cx="50" cy="56" rx="22" ry="6" fill="none" stroke="${RA}" stroke-width="3"/>`+AR('M66 60l6-1-3-5')},
+  waistB:{h:[51,14],n:[51,25],p:[55,54],la:[[49,74],[46,93]],lb:[[55,74],[54,93]],aa:[[41,38],[45,50]],ab:[[61,38],[57,50]],arr:`<ellipse cx="50" cy="56" rx="22" ry="6" fill="none" stroke="${RA}" stroke-width="3"/>`+AR('M66 60l6-1-3-5')},
+  quad:{h:[50,13],n:[50,24],p:[50,53],la:[[50,73],[50,93]],lb:[[50,73],[38,57]],aa:[[60,34],[70,40]],ab:[[44,42],[38,55]],arr:AR('M28 70a14 14 0 0 1 2-16m-5 3l5-3 2 6')},
+  fold:{h:[70,64],n:[62,56],p:[44,50],la:[[46,72],[47,93]],lb:[[42,72],[40,93]],aa:[[64,72],[55,88]],ab:[[62,73],[51,89]],arr:AR('M80 66v18m-5-5l5 5 5-5')},
+  calf:{h:[72,22],n:[66,31],p:[48,57],la:[[58,75],[60,93]],lb:[[34,76],[22,93]],aa:[[76,33],[86,30]],ab:[[74,37],[86,38]],wall:1,arr:AR('M18 70l12-12m-7 0h7v7')},
+  lunge:{h:[52,22],n:[51,33],p:[48,60],la:[[66,62],[67,93]],lb:[[36,82],[22,92]],aa:[[58,46],[64,58]],ab:[[56,48],[62,60]],arr:AR('M40 62v12m-4-4l4 4 4-4')},
+  ham:{h:[56,58],n:[47,66],p:[30,88],la:[[55,89],[80,89]],lb:[[55,90],[80,90]],aa:[[62,73],[77,83]],ab:[[60,76],[74,86]]},
+  glute:{h:[12,84],n:[23,85],p:[50,86],la:[[70,88],[90,90]],lb:[[44,64],[60,70]],aa:[[34,72],[44,64]],ab:[[34,75],[46,68]]},
+  hip:{h:[52,26],n:[51,37],p:[48,65],la:[[66,66],[68,93]],lb:[[36,92],[18,93]],aa:[[58,50],[66,63]],ab:[[56,52],[64,64]]},
+  side:{h:[58,17],n:[52,27],p:[50,55],la:[[46,74],[55,93]],lb:[[54,74],[44,93]],aa:[[46,14],[66,6]],ab:[[42,40],[46,52]]}
+};
+function figSVG(P,col){ const L=(a,b,w,o)=>`<path d="M${a[0]} ${a[1]}L${b[0]} ${b[1]}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="${o||1}"/>`;
+  const limb=(from,j,o)=>L(from,j[0],5.5,o)+L(j[0],j[1],5.5,o);
+  return `${P.wall?'<rect x="86" y="8" width="6" height="86" rx="2" fill="#D9CFE3"/>':''}<path d="M4 94h92" stroke="#D9CFE3" stroke-width="3" stroke-linecap="round"/>
+    ${limb(P.p,P.lb,.45)}${limb(P.n,P.ab,.45)}${L(P.n,P.p,7)}${limb(P.p,P.la)}${limb(P.n,P.aa)}<circle cx="${P.h[0]}" cy="${P.h[1]}" r="7.5" fill="${col}"/>${P.arr||''}`; }
+/* 동작: [자세, 이름, 효과 한 줄, 하는 법, 양쪽?] */
+const STR={
+  dyn:{en:'WARM-UP',ko:'러닝 전 준비운동',when:'훈련 전',sec:30,key:'짧게 깨우고, 가볍게 출발',
+    desc:'위에서 아래로 — 목·어깨·팔·허리를 돌려 풀고, 다리를 짧게 늘린 뒤 출발해요.',
+    chk:['각 동작 20~30초','좌우 모두','호흡은 자연스럽게','아프지 않은 범위'],
+    tips:['끝나면 1~2분 제자리 걷기나 천천히 뛰기로 데우기','추운 날엔 조금 더 길게'],
+    moves:[['neck','목 돌리기','목 주변 긴장을 풀어요','천천히 크게 원 그리기 · 양방향',false],
+           ['shoulder','어깨 돌리기','상체가 부드럽게 움직여요','손끝을 어깨에, 팔꿈치로 원 그리기',false],
+           ['arm','팔 돌리기','팔·가슴 근육을 풀어요','팔을 옆으로 뻗어 앞으로 · 뒤로',false],
+           ['waist','허리 돌리기','코어가 안정돼요','손은 허리에, 골반으로 원 그리기',false],
+           ['quad','허벅지 앞','무릎 부담을 줄여요','발목 잡고 뒤꿈치를 엉덩이 쪽으로',true],
+           ['fold','허벅지 뒤','다리 뒤가 유연해져요','무릎 살짝 굽혀 상체 숙이기',true],
+           ['calf','종아리','발목·아킬레스건을 보호해요','벽 밀며 뒤꿈치 바닥에',true],
+           ['lunge','런지','엉덩이·허벅지를 깨워요','크게 한 걸음, 골반을 아래로',true]]},
+  stat:{en:'COOL-DOWN',ko:'러닝 후 정적 스트레칭',when:'훈련 후',sec:30,key:'멈춘 자세로 천천히 늘려요',
+    desc:'달리기로 짧아진 근육을 반동 없이 늘려요. 아프지 않고 당기는 정도로.',chk:['훈련 후','반동 없이 30초','양쪽 모두'],tips:[],
+    moves:[['calf','종아리','달리며 가장 많이 쓴 곳','벽 밀며 뒤꿈치 누르기',true],['ham','햄스트링','허벅지 뒤를 풀어요','앉아서 발끝 쪽으로',true],
+           ['quad','허벅지 앞','무릎 앞을 편하게','발목 잡고 무릎 모으기',true],['glute','엉덩이','골반 주변을 풀어요','누워서 무릎 가슴으로',true],
+           ['hip','고관절 앞','오래 앉는 사람에게','무릎 꿇고 골반 앞으로',true],['side','옆구리','몸통을 길게','팔 뻗어 옆으로 기울이기',true]]}
+};
+const mvSec=(kind,m)=>STR[kind].sec*(m[4]?2:1);
+function moveSVG(kind,id,col,big){ const A=POSE[id+'A']||POSE[id], B=POSE[id+'B']; const cls=big?'st-fig big':'st-fig';
+  if(!B) return `<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true">${figSVG(A,col)}</svg>`;
+  return `<svg class="${cls} anim" viewBox="0 0 100 100" aria-hidden="true"><g class="pa">${figSVG(A,col)}</g><g class="pb">${figSVG(B,col)}</g></svg>`; }
+function stretchCard(kind,opt){ opt=opt||{}; const S=STR[kind], c=STR_COL[kind], tot=S.moves.reduce((a,m)=>a+mvSec(kind,m),0);
+  return `<article class="tc st-card" id="${opt.id||'gd-'+kind}" style="--tc:${c}">
+    <div class="tc-hd"><span class="tc-ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${kind==='dyn'?'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>':'<path d="M12 3c-3 4-6 6-6 10a6 6 0 0 0 12 0c0-4-3-6-6-10z"/>'}</svg></span>
+      <div><b>${S.en}</b><i>${S.ko}</i></div><em>${S.moves.length}가지 · ${Math.round(tot/60)}분</em></div>
+    ${opt.compact?'':`<div class="tc-key"><span>핵심 포인트</span><b>${S.key}</b><p>${S.desc}</p></div>`}
+    <div class="st-grid">${S.moves.map((m,i)=>`<div class="st-mv"><span class="st-no">${i+1}</span><b>${m[1]}</b>${moveSVG(kind,m[0],c)}<p>${m[2]}</p><em>${S.sec}초${m[4]?' × 좌우':''}</em></div>`).join('')}</div>
+    ${opt.compact?'':`<div class="tc-chk"><span>체크리스트</span>${S.chk.map(x=>`<i>${x}</i>`).join('')}</div>`}
+    ${!opt.compact&&S.tips.length?`<div class="st-tips"><b>추가 꿀팁</b>${S.tips.map(x=>`<i>${x}</i>`).join('')}</div>`:''}
+    <button type="button" class="st-go" data-stgo="${kind}">▶ 따라하기 ${Math.round(tot/60)}분</button>
+    ${opt.compact?'':`<p class="gd-src" style="padding:0 14px 12px">${kind==='dyn'?'정지 자세는 30초 안쪽으로 짧게 — 오래 버티면 순간 힘이 조금 떨어질 수 있어요(B).':'정적 스트레칭이 부상을 막는다는 근거는 약해요(C). 뻣뻣함을 풀고 몸을 식히는 시간으로 써요.'}</p>`}
+  </article>`; }
+/* ── 따라하기 ── */
+const ST={kind:null,i:0,t:0,side:0,timer:null,paused:false};
+function stOpen(kind){ ST.kind=kind; ST.i=0; ST.side=0; ST.paused=false; $('strRun').hidden=false; stStart(); }
+function stTotal(){ return STR[ST.kind].sec; }
+function stStart(){ const S=STR[ST.kind], m=S.moves[ST.i]; ST.t=stTotal();
+  try{ DEV.speak(ST.side?'반대쪽':`${m[1]}. ${m[3].replace(/·/g,',')}${m[4]?'. 한쪽부터':''}`,true); }catch(e){}
+  stPaint(); clearInterval(ST.timer); ST.timer=setInterval(stTick,1000); }
+function stTick(){ if(ST.paused)return; ST.t--; const S=STR[ST.kind];
+  if(ST.t===3)try{ VC.beep(660,120); }catch(e){}
+  if(ST.t<=0){ if(S.moves[ST.i][4]&&!ST.side){ ST.side=1; return stStart(); }
+    ST.side=0; ST.i++; if(ST.i>=S.moves.length) return stDone(); return stStart(); }
+  stPaint(); }
+function stDone(){ clearInterval(ST.timer); try{ DEV.speak(ST.kind==='dyn'?'준비 운동 끝. 이제 달려볼까요.':'정리 운동 끝. 수고했어요.',true); }catch(e){}
+  try{ const k='stlog'; const L=DEV.store.get(k,{}); L[todayStr()]=Object.assign({},L[todayStr()],{[ST.kind]:true}); DEV.store.set(k,L); }catch(e){}
+  $('stBody').innerHTML=`<div class="st-done"><svg viewBox="0 0 48 48" width="72" height="72" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="${STR_COL[ST.kind]}"/><path d="M14 25l7 7 13-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <b>${STR[ST.kind].ko} 끝</b><button type="button" class="btn" data-stx="1">닫기</button></div>`; }
+function stClose(){ clearInterval(ST.timer); $('strRun').hidden=true; try{ speechSynthesis.cancel(); }catch(e){} }
+function stPaint(){ const S=STR[ST.kind], m=S.moves[ST.i], c=STR_COL[ST.kind], nx=S.moves[ST.i+1], T0=stTotal(), f=ST.t/T0, R=52, C=2*Math.PI*R;
+  $('stBody').innerHTML=`<div class="st-top" style="--tc:${c}"><span>${S.ko}</span><i>${ST.i+1} / ${S.moves.length}</i></div>
+    <div class="st-dots">${S.moves.map((_,k)=>`<i class="${k<ST.i?'d':k===ST.i?'on':''}" style="--tc:${c}"></i>`).join('')}</div>
+    <div class="st-stage">${moveSVG(ST.kind,m[0],c,true)}</div>
+    <div class="st-nm"><b>${m[1]}${m[4]?`<small style="color:${c}"> · ${ST.side?'반대쪽':'한쪽'}</small>`:''}</b><i>${m[3]}</i></div>
+    <div class="st-ring"><svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--line)" stroke-width="9"/>
+      <circle cx="60" cy="60" r="${R}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" transform="rotate(-90 60 60)"/></svg><b class="num">${ST.t}</b></div>
+    <div class="st-ctl"><button type="button" data-stp="1">${ST.paused?'▶ 계속':'❚❚ 멈춤'}</button><button type="button" data-stn="1">다음 ›</button></div>
+    ${nx?`<div class="st-next">다음 · ${moveSVG(ST.kind,nx[0],c)}<b>${nx[1]}</b></div>`:''}`; }
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-stgo]'); if(g){ stOpen(g.dataset.stgo); return; }
+  if(!e.target.closest('#strRun'))return;
+  if(e.target.closest('[data-stx]')||e.target.id==='strRun'||e.target.closest('#stClose')) return stClose();
+  if(e.target.closest('[data-stp]')){ ST.paused=!ST.paused; stPaint(); return; }
+  if(e.target.closest('[data-stn]')){ ST.t=1; ST.paused=false; stTick(); return; }
+});
+(function stMount(){ const c=$('cStretch'); if(c)c.innerHTML=stretchCard('dyn',{compact:true,id:'cStr'}); const s=$('sStretch'); if(s)s.innerHTML=stretchCard('stat',{compact:true,id:'sStr'}); })();
 </script>
 </body>
 </html>
