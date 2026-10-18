@@ -1377,6 +1377,11 @@ details.noti .sigc{margin:6px 0}
 <style>.cset{margin:14px 0 6px;background:var(--panel);border-radius:12px;padding:0 14px}.cset>summary{list-style:none;padding:13px 0;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}.cset>summary::-webkit-details-marker{display:none}.cset>summary::after{content:' ▾';color:var(--ink-3)}.cset[open]>summary::after{content:' ▴'}</style>
 <div class="msheet strun" id="strRun" hidden><div class="ms-card st-card2" role="dialog" aria-label="스트레칭 따라하기">
   <div class="ms-hd"><b>따라하기</b><button type="button" id="stClose" aria-label="닫기">✕</button></div><div id="stBody"></div></div></div>
+<div class="mdock" id="mDock" hidden role="region" aria-label="음악">
+  <span class="md-art" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></span>
+  <button type="button" class="md-info" data-mopen="1"><b class="md-t"></b><i class="md-l"></i></button>
+  <button type="button" data-m="prev" aria-label="이전 곡"></button><button type="button" data-m="toggle" class="md-p" aria-label="재생/일시정지"></button><button type="button" data-m="next" aria-label="다음 곡"></button>
+  <button type="button" data-mhalt="1" class="md-x" aria-label="음악 끄기">✕</button></div>
 <div class="msheet" id="peSheet" hidden><div class="ms-card" role="dialog" aria-label="훈련 고치기">
   <div class="ms-hd"><b>훈련 고치기</b><button type="button" id="peClose" aria-label="닫기">✕</button></div><div id="peBody"></div></div></div>
 <div class="msheet" id="musSheet" hidden><div class="ms-card" role="dialog" aria-label="음악">
@@ -1737,6 +1742,15 @@ details.noti .sigc{margin:6px 0}
 .ab b{display:block;font-size:14px;line-height:1.4;word-break:keep-all}.ab i{display:block;font-style:normal;font-size:11.5px;color:#E3D6F0;margin-top:3px}
 .ab-mini{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--accent);background:var(--panel-2);padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 .gd-sec h3{display:flex;align-items:center;flex-wrap:wrap}
+.mdock{position:fixed;left:10px;right:10px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:25;display:flex;align-items:center;gap:2px;background:#2A1638;color:#fff;border-radius:16px;padding:5px 6px 5px 10px;box-shadow:0 8px 24px rgba(42,22,56,.3);max-width:520px;margin:0 auto}
+.md-art{flex:none;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#F6C27A}
+.mdock.on .md-art{background:#F6C27A;color:#2A1638}
+.md-info{flex:1;min-width:0;border:none;background:none;color:#fff;font:inherit;text-align:left;padding:4px 8px;cursor:pointer}
+.md-info b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.md-info i{display:block;font-style:normal;font-size:10.5px;color:#C9B8D8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdock [data-m],.md-x{flex:none;width:38px;height:38px;border:none;background:none;color:#fff;display:grid;place-items:center;border-radius:10px;cursor:pointer;font-size:14px}
+.mdock [data-m] svg{width:18px;height:18px}.mdock .md-p{background:#fff;color:#2A1638;width:40px;height:40px;border-radius:50%}
+.md-x{color:#C9B8D8}
+body.has-dock .view{padding-bottom:70px}
 .pw{background:var(--panel);border-radius:18px;margin:12px 0;overflow:hidden;border:1.5px solid transparent}
 .pw.cur{border-color:var(--accent);box-shadow:0 6px 18px rgba(91,45,134,.12)}.pw.past{opacity:.72}
 .pw header{display:flex;align-items:center;justify-content:space-between;padding:13px 14px 8px}
@@ -2921,6 +2935,7 @@ let CURVIEW='home';
 const TABOF={share:'log',rview:'log',dec:'home',tplan:'home',run:'home',confirm:'home',sum:'log',settings:'home',alerts:'home',runtab:'home',
   paste:'plan',review:'home'};
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
+  try{ if(typeof MUS!=='undefined')setTimeout(()=>MUS.paint(),0); }catch(e){}
   CURVIEW=id;
   document.body.classList.toggle('nonav',id==='onb'||id==='intro'||id==='goal');
   const t=TABOF[id]||id;
@@ -8680,13 +8695,14 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     a.src=this.url; this.applyVol();
     if(autoplay){ try{ await a.play(); }catch(e){} }
     this.meta(); this.paint(); },
-  play(id,startId){ if(!this.queue(id,startId))return this.open(); this.load(0); },
-  toggle(){ const a=this.el(); if(!this.cur){ return this.play(); } if(a.paused)a.play().catch(()=>{}); else a.pause(); },
+  play(id,startId){ if(!this.queue(id,startId))return this.open(); this.userPaused=false; this.dockOn=true; this.load(0); },
+  toggle(){ const a=this.el(); if(!this.cur){ return this.play(); } this.dockOn=true; if(a.paused){ this.userPaused=false; a.play().catch(()=>{}); } else { this.userPaused=true; a.pause(); } },
+  halt(){ const a=this.a; this.userPaused=true; if(a){ a.pause(); try{ a.currentTime=0; }catch(e){} } this.dockOn=false; this.paint(); },
   next(auto){ if(!this.q.length)return; if(this.i>=this.q.length-1){ if(auto&&this.st.rep==='off'){ this.a.pause(); this.paint(); return; }
       if(this.st.shuf){ const last=this.q[this.i]; this.queue(this.st.sel); if(this.q[0]===last&&this.q.length>1)this.q.push(this.q.shift()); return this.load(0); } }
     this.load(this.i+1); },
   prev(){ const a=this.el(); if(a.currentTime>3){ a.currentTime=0; return; } this.load(this.i-1); },
-  stop(fade){ const a=this.a; if(!a||a.paused)return; if(!fade){ a.pause(); return; }
+  stop(fade){ const a=this.a; if(!a||a.paused)return; this.userPaused=true; if(!fade){ a.pause(); return; }
     const v0=a.volume; let k=0; const t=setInterval(()=>{ k++; try{ a.volume=Math.max(0,v0*(1-k/10)); }catch(e){} if(k>=10){ clearInterval(t); a.pause(); this.applyVol(); } },120); },
   setShuf(v){ this.st.shuf=v; this.save(); if(this.cur){ const c=this.cur; this.queue(this.st.sel,c); } this.paint(); },
   cycleRep(){ this.st.rep={off:'all',all:'one',one:'off'}[this.st.rep]||'all'; this.save(); this.paint(); },
@@ -8723,10 +8739,16 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     const bar=$('mBar'); if(bar){ bar.hidden=!has; bar.classList.toggle('on',on);
       bar.querySelector('.mb-t').textContent=ttl; bar.querySelector('[data-m=toggle]').innerHTML=MIC[on?'pause':'play']; }
     const hb=$('btnMusic'); if(hb)hb.classList.toggle('on',on);
+    const dk=$('mDock'); if(dk){ const runV=document.querySelector('#run.on'), shOpen=!$('musSheet').hidden;
+      const vis=!!(this.cur&&this.dockOn&&!runV&&!shOpen); dk.hidden=!vis; document.body.classList.toggle('has-dock',vis);
+      if(vis){ dk.classList.toggle('on',on); dk.querySelector('.md-t').textContent=ttl; dk.querySelector('.md-l').textContent=L?L.nm:''; dk.querySelector('[data-m=toggle]').innerHTML=MIC[on?'pause':'play']; } }
     const cm=$('cMusic'); if(cm){ cm.querySelector('b').textContent=has?(this.st.auto&&L?L.nm:'음악 없이'):'음악 넣기'; cm.classList.toggle('on',!!(has&&this.st.auto&&L)); }
     if(!$('musSheet').hidden)this.render(); },
   open(){ const s=$('musSheet'); s.hidden=false; this.render(); requestAnimationFrame(()=>s.classList.add('up')); },
-  close(){ const s=$('musSheet'); s.classList.remove('up'); setTimeout(()=>s.hidden=true,200); },
+  close(){ const s=$('musSheet'), a=this.a, was=!!(a&&!a.paused);
+    s.classList.remove('up'); setTimeout(()=>{ s.hidden=true; this.paint(); },200);
+    /* 창을 닫아도 노래는 계속 — 닫는 사이 멈췄으면(사용자가 멈춘 게 아니면) 다시 튼다 */
+    if(was) [150,500,1000].forEach(ms=>setTimeout(()=>{ if(this.a&&this.a.paused&&!this.userPaused&&!this.a.ended)this.a.play().catch(()=>{}); },ms)); },
   render(){ const b=$('musBody'); if(!b)return; const a=this.a, on=!!(a&&!a.paused), f=this.files[this.cur], L=this.list();
     const canDir='webkitdirectory' in document.createElement('input');
     const pick=`<div class="mus-pick">${canDir?`<button class="mus-add" data-m="dir">${MIC.folder}<b>폴더 고르기</b></button>`:''}
@@ -8771,7 +8793,9 @@ const MIC=(()=>{ const s=(d,f)=>`<svg viewBox="0 0 24 24" aria-hidden="true" ${f
     i.accept='audio/*,.mp3,.m4a,.aac,.ogg,.opus,.wav,.flac,.m3u,.m3u8'; if(dir){ i.webkitdirectory=true; i.setAttribute('webkitdirectory',''); }
     i.onchange=()=>{ if(i.files&&i.files.length)MUS.add(i.files); }; i.click(); };
   document.addEventListener('click',e=>{
-    const m=e.target.closest('[data-m]'); const inMus=e.target.closest('#musSheet,#mBar');
+    const m=e.target.closest('[data-m]'); const inMus=e.target.closest('#musSheet,#mBar,#mDock');
+    if(e.target.closest('[data-mhalt]')){ MUS.halt(); return; }
+    if(e.target.closest('[data-mopen]')){ MUS.open(); MUS.paint(); return; }
     if(e.target.closest('#btnMusic,#cMusic,#setMusic')){ MUS.open(); return; }
     if(e.target.id==='musSheet'||e.target.closest('#musClose')){ MUS.close(); return; }
     if(!inMus)return;
@@ -8787,7 +8811,7 @@ const MIC=(()=>{ const s=(d,f)=>`<svg viewBox="0 0 24 24" aria-hidden="true" ${f
   document.addEventListener('input',e=>{ if(e.target.classList&&e.target.classList.contains('mus-pos')&&MUS.a&&MUS.a.duration){
     MUS.a.currentTime=e.target.value/1000*MUS.a.duration; } });
   document.addEventListener('change',e=>{ const o=e.target.dataset&&e.target.dataset.o; if(o&&e.target.closest('#musSheet')){ MUS.st[o]=e.target.checked; MUS.save(); MUS.paint(); } });
-  document.querySelectorAll('#mBar [data-m]').forEach(b=>b.innerHTML=MIC[b.dataset.m]||MIC.play);
+  document.querySelectorAll('#mBar [data-m],#mDock [data-m]').forEach(b=>b.innerHTML=MIC[b.dataset.m]||MIC.play);
   MUS.init();
 })();
 
@@ -9393,24 +9417,23 @@ function peUndo(){ peSave(list=>{ const i=list.findIndex(x=>x.d===PE.d); if(i>=0
   peClose(); toast('원래대로 돌렸어요'); }
 /* 주 단위 거리 조정 — 아직 안 한 날만 */
 function weekScale(wk,f){ const t=todayStr();
-  peSave(list=>{ list.forEach((s,i)=>{ if(s.wk!==wk||!s.dist||s.d.slice(0,10)<t||RUNS.some(r=>r.planId===s.d))return;
+  peSave(list=>{ list.forEach((s,i)=>{ if(weekMonday(s.d)!==wk||!s.dist||s.d.slice(0,10)<t||RUNS.some(r=>r.planId===s.d))return;
     const type=s.type, km=Math.max(3,Math.round(s.dist*f*2)/2);
     if(['easy','recovery','long'].includes(type)){ const ns=peBuild(s.d,s.wk,type,km); ns.orig=s.orig||JSON.parse(JSON.stringify(s)); ns.edited=true; ns.d=s.d; list[i]=ns; }
     else if(s.reps&&s.repLen){ const n=Math.max(2,Math.min(8,Math.round(s.reps*f))); if(n!==s.reps){ const ns=peBuild(s.d,s.wk,type,s.dist,n,s.repLen); ns.orig=s.orig||JSON.parse(JSON.stringify(s)); ns.edited=true; ns.d=s.d; list[i]=ns; } } }); });
   toast(f>1?'이 주 거리를 늘렸어요':'이 주 거리를 줄였어요'); }
 /* 화면 */
 function planListHTML(){
-  const t=todayStr(), wks=[...new Set(BLOCK.map(x=>x.wk))];
-  const editable=!!peStore()||true;
-  return wks.map(wk=>{
-    const items=BLOCK.filter(x=>x.wk===wk), mon=weekMonday(items[0].d), sun=addDays(mon,6);
+  const t=todayStr(), mons=[...new Set(BLOCK.map(x=>weekMonday(x.d)))].sort();
+  return mons.map((mon,wi)=>{
+    const items=BLOCK.filter(x=>weekMonday(x.d)===mon), sun=addDays(mon,6), wk=wi+1, wkRaw=items[0].wk;
     const plan=items.reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
     const done=items.filter(x=>RUNS.some(r=>r.planId===x.d)).reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
     const role=(items.find(x=>x.role)||{}).role, cur=t>=mon&&t<=sun, past=sun<t;
     const max=Math.max(1,...items.map(x=>DIST[x.d]||x.dist||0));
     const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), list=items.filter(x=>x.d.slice(0,10)===ds&&x.type!=='off');
       const dn=`<span class="pd-dt${ds===t?' t':''}"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`;
-      if(!list.length) return `<div class="pd-row rest${ds<t?' past':''}">${dn}<span class="pd-rest">쉬는 날</span>${ds>=t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wk}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`;
+      if(!list.length) return `<div class="pd-row rest${ds<t?' past':''}">${dn}<span class="pd-rest">쉬는 날</span>${ds>=t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`;
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=sessionOf(i)||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         const did=RUNS.some(r=>r.planId===sx.d), miss=!did&&ds<t, word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
         const st=did?'<em class="pd-st ok">✓</em>':miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
@@ -9424,7 +9447,7 @@ function planListHTML(){
         <span class="pw-km"><b class="num">${done?done.toFixed(0)+' / ':''}${plan.toFixed(0)}</b>km</span></header>
       ${done?`<div class="pw-prog"><i style="width:${Math.min(100,done/plan*100)}%"></i></div>`:''}
       <div class="pw-rows">${rows}</div>
-      ${!past?`<div class="pw-tools"><span>이 주 거리</span><button type="button" data-pws="${wk}:0.9">−10%</button><button type="button" data-pws="${wk}:1.1">+10%</button></div>`:''}
+      ${!past?`<div class="pw-tools"><span>이 주 거리</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
     </section>`; }).join('');
 }
 document.addEventListener('click',e=>{
@@ -9432,7 +9455,7 @@ document.addEventListener('click',e=>{
   const g=e.target.closest('[data-pgo]'); if(g)return openConfirm(+g.dataset.pgo);
   const ed=e.target.closest('[data-ped0]'); if(ed)return openPlanEdit(ed.dataset.ped0);
   const ad=e.target.closest('[data-padd]'); if(ad)return openPlanEdit(null,ad.dataset.padd,+ad.dataset.wk);
-  const ws=e.target.closest('[data-pws]'); if(ws){ const [w,f]=ws.dataset.pws.split(':'); return weekScale(+w,+f); }
+  const ws=e.target.closest('[data-pws]'); if(ws){ const [w,f]=ws.dataset.pws.split(':'); return weekScale(w,+f); }
   if(!e.target.closest('#peSheet'))return;
   if(e.target.id==='peSheet'||e.target.closest('#peClose'))return peClose();
   const ty=e.target.closest('[data-pet]'); if(ty){ PE.type=ty.dataset.pet; if(PE.type==='long'&&PE.km<8)PE.km=10; return peRender(); }
