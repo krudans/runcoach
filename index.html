@@ -1142,7 +1142,7 @@ details.noti .sigc{margin:6px 0}
       <div id="planHead"></div>
       <div id="dayList"></div>
       <div class="row" style="margin:14px 0 4px">
-        <button class="btn sm ghost" id="plRemake" style="margin:0">목표 · 일정 다시 짜기</button>
+        <button class="btn sm ghost" id="plRemake" style="margin:0">목표 · 일정 새로 짜기</button>
         <button class="btn sm ghost" id="plPaste" style="margin:0">훈련 받아적기</button>
       </div>
     </div>
@@ -1377,6 +1377,8 @@ details.noti .sigc{margin:6px 0}
 <style>.cset{margin:14px 0 6px;background:var(--panel);border-radius:12px;padding:0 14px}.cset>summary{list-style:none;padding:13px 0;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}.cset>summary::-webkit-details-marker{display:none}.cset>summary::after{content:' ▾';color:var(--ink-3)}.cset[open]>summary::after{content:' ▴'}</style>
 <div class="msheet strun" id="strRun" hidden><div class="ms-card st-card2" role="dialog" aria-label="스트레칭 따라하기">
   <div class="ms-hd"><b>따라하기</b><button type="button" id="stClose" aria-label="닫기">✕</button></div><div id="stBody"></div></div></div>
+<div class="msheet" id="peSheet" hidden><div class="ms-card" role="dialog" aria-label="훈련 고치기">
+  <div class="ms-hd"><b>훈련 고치기</b><button type="button" id="peClose" aria-label="닫기">✕</button></div><div id="peBody"></div></div></div>
 <div class="msheet" id="musSheet" hidden><div class="ms-card" role="dialog" aria-label="음악">
   <div class="ms-hd"><b>음악</b><button type="button" id="musClose" aria-label="닫기">✕</button></div>
   <div id="musBody"></div><div class="mus-busy" id="musBusy" hidden></div></div></div>
@@ -1735,6 +1737,48 @@ details.noti .sigc{margin:6px 0}
 .ab b{display:block;font-size:14px;line-height:1.4;word-break:keep-all}.ab i{display:block;font-style:normal;font-size:11.5px;color:#E3D6F0;margin-top:3px}
 .ab-mini{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--accent);background:var(--panel-2);padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 .gd-sec h3{display:flex;align-items:center;flex-wrap:wrap}
+.pw{background:var(--panel);border-radius:18px;margin:12px 0;overflow:hidden;border:1.5px solid transparent}
+.pw.cur{border-color:var(--accent);box-shadow:0 6px 18px rgba(91,45,134,.12)}.pw.past{opacity:.72}
+.pw header{display:flex;align-items:center;justify-content:space-between;padding:13px 14px 8px}
+.pw header b{font-size:16px;font-weight:900}.pw header i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.pw-now,.pw-role{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:2px}
+.pw-now{background:var(--accent);color:#fff}.pw-role{background:#FFF0D6;color:#9A5B00}
+.pw-km{font-size:11px;color:var(--ink-3)}.pw-km b{font-size:18px;color:var(--ink);margin-right:2px}
+.pw-prog{height:4px;background:var(--line);margin:0 14px 6px;border-radius:2px;overflow:hidden}.pw-prog i{display:block;height:100%;background:var(--ok)}
+.pw-rows{padding:0 6px 4px}
+.pd-row{display:flex;align-items:center;gap:6px;min-height:52px;border-top:1px solid var(--line);padding:4px 4px}
+.pd-row.today{background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:12px}
+.pd-dt{flex:none;width:38px;text-align:center;line-height:1.1}.pd-dt b{display:block;font-family:var(--num);font-size:17px}.pd-dt i{font-style:normal;font-size:11px;color:var(--ink-3)}
+.pd-dt.t b{color:var(--accent)}
+.pd-main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:none;background:none;font:inherit;color:var(--ink);text-align:left;padding:6px 2px;cursor:pointer}
+.pd-bar{flex:none;width:8px;height:34px;border-radius:4px;background:color-mix(in srgb,var(--tc) 18%,transparent);display:flex;align-items:flex-end;overflow:hidden}
+.pd-bar i{display:block;width:100%;background:var(--tc);border-radius:4px}
+.pd-tx{min-width:0}.pd-tx b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pd-tx b small{font-size:10px;font-weight:800;color:var(--accent);background:var(--panel-2);padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:2px}
+.pd-tx i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.pd-st{flex:none;font-style:normal;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px}
+.pd-st.ok{background:#DDF3EA;color:#0E7A5F}.pd-st.miss{background:#FBE3E1;color:#B4322C}.pd-st.now{background:var(--accent);color:#fff}
+.pd-row.did .pd-tx b{color:var(--ink-3)}.pd-row.past:not(.did) .pd-tx b{color:var(--ink-3)}
+.pd-ed,.pd-add{flex:none;width:36px;height:36px;border-radius:10px;border:none;background:var(--panel-2);color:var(--accent);font-size:16px;cursor:pointer}
+.pd-row.rest{min-height:40px}.pd-rest{flex:1;font-size:12.5px;color:var(--ink-3);padding-left:20px}.pd-row.rest.past{opacity:.6}
+.pd-add{background:none;border:1.5px dashed var(--line);color:var(--ink-3)}
+.pw-tools{display:flex;align-items:center;gap:6px;padding:8px 14px 12px;border-top:1px solid var(--line)}.pw-tools span{flex:1;font-size:12px;color:var(--ink-3)}
+.pw-tools button{border:none;background:var(--panel-2);border-radius:9px;padding:7px 12px;font:inherit;font-size:12.5px;font-weight:800;color:var(--ink-2);cursor:pointer}
+.pe-prev{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:14px;padding:12px;border-left:5px solid var(--tc)}
+.pe-prev b{display:block;font-size:16px}.pe-prev i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:2px}
+.pe-lab{font-size:12px;font-weight:800;color:var(--ink-3);margin:14px 2px 7px}
+.pe-chips{display:flex;flex-wrap:wrap;gap:6px}.pe-chips button{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}
+.pe-chips button i{width:9px;height:9px;border-radius:50%;background:var(--tc)}.pe-chips button.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.pe-chips.sm button{padding:7px 12px}
+.pe-step{display:flex;align-items:center;gap:6px}.pe-step button{border:none;background:var(--panel-2);border-radius:10px;min-width:44px;height:42px;font:inherit;font-weight:800;color:var(--ink);cursor:pointer}
+.pe-step b{flex:1;text-align:center;font-size:26px}.pe-step b small{font-size:12px;color:var(--ink-3)}
+.pe-step input{flex:1;min-width:0;width:60px;text-align:center;font-size:22px;font-weight:800;border:1.5px solid var(--line);border-radius:10px;height:42px;background:var(--panel)}.pe-u{font-size:12px;color:var(--ink-3)}
+.pe-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.pe-days button{display:flex;flex-direction:column;align-items:center;gap:1px;border:1.5px solid var(--line);background:var(--panel);border-radius:12px;padding:7px 0;font:inherit;cursor:pointer;position:relative}
+.pe-days i{font-style:normal;font-size:11px;color:var(--ink-3)}.pe-days b{font-family:var(--num);font-size:16px}.pe-days em{font-style:normal;font-size:9px;font-weight:800;color:#9A5B00}
+.pe-days button.busy{background:#FFF7E8}.pe-days button.on{border-color:var(--accent);background:var(--accent)}.pe-days button.on i,.pe-days button.on b,.pe-days button.on em{color:#fff}
+.pe-days button:disabled{opacity:.35}
+.pe-other{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12px;color:var(--ink-3);margin-top:8px;white-space:nowrap}.pe-other input{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:9px;padding:5px 8px;background:var(--panel)}
+.pe-warn{font-size:12.5px;font-weight:700;color:#C2410C;margin:10px 2px 0}
+.pe-row2{display:flex;justify-content:center;gap:18px;margin-top:6px}.pe-row2 button{border:none;background:none;font:inherit;font-size:13px;color:var(--ink-3);text-decoration:underline;padding:8px;cursor:pointer}
 .gwatch{display:flex;flex-direction:column;align-items:center;margin:0 0 18px}
 .gw-band{width:46%;height:26px;background:#2b2b31;border-radius:10px 10px 0 0;background-image:radial-gradient(circle,#18181c 4px,transparent 5px);background-size:22px 13px}
 .gw-band:last-of-type{border-radius:0 0 10px 10px}
@@ -3082,25 +3126,8 @@ function renderPlan(){
       $('plMake').onclick=()=>goalStart();
     }
   }
-  const today=todayStr(), host=$('dayList'); host.innerHTML=''; let lastWk=0;
-  BLOCK.forEach((sx,i)=>{
-    if(sx.wk!==lastWk){ lastWk=sx.wk;
-      const km=BLOCK.filter(y=>y.wk===sx.wk).reduce((a,y)=>a+(DIST[y.d]||y.dist||0),0);
-      const h=document.createElement('div'); h.className='wkhead';
-      h.innerHTML=`<span>${sx.wk}주차</span><span class="n">${km.toFixed(1)} km</span>`;
-      host.appendChild(h); }
-    const dd=sx.d.slice(0,10), isToday=dd===today, did=RUNS.some(x=>x.planId===sx.d);
-    const T=TYPES[sx.type]||{}, km=DIST[sx.d]||sx.dist, sv=sx.dist?(sessionOf(i)||sx):sx;
-    const b=document.createElement('button');
-    b.className='day'+(isToday?' today':'')+(did?' did':'');
-    if(sx.type==='off')b.disabled=true;
-    b.innerHTML=`<span class="dt">${sx.d.slice(5,10).replace('-','.')}<br>${dowOf(sx.d)}</span>`+
-      `<span class="ti"><span class="tdot" style="background:${hexes((LOOK[sx.type]||LOOK.free).bg)[0]}"></span>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}</span>`+
-      `<span class="go">${sx.type==='off'?'':(did?'완료 ✓':isToday?'오늘 ›':'›')}</span>`+
-      `<span class="mt">${sx.dist?summary(sv)+(DIST[sx.d]?` · ${km}km로 바꿈`:''):''}</span>`;
-    b.onclick=()=>openConfirm(i);
-    host.appendChild(b);
-  });
+  const host=$('dayList'); host.innerHTML=planListHTML();
+  if(!renderPlan._did){ renderPlan._did=1; setTimeout(()=>{ const c=host.querySelector('.pw.cur'); if(c)c.scrollIntoView({block:'start'}); },60); }
   // 페이스 존
   const vd=VDOT, z=Z;
   const rows=[[tm('easy'),'#5A9FD4',tmd('easy'),fmtPace(z.E[0])+'~'+fmtPace(z.E[1])],
@@ -9281,6 +9308,146 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-stn]')){ ST.t=1; ST.paused=false; stTick(); return; }
 });
 (function stMount(){ const c=$('cStretch'); if(c)c.innerHTML=stretchCard('dyn',{compact:true,id:'cStr'}); const s=$('sStretch'); if(s)s.innerHTML=stretchCard('stat',{compact:true,id:'sStr'}); })();
+
+/* ═════════════════════ 플랜 — 주 단위 카드 · 요일별 줄 · 세부 수정 ═════════════════════ */
+const PE_TYPES=[['easy','천천히'],['recovery','회복조깅'],['long','길게'],['threshold','템포'],['interval','인터벌'],['goalpace','목표 속도']];
+function peTitle(type,km,n,len){ const L=kmLab(len||1);
+  return type==='easy'?`천천히 ${km}km`:type==='recovery'?`회복조깅 ${km}km`:type==='long'?`길게 ${km}km`
+    :type==='threshold'?`벅차게 ${L} × ${n}`:type==='interval'?`빠르게 ${L} × ${n}`:type==='goalpace'?`목표 속도로 ${L} × ${n}`:`${km}km`; }
+function peGoalPace(){ const g=(PLAN&&PLAN.goal)||GOAL||{}; if(PLAN&&PLAN.ladder&&g.m)return PLAN.ladder/(g.m/1000);
+  return g.perKm||(g.sec&&g.m?g.sec/(g.m/1000):Math.round(PACE.T)); }
+/* 종류 · 거리 · 횟수 · 길이로 세션을 다시 만든다 */
+function peBuild(ds,wk,type,km,n,len){
+  const fit=(wu,n,len,rest)=>Math.ceil((wu+n*len+(n-1)*rest+1)*2)/2;
+  let s;
+  if(type==='easy')s=easy(km); else if(type==='recovery')s=recovery(km); else if(type==='long')s=long(km);
+  else if(type==='threshold'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(2,n,len,r)); s=thresh(t,2,n,len,Math.round(Z.T+8),0.35,120); }
+  else if(type==='interval'){ const t=Math.max(km,fit(2,n,len,0.5)); s=interval(t,2,n,len,Math.round(Z.I+6),0.5,null); }
+  else if(type==='goalpace'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(1.5,n,len,r)); s=goalPaceRun(t,len,n,peGoalPace()); }
+  return termSess(Object.assign({d:ds,wk,t:peTitle(type,s.dist,n,len)},s));
+}
+const PE={d:null,wk:1,type:'easy',km:6,n:4,len:1,date:null,isNew:false};
+function peStore(){ return PLAN&&PLAN.sessions?PLAN.sessions:null; }
+function peSave(fn){ const L=peStore();
+  if(L){ fn(L); L.sort((a,b)=>a.d<b.d?-1:1); DEV.store.set('plan',PLAN); }
+  BLOCK=loadPlan(); try{ if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); }catch(e){}
+  renderPlan(); try{ renderHome(); }catch(e){} }
+function openPlanEdit(d,newDate,wk){
+  if(d){ const s=BLOCK.find(x=>x.d===d); if(!s)return;
+    Object.assign(PE,{d,wk:s.wk,type:PE_TYPES.some(t=>t[0]===s.type)?s.type:'easy',km:DIST[d]||s.dist||6,n:s.reps||4,len:s.repLen||1,date:d.slice(0,10),isNew:false}); }
+  else Object.assign(PE,{d:null,wk:wk||1,type:'easy',km:6,n:4,len:1,date:newDate,isNew:true});
+  const sh=$('peSheet'); sh.hidden=false; peRender(); requestAnimationFrame(()=>sh.classList.add('up')); }
+function peClose(){ const sh=$('peSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
+function peRender(){
+  const hard=['threshold','interval','goalpace'].includes(PE.type), col=(TYPES[PE.type]||{}).col||'#5B2D86';
+  const mon=weekMonday(PE.date), days=[0,1,2,3,4,5,6].map(i=>addDays(mon,i)), t=todayStr();
+  const lens=PE.type==='interval'?[0.4,0.6,0.8,1,1.2,1.6]:PE.type==='threshold'?[1,1.5,2,3]:[1,2,3];
+  if(hard&&!lens.includes(PE.len))PE.len=lens[Math.min(lens.length-1,Math.floor(lens.length/2))];
+  const prev=planOn(addDays(PE.date,-1)), next=planOn(addDays(PE.date,1)), H=['interval','threshold','goalpace','tt','long'];
+  const warn=hard&&((prev&&prev.d!==PE.d&&H.includes(prev.type))||(next&&next.d!==PE.d&&H.includes(next.type)))?'앞뒤 날도 힘든 날이에요 — 하루 띄우는 게 좋아요':'';
+  const s=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len), orig=PE.d&&(peStore()||[]).find(x=>x.d===PE.d);
+  $('peBody').innerHTML=`
+    <div class="pe-prev" style="--tc:${col}"><span class="pe-shape">${guideShape(PE.type==='goalpace'?'goalpace':PE.type,col)}</span>
+      <div><b>${ESC(String(s.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${s.dist}km · ${summary(s)}</i></div></div>
+    <div class="pe-lab">종류</div>
+    <div class="pe-chips">${PE_TYPES.map(([k,n])=>`<button type="button" data-pet="${k}" class="${PE.type===k?'on':''}" style="--tc:${(TYPES[k]||{}).col}"><i></i>${n}</button>`).join('')}</div>
+    ${hard?`<div class="pe-lab">${PE.type==='threshold'?'세트':'회차'}</div>
+      <div class="pe-step"><button type="button" data-pen="-1">−</button><b class="num">${PE.n}<small>번</small></b><button type="button" data-pen="1">+</button></div>
+      <div class="pe-lab">한 번 길이</div>
+      <div class="pe-chips sm">${lens.map(l=>`<button type="button" data-pel="${l}" class="${PE.len===l?'on':''}">${kmLab(l)}</button>`).join('')}</div>`
+    :`<div class="pe-lab">거리</div>
+      <div class="pe-step"><button type="button" data-pek="-1">−1</button><button type="button" data-pek="-0.5">−0.5</button>
+        <input class="num" type="text" inputmode="decimal" id="peKm" value="${PE.km}"><span class="pe-u">km</span>
+        <button type="button" data-pek="0.5">+0.5</button><button type="button" data-pek="1">+1</button></div>`}
+    <div class="pe-lab">날짜</div>
+    <div class="pe-days">${days.map(d=>{ const o=planOn(d), busy=o&&o.d!==PE.d;
+      return `<button type="button" data-ped="${d}" class="${d===PE.date?'on':''}${busy?' busy':''}"${d<t?' disabled':''}><i>${dowOf(d)}</i><b>${+d.slice(8,10)}</b>${busy?'<em>바꿈</em>':''}</button>`; }).join('')}</div>
+    <label class="pe-other">다른 날짜 <input type="date" id="peDate" value="${PE.date}" min="${t}"></label>
+    ${warn?`<p class="pe-warn">⚠ ${warn}</p>`:''}
+    <button type="button" class="btn" id="peOk" style="margin:14px 0 0">${PE.isNew?'추가하기':'저장하기'}</button>
+    <div class="pe-row2">${PE.isNew?'':`<button type="button" id="peDel">이 날 쉬기 (삭제)</button>`}${orig&&orig.orig?`<button type="button" id="peUndo">원래대로</button>`:''}</div>`;
+}
+function peApply(){
+  const L=peStore(); const ns=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len);
+  if(!L){ /* 예시 일정 — 받아적기 덮어쓰기로 저장 */
+    if(PE.d&&PE.d.slice(0,10)!==PE.date){ clearCustom(PE.d.slice(0,10)); }
+    setCustom(PE.date,ns); peClose(); renderPlan(); return; }
+  peSave(list=>{
+    const i=PE.d?list.findIndex(x=>x.d===PE.d):-1, old=i>=0?list[i]:null;
+    if(old&&!old.orig) ns.orig=JSON.parse(JSON.stringify(Object.assign({},old,{orig:undefined})));
+    else if(old&&old.orig) ns.orig=old.orig;
+    const wkOf=d=>{ const m=weekMonday(d), x=list.find(y=>weekMonday(y.d)===m); return x?x.wk:(old?old.wk:PE.wk); };
+    ns.edited=true; ns.wk=wkOf(PE.date);
+    /* 같은 날에 다른 훈련이 있으면 서로 날짜를 바꾼다 */
+    const j=list.findIndex(x=>x.d.slice(0,10)===PE.date&&x.d!==PE.d);
+    if(j>=0&&old){ list[j]=Object.assign({},list[j],{d:old.d.slice(0,10),moved:list[j].d}); }
+    else if(j>=0&&!old){ list.splice(j,1); }
+    if(i>=0) list[i]=ns; else list.push(ns);
+    if(PE.d&&DIST[PE.d]!=null){ delete DIST[PE.d]; DEV.store.set('dist',DIST); }
+  }); peClose(); toast(PE.isNew?'추가했어요':'고쳤어요'); }
+function peDelete(){ const L=peStore();
+  if(!L){ clearCustom(PE.d.slice(0,10)); peClose(); renderPlan(); return; }
+  peSave(list=>{ const i=list.findIndex(x=>x.d===PE.d); if(i>=0){ PLAN.removed=PLAN.removed||[]; PLAN.removed.push(list[i]); list.splice(i,1); } });
+  peClose(); toast('쉬는 날로 바꿨어요'); }
+function peUndo(){ peSave(list=>{ const i=list.findIndex(x=>x.d===PE.d); if(i>=0&&list[i].orig){ const o=list[i].orig; list[i]=Object.assign({},o,{d:list[i].d,wk:list[i].wk,orig:undefined,edited:false}); } });
+  peClose(); toast('원래대로 돌렸어요'); }
+/* 주 단위 거리 조정 — 아직 안 한 날만 */
+function weekScale(wk,f){ const t=todayStr();
+  peSave(list=>{ list.forEach((s,i)=>{ if(s.wk!==wk||!s.dist||s.d.slice(0,10)<t||RUNS.some(r=>r.planId===s.d))return;
+    const type=s.type, km=Math.max(3,Math.round(s.dist*f*2)/2);
+    if(['easy','recovery','long'].includes(type)){ const ns=peBuild(s.d,s.wk,type,km); ns.orig=s.orig||JSON.parse(JSON.stringify(s)); ns.edited=true; ns.d=s.d; list[i]=ns; }
+    else if(s.reps&&s.repLen){ const n=Math.max(2,Math.min(8,Math.round(s.reps*f))); if(n!==s.reps){ const ns=peBuild(s.d,s.wk,type,s.dist,n,s.repLen); ns.orig=s.orig||JSON.parse(JSON.stringify(s)); ns.edited=true; ns.d=s.d; list[i]=ns; } } }); });
+  toast(f>1?'이 주 거리를 늘렸어요':'이 주 거리를 줄였어요'); }
+/* 화면 */
+function planListHTML(){
+  const t=todayStr(), wks=[...new Set(BLOCK.map(x=>x.wk))];
+  const editable=!!peStore()||true;
+  return wks.map(wk=>{
+    const items=BLOCK.filter(x=>x.wk===wk), mon=weekMonday(items[0].d), sun=addDays(mon,6);
+    const plan=items.reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
+    const done=items.filter(x=>RUNS.some(r=>r.planId===x.d)).reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
+    const role=(items.find(x=>x.role)||{}).role, cur=t>=mon&&t<=sun, past=sun<t;
+    const max=Math.max(1,...items.map(x=>DIST[x.d]||x.dist||0));
+    const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), list=items.filter(x=>x.d.slice(0,10)===ds&&x.type!=='off');
+      const dn=`<span class="pd-dt${ds===t?' t':''}"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`;
+      if(!list.length) return `<div class="pd-row rest${ds<t?' past':''}">${dn}<span class="pd-rest">쉬는 날</span>${ds>=t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wk}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`;
+      return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=sessionOf(i)||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
+        const did=RUNS.some(r=>r.planId===sx.d), miss=!did&&ds<t, word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
+        const st=did?'<em class="pd-st ok">✓</em>':miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
+        return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
+          <button type="button" class="pd-main" data-pgo="${i}"><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
+            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}</b><i>${word} · ${summary(sv)}</i></span></button>
+          ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:''}</div>`; }).join(''); }).join('');
+    return `<section class="pw${cur?' cur':''}${past?' past':''}" id="pw${wk}">
+      <header><div><b>${wk}주차</b>${cur?'<span class="pw-now">이번 주</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'쉬어가는 주'}</span>`:''}
+        <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i></div>
+        <span class="pw-km"><b class="num">${done?done.toFixed(0)+' / ':''}${plan.toFixed(0)}</b>km</span></header>
+      ${done?`<div class="pw-prog"><i style="width:${Math.min(100,done/plan*100)}%"></i></div>`:''}
+      <div class="pw-rows">${rows}</div>
+      ${!past?`<div class="pw-tools"><span>이 주 거리</span><button type="button" data-pws="${wk}:0.9">−10%</button><button type="button" data-pws="${wk}:1.1">+10%</button></div>`:''}
+    </section>`; }).join('');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#plan,#peSheet'))return;
+  const g=e.target.closest('[data-pgo]'); if(g)return openConfirm(+g.dataset.pgo);
+  const ed=e.target.closest('[data-ped0]'); if(ed)return openPlanEdit(ed.dataset.ped0);
+  const ad=e.target.closest('[data-padd]'); if(ad)return openPlanEdit(null,ad.dataset.padd,+ad.dataset.wk);
+  const ws=e.target.closest('[data-pws]'); if(ws){ const [w,f]=ws.dataset.pws.split(':'); return weekScale(+w,+f); }
+  if(!e.target.closest('#peSheet'))return;
+  if(e.target.id==='peSheet'||e.target.closest('#peClose'))return peClose();
+  const ty=e.target.closest('[data-pet]'); if(ty){ PE.type=ty.dataset.pet; if(PE.type==='long'&&PE.km<8)PE.km=10; return peRender(); }
+  const n=e.target.closest('[data-pen]'); if(n){ PE.n=Math.max(2,Math.min(10,PE.n+(+n.dataset.pen))); return peRender(); }
+  const l=e.target.closest('[data-pel]'); if(l){ PE.len=+l.dataset.pel; return peRender(); }
+  const k=e.target.closest('[data-pek]'); if(k){ PE.km=Math.max(2,Math.min(45,Math.round((PE.km+(+k.dataset.pek))*2)/2)); return peRender(); }
+  const d=e.target.closest('[data-ped]'); if(d&&!d.disabled){ PE.date=d.dataset.ped; return peRender(); }
+  if(e.target.closest('#peOk'))return peApply();
+  if(e.target.closest('#peDel'))return peDelete();
+  if(e.target.closest('#peUndo'))return peUndo();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='peKm'){ const v=parseFloat(e.target.value); if(v>=2&&v<=45){ PE.km=Math.round(v*2)/2; } peRender(); }
+  if(e.target.id==='peDate'&&e.target.value){ PE.date=e.target.value; peRender(); }
+});
 </script>
 </body>
 </html>
