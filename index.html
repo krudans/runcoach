@@ -349,6 +349,26 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .rpage{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;padding:0 16px}
 .rpage[hidden]{display:none}
 
+.rmis{flex:none;padding:10px 4px 0;display:flex;flex-direction:column;gap:7px}
+.rm-now{display:flex;align-items:center;gap:8px;min-width:0}
+.rm-chip{flex:none;background:var(--rpbg);color:var(--rpink);font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.rm-now b{flex:1;min-width:0;font-size:15px;font-weight:800;color:var(--rink,var(--ink));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm-now i{flex:none;font-style:normal;font-size:12px;font-weight:700;color:var(--rsub)}
+.rm-segs{display:flex;gap:3px;height:22px}
+.rm-seg{position:relative;min-width:0;border-radius:6px;background:var(--line);overflow:hidden;display:grid;place-items:center}
+.rm-seg.hard{background:#F3DFAE}.rm-seg i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--rfill)}
+.rm-seg.now{outline:2px solid var(--rfill);outline-offset:1px}.rm-seg.now i{background:color-mix(in srgb,var(--rfill) 45%,transparent)}
+.rm-seg.pass{background:#2EAD7A}.rm-seg.fail{background:#E35A32}.rm-seg.done{background:#9FA8B8}
+.rm-seg b{position:relative;font-size:9.5px;font-weight:800;color:var(--ink-2);white-space:nowrap;overflow:hidden;max-width:100%;padding:0 2px}
+.rm-seg.pass b,.rm-seg.fail b,.rm-seg.done b{color:#fff}
+.rm-kms{display:flex;gap:3px}
+.rm-km{flex:1;height:18px;border-radius:5px;background:var(--line);display:grid;place-items:center;position:relative;overflow:hidden}
+.rm-km i{font-style:normal;font-size:9.5px;font-weight:800;color:var(--ink-3);position:relative}
+.rm-km.now::before{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:color-mix(in srgb,var(--rfill) 40%,transparent)}
+.rm-km.pass{background:#2EAD7A}.rm-km.fail{background:#E35A32}.rm-km.pass i,.rm-km.fail i{color:#fff}
+.rm-km.pass i::after{content:' ✓'}.rm-km.fail i::after{content:' ✗'}
+.rm-next{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--rsub)}
+.rm-next span{font-weight:800;color:var(--rfill)}.rm-next em{font-style:normal;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin-left:10px}
 .rhead{display:flex;align-items:center;gap:9px;padding:12px 4px 0}
 .rhead .nm{background:var(--rpbg);color:var(--rpink);font-size:13px;font-weight:700;
   padding:7px 14px;border-radius:999px;flex:none;transition:background .4s,color .4s}
@@ -395,7 +415,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .rail .end{font-size:10px;color:var(--rsub);font-weight:700;flex:none}
 
 /* 숫자 네 칸 — 선으로 나누지 않고 말랑한 조각으로 */
-.grid4{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;flex:none;margin-top:12px}
+.grid4{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;flex:none;margin-top:12px}
 .cell{background:var(--rtile);border:none;border-radius:16px;padding:10px 2px;
   text-align:center;color:var(--rink);transition:background .4s;min-width:0}
 .cell .k{font-size:10px;color:var(--rsub);font-weight:700}
@@ -1382,6 +1402,7 @@ details.noti .sigc{margin:6px 0}
   <button type="button" class="md-info" data-mopen="1"><b class="md-t"></b><i class="md-l"></i></button>
   <button type="button" data-m="prev" aria-label="이전 곡"></button><button type="button" data-m="toggle" class="md-p" aria-label="재생/일시정지"></button><button type="button" data-m="next" aria-label="다음 곡"></button>
   <button type="button" data-mhalt="1" class="md-x" aria-label="음악 끄기">✕</button></div>
+<div class="msheet dbs" id="dbSheet" hidden><div class="ms-card db-card0" role="dialog" aria-label="오늘 훈련 디브리핑"><div class="ms-hd"><b>오늘 훈련 돌아보기</b></div><div id="dbBody"></div></div></div>
 <div class="msheet" id="peSheet" hidden><div class="ms-card" role="dialog" aria-label="훈련 고치기">
   <div class="ms-hd"><b>훈련 고치기</b><button type="button" id="peClose" aria-label="닫기">✕</button></div><div id="peBody"></div></div></div>
 <div class="msheet" id="musSheet" hidden><div class="ms-card" role="dialog" aria-label="음악">
@@ -1537,17 +1558,12 @@ details.noti .sigc{margin:6px 0}
 
 <div class="view" id="run" data-state="ok">
   <div class="rpage" id="rPage1">
-    <div class="rhead">
-      <div class="nm" id="rSegName">준비</div>
-      <div class="tgt" id="rSegTgt">GPS 신호를 기다립니다</div>
-    </div>
-    <div class="rail" id="rRail">
-      <span class="end">출발</span>
-      <div class="track" id="rTrack">
-        <div class="fill" id="rFill"></div>
-        <div class="now" id="rNow" style="left:0"></div>
-      </div>
-      <span class="pct" id="rPct">0%</span>
+    <div class="rmis" id="rRail">
+      <div class="rm-now"><span class="rm-chip" id="rSegName">준비</span><b id="rSegTgt">GPS 신호를 기다립니다</b><i class="num" id="rSegLeft"></i></div>
+      <div class="rm-segs" id="rTrack"></div>
+      <div class="rm-kms" id="rKms"></div>
+      <div class="rm-next" id="rNext"><span class="num" id="rPct">0%</span><em id="rNextT"></em></div>
+      <div hidden><div id="rFill"></div><div id="rNow"></div></div>
     </div>
     <div class="rmid">
       <div class="rmain">
@@ -1560,10 +1576,10 @@ details.noti .sigc{margin:6px 0}
     </div>
     <div class="grid4" id="rGrid">
       <button class="cell" data-h="dist"><div class="k">거리</div><div class="v num" id="rDist">0.00</div><div class="u">km</div></button>
-      <button class="cell" data-h="pace"><div class="k">속도</div><div class="v num" id="rPace">--'--"</div><div class="u" id="rPaceU">(페이스)</div></button>
+      <button class="cell" data-h="pace"><div class="k">페이스</div><div class="v num" id="rPace">--'--"</div><div class="u" id="rPaceU">/km</div></button>
       <button class="cell" data-h="time"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
       <button class="cell" data-h="hr"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
-      <button class="cell" data-h="cad"><div class="k">걸음</div><div class="v num" id="rCad">—</div><div class="u" id="rCadU">분당</div></button>
+      <button class="cell" data-h="cad"><div class="k">케이던스</div><div class="v num" id="rCad">—</div><div class="u" id="rCadU">분당</div></button>
     </div>
   </div>
 
@@ -1742,6 +1758,59 @@ details.noti .sigc{margin:6px 0}
 .ab b{display:block;font-size:14px;line-height:1.4;word-break:keep-all}.ab i{display:block;font-style:normal;font-size:11.5px;color:#E3D6F0;margin-top:3px}
 .ab-mini{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--accent);background:var(--panel-2);padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 .gd-sec h3{display:flex;align-items:center;flex-wrap:wrap}
+.gs2 .gs-when{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:var(--accent)}
+.gs2 .gs-when .gs-side{margin-left:auto}
+.gs2 .gs-what{font-size:24px;font-weight:900;margin:4px 0 2px;letter-spacing:-.3px}
+.gs2 .gs-status{font-size:13px;color:var(--ink-2);font-weight:600}
+.gs-steps{list-style:none;margin:12px 0 4px;padding:0;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;position:relative}
+.gs-steps::before{content:'';position:absolute;left:12%;right:12%;top:11px;height:2px;background:var(--line)}
+.gs-steps li{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;min-width:0}
+.gs-steps li i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--panel-2);color:var(--ink-2);font-size:11px;font-weight:900;display:grid;place-items:center;border:2px solid var(--panel);z-index:1}
+.gs-steps li.now i{background:var(--accent);color:#fff}.gs-steps li.race i{background:#E07A1F;color:#fff}.gs-steps li.goal i{background:#2A1638;color:#F6C27A}
+.gs-steps li span{font-size:11px;color:var(--ink-3);font-weight:700;margin-top:3px}
+.gs-steps li b{font-size:13.5px;font-weight:900;line-height:1.2}
+.gs-steps li em{font-style:normal;font-size:10.5px;color:var(--ink-3);line-height:1.35;word-break:keep-all}
+.msheet.dbs{align-items:stretch}.msheet.dbs .ms-card{max-height:100vh;border-radius:0;padding-top:env(safe-area-inset-top)}
+.db-hd{display:flex;justify-content:space-between;align-items:center;margin:4px 0 8px}.db-type{font-size:14px;font-weight:900;color:var(--tc)}.db-date{font-size:12px;color:var(--ink-3)}
+.db-vd{font-size:17px;font-weight:900;padding:14px 16px;border-radius:16px;background:#DDF3EA;color:#0E6E55;line-height:1.35}.db-vd.mid{background:#FFF0D6;color:#8A5200}.db-vd.bad{background:#FBE3E1;color:#A3302A}
+.db-vd small{display:block;font-size:12px;font-weight:700;opacity:.8;margin-top:3px}
+.db-hero{display:flex;gap:12px;align-items:center;margin:12px 0}
+.db-map{flex:none;width:110px;height:110px;border-radius:18px;background:var(--panel);overflow:hidden}.db-map svg{display:block}
+.db-nums{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}.db-nums b{display:block;font-size:22px;font-weight:900;line-height:1}.db-nums i{font-style:normal;font-size:11px;color:var(--ink-3)}
+.db-card{background:var(--panel);border-radius:16px;padding:12px 14px;margin:8px 0}.db-lab{font-size:11.5px;font-weight:800;color:var(--ink-3);margin-bottom:8px}
+.db-shape{width:100%;height:auto;display:block}
+.db-zones{display:flex;gap:2px;height:16px;border-radius:6px;overflow:hidden}.db-zones i{display:block}.db-zl{display:flex;gap:10px;font-size:11px;font-weight:800;margin-top:6px}
+.db-pts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.db-pts li{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45}.db-pts li i{flex:none;font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;color:#fff;margin-top:1px}
+.db-pts li.ok i{background:#2EAD7A}.db-pts li.bad i{background:#E35A32}.db-pts li b{display:inline-block;margin-right:6px;color:var(--ink)}.db-pts li span{color:var(--ink-2)}
+.db-say{font-size:13.5px;line-height:1.65;color:var(--ink-2);margin:10px 4px;padding:10px 12px;border-left:4px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent);border-radius:0 12px 12px 0}
+.db-prop{border:1.5px solid var(--accent)}
+.db-opt{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}.db-opt input{width:20px;height:20px;accent-color:var(--accent);margin-top:1px;flex:none}
+.db-opt b{display:block;font-size:14px}.db-opt i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:2px}
+.db-btns{display:flex;flex-direction:column;gap:6px;margin-top:10px}.db-btns .btn{margin:0}.db-btns.one{margin:14px 0 6px}
+.ld-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;background:var(--panel-2);color:var(--ink-2)}
+.ld-chip.mid{background:#FFF0D6;color:#8A5200}.ld-chip.hi{background:#FFE1C7;color:#9A3E00}.ld-chip.bad{background:#FBE3E1;color:#A3302A}.ld-chip.ok{background:#DDF3EA;color:#0E6E55}
+.ldc .ld-main{display:flex;align-items:center;gap:12px;margin:4px 0 8px}.ldc .ld-main>b{font-size:40px;font-weight:900;line-height:1}.ldc .ld-main i{display:block;font-style:normal;font-size:12px;font-weight:800;color:var(--ink-3)}.ldc .ld-main em{display:block;font-style:normal;font-size:12.5px;font-weight:700;color:#0E6E55}.ldc .ld-main em.mid{color:#8A5200}.ldc .ld-main em.hi{color:#9A3E00}.ldc .ld-main em.bad{color:#A3302A}
+.ld-bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:10px}.ld-bar i{display:block;height:100%;background:#2EAD7A;border-radius:4px}.ld-bar i.mid{background:#E2A33B}.ld-bar i.hi{background:#E07A1F}.ld-bar i.bad{background:#CF3B36}
+.ld-rows>div{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:baseline;font-size:12.5px;padding:5px 0;border-top:1px solid var(--line)}.ld-rows span{color:var(--ink-2);font-weight:700}.ld-rows b{font-size:15px}.ld-rows i{font-style:normal;font-size:11px;color:var(--ink-3)}
+.ld-wk{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-3);margin-top:8px}.ld-wk b{color:var(--ink)}.ld-wk em{font-style:normal;color:#A3302A;font-weight:700}
+.ld-src{margin-top:8px}.ld-src summary{font-size:12px;font-weight:700;color:var(--accent);cursor:pointer}.ld-src p{font-size:11.5px;line-height:1.7;color:var(--ink-2);margin:6px 0 0}
+.tres{background:var(--panel);border-radius:24px;padding:16px;margin:12px 0;border:2px solid color-mix(in srgb,var(--tc) 40%,transparent);box-shadow:0 8px 22px rgba(42,22,56,.08)}
+.tr-top{display:flex;justify-content:space-between;align-items:center}
+.tr-chip{display:inline-flex;align-items:center;gap:5px;background:var(--ok);color:#fff;font-size:12px;font-weight:800;padding:5px 11px;border-radius:999px}
+.tr-type{font-size:13px;font-weight:800;color:var(--tc)}
+.tr-main{display:flex;align-items:center;justify-content:space-between;margin:6px 0}
+.tr-main b{font-size:58px;font-weight:900;line-height:1;letter-spacing:-1px}.tr-main span{font-size:16px;font-weight:700;color:var(--ink-3);margin-left:4px}
+.tr-map{flex:none;width:96px;height:96px;border-radius:16px;background:var(--panel-2);overflow:hidden}.tr-map svg{width:96px;height:96px;display:block}
+.tr-stats{display:flex;flex-wrap:wrap;gap:6px 14px;margin:4px 0 10px;color:var(--ink-3);font-size:12px}
+.tr-stats span{display:inline-flex;align-items:center;gap:4px}.tr-stats b{font-size:17px;color:var(--ink)}
+.tr-vd{font-size:14.5px;font-weight:800;padding:10px 12px;border-radius:12px;background:#DDF3EA;color:#0E6E55}
+.tr-vd.mid{background:#FFF0D6;color:#8A5200}.tr-vd.bad{background:#FBE3E1;color:#A3302A}
+.tr-rows{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.tr-rows li{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:7px 10px;border-radius:10px;background:var(--panel-2)}
+.tr-rows li span{color:var(--ink-3);white-space:nowrap}.tr-rows li b{text-align:right;font-weight:700}.tr-rows li.bad b{color:#A3302A}.tr-rows li.ok b{color:#0E6E55}
+.tr-go{display:block;width:100%;margin:12px 0 0;height:50px;border:none;border-radius:16px;background:var(--tc);color:#fff;font:inherit;font-size:16px;font-weight:900;cursor:pointer}
+.tr-links{display:flex;justify-content:center;gap:16px;margin-top:6px}.tr-links button{border:none;background:none;font:inherit;font-size:13px;color:var(--ink-3);text-decoration:underline;padding:8px 2px;cursor:pointer}
 .mdock{position:fixed;left:10px;right:10px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:25;display:flex;align-items:center;gap:2px;background:#2A1638;color:#fff;border-radius:16px;padding:5px 6px 5px 10px;box-shadow:0 8px 24px rgba(42,22,56,.3);max-width:520px;margin:0 auto}
 .md-art{flex:none;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#F6C27A}
 .mdock.on .md-art{background:#F6C27A;color:#2A1638}
@@ -1938,9 +2007,9 @@ const DEV = {
        2) 말머리에 짧은 쉼표 구간을 둔다 — 잘려도 쉼이 잘린다
        3) 앞말을 끊고(cancel) 바로 말하면 끊김이 겹쳐 더 잘리므로 0.25초 뒤에 말한다 */
     try{ if(typeof VC!=='undefined')VC.keepAlive(true);
-      const go=()=>{ const u=new SpeechSynthesisUtterance('. . '+text); u.lang='ko-KR'; u.rate=(typeof VOPT!=='undefined'&&VOPT.rate)||1.05;
+      const go=()=>{ const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=(typeof VOPT!=='undefined'&&VOPT.rate)||1.05;
         const ko=(speechSynthesis.getVoices()||[]).find(v=>/^ko/i.test(v.lang)); if(ko)u.voice=ko;
-        try{ if(typeof MUS!=='undefined')MUS.duck(); }catch(e){}
+        try{ if(typeof MUS!=='undefined'){ MUS.duck(); u.onend=u.onerror=()=>{ setTimeout(()=>{ try{ if(!speechSynthesis.speaking&&!speechSynthesis.pending)MUS.unduck(); }catch(e){} },350); }; } }catch(e){}
         speechSynthesis.speak(u); };
       if(force&&(speechSynthesis.speaking||speechSynthesis.pending)){ speechSynthesis.cancel(); setTimeout(go,250); } else go(); }catch(e){} },
   /* 진동 문법 — 셋뿐이다. 뛰면서 다섯 가지를 구분할 수 없다.
@@ -2160,32 +2229,32 @@ recalcProfile();
    화면 어디서든 용어는 이 표에서만 꺼내 쓴다.
    ══════════════════════════════════════════════════════════════════════ */
 const GL={
-  interval: {e:'빠르게',      t:'인터벌',       d:'숨이 턱까지 차는 속도로 3~5분씩 여러 번. 심장이 한 번에 내보내는 피의 양을 키운다'},
-  threshold:{e:'벅차게',      t:'템포런',       d:'말이 끊길 만큼 벅차지만 20분은 버틸 수 있는 속도'},
-  long:     {e:'길게',        t:'LSD',          d:'천천히 오래. 끝까지 버티는 다리를 만든다'},
-  easy:     {e:'천천히',      t:'이지런',       d:'옆 사람과 대화가 되는 속도'},
-  recovery: {e:'회복조깅',    t:'리커버리런',   d:'천천히(이지런)보다 더 느리게, 몸을 푸는 정도'},
-  goalpace: {e:'목표 속도로', t:'페이스주',     d:'대회에서 낼 속도에 몸을 익힌다'},
-  mpace:    {e:'대회 속도로', t:'마라톤 페이스', d:'풀코스에서 끝까지 갈 속도'},
-  rep:      {e:'짧고 빠르게', t:'레페티션',     d:'1~2분 이내로 아주 빠르게, 완전히 쉬고 다시'},
-  stride:   {e:'짧게 치고 나가기', t:'스트라이드', d:'20초쯤 가볍게 빠르게. 폼을 깨운다'},
-  hill:     {e:'언덕',        t:'힐 트레이닝',  d:'오르막을 힘 있게. 평지보다 충격이 적다'},
-  tt:       {e:'실력 재기',   t:'TT',           d:'정해진 거리를 힘껏 뛰어 지금 실력을 잰다'},
-  free:     {e:'자유롭게',    t:'프리런',       d:'목표 없이 기록만 남긴다'},
-  off:      {e:'쉬는 날',     t:'휴식',         d:'쉴 때 실력이 붙는다'},
-  warm:     {e:'준비',        t:'웜업',         d:'천천히 몸을 데운다'},
-  cool:     {e:'마무리',      t:'쿨다운',       d:'천천히 숨을 내린다'},
-  rest:     {e:'사이 쉬기',   t:'회복 조깅',    d:'다음 번을 위해 숨을 고른다'},
-  pace:     {e:'속도',        t:'페이스',       d:'1km에 걸리는 시간'},
-  cad:      {e:'발걸음',      t:'케이던스',     d:'1분에 몇 걸음'},
+  interval: {e:'인터벌',      t:'인터벌',       d:'숨이 턱까지 차는 속도로 3~5분씩 여러 번. 심장이 한 번에 내보내는 피의 양을 키운다'},
+  threshold:{e:'템포런',      t:'템포런',       d:'말이 끊길 만큼 벅차지만 20분은 버틸 수 있는 속도'},
+  long:     {e:'LSD',        t:'LSD',          d:'천천히 오래. 끝까지 버티는 다리를 만든다'},
+  easy:     {e:'이지런',      t:'이지런',       d:'옆 사람과 대화가 되는 속도'},
+  recovery: {e:'리커버리런',    t:'리커버리런',   d:'천천히(이지런)보다 더 느리게, 몸을 푸는 정도'},
+  goalpace: {e:'페이스주', t:'페이스주',     d:'대회에서 낼 속도에 몸을 익힌다'},
+  mpace:    {e:'마라톤 페이스', t:'마라톤 페이스', d:'풀코스에서 끝까지 갈 속도'},
+  rep:      {e:'레페티션', t:'레페티션',     d:'1~2분 이내로 아주 빠르게, 완전히 쉬고 다시'},
+  stride:   {e:'스트라이드', t:'스트라이드', d:'20초쯤 가볍게 빠르게. 폼을 깨운다'},
+  hill:     {e:'힐 트레이닝',        t:'힐 트레이닝',  d:'오르막을 힘 있게. 평지보다 충격이 적다'},
+  tt:       {e:'TT',   t:'TT',           d:'정해진 거리를 힘껏 뛰어 지금 실력을 잰다'},
+  free:     {e:'프리런',    t:'프리런',       d:'목표 없이 기록만 남긴다'},
+  off:      {e:'휴식',     t:'휴식',         d:'쉴 때 실력이 붙는다'},
+  warm:     {e:'웜업',        t:'웜업',         d:'천천히 몸을 데운다'},
+  cool:     {e:'쿨다운',      t:'쿨다운',       d:'천천히 숨을 내린다'},
+  rest:     {e:'레스트',   t:'회복 조깅',    d:'다음 번을 위해 숨을 고른다'},
+  pace:     {e:'페이스',        t:'페이스',       d:'1km에 걸리는 시간'},
+  cad:      {e:'케이던스',      t:'케이던스',     d:'1분에 몇 걸음'},
   hr:       {e:'심박',        t:'BPM',          d:'1분에 심장이 뛰는 횟수'},
-  split:    {e:'1km마다 기록', t:'스플릿',      d:'1km를 지날 때마다 끊은 시간'},
-  rpe:      {e:'힘든 정도',   t:'RPE',          d:'1은 아주 편함, 10은 더는 못 함'},
-  vdot:     {e:'실력 점수',   t:'VDOT',         d:'대회 기록으로 계산한 달리기 실력. 모든 목표 속도가 여기서 나온다'},
-  acwr:     {e:'요즘 뛴 양 대비 이번 주', t:'ACWR', d:'지난 4주 평균보다 이번 주가 얼마나 많은지'},
+  split:    {e:'스플릿', t:'스플릿',      d:'1km를 지날 때마다 끊은 시간'},
+  rpe:      {e:'RPE',   t:'RPE',          d:'1은 아주 편함, 10은 더는 못 함'},
+  vdot:     {e:'VDOT',   t:'VDOT',         d:'대회 기록으로 계산한 달리기 실력. 모든 목표 속도가 여기서 나온다'},
+  acwr:     {e:'ACWR', t:'ACWR', d:'지난 4주 평균보다 이번 주가 얼마나 많은지'},
 };
 const kmLab=k=>k>=1?(+k)+'km':Math.round(k*1000)+'m';
-const tm=k=>GL[k]?`${GL[k].e} (${GL[k].t})`:k;      /* 쉬운 말 (용어) */
+const tm=k=>GL[k]?GL[k].e:k;      /* 러너 용어 그대로 */
 const tmd=k=>GL[k]?GL[k].d:'';                         /* 한 줄 설명 */
 /* 제목 앞머리를 용어집 표기로 바꾼다 — 이미 저장된 일정도 이걸로 고쳐 읽는다 */
 const TERMIFY=[[/^빠르게 (?!\()/,'interval'],[/^벅차게 (?!\()/,'threshold'],[/^길게 (?!\()/,'long'],
@@ -2193,13 +2262,16 @@ const TERMIFY=[[/^빠르게 (?!\()/,'interval'],[/^벅차게 (?!\()/,'threshold'
   [/^롱런 /,'long'],[/^인터벌 /,'interval']];
 function termify(t){
   if(!t)return t;
+  t=String(t).replace(/^[가-힣 ]+? \(([^)]+)\)(?= |$)/,(m,x)=>{ const k=Object.keys(GL).find(k=>GL[k].t===x||GL[k].e===x); return k?GL[k].e:x; });
   if(/^테스트 러닝/.test(t))return t.replace(/^테스트 러닝/,tm('tt'));
   for(const [re,k] of TERMIFY) if(re.test(t)) return t.replace(re, tm(k)+' ');
   return t;
 }
 const SEGFIX={'웜업':'warm','도입':'warm','출발':'warm','쿨다운':'cool','회복 조깅':'rest',
   '유지':'recovery','롱런':'long','천천히 (이지)':'easy'};
-function termSeg(g){ if(g&&SEGFIX[g.nm])g.nm=tm(SEGFIX[g.nm]); return g; }
+function termSeg(g){ if(!g)return g; if(SEGFIX[g.nm])g.nm=tm(SEGFIX[g.nm]);
+  const m=String(g.nm||'').match(/^(준비|마무리|사이 쉬기)(?: \([^)]*\))?$/); if(m)g.nm=tm({'준비':'warm','마무리':'cool','사이 쉬기':'rest'}[m[1]]);
+  else g.nm=String(g.nm||'').replace(/^[가-힣 ]+? \(([^)]+)\)$/,(x,y)=>{ const k=Object.keys(GL).find(k=>GL[k].t===y); return k?GL[k].e:y; }); return g; }
 function termSess(x){ if(!x)return x; x.t=termify(x.t); (x.segs||[]).forEach(termSeg); return x; }
 
 const TYPES={
@@ -2207,7 +2279,7 @@ const TYPES={
     develops:'오늘은 몸이 쉬면서 좋아지는 날입니다. 어제 한 훈련이 실력으로 바뀌는 건 쉴 때입니다.',
     primary:'hr', primaryLabel:'천천히. 숨이 차면 너무 빠른 겁니다',
     ignore:'거리와 속도. 오늘은 빠르게 뛰는 것이 유일한 실패입니다.',
-    src:'Seiler 저강도 80% 원칙', hrZone:[0,134], judgeBy:'ceiling'},
+    src:'Seiler 저강도 80% 원칙 · 심박 상한은 이지런과 같고 속도로 더 느리게', hrZone:[0,153], judgeBy:'ceiling'},
   easy:{nm:tm('easy'),desc:tmd('easy'),chip:'c-easy',col:'#0E9B72',
     develops:'오래 달릴 수 있는 몸을 만드는 날입니다. 제일 천천히 자라고, 꾸준히 쌓은 거리에서 나옵니다.',
     primary:'hr', primaryLabel:'대화가 될 만큼의 속도로',
@@ -2586,7 +2658,7 @@ function makePlan(opts){
     if(tapered) why.push(`대회 전 2주는 거리를 절반으로 줄이고 빠르게 뛰는 날은 남깁니다. 연구 27편을 모은 분석에서 이 방법이 가장 효과가 컸습니다(근거 A).`);
   }
   const wantTest = needTest();
-  if(wantTest) why.push('기록이 없어서 첫날에 테스트 러닝을 넣었습니다. 2km를 전력으로 뛰면 그 기록으로 모든 목표 속도가 정해집니다.');
+  if(wantTest) why.push('기록이 없어서 첫날에 TT를 넣었습니다. 2km를 전력으로 뛰면 그 기록으로 모든 목표 속도가 정해집니다.');
 
   let prevHard=null, hardCut=false, prevLong=null, testDone=false;
   /* 반복 세션의 최소 거리: 웜업 + 반복 + 사이 쉬기 + 쿨다운 1km (0.5km 단위 올림) */
@@ -2652,7 +2724,7 @@ function makePlan(opts){
       const ds=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
       let s;
       if(d===testD){
-        s={d:ds,wk:w+1,t:'테스트 러닝 — 2km 전력',...testRun()};
+        s={d:ds,wk:w+1,t:'TT 2km',...testRun()};
       } else if(d===longD){
         s={d:ds,wk:w+1,t:`길게 ${longKm}km`,...long(longKm)};
         if(taper)s.role=wkRole[w];
@@ -2729,7 +2801,7 @@ function refreshEasyPaces(sess){
   sess.segs.forEach(g=>{
     if(g.hard||!g.pace)return;
     const nm=g.nm||'';
-    const k=/사이 쉬기|회복 조깅/.test(nm)?'rest':/준비|웜업|마무리|쿨다운/.test(nm)?'wc':'main';
+    const k=/사이 쉬기|회복 조깅|레스트/.test(nm)?'rest':/준비|웜업|마무리|쿨다운/.test(nm)?'wc':'main';
     let np=null;
     if(k==='rest') np=PACE.recJog;
     else if(k==='wc') np= t==='recovery'?PACE.rec : t==='long'?PACE.longIn : PACE.easyIn;
@@ -3456,7 +3528,7 @@ $('btnStart').onclick=async()=>{
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,hrSince:0,liveDrift:null,segPace0:null,
-    critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],
+    critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
   S.act=(pendingIx<0&&ACT_MODE)?ACT_MODE:'run'; ACT_MODE=null;
@@ -3493,50 +3565,40 @@ function segDurs(s){
   return out;
 }
 function buildRail(){
-  const s=S.session, segs=s.segs, durs=segDurs(s);
+  const sess=S.session, segs=sess.segs, durs=segDurs(sess);
   const tot=durs.reduce((a,b)=>a+b,0);
   const cum=[]; durs.reduce((a,d)=>{const v=a+d;cum.push(v);return v;},0);
   S.rail={durs,tot,cum};
-  const tr=$('rTrack');
-  tr.querySelectorAll('.band,.mk,.lb').forEach(e=>e.remove());
-  let from=0;
-  segs.forEach((g,i)=>{
-    const to=cum[i];
-    if(g.hard){                                   // 특이지점 — 빠르게 가야 하는 구간
-      const b=document.createElement('div'); b.className='band';
-      b.style.left=(from/tot*100)+'%'; b.style.width=((to-from)/tot*100)+'%';
-      b.dataset.i=i; tr.appendChild(b);
-    }
-    if(i<segs.length-1){                          // 구간이 끝나는 지점
-      const m=document.createElement('div'); m.className='mk'; m.dataset.i=i;
-      m.style.left=(to/tot*100)+'%'; tr.appendChild(m);
-    }
-    from=to;
-  });
-  const top=document.createElement('div'); top.className='mk'; top.dataset.i='end';
-  top.style.left='100%'; tr.appendChild(top);
+  const short=g=>/웜업|준비/.test(g.nm)?'웜업':/쿨다운|마무리/.test(g.nm)?'쿨다운':/레스트|사이 쉬기|회복 조깅/.test(g.nm)?'레스트':g.hard?(g.rep?String(g.rep):'')+(/세트/.test(g.nm)?'세트':/구간/.test(g.nm)?'':'회차'):String(g.nm).replace(/\s*\([^)]*\)/g,'').slice(0,4);
+  $('rTrack').innerHTML=segs.map((g,i)=>`<div class="rm-seg${g.hard?' hard':''}" data-i="${i}" style="flex:${Math.max(0.6,durs[i]/tot*10).toFixed(2)}"><i></i><b>${segs.length<=9?short(g):(g.hard?(g.rep||'')+'':'')}</b></div>`).join('');
+  /* 1km마다 — 총 거리만큼 칸 */
+  const n=Math.max(1,Math.ceil((sess.dist||0)-0.02));
+  $('rKms').innerHTML=Array.from({length:n},(_,k)=>`<span class="rm-km" data-k="${k+1}"><i>${k+1}</i></span>`).join('');
   paintRail(0);
 }
 function paintRail(prog){
   if(!S.rail)return;
-  const {cum,durs,tot}=S.rail;
-  const done=S.segIx?cum[S.segIx-1]:0;
-  const cur=durs[S.segIx]||0;
+  const {cum,durs,tot}=S.rail, segs=S.session.segs;
+  const done=S.segIx?cum[S.segIx-1]:0, cur=durs[S.segIx]||0;
   const pct=Math.max(0,Math.min(1,(done+Math.max(0,Math.min(1,prog))*cur)/tot));
-  $('rFill').style.width=(pct*100)+'%';
-  $('rNow').style.left=(pct*100)+'%';
   $('rPct').textContent=Math.round(pct*100)+'%';
-  document.querySelectorAll('#rTrack .mk').forEach(m=>{
-    const i=m.dataset.i; m.className='mk';
-    if(i==='end'){ if(pct>=0.999)m.classList.add('pass'); return; }
-    const ix=+i;
-    if(ix<S.segIx){                       // 이미 지나온 지점 — 어떻게 통과했나
-      const r=S.segRecords[ix], ok=r?segPass(r):null;
-      m.classList.add(ok===false?'fail':'pass');
-    } else if(ix===S.segIx) m.classList.add('now');
-  });
-  document.querySelectorAll('#rTrack .band').forEach(b=>
-    b.classList.toggle('on',+b.dataset.i===S.segIx));
+  document.querySelectorAll('#rTrack .rm-seg').forEach(el=>{ const ix=+el.dataset.i; el.className='rm-seg'+(segs[ix].hard?' hard':'');
+    if(ix<S.segIx){ const r=S.segRecords[ix], ok=r?segPass(r):null; el.classList.add(ok===false?'fail':ok===true?'pass':'done'); }
+    else if(ix===S.segIx){ el.classList.add('now'); el.querySelector('i').style.width=(Math.max(0,Math.min(1,prog))*100).toFixed(0)+'%'; } });
+  /* 1km 칸 — 스플릿 판정으로 ✓/✗, 지금 칸은 채워지는 중 */
+  const kmNow=S.dist/1000;
+  document.querySelectorAll('#rKms .rm-km').forEach(el=>{ const k=+el.dataset.k, sp=S.splits[k-1]; el.className='rm-km';
+    if(sp){ const v=(S.liveRows.find(x=>x.kind==='lap'&&x.nm===k+'km')||{}).note||'';
+      const bad=/초과|빠름|느림/.test(v); el.classList.add(bad?'fail':'pass'); el.title=v; }
+    else if(kmNow>k-1&&kmNow<k){ el.classList.add('now'); el.style.setProperty('--p',((kmNow-(k-1))*100).toFixed(0)+'%'); } });
+  /* 다음에 올 것 */
+  const nx=segs[S.segIx+1], tg=segs[S.segIx], prevTo=S.segIx?segs[S.segIx-1].to:0;
+  const leftKm=tg.end==='time'?null:Math.max(0,tg.to-kmNow), leftSec=tg.end==='time'?Math.max(0,tg.sec-(S.elapsed-S.segStart.t)):null;
+  const sl=$('rSegLeft'); if(sl)sl.textContent=leftSec!=null?`${fmtClock(Math.round(leftSec))} 남음`:leftKm!=null?`${leftKm<1?Math.round(leftKm*1000)+'m':leftKm.toFixed(2)+'km'} 남음`:'';
+  const nt=$('rNextT'); if(nt)nt.textContent=nx?`다음 · ${String(nx.nm).replace(/\s*\([^)]*\)/g,'')}${nx.pace?' '+rangeText([nx.pace[0]+(nx.hard?S.adj:0),nx.pace[1]+(nx.hard?S.adj:0)]):''}`:'마지막 구간 — 끝까지';
+  /* 약속 지킴 수 */
+  const okN=S.segRecords.filter(r=>segPass(r)===true).length, judged=S.segRecords.filter(r=>segPass(r)!==null).length;
+  const pc=$('rPct'); if(pc)pc.textContent=judged?`${okN}/${judged} 지킴 · ${Math.round(pct*100)}%`:Math.round(pct*100)+'%';
 }
 
 /* 메인에 올릴 지표 — 기본은 거리. 아래 4칸을 눌러 바꾸며 선택은 저장된다.
@@ -3548,7 +3610,7 @@ function defaultHero(){ return S.act==='hike'?'asc':S.act==='bike'?'speed':'dist
 function setHero(h){
   if(h){ HERO=h; }
   S.hero = HERO || defaultHero();
-  document.querySelectorAll('#rGrid .cell').forEach(c=>c.classList.toggle('sel',c.dataset.h===S.hero));
+  document.querySelectorAll('#rGrid .cell').forEach(c=>{ c.classList.toggle('sel',c.dataset.h===S.hero); c.hidden=c.dataset.h===S.hero; });
   if(S.running)onTick();
 }
 $('rGrid').onclick=e=>{ const c=e.target.closest('.cell'); if(c)setHero(c.dataset.h); };
@@ -3700,10 +3762,11 @@ function onTick(){
   tg=segs[S.segIx];
   const tgPace = tg.pace?[tg.pace[0]+(tg.hard?S.adj:0),tg.pace[1]+(tg.hard?S.adj:0)]:null;
   const prevTo=S.segIx?segs[S.segIx-1].to:0;
-  $('rSegName').textContent=tg.nm;
-  $('rSegTgt').textContent = (tg.end==='time'
-    ? `${fmtClock(tg.sec)} · 목표 ${rangeText(tgPace)}`
-    : `목표 ${rangeText(tgPace)}`)+`  ·  ${S.segIx+1}/${segs.length}`;
+  $('rSegName').textContent=`${String(tg.nm).replace(/\s*\([^)]*\)/g,'')} ${S.segIx+1}/${segs.length}`;
+  { const hrCap=(T.primary==='hr'&&T.hrZone&&T.hrZone[1])?T.hrZone[1]:null;
+    $('rSegTgt').textContent = tg.hard ? `${rangeText(tgPace)} 로 ${tg.end==='time'?fmtClock(tg.sec):''}`.trim()
+      : tg.tol==='ceil' ? `${fmtPace(tgPace[0])}보다 천천히${hrCap?` · ♥${hrCap} 아래`:''}`
+      : hrCap ? `♥${hrCap} 아래 · ${rangeText(tgPace)}` : `${rangeText(tgPace)} 유지`; }
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
   if(!S.gpsWarn&&S.elapsed>180&&km<0.15&&S.pts.length>60){
     S.gpsWarn=true;
@@ -3758,13 +3821,16 @@ function onTick(){
        관계를 모르면 숫자를 지어내지 않고 '속도를 줄이세요'만 말한다. */
     const sugg = (hrOver&&isFinite(p)&&LEARN&&LEARN.slope)
       ? Math.min(p+90, Math.round(1000/Math.max(1.2, 1000/p-(S.hr.bpm-HZ[1]+2)/LEARN.slope))) : null;
-    if(!repInfoOnly&&S.hrHoldSec>=25&&Date.now()-S.lastHrCue>(hrPrimary?25000:60000)&&!(tg.hard&&!hrPrimary&&(S.elapsed-S.segStart.t)<60)){
-      S.lastHrCue=Date.now(); DEV.buzz(BZ.off);
+    /* 경고가 잦으면 그 말을 듣다 심박이 더 오른다 — 45초 넘게 이어질 때만, 간격은 2분→4분→6분, 한 번 달리기에 4번까지.
+       상한 바로 위(+3 이내)는 말하지 않는다. 위험(최대 95%)은 이 규칙과 따로 간다 */
+    const hrGap=[0,120000,240000,360000][Math.min(3,S.hrCueN||0)];
+    if(!repInfoOnly&&S.hrHoldSec>=45&&S.hr.bpm>HZ[1]+3&&(S.hrCueN||0)<4&&Date.now()-S.lastHrCue>Math.max(hrGap,60000)&&Date.now()-(S.lastAnyCue||0)>30000&&!(tg.hard&&!hrPrimary&&(S.elapsed-S.segStart.t)<60)){
+      S.lastHrCue=Date.now(); S.lastAnyCue=Date.now(); S.hrCueN=(S.hrCueN||0)+1; DEV.buzz(BZ.tick);
       DEV.speak(hrPrimary
-        ? `심박 ${S.hr.bpm}. 오늘 상한은 ${HZ[1]}입니다. ${sugg?`1킬로미터 ${fmtPaceVoice(sugg)} 정도로 늦추면 상한 아래로 내려옵니다.`:'속도를 더 줄이세요.'} 오늘은 속도보다 심박이 기준입니다.`
+        ? (S.hrCueN===1&&sugg?`심박이 조금 높아요. 천천히, 숨을 길게. ${fmtPaceVoice(sugg)} 정도면 충분해요.`:'괜찮아요. 천천히, 숨을 길게.')
         : !tg.hard&&segs.some(x=>x.hard)
-          ? `심박 ${S.hr.bpm}. ${/사이 쉬기|회복 조깅/.test(tg.nm)?'쉬는 구간입니다. 속도를 더 줄여 심박을 내리세요.':'준비와 마무리는 편하게 뛰는 구간입니다. 속도를 줄이세요.'}`
-          : `심박 ${S.hr.bpm}. 목표 ${HZ[1]}보다 높습니다. 호흡을 고르세요.`, true, true);
+          ? `심박 ${S.hr.bpm}. ${/사이 쉬기|회복 조깅|레스트/.test(tg.nm)?'쉬는 구간입니다. 속도를 더 줄여 심박을 내리세요.':'준비와 마무리는 편하게 뛰는 구간입니다. 속도를 줄이세요.'}`
+          : '심박이 조금 높아요. 호흡을 고르세요.', true, false);
     }
     if(hrOver&&repInfoOnly){ /* 세트 중 심박 초과는 화면에 참고로만 — 속도 판정을 덮지 않는다 */
       S.repHrNote=`심박 ${S.hr.bpm} — 세트 중엔 속도가 기준이에요`; }
@@ -3772,7 +3838,7 @@ function onTick(){
       const zn=hrZone(S.hr.bpm);
       say = hrPrimary
         ? `지금 ${zn}이에요. ${sugg?`${fmtPace(sugg)}까지 늦춰도 괜찮아요 — 내 기록 기준 상한 ${HZ[1]} 아래로 내려오는 속도예요.`:`상한 ${HZ[1]} 아래로 내려올 때까지 속도를 줄이세요.`}`
-        : !tg.hard&&segs.some(x=>x.hard) ? `지금 ${zn}${/[가-힣]$/.test(zn)&&((zn.charCodeAt(zn.length-1)-0xAC00)%28===0)?'예요':'이에요'}. ${/사이 쉬기|회복 조깅/.test(tg.nm)?'쉬는 구간 — 천천히, 심박을 내려야 다음 세트를 고르게 뛸 수 있어요.':'편하게 뛰는 구간이에요 — 심박 '+HZ[1]+' 아래로.'}`
+        : !tg.hard&&segs.some(x=>x.hard) ? `지금 ${zn}${/[가-힣]$/.test(zn)&&((zn.charCodeAt(zn.length-1)-0xAC00)%28===0)?'예요':'이에요'}. ${/사이 쉬기|회복 조깅|레스트/.test(tg.nm)?'쉬는 구간 — 천천히, 심박을 내려야 다음 세트를 고르게 뛸 수 있어요.':'편하게 뛰는 구간이에요 — 심박 '+HZ[1]+' 아래로.'}`
         : `지금 ${zn}입니다. 조금 쉬어가세요.`; }
     else if(HZ[0]&&S.hr.bpm<HZ[0]&&tg.hard&&(S.elapsed-S.segStart.t)>60
             &&!(isFinite(p)&&tgPace&&p<=tgPace[1])){
@@ -3793,11 +3859,11 @@ function onTick(){
     S.ceilSec+=TD; ceilOver=true;
     if(state==='ok'||!hrPrimary){ state='fast'; pill='조금만 늦춰요';
       say=`오늘은 천천히 뛰는 날입니다. 1km를 ${fmtPace(s.ceiling)}보다 느리게.`; }
-    if(Date.now()-S.lastCeilCue>20000){ S.lastCeilCue=Date.now(); DEV.buzz(BZ.off);
-      DEV.speak(`너무 빠릅니다. ${fmtPaceVoice(s.ceiling)}보다 느리게. 이 세션은 느리게 뛰는 것이 목적입니다.`,true); }
+    if(!hrOver&&(S.ceilCueN||0)<3&&Date.now()-S.lastCeilCue>[60000,180000,300000][Math.min(2,S.ceilCueN||0)]&&Date.now()-(S.lastAnyCue||0)>30000){ S.lastCeilCue=Date.now(); S.lastAnyCue=Date.now(); S.ceilCueN=(S.ceilCueN||0)+1; DEV.buzz(BZ.tick);
+      DEV.speak(S.ceilCueN===1?`조금 천천히요. ${fmtPaceVoice(s.ceiling)}보다 느리게.`:'조금 천천히요.',true); }
   }
   /* 사이 쉬기를 너무 빨리 — 결과표엔 ✗가 뜨는데 뛰는 중엔 말이 없었다 */
-  if(!tg.hard&&/사이 쉬기|회복 조깅/.test(tg.nm)&&tg.pace&&isFinite(p)&&p<tg.pace[0]-10&&(S.elapsed-S.segStart.t)>15){
+  if(!tg.hard&&/사이 쉬기|회복 조깅|레스트/.test(tg.nm)&&tg.pace&&isFinite(p)&&p<tg.pace[0]-10&&(S.elapsed-S.segStart.t)>15){
     if(state==='ok'||state==='soon'){ state='fast'; pill='쉬는 구간 — 천천히'; say=`지금 ${fmtPace(p)}. 쉬는 구간은 ${fmtPace(tg.pace[0])}보다 느리게 — 심박을 내려야 다음 세트가 고르게 나와요.`; }
     if(Date.now()-(S.lastRestCue||0)>60000){ S.lastRestCue=Date.now(); DEV.buzz(BZ.off);
       DEV.speak(`쉬는 구간입니다. 더 천천히 가세요. 다음 세트를 위해 심박을 내리는 시간입니다.`,true); }
@@ -3933,8 +3999,9 @@ function checkOff(dir){
   if(dir!==S.lastOffDir){S.offCount=0;S.lastOffDir=dir;}
   if(++S.offCount<2)return;
   /* 같은 말 반복은 소음이다 — 회차 안은 15초, 천천히 구간은 45초에 한 번 */
-  if(Date.now()-S.lastCue<(g&&g.hard?15000:45000))return;
-  S.lastCue=Date.now(); S.offCount=0;
+  if(Date.now()-S.lastCue<(g&&g.hard?20000:120000))return;
+  if(!(g&&g.hard)&&Date.now()-(S.lastAnyCue||0)<30000)return;
+  S.lastCue=Date.now(); S.lastAnyCue=Date.now(); S.offCount=0;
   DEV.speak(dir<0?'조금 빠릅니다. 속도를 줄이세요.':'조금 느립니다. 속도를 올리세요.');
 }
 function advanceSeg(){
@@ -4416,6 +4483,7 @@ $('btnSave').onclick=()=>{
     go('plan'); return;
   }
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
+  if(S.result.planId&&S.session&&S.session.d!=='free'){ openDebrief(S.result,S.session); return; }
   if(openAfterDec(S.result,S.session))return;
   const st=promiseStreak(), pr=promiseRows(S.result,S.session);
   go('home');
@@ -4721,7 +4789,7 @@ function aiPrompt(){
   const gLine=G?`${gName}${G.m&&G.sec?` · ${G.m>=42000?'풀':G.m>=21000?'하프':(G.m/1000)+'km'} ${fmtClock(G.sec)}`:''}${G.date?` · ${G.date}까지`:''}`:'정하지 않음';
   const verdict=[...document.querySelectorAll('#sum .verdict')].filter(e=>!e.hidden&&e.textContent.trim()).map(e=>e.textContent.trim()).join(' / ')||'판정 없음';
   return `[주자] ${PROF.age?`만 ${PROF.age}세`:'나이 모름'}${PROF.w?`, ${PROF.w}kg`:''}, 최대심박 ${HRMAX}(${PROF.hrmaxSrc==='measured'?'실측':'나이로 추정'}).
-기록: ${rc&&rc.sec?`${rc.m>=42000?'풀':rc.m>=21000?'하프':(rc.m/1000)+'km'} ${fmtClock(rc.sec)}${rc.kind==='tt'?'(혼자 잰 실력 재기)':''}${raceFlat(rc).adj?` (오르막 ${rc.asc}m 보정 −${raceFlat(rc).adj}초)`:''} → 실력 점수(VDOT) ${vd.toFixed(1)}`:'기록 없음'}
+기록: ${rc&&rc.sec?`${rc.m>=42000?'풀':rc.m>=21000?'하프':(rc.m/1000)+'km'} ${fmtClock(rc.sec)}${rc.kind==='tt'?'(TT)':''}${raceFlat(rc).adj?` (오르막 ${rc.asc}m 보정 −${raceFlat(rc).adj}초)`:''} → 실력 점수(VDOT) ${vd.toFixed(1)}`:'기록 없음'}
 목표 속도: 천천히 (이지런) ${fmtPace(z.E[0])}~${fmtPace(z.E[1])} · 벅차게 (템포런) ${fmtPace(z.T)} · 빠르게 (인터벌) ${fmtPace(z.I)}
 목표: ${gLine}
 
@@ -4918,7 +4986,7 @@ async function selfTest(){
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
       segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
-      lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,
+      lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
       cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
     buildRail();
@@ -6644,7 +6712,7 @@ const GROWS={
   goalpace:{g:[['목표 속도에 익숙해지기','C']]}, mpace:{g:[['대회 속도에 익숙해지기','C']]},
   rep:{g:[['같은 속도에 드는 힘 줄이기(러닝 이코노미)','C']]},
   stride:{g:[['폼 깨우기','C']]}, hill:{g:[['다리 힘 · 심폐','C']]},
-  tt:{g:[['지금 실력 재기 — 모든 목표 속도의 기준','—']]},
+  tt:{g:[['TT — 모든 목표 페이스의 기준','—']]},
   free:{g:[['기록만 — 판정 없음','—']]},
   off:{g:[['쉬는 동안 몸이 적응합니다','C'],['잠이 모자라면 지구력 기록이 떨어집니다','B']]}
 };
@@ -6827,7 +6895,7 @@ function quickGo(planned){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><span>${a.nm}</span></button>`).join('')}</div>
     <button type="button" class="qg-go" data-act="${last}" id="qgGo">${verb[last]} ▶</button>`;
   /* 계획 있는 날: 접힌 한 줄 → 누르면 종류 고르기 + 시작 버튼이 펼쳐진다 */
-  if(planned) return `<div class="qrow"><span>그냥 뛰기</span>${Object.entries(ACTK).map(([k,a])=>`<button type="button" class="qr-a" data-act="${k}" aria-label="${a.nm} 바로 시작"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><i>${a.nm}</i></button>`).join('')}</div>`;
+  if(planned) return `<div class="qrow"><span>프리런</span>${Object.entries(ACTK).map(([k,a])=>`<button type="button" class="qr-a" data-act="${k}" aria-label="${a.nm} 바로 시작"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><i>${a.nm}</i></button>`).join('')}</div>`;
   if(false) return `<details class="qslim"><summary><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON.run}</svg></span>
     <span><b>오늘은 그냥 뛰고 싶다면</b><i>계획 대신, 판정 없이 기록만 · 달리기 · 걷기 · 자전거 · 등산</i></span><em>열기</em></summary>
     <div class="qs-body">${acts}</div></details>`;
@@ -6846,7 +6914,7 @@ function actTiles(){
 function startAct(k){
   if(k==='run'){ ACT_MODE=null; const t=todayStr(), s=planOn(t);
     if(s&&!RUNS.some(r=>r.planId===s.d)){
-      return openDec({kind:'free',kicker:'그냥 뛰기',title:`오늘 계획이 있는 날입니다`,
+      return openDec({kind:'free',kicker:'프리런',title:`오늘 계획이 있는 날입니다`,
         rows:[['오늘 계획',ESC(s.t)]],
         say:'그냥 뛰기는 판정 없이 기록만 남깁니다. 오늘 계획을 대신할지, 따로 남길지 고르세요.',
         opts:[{k:'A',t:'따로 기록',rec:true,d:'오늘 계획은 그대로 남습니다.',apply:()=>{ setTimeout(()=>{FREE_MODE=true;openConfirm(-1);},60); return null; }},
@@ -6902,7 +6970,10 @@ function renderHome(){
   sysNotify(sig);
 
   /* 오늘 카드 */
-  if(sess) h+=todayCard(sess,idx);
+  const tR=todayRuns()[0], tDone=sess&&RUNS.some(x=>x.planId===sess.d);
+  if(tR&&(tDone||!sess||tR.planId)) h+=todayResultCard(RUNS.find(x=>sess&&x.planId===sess.d)||tR,sess);
+  else if(tR&&sess) h+=todayResultCard(tR,sess)+todayCard(sess,idx);
+  else if(sess) h+=todayCard(sess,idx);
   else if(inP) h+=restCard(today);
   else h+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
       <span class="tchip">일정 없음</span><div class="ttl">목표를 정하면<br>4주 일정을 짜드려요</div>
@@ -6932,6 +7003,7 @@ function wireHome(sess,idx){
   const hg=$('hGoal'); if(hg)hg.onclick=()=>goalStart();
   const hg2=$('homeGoal2'); if(hg2)hg2.onclick=()=>goalStart();
   const go1=$('goToday'); if(go1)go1.onclick=()=>openConfirm(idx);
+  const ga=$('goAgain'); if(ga)ga.onclick=()=>openConfirm(idx);
   const tdt=$('todayDet'); if(tdt)tdt.onclick=()=>openTodayPlan(idx);
   m.querySelectorAll('.tcard .tshape,[data-plan]').forEach(x=>{ x.style.cursor='pointer'; x.onclick=()=>openTodayPlan(idx); });
   const un=$('undoToday'); if(un)un.onclick=()=>undoPlanDay(sess.d);
@@ -6961,11 +7033,38 @@ function heroShape(sess,k1,k2){
   const segs=sess.segs||[]; if(!segs.length)return '';
   const durs=segDurs(sess), tot=durs.reduce((a,b)=>a+b,0)||1, W=300, H=56, gap=3; let x=0, bars='';
   segs.forEach((g,i)=>{ const w=Math.max(3,durs[i]/tot*(W-gap*(segs.length-1)));
-    const warm=/준비|마무리|웜업|쿨다운/.test(g.nm), rest=/사이 쉬기|회복 조깅|걷/.test(g.nm);
+    const warm=/준비|마무리|웜업|쿨다운/.test(g.nm), rest=/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm);
     const h=g.hard?H:warm?H*.34:rest?H*.22:H*.55;
     bars+=`<rect x="${x.toFixed(1)}" y="${(H-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${g.hard?k2:k1}" opacity="${g.hard?1:.5}"/>`; x+=w+gap; });
   return `<button type="button" class="hero-shape" data-plan="1" aria-label="오늘 계획 자세히 보기"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${bars}</svg></button>`;
 }
+
+/* ───────── 오늘 결과 — 뛰고 나면 '다시 시작' 대신 오늘 한 것을 먼저 보여준다 ───────── */
+function todayRuns(){ const t=todayStr(); return RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===t).sort((a,b)=>a.date<b.date?1:-1); }
+function todayResultCard(r,sess){
+  const T=TYPES[r.type]||{}, col=T.col||'#5B2D86', linked=!!(sess&&r.planId===sess.d);
+  const b0=linked?sess:BLOCK.find(x=>x.d===r.planId);
+  const s=b0?Object.assign({},b0,{dist:r.distRatio?+(r.km/r.distRatio).toFixed(1):(DIST[b0.d]||b0.dist),ceiling:r.ceiling||b0.ceiling}):{dist:0,ceiling:r.ceiling};
+  let pr={rows:[],kind:null}; try{ pr=promiseRows(r,s); }catch(e){}
+  const vd=pr.kind?VERD[pr.kind]:null, tone=vd?vd[1]:'';
+  const rows=(pr.rows||[]).slice(0,4).map(x=>`<li class="${x[2]||''}"><span>${x[0]}</span><b>${x[1]}</b></li>`).join('');
+  const map=r.track&&r.track.length>3?routeSVG(r.track,r.segments,{w:96,h:96,pad:8,sw:4,marks:false,ends:true}):'';
+  return `<section class="tres" style="--tc:${col}" aria-label="오늘 결과">
+    <div class="tr-top"><span class="tr-chip">${ic('check',14)} 오늘 결과</span><span class="tr-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span></div>
+    <div class="tr-main"><div><b class="num">${(+r.km).toFixed(2)}</b><span>km</span></div>${map?`<div class="tr-map">${map}</div>`:''}</div>
+    <div class="tr-stats"><span>${ic('clock')}<b class="num">${fmtClock(r.sec)}</b></span><span>${ic('pace')}<b class="num">${fmtPace(r.paceAvg)}</b>/km</span>${r.hrAvg?`<span>${ic('heart')}<b class="num">${r.hrAvg}</b></span>`:''}${r.cadAvg?`<span>👣<b class="num">${r.cadAvg}</b></span>`:''}</div>
+    ${vd?`<div class="tr-vd ${tone}">${vd[0]}</div>`:''}
+    ${loadCard(r,true)}
+    ${rows?`<ul class="tr-rows">${rows}</ul>`:''}
+    <button type="button" class="tr-go" data-tres="${r.rid}">결과 자세히 보기 ›</button>
+    <div class="tr-links">${sess&&!linked&&!RUNS.some(x=>x.planId===sess.d)?`<button type="button" data-tlink="${r.rid}">오늘 훈련으로 치기</button>`:''}<button type="button" data-tstr="1">정리 스트레칭</button>${sess?`<button type="button" id="goAgain">다시 뛰기</button>`:''}</div>
+  </section>`;
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-tres]'); if(a){ openRunView(a.dataset.tres); const b=$('rvwBack'); if(b)b.onclick=()=>go('home'); return; }
+  const l=e.target.closest('[data-tlink]'); if(l){ const r=RUNS.find(x=>x.rid===l.dataset.tlink), s=planOn(todayStr()); if(r&&s){ r.planId=s.d; if(!r.type||r.type==='free')r.type=s.type; DEV.store.set('runs',RUNS); renderHome(); toast('오늘 훈련으로 기록했어요'); } return; }
+  if(e.target.closest('[data-tstr]')){ stOpen('stat'); return; }
+});
 function todayCard(sess,idx){
   const T=TYPES[sess.type]||{}, g0=GL[sess.type]||{e:'뛰기',t:''}, adj=ADJ[sess.type]||0;
   const main=sess.segs[sess.segs.length-1];
@@ -7077,7 +7176,7 @@ function goalTop(){
   const pct=Math.round(at(now));
   const gain=startSec-now;
   const since = gain>0 ? `처음 잰 ${fmtClock(startSec)}보다 ${gain}초 빨라졌어요`
-              : h.length<=1 ? '실력은 실력 재기(TT)나 대회 기록이 들어올 때 갱신돼요'
+              : h.length<=1 ? '실력은 TT나 대회 기록이 들어올 때 갱신돼요'
               : gain<0 ? `처음 잰 ${fmtClock(startSec)}보다 ${-gain}초 느린 기록이 들어왔어요 — 코스·날씨 영향일 수 있어요`
               : `처음 잰 ${fmtClock(startSec)}과 같은 수준이에요`;
   /* 계단 — 4주마다 범위의 가운데 (펼쳐 보기) */
@@ -7111,11 +7210,11 @@ function laneHTML(pct,a,b){
 }
 function goalStrip(){
   const p=planProgress(), g=(PLAN&&PLAN.goal)||GOAL;
-  let title='', side='', sub='', pct=0, a='', b='', more='';
+  let title='', side='', sub='', pct=0, a='', b='', more='', HEAD=null;
   if(g&&g.kind==='aero'&&g.aero){ const x=g.aero, sp=x.mode==='speed';
     const cur=sp?aeroPaceAt(x.hrCap):aeroHrAt(x.ref), nowV=sp?cur.pace:cur.hr, v0=sp?x.pace0:x.hr0, vT=sp?x.paceT:x.hrT, f=v=>sp?fmtPace(v):String(v);
     pct=nowV!=null?Math.max(0,Math.min(100,Math.round((v0-nowV)/Math.max(1,v0-vT)*100))):0;
-    title=sp?`♥${x.hrCap}에서 ${fmtPace(vT)}`:`${fmtPace(x.ref)}에서 ♥${vT}`; side=nowV!=null?`지금 ${f(nowV)}`:''; sub=sp?'편한 달리기 · 속도':'편한 달리기 · 심박';
+    title=sp?`심박 ${x.hrCap}에서 ${fmtPace(vT)} 페이스로`:`${fmtPace(x.ref)} 페이스를 심박 ${vT}로`; side=nowV!=null?`지금 ${f(nowV)}`:''; sub=sp?'편한 달리기 · 속도':'편한 달리기 · 심박';
     a=f(v0); b=f(vT);
   } else if(g&&g.m&&(g.final||g.sec)){
     const goalSec=g.final||g.sec, fz=feasible(Object.assign({},g,{sec:goalSec})); if(!fz)return '';
@@ -7126,11 +7225,36 @@ function goalStrip(){
     if(g.date&&dd!=null&&fz.reach&&fz.haveW!=null&&!(fz.verdict==='already'||fz.verdict==='ok')){ const r=fz.reach(fz.haveW);
       sub=`이번 대회 ${fmtClock(Math.min(r.lo,r.hi))}~${fmtClock(Math.max(r.lo,r.hi))}`; }
     else if(fz.needWlo!=null&&fz.verdict!=='already') sub=`약 ${fz.needWlo}~${fz.needWhi}주`;
+    /* 첫 줄 = 언제 · 무엇 · 몇 분 */
+    const dlab=g.date?(()=>{ const d=new Date(g.date.slice(0,10)+'T00:00:00'); return `${d.getMonth()+1}월 ${d.getDate()}일(${dowOf(g.date.slice(0,10))})`; })():null;
+    HEAD={when:dlab, what:`${L} ${fmtClock(goalSec)}${g.kind==='race'?' 대회':''} 목표`, dd};
+    const rr=(g.date&&fz.reach&&fz.haveW!=null)?fz.reach(fz.haveW):null, rLo=rr?Math.min(rr.lo,rr.hi):null, rHi=rr?Math.max(rr.lo,rr.hi):null;
+    HEAD.status = fz.verdict==='already'?'이미 닿는 기록이에요 — 목표를 더 높여도 돼요'
+      : fz.verdict==='ok'?'지금 흐름이면 대회 날 닿을 수 있어요'
+      : rr?`대회 날 예상 ${fmtClock(rLo)}~${fmtClock(rHi)} · 목표까지는 약 ${fz.needWlo}~${fz.needWhi}주`
+      : `목표까지 약 ${fz.needWlo}~${fz.needWhi}주`;
+    /* 과정 — 지금 → 이번 4주 → 대회 날 → 최종 */
+    const wkKm=[1,2,3,4].map(w=>BLOCK.filter(x=>x.wk===w).reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0)).filter(x=>x>0);
+    const hardN=Math.max(0,...[1,2,3,4].map(w=>BLOCK.filter(x=>x.wk===w&&x.segs&&x.segs.some(q=>q.hard)).length));
+    const kinds=[...new Set(BLOCK.filter(x=>x.segs&&x.segs.some(q=>q.hard)).map(x=>tm(x.type)))].slice(0,3).join('·');
+    HEAD.steps=[
+      {k:'now',t:'지금',v:fmtClock(now),d:`VDOT ${VDOT.toFixed(1)}`},
+      {k:'block',t:'이번 4주 · 주간',v:wkKm.length?`${Math.round(wkKm[0])}→${Math.round(Math.max(...wkKm))}km`:'일정 없음',d:hardN?`${kinds} 주 ${hardN}회 · 나머지 이지런`:'이지런으로 거리 쌓기'},
+      ...(dlab?[{k:'race',t:dlab.replace(/\(.*\)/,''),v:rr&&fz.verdict!=='ok'&&fz.verdict!=='already'?`${fmtClock(rLo)}~<br>${fmtClock(rHi)}`:fmtClock(goalSec),d:fz.verdict==='ok'||fz.verdict==='already'?'목표 달성':'이번 대회 예상'}]:[]),
+      ...((fz.verdict==='short'||fz.verdict==='maybe'||!dlab)&&fz.gap>0?[{k:'goal',t:'최종 목표',v:fmtClock(goalSec),d:`약 ${fz.needWlo}~${fz.needWhi}주 · TT로 4주마다 확인`}]:[])];
     const steps=[]; if(fz.reach&&fz.gap>0){ for(let w=0;w<=96&&steps.length<12;w+=4){ const r=fz.reach(w); steps.push({w,sec:Math.round((r.lo+r.hi)/2)}); if(r.lo<=goalSec)break; } }
     const sp2=Math.max(1,now-goalSec);
     if(steps.length>1) more=`<div class="gst2">${steps.map((x,i)=>`<i class="${i===0?'now':''}" style="height:${Math.max(8,Math.min(100,(now-x.sec)/sp2*100+8)).toFixed(0)}%"><span>${i===0?'지금':x.w+'주'}</span></i>`).join('')}</div>`;
   } else if(p){ title=g?goalLabel(g):'내 일정'; pct=p.pct; side=`${p.day}/${p.total}일`; a='시작'; b='끝'; }
   else return '';
+  if(HEAD) return `<section class="gstrip gs2" aria-label="나의 목표">
+    <div class="gs-when"><span class="gs-ic">${ic('flag',16)}</span><span>${HEAD.when?HEAD.when+'까지':'날짜 없는 목표'}</span>${HEAD.dd!=null?`<b class="gs-side num">D-${HEAD.dd}</b>`:''}</div>
+    <div class="gs-what num">${HEAD.what}</div>
+    <div class="gs-status">${HEAD.status}</div>
+    <ol class="gs-steps">${HEAD.steps.map((x,i)=>`<li class="${x.k}"><i>${i+1}</i><span>${x.t}</span><b class="num">${x.v}</b><em>${x.d}</em></li>`).join('')}</ol>
+    <details class="gs-more"><summary>자세히</summary>${more}${p?`<div class="gt-plan"><span>일정 <b>${p.day}</b>/${p.total}일</span><span>훈련 <b>${p.done}</b>/${p.n}번</span></div>`:''}${fasterCard()}
+      <button type="button" class="gt-more-btn" data-mygoal="1">내 목표 자세히 보기</button></details>
+  </section>`;
   return `<section class="gstrip" aria-label="나의 목표">
     <div class="gs-row"><span class="gs-ic">${ic('flag',16)}</span><b class="num">${title}</b>${side?`<span class="gs-side num">${side}</span>`:''}</div>
     ${sub?`<div class="gs-sub">${sub}</div>`:''}
@@ -7174,7 +7298,7 @@ function goalCard(){
     ${fz.verdict==='already'?'<div class="gdone">이미 닿았습니다. 더 높게 잡아도 됩니다.</div>':
      `<div class="gst">${bars}</div><div class="gax"><span>이번</span>${steps.length>2?`<span>${steps[Math.floor(steps.length/2)].w}주 ${fmtClock(steps[Math.floor(steps.length/2)].sec)}</span>`:''}<span>${steps.length?steps[steps.length-1].w+'주':''} ${fmtClock(goalSec)}</span></div>`}
     <div class="g3"><div><b class="num">1 / ${Math.max(1,steps.length)}</b><i>계단</i></div><div><b class="num">${pct}%</b><i>${fmtClock(goalSec)}까지 온 거리</i></div><div><b class="num">${ladder?fmtClock(ladder):fmtClock(goalSec)}</b><i>이번 계단 목표</i></div></div>
-    <div class="gnote">계단은 '보통 4~6주에 실력 1점'(${GRB('C')}) 기준이고, 실력 재기(TT)를 할 때마다 다시 그립니다.</div></div>`;
+    <div class="gnote">계단은 '보통 4~6주에 실력 1점'(${GRB('C')}) 기준이고, TT를 할 때마다 다시 그립니다.</div></div>`;
 }
 /* 같은 심박에서 속도 — 날씨·컨디션에 덜 흔들리는, 실력이 붙었다는 증거 */
 function sameHrTrend(){
@@ -7359,7 +7483,7 @@ function decResult(dc){
   if(dc.kind==='rest'){ const ds=ldate(dc.d); const s=dayStatus(addDays(ds,1)); return s==='kept'?'결과: 다음 날 계획대로 ✓':null; }
   return null;
 }
-const DECKIND={goal:'목표',today:'오늘',after:'뛴 뒤',week:'매주',missed:'못 한 날',rest:'쉬는 날',stat:'내 통계',breath:'호흡 실험',free:'그냥 뛰기',misc:'기타'};
+const DECKIND={goal:'목표',today:'오늘',after:'뛴 뒤',week:'매주',missed:'못 한 날',rest:'쉬는 날',stat:'내 통계',breath:'호흡 실험',free:'프리런',misc:'기타'};
 function renderDecLog(){
   const host=$('planDec'); if(!host)return;
   if(!DECS.length){ host.innerHTML='<div class="empty">아직 정한 것이 없습니다.<br>목표를 정하거나, 거리를 바꾸거나, 뛴 뒤 다음을 고르면 여기에 남습니다.</div>'; return; }
@@ -7398,7 +7522,7 @@ function ptColor(p,segs){
   if(p.over)return '#CF3B36';
   const g=segs&&p.seg!=null?segs[p.seg]:null;
   if(g&&g.hard)return '#E35A32';
-  if(g&&/사이 쉬기|회복 조깅|걷/.test(g.nm||''))return '#8FB8D8';
+  if(g&&/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm||''))return '#8FB8D8';
   return '#0E9B72';
 }
 function trackCum(tr){ const c=[0]; for(let i=1;i<tr.length;i++)c.push(c[i-1]+haversine(tr[i-1],tr[i])); return c; }
@@ -7477,11 +7601,11 @@ function promiseRows(r,s){
   /* 세트가 있는 날 — 사이 쉬기·준비·마무리도 약속의 일부다 */
   const soft=(r.segments||[]).filter(g=>!g.hard&&g.pace&&g.plan);
   if(T.judgeBy==='spread'&&soft.length){
-    const restFast=soft.filter(g=>/사이 쉬기|회복 조깅/.test(g.nm)&&g.pass===false);
+    const restFast=soft.filter(g=>/사이 쉬기|회복 조깅|레스트/.test(g.nm)&&g.pass===false);
     const wcFast=soft.filter(g=>/준비|웜업|마무리|쿨다운/.test(g.nm)&&g.pace<g.plan[0]-5);
-    if(restFast.length) rows.push(['사이 쉬기',`${restFast.length}번 너무 빨랐어요 (${restFast.map(g=>fmtPace(g.pace)).join(', ')})`,'bad']);
-    else if(soft.some(g=>/사이 쉬기|회복 조깅/.test(g.nm))) rows.push(['사이 쉬기','천천히 ✓','ok']);
-    if(wcFast.length) rows.push(['준비 · 마무리',`${wcFast.map(g=>g.nm.split(' ')[0]+' '+fmtPace(g.pace)).join(' · ')} — 계획보다 빨랐어요`,'bad']);
+    if(restFast.length) rows.push(['레스트',`${restFast.length}번 너무 빨랐어요 (${restFast.map(g=>fmtPace(g.pace)).join(', ')})`,'bad']);
+    else if(soft.some(g=>/사이 쉬기|회복 조깅|레스트/.test(g.nm))) rows.push(['사이 쉬기','천천히 ✓','ok']);
+    if(wcFast.length) rows.push(['웜업 · 쿨다운',`${wcFast.map(g=>g.nm.split(' ')[0]+' '+fmtPace(g.pace)).join(' · ')} — 계획보다 빨랐어요`,'bad']);
     if(kind==='kept'&&(restFast.length||wcFast.length)) kind='softfast';
   }
   const z=r.zones||[], zt=z.reduce((a,b)=>a+b,0);
@@ -7517,7 +7641,7 @@ function renderResult(host,r,s){
     <h2 class="rt">${ESC(r.title||T.nm||'')}</h2>
     ${vd?`<div class="dverd ${vd[1]==='ok'?'':vd[1]}">${vd[0]}</div>`:r.type==='free'?'<div class="dverd mid">그냥 뛰기 — 판정 없음</div>':''}
     <div class="rmap"></div>
-    <div class="rleg"><span><i style="background:#0E9B72"></i>천천히</span><span><i style="background:#E35A32"></i>빠르게</span><span><i style="background:#8FB8D8"></i>사이 쉬기</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div>
+    <div class="rleg"><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div>
     <div class="rbig"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
     <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>평균 심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>
     ${r.learnNote||r.drift?`<div class="tbasis" style="margin:12px 0 0"><b>실시간 맞춤 코칭</b>${r.drift?`<span>${r.drift.bpm>0?`같은 속도에서 심박이 ${r.drift.bpm} 올랐어요 (${fmtClock(r.drift.at)}쯤). 다음 쉬운 날은 조금 더 천천히 시작해요.`:''}</span>`:''}${r.learnNote?`<span>${ESC(r.learnNote)}</span>`:''}</div>`:''}
@@ -7525,6 +7649,7 @@ function renderResult(host,r,s){
     ${repsH?`<div class="rcard">${repsH}</div>`:''}
     ${segs?`<div class="rcard"><div class="rh"><b>구간표</b><span></span></div><div class="sgh"><span>구간</span><span>거리</span><span>속도</span><span>차이</span></div>${segs}</div>`:''}
     ${splits?`<div class="rcard"><div class="rh"><b>1km마다</b><span></span></div>${splits}</div>`:''}
+    ${loadCard(r)}
     ${r.breath&&r.breath.length?`<div class="rcard"><div class="rh"><b>호흡 실험 · 구간별</b><span>편함 1(힘듦)~5(편함)</span></div>
       ${r.breath.map((b,i)=>`<div class="bcomf"><b class="num">${b.ratio}</b><span style="font-size:11.5px;color:var(--ink-2)">${b.pace?fmtPace(b.pace):'—'} · ${b.hr?'♥'+b.hr:'심박 없음'}</span>
         <span><span class="cs">${[1,2,3,4,5].map(n=>`<button data-bc="${i}:${n}" class="${b.comfort===n?'on':''}">${n}</button>`).join('')}</span>
@@ -8187,7 +8312,7 @@ function openCadDec(){
 
 /* ── 목록 ── */
 function logList(){
-  const F=[['all','전체'],['run','달리기'],['plan','훈련만'],['free','그냥 뛰기'],['walk','걷기'],['bike','자전거'],['hike','등산']];
+  const F=[['all','전체'],['run','달리기'],['plan','훈련만'],['free','프리런'],['walk','걷기'],['bike','자전거'],['hike','등산']];
   let items=RUNS.map(r=>({r,k:'run'})).concat(ACTS.map(a=>({r:a,k:a.act})));
   Object.keys(RESTLOG).forEach(d=>{ const m=RESTLOG[d].m||{}; if(Object.values(m).some(Boolean))items.push({r:{date:d+'T23:00:00',rest:true,m},k:'rest'}); });
   items=items.filter(x=>LOGFLT==='all'||(LOGFLT==='run'&&x.k==='run')||(LOGFLT==='plan'&&x.k==='run'&&x.r.type!=='free')||(LOGFLT==='free'&&x.k==='run'&&x.r.type==='free')||x.k===LOGFLT)
@@ -8393,7 +8518,7 @@ function shapeSVG(sess){
   let x=0, bars='';
   segs.forEach((g,i)=>{
     const w=Math.max(3,durs[i]/tot*(W-gap*(segs.length-1)));
-    const warm=/준비|마무리|웜업|쿨다운/.test(g.nm), rest=/사이 쉬기|회복 조깅|걷/.test(g.nm);
+    const warm=/준비|마무리|웜업|쿨다운/.test(g.nm), rest=/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm);
     const h = g.hard ? H : warm ? H*0.32 : rest ? H*0.22 : H*0.5;
     bars+=`<rect x="${x.toFixed(1)}" y="${(H-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="#fff" opacity="${g.hard?0.95:0.42}"/>`;
     x+=w+gap; });
@@ -8411,7 +8536,7 @@ function shapeSVG(sess){
 let TDMODE='item';
 function segKind(g){
   if(g.hard)return {k:'fast',nm:'빠르게',c:'var(--fast)'};
-  if(/사이 쉬기|회복 조깅|걷/.test(g.nm))return {k:'rest',nm:'쉬기',c:'var(--sage)'};
+  if(/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm))return {k:'rest',nm:'쉬기',c:'var(--sage)'};
   if(/준비|웜업/.test(g.nm))return {k:'warm',nm:'준비',c:'#C9B8D9'};
   if(/마무리|쿨다운/.test(g.nm))return {k:'cool',nm:'마무리',c:'#C9B8D9'};
   return {k:'main',nm:'본 운동',c:'var(--accent)'};
@@ -8711,10 +8836,14 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
   ramp(to,ms){ const a=this.a; if(!a||!this.canVol)return; clearInterval(this.rampT); const from=a.volume, n=Math.max(1,Math.round(ms/40)); let k=0;
     this.rampT=setInterval(()=>{ k++; try{ a.volume=Math.min(1,Math.max(0,from+(to-from)*k/n)); }catch(e){} if(k>=n)clearInterval(this.rampT); },40); },
   duck(){ if(!this.st.duck||!this.a||this.a.paused)return;
-    if(!this.ducked){ this.ducked=true; this.ramp(this.st.vol*0.3,220); }
-    clearInterval(this.duckT); let quiet=0;
+    if(!this.ducked){ this.ducked=true; clearInterval(this.rampT); try{ this.a.volume=this.st.vol*0.3; }catch(e){} }
+    clearInterval(this.duckT); let quiet=0, seen=false; const t0=Date.now();
+    /* 안드로이드 TTS는 말이 시작되기까지 1초 가까이 걸린다 — 말이 실제로 시작된 걸 본 뒤, 끝나고 0.6초 지나야 되돌린다 */
     this.duckT=setInterval(()=>{ let busy=false; try{ busy=speechSynthesis.speaking||speechSynthesis.pending; }catch(e){}
-      quiet=busy?0:quiet+1; if(quiet>=2){ clearInterval(this.duckT); this.ducked=false; this.ramp(this.st.vol,700); } },300); },
+      if(busy){ seen=true; quiet=0; } else quiet++;
+      const done=(seen&&quiet>=2)||(!seen&&Date.now()-t0>4000);
+      if(done)this.unduck(); },300); },
+  unduck(){ clearInterval(this.duckT); if(!this.ducked)return; this.ducked=false; clearInterval(this.rampT); try{ if(this.a)this.a.volume=this.st.vol; }catch(e){} },
   /* ── 잠금화면 · 이어폰 버튼 ── */
   media(){ if(!('mediaSession' in navigator))return; const ms=navigator.mediaSession;
     const set=(k,f)=>{ try{ ms.setActionHandler(k,f); }catch(e){} };
@@ -8870,7 +8999,7 @@ function renderGuide(){
 
   const base=[
     item('vdot',ic('vdot'),'실력 점수 (VDOT)','기록 하나로 모든 속도를 정하는 점수',VDOT.toFixed(1),
-      note('대회·실력 재기 기록에서 "그 기록을 낼 때 쓴 산소 섭취량"을 역산한 값이에요. 앱의 모든 목표 속도가 이 점수에서 나와요.')+
+      note('대회·TT 기록에서 "그 기록을 낼 때 쓴 산소 섭취량"을 역산한 값이에요. 앱의 모든 목표 속도가 이 점수에서 나와요.')+
       fx(`v = 거리(m) ÷ 시간(분)<br>VO₂(v) = −4.60 + 0.182258·v + 0.000104·v²<br>%최대(t) = 0.8 + 0.1894393·e<sup>−0.012778t</sup> + 0.2989558·e<sup>−0.1932605t</sup><br><b>VDOT = VO₂(v) ÷ %최대(t)</b>`)+
       kv([['내 기록',rc&&rc.sec?`${rc.m>=42000?'풀':rc.m>=21000?'하프':(rc.m/1000)+'km'} ${fmtClock(rc.sec)}`:'없음 → 기본값 38'],
           ['언덕 보정',rf&&rf.adj?`−${rf.adj}초 (오르막 1m당 0.8초, 최대 5%)`:'없음'],
@@ -8924,7 +9053,7 @@ function renderGuide(){
     threshold:['TEMPO RUN','템포런','#7A4CC2','힘들지만 유지 가능한 속도','이지런보다 빠르지만 전력질주는 아닌, 조금 힘든 속도를 일정 시간 유지해요.',['이지런보다 빠르게','힘들지만 유지','20분은 갈 속도']],
     rep:['REPETITION','레페티션','#D9572B','짧게 아주 빠르게','1~2분 안의 빠른 질주 후 완전히 쉬고 다시. 같은 속도를 덜 힘들게 뛰는 몸을 만들어요.',['아주 빠르게','힘 빼고','완전 휴식']],
     stride:['STRIDES','스트라이드','#2C8FC0','20초쯤 치고 나가기','쉬운 날 끝에 가볍게 빨리 몇 번. 폼과 다리 탄력을 깨워요.',['20초','가볍게 빠르게','걸으며 회복']],
-    tt:['TIME TRIAL','실력 재기','#CF3B36','지금 실력을 재는 날','2km를 힘껏 고르게. 이 기록으로 모든 목표 속도를 다시 계산해요.',['앞뒤는 천천히','가운데만 힘껏','4주마다']],
+    tt:['TIME TRIAL','TT','#CF3B36','지금 실력을 재는 날','2km를 힘껏 고르게. 이 기록으로 모든 목표 속도를 다시 계산해요.',['앞뒤는 천천히','가운데만 힘껏','4주마다']],
     goalpace:['GOAL PACE','목표 속도로','#6E4BB0','대회 속도에 익숙해지기','목표 기록에서 나온 속도로 같은 구간을 고르게 반복해요.',['목표 속도','고르게','대회 그 느낌']],
     buildup:['BUILD-UP RUN','빌드업 런','#1E8E7E','천천히 시작 → 점점 빠르게','처음엔 천천히, 후반으로 갈수록 속도를 조금씩 올려요. 후반 뒷심이 생기고 초반 오버페이스를 막아요.',['천천히 시작','점점 빠르게','후반 가속']]
   };
@@ -8944,7 +9073,7 @@ function renderGuide(){
       fx(`목표 = [E 빠른 끝, E 느린 끝]<br>준비 1km = E 범위의 느린 절반, 허용 ±20초`)+src(T('easy').src)),
     tr('recovery','이지런보다 더 느리게',pr(PACE.rec),
       `<div class="gd-row">${rpe(2)}<span>콧노래 가능</span></div>`+
-      kv([['속도',`E 범위의 느린 절반 ${pr(PACE.rec)}`],['상한',`${fp(PACE.recCeil)}보다 빠르면 안 됨 (느린 건 통과)`],['심박',hz('recovery')+' (최대의 70%)'],
+      kv([['속도',`E 범위의 느린 절반 ${pr(PACE.rec)}`],['상한',`${fp(PACE.recCeil)}보다 빠르면 안 됨 (느린 건 통과)`],['심박',hz('recovery')+' (최대의 80% — 이지런과 같음)'],
           ['판정',`상한보다 5초 넘게 빠른 시간 ≤ ${Math.round(th.ceil*100)}%`]])+
       fx(`회복 = [(E₀ + E₁) ÷ 2, E₁]`)+src(T('recovery').src)),
     tr('long','천천히 오래',`≤150분`,
@@ -8998,7 +9127,7 @@ function renderGuide(){
   const sys=[
     item('grow',ic('grow'),'실력이 오르는 속도','목표까지 몇 주 걸리나','4~6주에 1점',
       fx(`필요 점수 = vdotOf(목표 거리, 목표 시간) − 지금 VDOT<br>걸리는 주 = 필요 점수 ÷ (1/4 ~ 1/6 점/주)`)+
-      note('실력 재기가 3주 넘는 간격으로 2번 이상 쌓이면 내 추세(점수 차 ÷ 주)도 같이 써요.')+src('Daniels 경험칙 (C) · 함수 feasible')),
+      note('TT가 3주 넘는 간격으로 2번 이상 쌓이면 내 추세(점수 차 ÷ 주)도 같이 써요.')+src('Daniels 경험칙 (C) · 함수 feasible')),
     item('plan',ic('plan'),'4주 일정 만들기','주간 거리 · 빠른 날 · 긴 날','×1.05~1.10',
       kv([['시작 거리','최근 4주 평균 (없으면 설문, 기본 12km) · 6~120km'],['늘리기','1주 ×1 → 2주 ×g → 3주 ×g² → 4주 ×0.72 (쉬어가기)'],
           ['g','대회·속도 1.08 · 완주 1.10 · 체중 1.07 · 복귀 1.05'],['빠른 날','5일 이상 2번 · 3~4일 1번 · 그 아래 0'],
@@ -9036,7 +9165,7 @@ function renderGuide(){
     ['threshold',ti('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>'),'지속주 · 템포런','Tempo Run','힘들지만 20~60분 버틸 빠르기로 유지','젖산 역치를 올려 빠른 속도를 오래 유지',`${fp(PACE.T)}`],
     ['recovery',ti('<circle cx="14" cy="4.5" r="1.8"/><path d="M8 21l3-6 3 2v4M7 10l4-3 3 3 3 1M11 15l1-5"/>'),'회복주','Recovery Run','힘든 훈련 다음 날 아주 가볍게','몸을 푸는 날 — 빠르게 뛰는 게 유일한 실패',`${fp(PACE.rec[0])}~`],
     ['stride',ti('<path d="M4 17h4l3-8 3 8h6"/><path d="M14 5l3 3-3 3"/>'),'스트라이드','Strides','20초쯤 가볍게 빠르게 치고 나가기','쉬운 날 끝에 4~6번 — 폼을 깨워요','10~20초'],
-    ['tt',ti('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),'TT · 실력 재기','Time Trial','정해진 거리를 힘껏 뛰어 실력 측정','4주마다 — 모든 목표 속도를 다시 계산','2km']
+    ['tt',ti('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),'TT','Time Trial','정해진 거리를 힘껏 뛰어 실력 측정','4주마다 — 모든 목표 속도를 다시 계산','2km']
   ];
   const termRows=`<div class="gd-terms">${TERMS.map((t,i)=>`<button type="button" class="gd-term"${t[0]?` data-gfocus="${t[0]}"`:' disabled'}>
       <span class="gt-no">${String(i+1).padStart(2,'0')}</span><span class="gt-ic">${t[1]}</span>
@@ -9074,7 +9203,7 @@ function renderGuide(){
     cell('빌드업 런','Build-up Run',bars([.25,.4,.55,.7,.85,1],'#3D63C8'),'천천히 시작해 갈수록 빠르게 · 오버페이스 방지','자동 일정엔 아직 없음'),
     cell('네거티브 스플릿','Negative Split',`<svg viewBox="0 0 60 34" width="60" height="34" aria-hidden="true"><path d="M4 26H30" stroke="#9DB1E6" stroke-width="5" stroke-linecap="round"/><path d="M30 10H56" stroke="#3D63C8" stroke-width="5" stroke-linecap="round"/><circle cx="30" cy="18" r="3" fill="#3D63C8"/></svg>`,'후반을 전반보다 빠르게<br>후반 평균 페이스 &lt; 전반',''),
     cell('스트라이드 (드릴)','Strides',guideShape('stride',T('stride').col),'20초쯤 가볍게 빠르게 × 4~6번','10~20초','stride'),
-    cell('TT · 실력 재기','Time Trial',guideShape('tt',T('tt').col),'2km 힘껏 → 모든 속도 다시 계산',`VDOT ${VDOT.toFixed(1)}`,'tt')
+    cell('TT','Time Trial',guideShape('tt',T('tt').col),'2km 힘껏 → 모든 속도 다시 계산',`VDOT ${VDOT.toFixed(1)}`,'tt')
   ])+
   band('운동 지표','#E07A1F',[
     cell('심박수','Heart Rate',`<svg viewBox="0 0 48 44" width="46" height="42" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#E0454B"/><path d="M8 22h8l3-6 5 12 3-6h13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,'1분에 심장이 뛰는 수 (bpm)',`최대 ${HRMAX}`,'hrmax'),
@@ -9261,20 +9390,14 @@ const STEPS={
 /* 동작: [자세, 이름, 효과 한 줄, 하는 법, 양쪽?] */
 const STR={
   dyn:{en:'WARM-UP',ko:'러닝 전 준비운동',when:'훈련 전',sec:30,key:'짧게 깨우고, 가볍게 출발',
-    desc:'위에서 아래로 — 목·어깨·팔·허리를 돌려 풀고, 다리를 짧게 늘리고, 움직이며 데운 뒤 제자리 뛰기로 출발해요.',
-    chk:['각 동작 20~30초','좌우 모두','호흡은 자연스럽게','아프지 않은 범위'],
+    desc:'멈춰서 버티지 않고 움직이며 데워요. 상체 → 햄스트링 → 고관절 → 하체 → 제자리 뛰기로 바로 출발.',
+    chk:['6가지 · 3분','멈추지 않고 움직이며','아프지 않은 범위'],
     tips:['끝나면 첫 1km는 천천히 출발','추운 날엔 조금 더 길게'],
-    moves:[['neck','목 돌리기','목 주변 긴장을 풀어요','천천히 크게 원 그리기 · 양방향',false],
-           ['shoulder','어깨 돌리기','상체가 부드럽게 움직여요','손끝을 어깨에, 팔꿈치로 원 그리기',false],
-           ['arm','팔 돌리기','팔·가슴 근육을 풀어요','팔을 옆으로 뻗어 앞으로 · 뒤로',false],
+    moves:[['arm','팔 돌리기','팔·가슴·어깨를 한 번에 풀어요','팔을 옆으로 뻗어 앞으로 · 뒤로',false],
            ['waist','허리 돌리기','코어가 안정돼요','손은 허리에, 골반으로 원 그리기',false],
-           ['quad','허벅지 앞','무릎 부담을 줄여요','발목 잡고 뒤꿈치를 엉덩이 쪽으로',true],
-           ['fold','허벅지 뒤','다리 뒤가 유연해져요','무릎 살짝 굽혀 상체 숙이기',true],
-           ['calf','종아리','발목·아킬레스건을 보호해요','벽 밀며 뒤꿈치 바닥에',true],
-           ['lunge','런지','엉덩이·허벅지를 깨워요','크게 한 걸음, 골반을 아래로',true],
            ['toekick','토 터치 킥','햄스트링을 움직이며 풀어요','다리 쭉 펴 차올리고 반대 손으로 발끝 터치 · 좌우 번갈아',false],
-           ['gateOpen','고관절 열기','고관절을 바깥으로 열어요','무릎 굽혀 앞으로 들고 → 옆으로 90° → 내리기 · 좌우 번갈아',false],
-           ['gateClose','고관절 닫기','고관절을 안쪽으로 모아요','옆 90°에서 무릎 들고 → 앞으로 → 내리기 · 좌우 번갈아',false],
+           ['gateOpen','고관절 열기·닫기','고관절을 크게 돌려 풀어요','무릎 들고 → 옆으로 90° → 내리기, 다음엔 반대로 · 좌우 번갈아',false],
+           ['lunge','워킹 런지','엉덩이·허벅지를 깨워요','크게 한 걸음, 골반을 아래로 · 좌우 번갈아',false],
            ['jog','제자리 뛰기','심박을 올려 출발 준비','가볍게 통통, 팔도 같이',false]]},
   stat:{en:'COOL-DOWN',ko:'러닝 후 정적 스트레칭',when:'훈련 후',sec:30,key:'멈춘 자세로 천천히 늘려요',
     desc:'달리기로 짧아진 근육을 반동 없이 늘려요. 아프지 않고 당기는 정도로.',chk:['훈련 후','반동 없이 30초','양쪽 모두'],tips:[],
@@ -9295,7 +9418,7 @@ function stretchCard(kind,opt){ opt=opt||{}; const S=STR[kind], c=STR_COL[kind],
     ${opt.compact?'':`<div class="tc-chk"><span>체크리스트</span>${S.chk.map(x=>`<i>${x}</i>`).join('')}</div>`}
     ${!opt.compact&&S.tips.length?`<div class="st-tips"><b>추가 꿀팁</b>${S.tips.map(x=>`<i>${x}</i>`).join('')}</div>`:''}
     <button type="button" class="st-go" data-stgo="${kind}">▶ 따라하기 ${Math.round(tot/60)}분</button>
-    ${opt.compact?'':`<p class="gd-src" style="padding:0 14px 12px">${kind==='dyn'?'정지 자세는 30초 안쪽으로 짧게 — 오래 버티면 순간 힘이 조금 떨어질 수 있어요(B).':'정적 스트레칭이 부상을 막는다는 근거는 약해요(C). 뻣뻣함을 풀고 몸을 식히는 시간으로 써요.'}</p>`}
+    ${opt.compact?'':`<p class="gd-src" style="padding:0 14px 12px">${kind==='dyn'?'달리기 전엔 오래 버티는 스트레칭 대신 움직이는 동작으로 — 오래 버티면 순간 힘이 조금 떨어질 수 있어요(B).':'정적 스트레칭이 부상을 막는다는 근거는 약해요(C). 뻣뻣함을 풀고 몸을 식히는 시간으로 써요.'}</p>`}
   </article>`; }
 /* ── 따라하기 ── */
 const ST={kind:null,i:0,t:0,side:0,timer:null,paused:false};
@@ -9470,6 +9593,160 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
   if(e.target.id==='peKm'){ const v=parseFloat(e.target.value); if(v>=2&&v<=45){ PE.km=Math.round(v*2)/2; } peRender(); }
   if(e.target.id==='peDate'&&e.target.value){ PE.date=e.target.value; peRender(); }
+});
+
+/* ═════════════════════ 훈련 부하 점수 — 출처 있는 식만 쓴다 ═════════════════════
+   · rTSS  — TrainingPeaks(Coggan/Skiba) 달리기 TSS: IF = 역치 속도 ÷ 실제 속도(= 실제 페이스 ÷ T 페이스의 역수), TSS = 초 × IF² ÷ 3600 × 100. 1시간 역치 = 100
+   · TRIMP — Banister 1991: 분 × ΔHR비 × 0.64·e^(1.92·ΔHR비) (남) / 0.86·e^(1.67·ΔHR비) (여), ΔHR비 = (평균심박 − 안정심박) ÷ (최대 − 안정)
+   · 존 TRIMP — Edwards 1993: 각 존 분 × 존 번호(1~5) 합
+   · sRPE  — Foster 2001: RPE(CR-10) × 분
+   · 주간 단조도·긴장 — Foster 1998: 단조도 = 7일 평균 ÷ 표준편차, 긴장 = 주간 합 × 단조도 */
+function restHr(){ const l=(RHR||[]).slice(-7).map(x=>x&&(x.bpm||x.v||x)).filter(x=>x>30&&x<120); if(l.length)return Math.round(l.reduce((a,b)=>a+b,0)/l.length); return PROF.rhr||60; }
+function loadOf(r){
+  if(!r||!isRun(r)||!r.sec)return null;
+  const min=r.sec/60, out={};
+  /* rTSS — 구간이 있으면 구간마다, 없으면 평균 페이스로 */
+  if(Z&&Z.T){ const segs=(r.segments||[]).filter(g=>g.sec>0&&g.pace>0);
+    const tss=(sec,pace)=>{ const IF=Z.T/pace; return sec*IF*IF/3600*100; };
+    let v=segs.length?segs.reduce((a,g)=>a+tss(g.sec,g.pace),0):(r.paceAvg?tss(r.sec,r.paceAvg):null);
+    if(v!=null){ out.tss=Math.round(v); out.if=+(segs.length?Math.sqrt(v/100*3600/r.sec):Z.T/r.paceAvg).toFixed(2); } }
+  /* Banister TRIMP */
+  if(r.hrAvg&&HRMAX){ const rhr=restHr(), x=Math.max(0,Math.min(1,(r.hrAvg-rhr)/Math.max(20,HRMAX-rhr)));
+    const k=PROF.sex==='f'?0.86*Math.exp(1.67*x):0.64*Math.exp(1.92*x); out.trimp=Math.round(min*x*k); out.dhr=+x.toFixed(2); }
+  /* Edwards 존 TRIMP — 이 앱의 존(70/80/85/90/95%)은 Edwards 원본(50/60/70/80/90%)보다 높게 잘려 있어 보수적인 값 */
+  if(r.zones&&r.zones.some(z=>z>0)){ out.edw=Math.round(r.zones.reduce((a,sec,i)=>a+sec/60*(i+1),0)); }
+  /* sRPE */
+  if(r.rpe){ out.srpe=Math.round(r.rpe*min); }
+  /* 대표 점수 — 페이스 기준 rTSS, 없으면 TRIMP, 없으면 sRPE */
+  out.main = out.tss!=null?{v:out.tss,k:'tss',nm:'rTSS'} : out.trimp!=null?{v:out.trimp,k:'trimp',nm:'TRIMP'} : out.srpe!=null?{v:out.srpe,k:'srpe',nm:'sRPE'} : null;
+  return out.main?out:null;
+}
+/* TrainingPeaks 안내: <150 다음날 회복 · 150~300 이틀 · 300~450 사흘 · 450+ 며칠 */
+function loadBand(k,v){
+  if(k==='tss') return v<150?['가벼움','다음 날이면 회복','ok']:v<300?['보통','이틀쯤 피로 남음','mid']:v<450?['높음','사흘쯤 피로','hi']:['아주 높음','며칠 피로 — 다음 힘든 날 늦추기','bad'];
+  if(k==='trimp') return v<50?['가벼움','','ok']:v<120?['보통','','mid']:v<200?['높음','','hi']:['아주 높음','','bad'];
+  return v<200?['가벼움','','ok']:v<400?['보통','','mid']:v<600?['높음','','hi']:['아주 높음','','bad'];
+}
+function weekLoad(endDs){ const end=endDs||todayStr(), days=[]; for(let i=6;i>=0;i--){ const d=addDays(end,-i);
+    const v=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d).reduce((a,r)=>{ const L=loadOf(r); return a+(L&&L.tss!=null?L.tss:L&&L.main?L.main.v:0); },0); days.push({d,v}); }
+  const sum=days.reduce((a,x)=>a+x.v,0), mean=sum/7, sd=Math.sqrt(days.reduce((a,x)=>a+(x.v-mean)**2,0)/7);
+  const mono=sd>0?+(mean/sd).toFixed(2):null, strain=mono!=null?Math.round(sum*mono):null;
+  return {days,sum:Math.round(sum),mono,strain}; }
+function loadCard(r,compact){
+  const L=loadOf(r); if(!L)return '';
+  const m=L.main, band=loadBand(m.k,m.v), pct=Math.min(100,m.v/(m.k==='tss'?450:m.k==='trimp'?200:600)*100);
+  const rows=[L.tss!=null?['rTSS',`${L.tss}`,`IF ${L.if} · 역치 페이스 ${fmtPace(Z.T)} 기준`]:null,
+    L.trimp!=null?['TRIMP (Banister)',`${L.trimp}`,`평균 심박 ${r.hrAvg} · 안정 ${restHr()} · 최대 ${HRMAX}`]:null,
+    L.edw!=null?['존 TRIMP (Edwards)',`${L.edw}`,'존별 분 × 1~5']:null,
+    L.srpe!=null?['sRPE (Foster)',`${L.srpe}`,`RPE ${r.rpe} × ${Math.round(r.sec/60)}분`]:null].filter(Boolean);
+  if(compact) return `<span class="ld-chip ${band[2]}">${m.nm} <b>${m.v}</b> · ${band[0]}</span>`;
+  const wk=weekLoad(ldate(r.date).slice(0,10));
+  return `<div class="rcard ldc"><div class="rh"><b>훈련 부하 점수</b><span>출처 있는 식으로만</span></div>
+    <div class="ld-main"><b class="num">${m.v}</b><span><i>${m.nm}</i><em class="${band[2]}">${band[0]}${band[1]?' · '+band[1]:''}</em></span></div>
+    <div class="ld-bar"><i class="${band[2]}" style="width:${pct.toFixed(0)}%"></i></div>
+    <div class="ld-rows">${rows.map(x=>`<div><span>${x[0]}</span><b class="num">${x[1]}</b><i>${x[2]}</i></div>`).join('')}</div>
+    <div class="ld-wk"><span>이번 7일 합 <b class="num">${wk.sum}</b></span>${wk.mono!=null?`<span>단조도 <b class="num">${wk.mono}</b>${wk.mono>2?' <em>높음 — 강약을 더 두세요</em>':''}</span><span>긴장 <b class="num">${wk.strain}</b></span>`:''}</div>
+    <details class="ld-src"><summary>계산 근거</summary><p><b>rTSS</b> = 초 × IF² ÷ 3600 × 100, IF = 역치 페이스 ÷ 실제 페이스 (Coggan, TrainingPeaks). 역치 1시간 = 100점.<br>
+      <b>TRIMP</b> = 분 × ΔHR비 × 0.64·e<sup>1.92·ΔHR비</sup> (Banister 1991, 여성 0.86·e<sup>1.67x</sup>), ΔHR비 = (평균 − 안정) ÷ (최대 − 안정).<br>
+      <b>존 TRIMP</b> = Σ 존 분 × 존 번호 (Edwards 1993).<br><b>sRPE</b> = RPE × 분 (Foster 2001).<br>
+      <b>단조도</b> = 7일 평균 ÷ 표준편차, <b>긴장</b> = 7일 합 × 단조도 (Foster 1998). 단조도 2.0 넘고 긴장이 높으면 과훈련·감기 위험이 올라간다는 보고가 있어요.</p></details></div>`;
+}
+
+/* ═════════════════════ 뛴 뒤 디브리핑 — 오늘 결과를 그림·숫자로 풀고, 다음 훈련 수정에 동의를 구한다 ═════════════════════ */
+function afterOpts(r,s){
+  /* openAfterDec가 만들던 선택지를 그대로 돌려준다 — 화면만 다르다 */
+  const pr=promiseRows(r,s), kind=pr.kind, T=TYPES[s.type]||{}, th=r.th||judgeTh();
+  const nextHard=nextOf(['interval','threshold','goalpace','rep','tt'],todayStr(),3);
+  const opts=[]; let say='';
+  if(kind==='fast'){
+    say=`이지 날을 약속보다 빠르게 뛰면 힘은 다 들고 회복은 안 돼요.${nextHard?` 다음 ${String(nextHard.t).replace(/\s*\([^)]*\)/g,'')}(${dowOf(nextHard.d)})을 지친 다리로 시작하게 돼요.`:''}`;
+    const slot=nextHard?addDays(nextHard.d.slice(0,10),1):null;
+    if(nextHard&&slot&&!planOn(slot)) opts.push({id:'move',t:`${String(nextHard.t).replace(/\s*\([^)]*\)/g,'')} 하루 미루기 → ${dowOf(slot)}요일`,why:'빠른 날은 회복된 다리로',rec:true,apply:()=>{ moveSession(nextHard.d,slot); }});
+    if(nextHard) opts.push({id:'adj3',t:'다음 빠른 날 목표 3초 늦추기',why:'끝까지 고르게 뛸 확률이 올라가요',rec:!opts.length,apply:()=>{ ADJ[nextHard.type]=(ADJ[nextHard.type]||0)+3; DEV.store.set('adj',ADJ); }});
+  } else if(kind==='spread'||kind==='slow'){
+    say=kind==='spread'?`뒤 회차가 앞보다 ${r.spread}초 늦었어요. 첫 회차를 빨리 나갔거나, 목표가 지금 몸보다 조금 빠르다는 뜻이에요.`:'회차가 목표보다 늦었어요. 날씨·피로일 수도, 목표가 지금 몸보다 빠를 수도 있어요.';
+    opts.push({id:'adj3',t:`다음 ${T.nm} 목표 3초 늦추기`,why:s.repTarget?`${fmtPace(s.repTarget+(ADJ[s.type]||0))} → ${fmtPace(s.repTarget+(ADJ[s.type]||0)+3)}`:'',rec:true,apply:()=>{ ADJ[s.type]=(ADJ[s.type]||0)+3; DEV.store.set('adj',ADJ); }});
+    opts.push({id:'guard',t:'첫 회차 과속 경고 켜기',why:'첫 회차가 5초 넘게 빠르면 바로 알려줘요',rec:false,apply:()=>{ VOPT.firstGuard=true; DEV.store.set('vopt',VOPT); }});
+  } else if(kind==='short'){
+    const nl=nextOf(['long'],todayStr());
+    say=`계획 ${s.dist}km 중 ${Math.round((r.distRatio||0)*100)}%를 뛰었어요. LSD는 거리가 목적이라 다음에 더 늘리는 건 미루는 게 맞아요.`;
+    if(nl&&nl.dist>s.dist) opts.push({id:'longHold',t:`다음 LSD ${nl.dist}→${s.dist}km`,why:'몸이 받칠 때까지 같은 거리 한 번 더',rec:true,apply:()=>{ DIST[nl.d]=s.dist; DEV.store.set('dist',DIST); }});
+  } else if(kind==='easyreps'){
+    say=`회차 차이 ${r.spread}초, RPE ${r.rpe} — 고르고 가볍게 끝냈어요. 조금 조여도 돼요.`;
+    opts.push({id:'tight3',t:`다음 ${T.nm} 목표 3초 조이기`,why:'힘듦이 조금 올라가요',rec:false,apply:()=>{ ADJ[s.type]=(ADJ[s.type]||0)-3; DEV.store.set('adj',ADJ); }});
+  } else if(kind==='hr'){
+    say='심박이 기준보다 높았어요. 더위·수면·피로가 흔한 원인이에요. 다음 이지 날은 속도보다 심박만 보고 가요.';
+  } else if(kind==='kept'||kind==='softfast'){
+    say=kind==='kept'?'약속대로였어요. 이대로 쌓으면 돼요.':'본 운동은 약속대로였고, 레스트·웜업·쿨다운이 조금 빨랐어요. 쉬는 구간은 더 느려도 돼요.';
+  }
+  /* 공통 — 기록에서 나온 제안 */
+  if(r.hrMaxHeld&&PROF.hrmaxSrc!=='measured'&&r.hrMaxHeld>=(PROF.hrmaxObs||0)&&r.hrMaxHeld>estHrMax(PROF.age)) opts.push({id:'hrmax',t:`최대 심박 ${r.hrMaxHeld}로 올리기`,why:'30초 넘게 유지된 값 — 심박 존이 다시 계산돼요',rec:true,apply:()=>{ PROF=Object.assign({},PROF,{hrmaxObs:r.hrMaxHeld}); DEV.store.set('prof',PROF); recalcProfile(); recalcTypes(); }});
+  return {kind,pr,say,opts};
+}
+function debriefPoints(r,s){
+  const good=[], bad=[], T=TYPES[r.type]||{};
+  const pr=promiseRows(r,s);
+  (pr.rows||[]).forEach(x=>{ if(x[2]==='ok')good.push([x[0],x[1]]); else if(x[2]==='bad')bad.push([x[0],x[1]]); });
+  const sp=(r.splits||[]).filter(x=>x.pace&&!x.part);
+  if(sp.length>=4){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
+    const d=Math.round(a-b); if(d>=3)good.push(['후반',`네거티브 스플릿 — 후반이 ${d}초/km 빨랐어요`]); else if(d<=-8&&!['interval','threshold','rep'].includes(r.type))bad.push(['후반',`후반이 ${-d}초/km 느려졌어요 — 초반이 빨랐을 수 있어요`]); }
+  const cu=typeof cadAuto==='function'?cadAuto():null;
+  if(r.cadAvg&&cu){ if(r.cadAvg>=cu+3)good.push(['케이던스',`${r.cadAvg} — 평소 ${cu}보다 가벼운 발`]); else if(r.cadAvg<=cu-6)bad.push(['케이던스',`${r.cadAvg} — 평소 ${cu}보다 느려 보폭이 커졌어요`]); }
+  if(r.drift&&r.drift.bpm>=6)bad.push(['심박 표류',`같은 속도에서 심박이 ${r.drift.bpm} 올랐어요 — 더위·탈수·피로`]);
+  else if(r.hrAvg&&r.sec>1500&&!(r.drift&&r.drift.bpm>=6))good.push(['심박','후반에도 안정적이었어요']);
+  const z=r.zones||[], zt=z.reduce((a,b)=>a+b,0);
+  if(zt>300&&['easy','recovery','long'].includes(r.type)){ const e=(z[0]+z[1])/zt; if(e>=0.8)good.push(['심박 존',`${Math.round(e*100)}%를 Z1·Z2에서 — 이지 날답게`]); }
+  const L=loadOf(r); if(L&&L.main){ const b=loadBand(L.main.k,L.main.v); (b[2]==='bad'?bad:good).push(['훈련 부하',`${L.main.nm} ${L.main.v} · ${b[0]}${b[1]?' — '+b[1]:''}`]); }
+  if(r.learnNote)good.push(['내 몸 기준',r.learnNote]);
+  return {good:good.slice(0,5),bad:bad.slice(0,5)};
+}
+function debriefShape(r,s){
+  /* 구간별 계획 vs 실제 페이스 — 빠를수록 높은 막대. 계획 범위는 옅은 띠 */
+  const segs=(r.segments||[]).filter(g=>g.sec>0); if(!segs.length)return '';
+  const all=segs.flatMap(g=>[g.pace,g.plan?g.plan[0]:null,g.plan?g.plan[1]:null]).filter(x=>x>0);
+  const lo=Math.min(...all)-10, hi=Math.max(...all)+10, W=320, H=90, tot=segs.reduce((a,g)=>a+g.sec,0); let x=0;
+  const yOf=p=>H-((hi-p)/(hi-lo))*H;
+  const bars=segs.map(g=>{ const w=Math.max(4,g.sec/tot*W-2), ok=g.pass, col=g.hard?'#E35A32':'#2EAD7A';
+    const plan=g.plan?`<rect x="${x.toFixed(1)}" y="${yOf(g.plan[0]).toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(2,yOf(g.plan[1])-yOf(g.plan[0])).toFixed(1)}" fill="${col}" opacity=".18"/>`:'';
+    const act=g.pace?`<rect x="${x.toFixed(1)}" y="${(yOf(g.pace)-3).toFixed(1)}" width="${w.toFixed(1)}" height="6" rx="3" fill="${ok===false?'#CF3B36':col}"/>`:'';
+    const o=plan+act; x+=w+2; return o; }).join('');
+  return `<svg class="db-shape" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="M0 ${H}h${W}" stroke="var(--line)" stroke-width="1"/>${bars}</svg>`;
+}
+let DBF=null;
+function openDebrief(r,s){
+  const T=TYPES[r.type]||{}, col=T.col||'#5B2D86', A=afterOpts(r,s), P=debriefPoints(r,s), vd=A.kind?VERD[A.kind]:null;
+  const st=promiseStreak(), map=r.track&&r.track.length>3?routeSVG(r.track,r.segments,{w:110,h:110,pad:8,sw:4,marks:false,ends:true}):'';
+  const L=loadOf(r), z=r.zones||[], zt=z.reduce((a,b)=>a+b,0);
+  DBF={r,s,opts:A.opts,chosen:new Set(A.opts.filter(o=>o.rec).map(o=>o.id))};
+  const row=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
+  $('dbBody').innerHTML=`
+    <div class="db-hd" style="--tc:${col}"><span class="db-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span><span class="db-date">${todayStr().slice(5).replace('-','.')} ${dowOf(todayStr())}</span></div>
+    ${vd?`<div class="db-vd ${vd[1]}">${vd[1]==='ok'?'🏅':vd[1]==='mid'?'👍':'💬'} ${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
+    <div class="db-hero">${map?`<div class="db-map">${map}</div>`:''}<div class="db-nums">
+      <div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div>
+      <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>${r.hrAvg?`<div><b class="num">${r.hrAvg}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
+    ${debriefShape(r,s)?`<div class="db-card"><div class="db-lab">구간별 계획(띠) vs 실제(막대) · 높을수록 빠름</div>${debriefShape(r,s)}</div>`:''}
+    ${zt>300?`<div class="db-card"><div class="db-lab">심박 존</div><div class="db-zones">${z.map((v,i)=>v?`<i style="flex:${v};background:${ZCOL[i]}" title="Z${i+1} ${Math.round(v/60)}분"></i>`:'').join('')}</div><div class="db-zl">${z.map((v,i)=>v/zt>0.08?`<span style="color:${ZCOL[i]}">Z${i+1} ${Math.round(v/zt*100)}%</span>`:'').join('')}</div></div>`:''}
+    ${L?`<div class="db-card">${loadCard(r,true)}</div>`:''}
+    ${P.good.length?`<div class="db-card"><div class="db-lab">좋았던 점</div><ul class="db-pts">${P.good.map(x=>row(x,'ok')).join('')}</ul></div>`:''}
+    ${P.bad.length?`<div class="db-card"><div class="db-lab">아쉬운 점</div><ul class="db-pts">${P.bad.map(x=>row(x,'bad')).join('')}</ul></div>`:''}
+    ${A.say?`<p class="db-say">${A.say}</p>`:''}
+    ${A.opts.length?`<div class="db-card db-prop"><div class="db-lab">다음 훈련에 이렇게 반영할게요 — 동의하시면 체크</div>
+      ${A.opts.map(o=>`<label class="db-opt"><input type="checkbox" data-dbo="${o.id}"${DBF.chosen.has(o.id)?' checked':''}><span><b>${o.t}</b>${o.why?`<i>${o.why}</i>`:''}</span></label>`).join('')}
+      <div class="db-btns"><button type="button" class="btn" id="dbOk">동의하고 반영</button><button type="button" class="btn ghost" id="dbNo">이번엔 그대로</button></div></div>`
+      :`<div class="db-btns one"><button type="button" class="btn" id="dbNo">확인</button></div>`}`;
+  const sh=$('dbSheet'); sh.hidden=false; sh.scrollTop=0; requestAnimationFrame(()=>sh.classList.add('up'));
+  try{ const g=P.good[0], b=P.bad[0]; DEV.speak(`${vd?vd[0]:'수고했어요'}. ${g?g[1]:''} ${b?b[1]:''}`.replace(/—/g,','),true); }catch(e){}
+}
+function closeDebrief(applied){ const sh=$('dbSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200);
+  try{ BLOCK=loadPlan(); }catch(e){} go('home'); if(applied)setTimeout(()=>toast(applied),80); DBF=null; }
+document.addEventListener('change',e=>{ const o=e.target.dataset&&e.target.dataset.dbo; if(o&&DBF){ if(e.target.checked)DBF.chosen.add(o); else DBF.chosen.delete(o); } });
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#dbSheet'))return;
+  if(e.target.closest('#dbOk')&&DBF){ const done=[]; DBF.opts.forEach(o=>{ if(DBF.chosen.has(o.id)){ try{ o.apply(); done.push(o.t); }catch(err){} } });
+    try{ decLog('after','뛴 뒤 돌아보기',DBF.r.title||'',done.join(' · ')||'그대로',{ref:DBF.r.rid}); }catch(err){}
+    closeDebrief(done.length?`반영했어요 — ${done.join(' · ')}`:'그대로 둘게요'); return; }
+  if(e.target.closest('#dbNo')){ closeDebrief(null); return; }
 });
 </script>
 </body>
