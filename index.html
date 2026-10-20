@@ -1127,7 +1127,7 @@ details.noti .sigc{margin:6px 0}
 
 <div class="view on" id="home">
   <div class="topline"><b id="tlDate">—</b><span id="tlBlock" style="font-family:var(--num);font-size:11px"></span>
-    <span class="right" id="tlWk">—</span>
+    <span class="right" id="tlWk">—</span><span class="tlver" id="tlVer"></span>
     <button id="btnMusic" class="icbtn mus-hb" style="margin-left:9px" aria-label="음악"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
     <button id="bellWrap" class="icbtn" style="margin-left:9px" aria-label="알림">🔔</button>
     <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button>
@@ -1758,6 +1758,34 @@ details.noti .sigc{margin:6px 0}
 .ab b{display:block;font-size:14px;line-height:1.4;word-break:keep-all}.ab i{display:block;font-style:normal;font-size:11.5px;color:#E3D6F0;margin-top:3px}
 .ab-mini{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--accent);background:var(--panel-2);padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:middle;white-space:nowrap}
 .gd-sec h3{display:flex;align-items:center;flex-wrap:wrap}
+.mygoal{background:var(--panel);border-radius:22px;padding:14px 16px;margin:0 0 12px;border:1.5px solid var(--line);display:block}
+.mygoal.full{margin:8px 0 20px}
+.tlver{font-family:var(--num);font-size:10px;color:var(--ink-3);margin-left:8px;opacity:.7}
+.gc-t em{display:block;font-style:normal;font-size:12.5px;font-weight:800;color:var(--accent);margin-bottom:2px}
+.gc-edit{margin-top:10px}.gc-edit>summary{list-style:none;font-size:12.5px;font-weight:800;color:var(--accent);cursor:pointer;padding:6px 0}.gc-edit>summary::-webkit-details-marker{display:none}.gc-edit>summary::after{content:' ▾'}
+.gc-ef{display:flex;flex-direction:column;gap:8px;background:var(--panel-2);border-radius:14px;padding:12px}
+.gc-ef label{display:grid;grid-template-columns:1fr 120px 36px;align-items:center;gap:8px;font-size:13px}.gc-ef input{font:inherit;font-family:var(--num);font-size:16px;font-weight:700;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--panel);min-width:0}
+.gc-ef em{font-style:normal;font-size:11px;color:var(--ink-3)}.gc-ehint{font-size:11.5px;color:var(--ink-3);margin:0}.gc-ef .btn{margin:4px 0 0}
+.gc-ttl{font-size:12.5px;font-weight:800;color:var(--accent);letter-spacing:.2px;margin:0 0 10px}
+.gc-top{display:flex;align-items:center;gap:12px}.gc-ic{flex:none;width:44px;height:44px;border-radius:14px;background:var(--panel-2);display:grid;place-items:center;font-size:22px}
+.gc-t b{display:block;font-size:19px;font-weight:900;line-height:1.2}.mygoal.full .gc-t b{font-size:22px}.gc-t i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:2px}
+.gg{margin:14px 0 4px}.gg-bar{position:relative;height:10px;border-radius:5px;background:var(--line)}.gg.big .gg-bar{height:14px;border-radius:7px}
+.gg-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#8DB89A,var(--accent))}
+.gg-bar b{position:absolute;top:50%;width:22px;height:22px;border-radius:50%;background:#fff;border:4px solid var(--accent);transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.gg-l{display:flex;justify-content:space-between;margin-top:8px}.gg-l span{display:flex;flex-direction:column;align-items:center;font-family:var(--num)}.gg-l span:first-child{align-items:flex-start}.gg-l span:last-child{align-items:flex-end}
+.gg-l i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-family:var(--sans)}.gg-l b{font-size:15px;font-weight:800}.gg-l .now b{font-size:19px;color:var(--accent)}
+.gc-st{font-size:12.5px;font-weight:700;color:var(--ink-2);background:var(--panel-2);border-radius:10px;padding:8px 10px;margin-top:8px}
+.gc-tiles{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;margin-top:10px}.gc-tiles>div{background:var(--bg);border-radius:12px;padding:9px 6px;text-align:center}
+.gc-tiles b{display:block;font-size:19px;font-weight:900;line-height:1}.gc-tiles small{font-size:11px;color:var(--ink-3);font-weight:700}.gc-tiles i{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);margin-top:3px}
+.gc-how{display:flex;gap:8px;align-items:baseline;margin-top:10px;font-size:12.5px}.gc-how span{flex:none;color:var(--ink-3);font-weight:700}.gc-how b{font-weight:700;color:var(--ink)}
+.gc-more{display:block;width:100%;margin-top:8px;border:none;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:800;padding:6px;cursor:pointer;text-align:center}
+.gc-lab{font-size:11.5px;font-weight:800;color:var(--ink-3);margin:16px 0 8px}
+.gc-wk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end}.gc-wk>div{display:flex;flex-direction:column;align-items:center;gap:3px}.gc-wk i{display:block;width:100%;max-width:40px;border-radius:7px 7px 0 0;background:var(--accent);opacity:.75}.gc-wk b{font-size:13px}.gc-wk span{font-size:10.5px;color:var(--ink-3)}
+.gc-mix{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.gc-mix span{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;background:var(--panel-2);padding:5px 9px;border-radius:999px}.gc-mix i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.gc-hist{width:100%;height:auto;display:block}.gc-hl{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3);padding:0 8px}
+.gc-meas{font-size:12.5px;color:var(--ink-2)}
+.gc-why{margin-top:14px}.gc-why summary{font-size:13px;font-weight:800;color:var(--accent);cursor:pointer;list-style:none}.gc-why summary::-webkit-details-marker{display:none}.gc-why ul{margin:8px 0 0;padding-left:17px;font-size:12.5px;line-height:1.8;color:var(--ink-2)}
+.gc-btns{margin-top:16px}.gc-btns .btn{margin:0}
 .gs2 .gs-when{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:var(--accent)}
 .gs2 .gs-when .gs-side{margin-left:auto}
 .gs2 .gs-what{font-size:24px;font-weight:900;margin:4px 0 2px;letter-spacing:-.3px}
@@ -1967,7 +1995,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='11.2';
+const APPVER='12.0';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4456,6 +4484,7 @@ $('btnSave').onclick=()=>{
     if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
     go('home'); toast(`${ACTK[S.result.act].nm} 기록을 남겼습니다 — 달리기 거리에는 안 들어갑니다`); return;
   }
+  if(S.result.planId&&!(S.result.km>=0.5&&S.result.sec>=120)){ S.result.planId=null; S.result.tooShort=true; }
   RUNS.push(S.result);
   if(!DEV.store.set('runs',RUNS)){ RUNS.forEach(r=>{if(r.track&&r.track.length>300)r.track=simplify(r.track,300);});
     DEV.store.set('runs',RUNS); }
@@ -4483,6 +4512,7 @@ $('btnSave').onclick=()=>{
     go('plan'); return;
   }
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
+  if(S.result.tooShort){ go('home'); toast('너무 짧아 오늘 훈련으로 치지 않았어요'); return; }
   if(S.result.planId&&S.session&&S.session.d!=='free'){ openDebrief(S.result,S.session); return; }
   if(openAfterDec(S.result,S.session))return;
   const st=promiseStreak(), pr=promiseRows(S.result,S.session);
@@ -6952,7 +6982,7 @@ function renderHome(){
       ${st>=2?`<span class="streak" title="약속 ${st}번 연속"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}</span>`:''}</div>`;
 
   /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
-  let h=goalStrip()+weekStrip();
+  let h=goalCard(true)+weekStrip();
   /* 몸 신호 · 못 한 날 · 물어볼 것 — 결정 카드로 */
   const sig=[]; const j=jumpInfo(); if(j)sig.push(['jump',`2주 사이 ${j.pct}% 늘었어요`,'다음 주 거리를 그대로 둘지 정하기']);
   if(rhrAlert())sig.push(['rhr','아침 심박이 평소 범위 위예요','오늘 훈련을 그대로 할지 정하기']);
@@ -7574,6 +7604,8 @@ async function paintMap(host,tr,segs){
 function promiseRows(r,s){
   const T=TYPES[r.type]||{}, th=r.th||judgeTh(), rows=[];
   if(!s||!s.dist||r.type==='free'||r.type==='tt')return {rows,kind:null};
+  /* 거의 안 뛴 기록은 판정하지 않는다 — 0km에 '약속대로'가 나가면 거짓말이다 */
+  if(!(r.km>=0.5&&r.sec>=120))return {rows:[['기록','너무 짧아 판정하지 않아요 ('+r.km.toFixed(2)+'km · '+fmtClock(r.sec)+')','bad']],kind:'short0'};
   rows.push([`거리 약속 ${s.dist}km`,`${r.km.toFixed(1)}km${r.distRatio>=th.dist?' ✓':''}`,r.distRatio>=th.dist?'ok':'bad']);
   let kind='kept';
   if(T.judgeBy==='ceiling'||T.judgeBy==='range'){
@@ -7613,7 +7645,7 @@ function promiseRows(r,s){
   if(zt>300&&['easy','recovery','long'].includes(r.type)) rows.push(['보통(Z3)에서 보낸 시간',`${Math.round(z[2]/zt*100)}%`,z[2]/zt>0.3?'bad':'ok']);
   return {rows,kind};
 }
-const VERD={kept:['가지런했습니다 — 약속대로 갔어요','ok'],softfast:['세트는 가지런했어요 — 쉬기·준비·마무리가 빨랐어요','mid'],fast:['거리는 지켰고, 속도는 넘었습니다','bad'],spread:['뒤 회차가 늦어졌습니다','bad'],
+const VERD={short0:['너무 짧은 기록 — 판정 없음','mid'],kept:['가지런했습니다 — 약속대로 갔어요','ok'],softfast:['세트는 가지런했어요 — 쉬기·준비·마무리가 빨랐어요','mid'],fast:['거리는 지켰고, 속도는 넘었습니다','bad'],spread:['뒤 회차가 늦어졌습니다','bad'],
   slow:['회차가 목표보다 늦었습니다','mid'],off:['구간 속도를 계획대로 지키지 못했습니다','mid'],short:['거리를 다 못 채웠습니다','mid'],hr:['심박이 기준보다 높았습니다','mid'],easyreps:['아주 고르게, 가볍게 끝냈습니다','ok']};
 
 /* ───────── 결과 화면 ───────── */
@@ -8408,13 +8440,14 @@ const PATHWHY={A:'최종 목표는 그대로 두고, 이번 기간에 닿을 수
   D:'훈련은 계단(A)과 같고, 대회 날만 목표 속도로 안내합니다. 지금 실력보다 빨라서 후반에 크게 느려질 수 있습니다.'};
 const GKIND={aero:'편한 달리기 능력',race:'대회 기록',finish:'완주',pace:'1km 속도',weight:'체중',health:'건강하게 꾸준히',back:'다시 시작'};
 function goalLabel(g){ if(!g)return '목표 없음';
+  if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`♥${a.hrCap}에서 ${fmtPace(a.pace0)} → ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)}에서 ♥${a.hr0} → ♥${a.hrT}`; }
   if(g.m&&(g.final||g.sec))return `${gdLabel(g.m)} ${fmtClock(g.final||g.sec)}${g.kind==='pace'&&g.perKm?` (1km ${fmtPace(g.perKm)})`:''}`;
   return GKIND[g.kind]||'목표'; }
 function goalSnap(g,p,fz,days,adj){
   const w={}; (p.sessions||[]).forEach(x=>{ w[x.wk]=(w[x.wk]||0)+(x.dist||0); });
   const hard=(p.sessions||[]).filter(x=>x.wk===2&&['interval','threshold','goalpace','rep'].includes(x.type)).length;
   const longs=(p.sessions||[]).filter(x=>x.type==='long').map(x=>x.dist);
-  return {goal:{label:goalLabel(g),kind:g.kind,m:g.m||null,sec:g.final||g.sec||null,date:g.date||null,origDate:g.origDate||null,path:g.path||null,pulled:g.pulled||null,raceDayPace:g.raceDayPace||null},
+  return {goal:{label:goalLabel(g),kind:g.kind,aero:g.aero||null,m:g.m||null,sec:g.final||g.sec||null,date:g.date||null,origDate:g.origDate||null,path:g.path||null,pulled:g.pulled||null,raceDayPace:g.raceDayPace||null},
     now:{vdot:+VDOT.toFixed(1), sec:g.m?Math.round(raceTime(VDOT,g.m)*60):null},
     feas:fz?{verdict:fz.verdict,lo:fz.needWlo,hi:fz.needWhi,me:fz.needWme,have:fz.haveW,gap:fz.gap,reachLo:fz.ladderSec||null,reachHi:fz.ladderFast||null,dateFast:fz.dateFast||null,dateOk:fz.dateOk||null}:null,
     plan:{start:p.start,weeks:[1,2,3,4].map(i=>+(w[i]||0).toFixed(1)),days:(days||[]).slice(),hard,longMax:longs.length?Math.max(...longs):null,ladder:p.ladder||null,
@@ -8438,7 +8471,10 @@ function openDecDetail(id,back){
   const mine=dc.mine!=null?dc.mine:dc.kind==='goal'?!/앱 제안대로/.test(dc.choice):!(dc.rec&&dc.choice.startsWith(dc.rec));
   const chip=`<span class="mechip ${mine?'me':''}">${mine?'내가 정함':'앱 의견과 같음'}</span>`;
   let h='';
-  if(dc.kind==='goal'&&sn){
+  if(dc.kind==='goal'&&PLAN&&PLAN.sessions){
+    /* 목표 결정은 언제 열어도 지금 목표 카드로 — 예전 표 양식은 쓰지 않는다 */
+    h=`${head}${goalCard(false)}`;
+  } else if(dc.kind==='goal'&&sn){
     const g=sn.goal, f=sn.feas, ft=feasText(f,g), pl=sn.plan;
     const mx=Math.max(1,...pl.weeks);
     const rest=['월','화','수','목','금','토','일'].filter(x=>!pl.days.includes(x));
@@ -8454,19 +8490,25 @@ function openDecDetail(id,back){
         <div class="dr"><span>이번 일정 끝까지</span><b>${Math.max(0,dc.prog.left)}일</b></div></div>`:''}
       <div class="dl">목표</div><div class="dbox">
         <div class="dr"><span>무엇을</span><b>${GKIND[g.kind]||'—'}</b></div>
-        ${g.sec?`<div class="dr"><span>목표 기록</span><b>${ESC(g.label)}</b></div>`:''}
+        ${g.sec||g.aero?`<div class="dr"><span>목표</span><b>${ESC(g.label)}</b></div>`:''}
         <div class="dr"><span>언제까지</span><b>${g.date?g.date.replace(/-/g,'.'):'날짜 없음'}${g.origDate?` (원래 ${g.origDate.replace(/-/g,'.')})`:''}</b></div>
         ${sn.now.sec?`<div class="dr"><span>${dc.id==='cur'?'지금 실력':'그때 실력'}</span><b>${fmtClock(sn.now.sec)} · 실력 점수 ${sn.now.vdot}</b></div>`:''}
         ${g.path?`<div class="dr"><span>고른 길</span><b>${g.path} · ${PATHNM[g.path]}</b></div>`:''}
         ${pl.ladder?`<div class="dr"><span>이번 4주 연습 목표</span><b>${fmtClock(pl.ladder)}</b></div>`:''}
         ${g.raceDayPace?`<div class="dr"><span>대회 날 안내 속도</span><b>1km ${fmtPace(g.raceDayPace)}</b></div>`:''}</div>
-      <div class="dl">가능성</div><div class="dverd ${ft.c}">${ft.t}</div>
+      ${g.kind==='aero'&&g.aero?(()=>{ const a=g.aero, sp=a.mode==='speed', cur=sp?aeroPaceAt(a.hrCap):aeroHrAt(a.ref), nowV=sp?cur.pace:cur.hr, v0=sp?a.pace0:a.hr0, vT=sp?a.paceT:a.hrT, f=v=>sp?fmtPace(v):'♥'+v;
+          const pct=nowV!=null?Math.max(0,Math.min(100,Math.round((v0-nowV)/Math.max(1,v0-vT)*100))):0, wks=g.date?Math.max(0,Math.floor((Date.parse(g.date)-Date.now())/6048e5)):null;
+          return `<div class="dl">가능성</div><div class="dverd ${wks!=null&&wks<6?'mid':''}">${sp?`같은 심박(♥${a.hrCap})에서 1km ${Math.round(a.pace0-a.paceT)}초 빨라지는 것이 목표예요.`:`같은 페이스(${fmtPace(a.ref)})에서 심박 ${a.hr0-a.hrT} 낮아지는 것이 목표예요.`} 보통 6~12주 걸려요${wks!=null?` · 남은 ${wks}주`:''}.</div>
+          <div class="dbox"><div class="feasbar"><i style="width:${pct}%"></i></div><div class="feasleg"><span>시작 ${f(v0)}</span><span>목표 ${f(vT)}</span></div>
+          <div class="dr"><span>지금</span><b>${nowV!=null?f(nowV)+` · ${pct}%`:'기록 모으는 중'}</b></div>
+          <div class="dr"><span>재는 법</span><b>${sp?'이지 날 1km들 중 ♥'+a.hrCap+' 근처의 페이스':fmtPace(a.ref)+' 근처 1km들의 심박 중앙값'}</b></div></div>`; })()
+        :`<div class="dl">가능성</div><div class="dverd ${ft.c}">${ft.t}</div>`}
       ${f&&f.lo!=null&&f.have!=null?`<div class="dbox"><div class="feasbar"><i style="width:${Math.min(100,f.have/Math.max(f.hi,1)*100).toFixed(0)}%"></i><em style="left:${Math.min(100,f.lo/Math.max(f.hi,1)*100).toFixed(0)}%"></em></div>
         <div class="feasleg"><span>남은 기간 ${f.have}주</span><span>보통 ${f.lo}~${f.hi}주</span></div>
         ${f.reachLo?`<div class="dr"><span>그 날짜에 닿을 수 있는 기록</span><b>${fmtClock(f.reachHi)} ~ ${fmtClock(f.reachLo)}</b></div>`:''}
         ${f.dateFast?`<div class="dr"><span>목표 기록이 예상되는 때</span><b>${fmtYM(f.dateFast)} ~ ${fmtYM(f.dateOk)}</b></div>`:''}
         ${f.me?`<div class="dr"><span>내 추세로는</span><b>${f.me}주 ${GRB('D')}</b></div>`:''}
-        <div class="meta" style="margin:8px 0 4px;line-height:1.6">'보통'은 실력 점수가 4~6주에 1점 오른다는 경험칙 ${GRB('C')}으로 계산했습니다. 확률(%)로는 말하지 않습니다 — 그 숫자를 낼 근거 자료가 없습니다.</div></div>`:''}
+        <div class="meta" style="margin:8px 0 4px;line-height:1.6">'보통' = 실력 점수 4~6주에 1점 ${GRB('C')}. 확률(%)은 근거가 없어 쓰지 않아요.</div></div>`:''}
       <div class="dl">결정 사유</div><div class="dbox say">
         ${g.path?`<b>${g.path} · ${PATHNM[g.path]}</b> — ${PATHWHY[g.path]}<br><br>`:''}
         ${adjTxt.length?`<b>직접 바꾼 것:</b> ${adjTxt.join(', ')}<br><br>`:''}
@@ -8497,6 +8539,7 @@ function openDecDetail(id,back){
   host.onclick=e=>{ const b=e.target.closest('[data-dd]'); if(!b)return;
     if(b.dataset.dd==='back'){ if(back==='home'){ go('home'); return; } go('plan'); const t=document.querySelector('#planTabs [data-p="dec"]'); if(t)t.click(); }
     if(b.dataset.dd==='remake')goalStart(); };
+  { const e=$('gcEdit'); if(e)e.onclick=()=>goalStart(); }
   show('dec'); document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===(back==='home'?'home':'plan')));
 }
 
@@ -8694,15 +8737,6 @@ function goalBadge(){
     <b>${p.g?ESC(goalLabel(p.g)):'내 일정'}</b><span>${dd}</span>
     <u><s style="width:${p.pct}%"></s></u><i>${p.total}일 중 ${p.day}일째 · ${p.pct}%</i><em>내 목표 보기 ›</em></button>`;
 }
-function openMyGoal(){
-  if(!PLAN||!PLAN.sessions){ goalStart(); return; }
-  const g=PLAN.goal||GOAL||{};
-  const fz=g.m&&(g.final||g.sec)?feasible(Object.assign({},g,{sec:g.final||g.sec})):null;
-  const last=DECS.slice().reverse().find(x=>x.kind==='goal');
-  const p=planProgress();
-  openDecDetail({id:'cur',d:(PLAN.made||new Date().toISOString()),kind:'goal',title:goalLabel(g),choice:g.path?'길 '+g.path:'',
-    mine:last?last.mine:false, snap:goalSnap(g,PLAN,fz,SURVEY.days,(last&&last.snap&&last.snap.adj)||{}), prog:p},'home');
-}
 /* ───────── 부팅 ─────────
    1) 예전 기록에 식별자를 붙인다 — 클라우드와 맞추려면 이름표가 있어야 한다
    2) 설정값이 있으면 조용히 파이어베이스를 깨운다
@@ -8711,7 +8745,7 @@ function openMyGoal(){
   let fix=false;
   RUNS.forEach(r=>{ if(!r.rid){ r.rid=newRid(r); fix=true; } });
   if(fix)DEV.store.set('runs',RUNS);
-  const vn=$('verNow'); if(vn)vn.textContent='v'+APPVER;
+  const vn=$('verNow'); if(vn)vn.textContent='v'+APPVER; const tv=$('tlVer'); if(tv)tv.textContent='v'+APPVER;
   const vi=$('verIntro'); if(vi)vi.textContent='v'+APPVER;
   const tb=$('tlBlock'); if(tb)tb.textContent='v'+APPVER;
   renderHome(); paintFb();
@@ -9684,6 +9718,7 @@ function afterOpts(r,s){
 function debriefPoints(r,s){
   const good=[], bad=[], T=TYPES[r.type]||{};
   const pr=promiseRows(r,s);
+  if(pr.kind==='short0')return {good:[],bad:(pr.rows||[]).map(x=>[x[0],x[1]])};
   (pr.rows||[]).forEach(x=>{ if(x[2]==='ok')good.push([x[0],x[1]]); else if(x[2]==='bad')bad.push([x[0],x[1]]); });
   const sp=(r.splits||[]).filter(x=>x.pace&&!x.part);
   if(sp.length>=4){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
@@ -9747,6 +9782,114 @@ document.addEventListener('click',e=>{
     closeDebrief(done.length?`반영했어요 — ${done.join(' · ')}`:'그대로 둘게요'); return; }
   if(e.target.closest('#dbNo')){ closeDebrief(null); return; }
 });
+
+/* ═════════════════════ 내 목표 — 홈 카드와 자세히 화면이 같은 재료를 쓴다 ═════════════════════
+   무엇을 · 언제까지 · 지금 어디(게이지) · 이번 4주엔 뭘 하나 — 글 대신 숫자·막대·칩 */
+function goalModel(){
+  const g=(PLAN&&PLAN.goal)||GOAL; if(!g)return null;
+  const p=planProgress(), t=todayStr();
+  const dd=g.date?Math.ceil((Date.parse(g.date.slice(0,10)+'T00:00:00')-Date.parse(t+'T00:00:00'))/864e5):null;
+  const dateLab=g.date?(()=>{ const d=new Date(g.date.slice(0,10)+'T00:00:00'); return `${d.getMonth()+1}월 ${d.getDate()}일(${dowOf(g.date.slice(0,10))})`; })():null;
+  /* 이번 4주 구성 */
+  const wkKm=[1,2,3,4].map(w=>BLOCK.filter(x=>x.wk===w).reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0));
+  const cnt={}; BLOCK.filter(x=>x.dist).forEach(x=>{ cnt[x.type]=(cnt[x.type]||0)+1; });
+  const mix=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,n])=>({k,n:Math.max(1,Math.round(n/4)),nm:(TYPES[k]||{}).nm||k,col:(TYPES[k]||{}).col||'#888'}));
+  const thisWk=(()=>{ const mon=weekMonday(t); const items=BLOCK.filter(x=>x.dist&&weekMonday(x.d)===mon); return {n:items.length,done:items.filter(x=>RUNS.some(r=>r.planId===x.d)).length}; })();
+  const M={g,p,dd,dateLab,wkKm,mix,thisWk,ico:'🎯',title:'',sub:'',unit:'',v0:null,now:null,vT:null,fmt:v=>String(v),better:'lower',how:'',status:'',measure:'',hist:[]};
+  if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed';
+    const cur=sp?aeroPaceAt(a.hrCap):aeroHrAt(a.ref);
+    Object.assign(M,{ico:'❤️',title:sp?`심박 ${a.hrCap}으로 달릴 때 페이스 ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)} 페이스로 달릴 때 심박 ${a.hrT}`,
+      sub:(a.est&&(sp?!cur.pace:!cur.hr))?'지금 값은 이지런 기록으로 재는 중':sp?`지금은 같은 심박에서 ${fmtPace(cur.pace||a.pace0)} → ${Math.max(0,(cur.pace||a.pace0)-a.paceT)}초 빨라지기`:`지금은 같은 페이스에서 ♥${cur.hr||a.hr0} → ${Math.max(0,(cur.hr||a.hr0)-a.hrT)} 낮추기`,
+      v0:(a.est&&(sp?!cur.pace:!cur.hr))?null:(sp?a.pace0:a.hr0), now:sp?cur.pace:cur.hr, vT:sp?a.paceT:a.hrT, fmt:v=>sp?fmtPace(v):'♥'+v,
+      how:`이지런 위주 · 심박 ♥${a.hrCap} 아래`, measure:sp?`이지 날 1km 중 ♥${a.hrCap} 근처 페이스 · 기록 ${cur.n||0}번`:`${fmtPace(a.ref)} 근처 1km의 심박 중앙값 · ${cur.n||0}개`,
+      status:cur.n>=(sp?3:4)?'':'기록을 모으는 중 — 이지런 몇 번이면 채워져요'});
+    /* 추이 — 주별 측정값 */
+    const since=Date.now()-56*864e5, byWk={};
+    (RUNS||[]).filter(r=>isRun(r)&&Date.parse(r.date)>since&&Array.isArray(r.splits)).forEach(r=>{ const wk=weekMonday(ldate(r.date).slice(0,10)); r.splits.forEach((x,i)=>{ if(i===0||!x||x.part||!x.hr||!x.pace)return;
+      if(sp){ if(Math.abs(x.hr-a.hrCap)<=4)(byWk[wk]=byWk[wk]||[]).push(x.pace); } else { if(Math.abs(x.pace-a.ref)<=12)(byWk[wk]=byWk[wk]||[]).push(x.hr); } }); });
+    M.hist=Object.keys(byWk).sort().map(k=>{ const v=byWk[k].sort((x,y)=>x-y); return {d:k,v:v[Math.floor(v.length/2)],n:v.length}; });
+  } else if(g.m&&(g.final||g.sec)){
+    const goalSec=g.final||g.sec, fz=feasible(Object.assign({},g,{sec:goalSec}));
+    const h=(PROF.vhist||[]).filter(x=>x&&x.v), v0=h.length?h[0].v:VDOT;
+    const rr=(fz&&g.date&&fz.reach&&fz.haveW!=null)?fz.reach(fz.haveW):null;
+    Object.assign(M,{ico:'🏅',title:`${gdLabel(g.m)} ${fmtClock(goalSec)}${g.kind==='race'?' 안에 들어오기':''}`,sub:`지금 실력 ${fmtClock(fz?fz.nowSec:Math.round(raceTime(VDOT,g.m)*60))} → ${fmtClock(goalSec)}`,
+      v0:Math.round(raceTime(v0,g.m)*60), now:fz?fz.nowSec:Math.round(raceTime(VDOT,g.m)*60), vT:goalSec, fmt:fmtClock,
+      how:`${M.mix.filter(x=>['interval','threshold','goalpace'].includes(x.k)).map(x=>x.nm).join('·')||'이지런'} 주 ${M.mix.filter(x=>['interval','threshold','goalpace'].includes(x.k)).reduce((a,x)=>a+x.n,0)||0}회 + 이지런·LSD`,
+      measure:`VDOT ${VDOT.toFixed(1)} · TT나 대회 기록으로 갱신`,
+      status:fz?(fz.verdict==='already'?'이미 닿는 기록 — 목표를 높여도 돼요':fz.verdict==='ok'?'지금 흐름이면 대회 날 가능':rr?`대회 날 예상 ${fmtClock(Math.min(rr.lo,rr.hi))}~${fmtClock(Math.max(rr.lo,rr.hi))} · 최종 목표까지 약 ${fz.needWlo}~${fz.needWhi}주`:`약 ${fz.needWlo}~${fz.needWhi}주 걸려요`):''});
+    M.hist=h.map(x=>({d:x.d,v:Math.round(raceTime(x.v,g.m)*60),n:1}));
+  } else { Object.assign(M,{ico:({finish:'🏁',weight:'🔥',health:'🌱',back:'↩'})[g.kind]||'🎯',title:GKIND[g.kind]||'내 목표',sub:'',how:`${M.mix.slice(0,3).map(x=>`${x.nm} 주 ${x.n}회`).join(' · ')}`}); }
+  if(M.v0==null&&M.now!=null)M.v0=M.now;
+  M.pct=(M.v0!=null&&M.now!=null&&M.vT!=null)?Math.max(0,Math.min(100,Math.round((M.v0-M.now)/Math.max(1,M.v0-M.vT)*100))):(p?p.pct:0);
+  return M;
+}
+function goalGauge(M,big){
+  if(M.vT==null)return '';
+  const pct=M.v0==null?0:M.pct, has=M.now!=null&&M.v0!=null;
+  return `<div class="gg${big?' big':''}"><div class="gg-bar"><i style="width:${pct}%"></i>${has?`<b style="left:${pct}%"></b>`:''}</div>
+    <div class="gg-l"><span><i>시작</i><b>${M.v0!=null?M.fmt(M.v0):'측정 전'}</b></span><span class="now"><i>지금</i><b>${M.now!=null?M.fmt(M.now):'측정 전'}</b></span><span><i>목표</i><b>${M.fmt(M.vT)}</b></span></div></div>`;
+}
+function goalCard(compact){
+  const M=goalModel(); if(!M)return '';
+  const p=M.p, tiles=`<div class="gc-tiles">
+      ${M.dd!=null?`<div><b class="num">${M.dd>=0?'D-'+M.dd:'지남'}</b><i>${M.dateLab||''}</i></div>`:''}
+      <div><b class="num">${M.thisWk.done}<small>/${M.thisWk.n}</small></b><i>이번 주 훈련</i></div>
+      ${p?`<div><b class="num">${p.day}<small>/${p.total}일</small></b><i>4주 일정</i></div>`:''}</div>`;
+  const how=`<div class="gc-how"><span>이번 4주</span><b>${M.how}</b></div>`;
+  if(compact) return `<section class="mygoal" aria-label="내 달리기 목표">
+      <div class="gc-ttl">내 달리기 목표</div>
+      <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b><i>${M.sub}</i></div></div>
+      ${goalGauge(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
+      <button type="button" class="gc-more" data-mygoal="1">자세히 ›</button></section>`;
+  /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
+  const mx=Math.max(1,...M.wkKm);
+  const wk=`<div class="gc-wk">${M.wkKm.map((k,i)=>`<div><i style="height:${Math.max(6,k/mx*56).toFixed(0)}px"></i><b class="num">${Math.round(k)}</b><span>${i+1}주</span></div>`).join('')}</div>`;
+  const mixH=`<div class="gc-mix">${M.mix.map(x=>`<span style="--c:${x.col}"><i></i>${x.nm} 주 ${x.n}회</span>`).join('')}</div>`;
+  const H=M.hist||[], hist=H.length>=2?(()=>{ const vs=H.map(x=>x.v), lo=Math.min(...vs,M.vT), hi=Math.max(...vs,M.v0), W=320, Hh=90, y=v=>8+(M.better==='lower'?(v-lo)/(hi-lo||1):(1-(v-lo)/(hi-lo||1)))*(Hh-16);
+      const pts=H.map((x,i)=>[16+i*(W-32)/Math.max(1,H.length-1),y(x.v)]);
+      return `<svg class="gc-hist" viewBox="0 0 ${W} ${Hh}"><path d="M0 ${y(M.vT).toFixed(1)}H${W}" stroke="#2EAD7A" stroke-dasharray="4 4" stroke-width="1.5"/><path d="${pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('')}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>${pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="var(--accent)"/><text x="${p[0].toFixed(1)}" y="${(p[1]-9).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="var(--ink)">${M.fmt(H[i].v)}</text>`).join('')}<text x="${W-4}" y="${(y(M.vT)-4).toFixed(1)}" text-anchor="end" font-size="10" fill="#2EAD7A">목표</text></svg>
+      <div class="gc-hl">${H.map(x=>`<span>${x.d.slice(5).replace('-','.')}</span>`).join('')}</div>`; })():'';
+  const why=(PLAN&&PLAN.why&&PLAN.why.length)?`<details class="gc-why"><summary>왜 이렇게 짰나</summary><ul>${PLAN.why.map(x=>`<li>${x}</li>`).join('')}</ul></details>`:'';
+  return `<div class="mygoal full">
+      <div class="gc-ttl">내 달리기 목표</div>
+      <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b><i>${M.sub}</i></div></div>
+      ${goalGauge(M,true)}${M.g.kind==='aero'&&M.g.aero?goalEditBox(M.g):''}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}
+      <div class="gc-lab">이번 4주 · 주간 km</div>${wk}${mixH}
+      ${hist?`<div class="gc-lab">추이</div>${hist}`:''}
+      ${M.measure?`<div class="gc-lab">재는 법</div><div class="gc-meas">${M.measure}</div>`:''}
+      ${why}
+      <div class="gc-btns"><button type="button" class="btn ghost" id="gcEdit">목표 · 일정 새로 짜기</button></div></div>`;
+}
+
+/* 목표 숫자 고치기 — 편한 달리기 능력: 기준 페이스 · 목표 심박(또는 기준 심박 · 목표 페이스) · 날짜 */
+function goalEditBox(g){ const a=g.aero, sp=a.mode==='speed';
+  return `<details class="gc-edit"><summary>목표 숫자 고치기</summary><div class="gc-ef">
+    ${sp?`<label><span>기준 심박</span><input type="text" inputmode="numeric" data-ge="hrCap" value="${a.hrCap}"><em>bpm</em></label>
+         <label><span>목표 페이스</span><input type="text" data-ge="paceT" value="${mmss(a.paceT)}"><em>/km</em></label>`
+        :`<label><span>기준 페이스</span><input type="text" data-ge="ref" value="${mmss(a.ref)}"><em>/km</em></label>
+         <label><span>목표 심박</span><input type="text" inputmode="numeric" data-ge="hrT" value="${a.hrT}"><em>bpm</em></label>`}
+    <label><span>언제까지</span><input type="date" data-ge="date" value="${(g.date||'').slice(0,10)}"><em></em></label>
+    <p class="gc-ehint" id="geHint">${sp?'지금 그 심박에서의 페이스는 이지런 기록으로 자동 측정돼요':'지금 그 페이스에서의 심박은 이지런 기록으로 자동 측정돼요'}</p>
+    <button type="button" class="btn sm" id="geSave">저장</button></div></details>`; }
+function goalEditSave(box){ const g=(PLAN&&PLAN.goal)||GOAL; if(!g||!g.aero)return; const a=Object.assign({},g.aero), sp=a.mode==='speed';
+  const v=k=>{ const el=box.querySelector(`[data-ge="${k}"]`); return el?el.value.trim():null; }, hint=t=>{ const h=$('geHint'); if(h)h.textContent=t; };
+  if(sp){ const c=parseInt(v('hrCap'),10), pt=parseLoose(v('paceT')); if(!(c>=100&&c<=200))return hint('기준 심박은 100~200'); if(!(pt>=150&&pt<=900))return hint('목표 페이스는 분:초 (예: 5:30)');
+    a.hrCap=c; a.paceT=Math.round(pt); const cur=aeroPaceAt(c); a.est=!cur.pace; a.pace0=cur.pace||a.paceT+15; }
+  else { const r=parseLoose(v('ref')), ht=parseInt(v('hrT'),10); if(!(r>=150&&r<=900))return hint('기준 페이스는 분:초 (예: 5:30)'); if(!(ht>=90&&ht<=200))return hint('목표 심박은 90~200');
+    a.ref=Math.round(r); a.hrT=ht; const cur=aeroHrAt(a.ref); a.est=!cur.hr; a.hr0=cur.hr||ht+6; }
+  const d=v('date'); const date=d&&/^\d{4}-\d{2}-\d{2}$/.test(d)?d:g.date;
+  const ng=Object.assign({},g,{aero:a,date}); GOAL=ng; DEV.store.set('goal',GOAL);
+  if(PLAN){ PLAN.goal=ng; DEV.store.set('plan',PLAN); }
+  try{ AERO_PREVIEW=null; recalcProfile(); recalcTypes(); BLOCK=loadPlan(); }catch(e){}
+  toast('목표를 고쳤어요'); try{ renderHome(); }catch(e){} openMyGoal(); }
+document.addEventListener('click',e=>{ const b=e.target.closest('#geSave'); if(b)goalEditSave(b.closest('.gc-ef')); });
+function openMyGoal(){
+  if(!PLAN||!PLAN.sessions){ goalStart(); return; }
+  const host=$('decBody'); host.innerHTML=`<button class="sub dback" data-dd="back">← 홈</button>${goalCard(false)}`;
+  host.querySelector('[data-dd="back"]').onclick=()=>go('home');
+  const e=$('gcEdit'); if(e)e.onclick=()=>goalStart();
+  show('dec');
+}
 </script>
 </body>
 </html>
