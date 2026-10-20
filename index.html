@@ -767,7 +767,8 @@ details.noti .sigc{margin:6px 0}
 .wk-d b{font-size:11.5px;font-weight:700;color:var(--ink-3)}
 .wk-d.now .wk-bar{box-shadow:0 0 0 2.5px var(--accent)}.wk-d.now b{color:var(--accent);font-weight:900}
 /* 오늘 */
-.hero{position:relative;overflow:hidden;margin:12px 16px 0;padding:16px 18px 14px;background:var(--panel);border-radius:28px;box-shadow:0 10px 30px rgba(42,22,56,.10)}
+.hero{position:relative;overflow:hidden;margin:12px 16px 0;padding:16px 18px 14px;background:linear-gradient(160deg,#EFE5FA 0%,#E6D8F4 100%);border:2px solid var(--accent);border-radius:28px;box-shadow:0 10px 30px rgba(91,45,134,.18)}
+.hero-today{display:inline-flex;align-items:center;background:var(--accent);color:#fff;font-size:12px;font-weight:900;padding:5px 11px;border-radius:999px;margin-right:6px}
 .hero-lanes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .hero-lanes path{fill:none;stroke:color-mix(in srgb,var(--k1) 22%,transparent);stroke-width:14}
 .hero>*:not(.hero-lanes){position:relative}
@@ -1774,6 +1775,8 @@ details.noti .sigc{margin:6px 0}
 .gc-chip{display:inline-flex;flex-direction:column;background:var(--panel-2);border-radius:10px;padding:5px 9px;line-height:1.2}.gc-chip i{font-style:normal;font-size:10px;color:var(--ink-3)}.gc-chip b{font-size:13px;font-family:var(--num)}
 .snapb{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink-2);border-radius:999px;padding:6px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 .snapb.wide{width:100%;justify-content:center;border-radius:14px;padding:12px;font-size:14px;margin:8px 0 0}
+.gtrend{margin:10px 0 0}.gtrend svg{display:block;width:100%;height:auto}
+.gt-leg{display:flex;gap:12px;font-size:10.5px;color:var(--ink-3);margin-top:4px;justify-content:flex-end}.gt-leg i{display:inline-block;width:14px;height:0;border-top:2px dashed #2EAD7A;vertical-align:middle;margin-right:4px}.gt-leg i.me{border-top:3px solid var(--accent)}.gt-leg i.nd{border-top:1px dotted var(--ink-3)}
 .gc-sub{font-size:12.5px;color:var(--ink-2);margin:4px 0 2px}
 .gc-dd{margin-top:4px}.gc-dd>summary{list-style:none;text-align:center;font-size:12.5px;font-weight:800;color:var(--accent);padding:8px;cursor:pointer}.gc-dd>summary::-webkit-details-marker{display:none}.gc-dd>summary::after{content:' ▾'}.gc-dd[open]>summary::after{content:' ▴'}
 .gc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}.gc-foot .gc-more{width:auto;margin:0}
@@ -2007,7 +2010,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='12.6';
+const APPVER='12.8';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7117,7 +7120,7 @@ function todayCard(sess,idx){
   const b=['recovery','easy','long'].includes(sess.type)?coachBasis():null;
   return `<section class="hero" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
     <svg class="hero-lanes" viewBox="0 0 400 220" preserveAspectRatio="none" aria-hidden="true"><path d="M-20 200 C120 200 160 40 420 30"/><path d="M-20 222 C130 222 175 62 420 52"/><path d="M-20 244 C140 244 190 84 420 74"/></svg>
-    <div class="hero-top"><span class="hero-chip"><i></i>${g0.e}${sess.role?' · '+ESC(sess.role):''}</span>
+    <div class="hero-top"><span class="hero-today">오늘 훈련</span><span class="hero-chip"><i></i>${g0.e}${sess.role?' · '+ESC(sess.role):''}</span>
       ${b?`<details class="hero-basis"><summary>${b.easy.src==='D'?'내 몸 기준':'임시 기준'}</summary><p>${b.easy.note}${b.easy.warn?'<br>'+b.easy.warn:''}</p></details>`:''}</div>
     <div class="hero-km"><b class="num">${sess.dist}</b><span>km${edited?' · 바꿈':''}</span></div>
     ${what?`<div class="hero-what">${what} · ${g0.e}</div>`:''}
@@ -9825,7 +9828,7 @@ function goalModel(){
     (RUNS||[]).filter(r=>isRun(r)&&Date.parse(r.date)>since&&Array.isArray(r.splits)).forEach(r=>{ const wk=weekMonday(ldate(r.date).slice(0,10)); r.splits.forEach((x,i)=>{ if(i===0||!x||x.part||!x.hr||!x.pace)return;
       if(sp){ if(Math.abs(x.hr-a.hrCap)<=4)(byWk[wk]=byWk[wk]||[]).push(x.pace); } else { if(Math.abs(x.pace-a.ref)<=12)(byWk[wk]=byWk[wk]||[]).push(x.hr); } }); });
     M.hist=Object.keys(byWk).sort().map(k=>{ const v=byWk[k].sort((x,y)=>x-y); return {d:k,v:v[Math.floor(v.length/2)],n:v.length}; });
-    if(M.hist.length)M.v0=M.hist[0].v; if(M.now==null&&M.hist.length)M.now=M.hist[M.hist.length-1].v;
+    if(M.hist.length){ M.v0=M.hist[0].v; M.now=M.hist[M.hist.length-1].v; }   /* 게이지·그래프·문장이 같은 값(최근 주 중앙값)을 쓴다 */
     M.sub=M.now!=null?(sp?`지금 같은 심박에서 ${fmtPace(M.now)} → ${Math.max(0,M.now-a.paceT)}초 빨라지기`:`지금 같은 페이스에서 ♥${M.now} → ${Math.max(0,M.now-a.hrT)} 낮추기`):'지금 값은 이지런 기록으로 재는 중';
   } else if(g.m&&(g.final||g.sec)){
     const goalSec=g.final||g.sec, fz=feasible(Object.assign({},g,{sec:goalSec}));
@@ -9837,9 +9840,14 @@ function goalModel(){
       measure:`VDOT ${VDOT.toFixed(1)} · TT나 대회 기록으로 갱신`,
       status:fz?(fz.verdict==='already'?'이미 닿는 기록 — 목표를 높여도 돼요':fz.verdict==='ok'?'지금 흐름이면 대회 날 가능':rr?`대회 날 예상 ${fmtClock(Math.min(rr.lo,rr.hi))}~${fmtClock(Math.max(rr.lo,rr.hi))} · 최종 목표까지 약 ${fz.needWlo}~${fz.needWhi}주`:`약 ${fz.needWlo}~${fz.needWhi}주 걸려요`):''});
     M.hist=h.map(x=>({d:x.d,v:Math.round(raceTime(x.v,g.m)*60),n:1}));
-  } else { Object.assign(M,{ico:({finish:'🏁',weight:'🔥',health:'🌱',back:'↩'})[g.kind]||'🎯',title:GKIND[g.kind]||'내 목표',sub:'',how:`${M.mix.slice(0,3).map(x=>`${x.nm} 주 ${x.n}회`).join(' · ')}`}); }
+  } else if(g.kind==='finish'&&g.m){
+    const km=g.m/1000, byWk={}; (RUNS||[]).filter(isRun).forEach(r=>{ const wk=weekMonday(ldate(r.date).slice(0,10)); byWk[wk]=Math.max(byWk[wk]||0,+r.km||0); });
+    const H=Object.keys(byWk).sort().slice(-12).map(k=>({d:k,v:+byWk[k].toFixed(1),n:1}));
+    Object.assign(M,{ico:'🏁',title:`${gdLabel(g.m)} 완주`,sub:'주마다 가장 길게 뛴 거리로 봐요',better:'higher',fmt:v=>v+'km',vT:km,v0:H.length?H[0].v:null,now:H.length?H[H.length-1].v:null,hist:H,
+      how:`${M.mix.slice(0,3).map(x=>`${x.nm} 주 ${x.n}회`).join(' · ')}`,measure:'주별 최장 거리 (km)'});
+  } else { Object.assign(M,{ico:({weight:'🔥',health:'🌱',back:'↩'})[g.kind]||'🎯',title:GKIND[g.kind]||'내 목표',sub:'',how:`${M.mix.slice(0,3).map(x=>`${x.nm} 주 ${x.n}회`).join(' · ')}`}); }
   if(M.v0==null&&M.now!=null)M.v0=M.now;
-  M.pct=(M.v0!=null&&M.now!=null&&M.vT!=null)?Math.max(0,Math.min(100,Math.round((M.v0-M.now)/Math.max(1,M.v0-M.vT)*100))):0;
+  M.pct=(M.v0!=null&&M.now!=null&&M.vT!=null)?Math.max(0,Math.min(100,Math.round((M.v0-M.now)/((M.v0-M.vT)||1)*100))):0;
   return M;
 }
 function goalSetChips(M){ const g=M.g, a=g.aero, days=(PLAN&&PLAN.days)||SURVEY.days||[]; const c=[];
@@ -9849,6 +9857,32 @@ function goalSetChips(M){ const g=M.g, a=g.aero, days=(PLAN&&PLAN.days)||SURVEY.
   if(M.dateLab)c.push(['언제까지',M.dateLab]);
   if(days.length)c.push(['훈련 요일',`주 ${days.length}일 · ${days.join('')}`]);
   return c.length?`<div class="gc-set"><span class="gc-setl">내가 정한 목표</span>${c.map(x=>`<span class="gc-chip"><i>${x[0]}</i><b>${x[1]}</b></span>`).join('')}</div>`:''; }
+/* 시작→목표 추이 — x: 시작일~목표일(주 간격), y: 목표 지표. 목표선 · 지금 · 측정점 · 필요한 흐름(점선) */
+function goalTrend(M,big){
+  if(M.vT==null)return '';
+  const g=M.g, t=todayStr(), H=(M.hist||[]).filter(x=>x&&x.v!=null);
+  const ps=(PLAN&&PLAN.start)||t, start=H[0]&&H[0].d<ps?H[0].d:ps, end=g.date?g.date.slice(0,10):addDays(start,84);
+  const T0=Date.parse(start+'T00:00:00'), T1=Math.max(Date.parse(end+'T00:00:00'),T0+14*864e5), TN=Date.parse(t+'T00:00:00');
+  const W=340, Hh=big?170:120, PL=44, PR=14, PT=18, PB=24, iw=W-PL-PR, ih=Hh-PT-PB;
+  const X=ms=>PL+Math.max(0,Math.min(1,(ms-T0)/(T1-T0)))*iw;
+  const vals=H.map(x=>x.v).concat([M.vT]).concat(M.v0!=null?[M.v0]:[]);
+  let lo=Math.min(...vals), hi=Math.max(...vals); const pad=Math.max((hi-lo)*0.25,(M.fmt(1)+'').includes("'")?10:M.better==='higher'?1:2); lo-=pad; hi+=pad;
+  const Y=v=>PT+(M.better==='higher'?(1-(v-lo)/(hi-lo)):(v-lo)/(hi-lo))*ih;
+  /* 주 간격 눈금 — 너무 많으면 2·4주 간격 */
+  const wks=Math.round((T1-T0)/6048e5), step=wks>16?4:wks>8?2:1, ticks=[]; for(let w=0;w<=wks;w+=step)ticks.push(T0+w*6048e5);
+  const tick=ticks.map(ms=>{ const d=new Date(ms); return `<line x1="${X(ms).toFixed(1)}" y1="${PT}" x2="${X(ms).toFixed(1)}" y2="${PT+ih}" stroke="var(--line)" stroke-width="1"/><text x="${X(ms).toFixed(1)}" y="${Hh-6}" text-anchor="middle" font-size="9.5" fill="var(--ink-3)">${d.getMonth()+1}.${d.getDate()}</text>`; }).join('');
+  const target=`<line x1="${PL}" y1="${Y(M.vT).toFixed(1)}" x2="${W-PR}" y2="${Y(M.vT).toFixed(1)}" stroke="#2EAD7A" stroke-width="2" stroke-dasharray="5 4"/><text x="${PL-4}" y="${(Y(M.vT)+3.5).toFixed(1)}" text-anchor="end" font-size="10" font-weight="800" fill="#2EAD7A">${M.fmt(M.vT)}</text>`;
+  const startL=M.v0!=null?`<text x="${PL-4}" y="${(Y(M.v0)+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--ink-3)">${M.fmt(M.v0)}</text>`:'';
+  const pts=H.map(x=>[X(Date.parse(x.d+'T00:00:00')),Y(x.v)]);
+  const need=(M.v0!=null&&H.length)?`<line x1="${pts[0][0].toFixed(1)}" y1="${Y(M.v0).toFixed(1)}" x2="${X(T1).toFixed(1)}" y2="${Y(M.vT).toFixed(1)}" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="2 4"/>`:'';
+  const line=pts.length?`<path d="${pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('')}" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`+pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i===pts.length-1?5:3.2}" fill="${i===pts.length-1?'var(--accent)':'#fff'}" stroke="var(--accent)" stroke-width="2"/>`).join(''):'';
+  const last=pts.length?pts[pts.length-1]:null;
+  const lastL=last?`<text x="${Math.min(W-PR-2,last[0]+8).toFixed(1)}" y="${(last[1]-8).toFixed(1)}" text-anchor="${last[0]>W-70?'end':'start'}" font-size="11" font-weight="900" fill="var(--accent)">${M.fmt(H[H.length-1].v)}</text>`:'';
+  const nowL=`<line x1="${X(TN).toFixed(1)}" y1="${PT}" x2="${X(TN).toFixed(1)}" y2="${PT+ih}" stroke="var(--accent)" stroke-width="1" opacity=".5"/><text x="${X(TN).toFixed(1)}" y="${PT-6}" text-anchor="middle" font-size="9.5" font-weight="800" fill="var(--accent)">오늘</text>`;
+  const empty=!pts.length?`<text x="${(PL+iw/2).toFixed(1)}" y="${(PT+ih/2).toFixed(1)}" text-anchor="middle" font-size="12" fill="var(--ink-3)">아직 측정 전 — 이지런 기록이 쌓이면 그려져요</text>`:'';
+  const legend=`<div class="gt-leg"><span><i class="tg"></i>목표</span>${H.length?'<span><i class="me"></i>내 기록(주별)</span>':''}${need?'<span><i class="nd"></i>필요한 흐름</span>':''}</div>`;
+  return `<div class="gtrend"><svg viewBox="0 0 ${W} ${Hh}" width="100%" aria-label="시작부터 목표까지 추이">${tick}${target}${startL}${need}${line}${lastL}${nowL}${empty}</svg>${legend}</div>`;
+}
 function goalGauge(M,big){
   if(M.vT==null)return '';
   const pct=M.v0==null?0:M.pct, has=M.now!=null&&M.v0!=null;
@@ -9865,8 +9899,8 @@ function goalCard(compact){
   if(compact) return `<section class="mygoal" aria-label="내 달리기 목표">
       <div class="gc-ttl">내 달리기 목표</div>
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b></div></div>
-      ${goalGauge(M)}
-      <details class="gc-dd"><summary>더 보기</summary>${M.sub?`<div class="gc-sub">${M.sub}</div>`:''}${goalSetChips(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
+      ${goalTrend(M)}
+      <details class="gc-dd"><summary>더 보기</summary>${goalGauge(M)}${M.sub?`<div class="gc-sub">${M.sub}</div>`:''}${goalSetChips(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
       <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">자세히 ›</button>${snapBtn('.mygoal','goal','내 달리기 목표')}</div></details></section>`;
   /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
   const mx=Math.max(1,...M.wkKm);
@@ -9882,7 +9916,7 @@ function goalCard(compact){
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b><i>${M.sub}</i></div></div>
       ${goalSetChips(M)}${goalGauge(M,true)}${M.g.kind==='aero'&&M.g.aero?goalEditBox(M.g):''}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}
       <div class="gc-lab">이번 4주 · 주간 km</div>${wk}${mixH}
-      ${hist?`<div class="gc-lab">추이</div>${hist}`:''}
+      <div class="gc-lab">시작 → 목표 추이</div>${goalTrend(M,true)}
       ${M.measure?`<div class="gc-lab">재는 법</div><div class="gc-meas">${M.measure}</div>`:''}
       ${why}
       <div class="gc-btns">${snapBtn('.mygoal','goal','내 달리기 목표','wide')}<button type="button" class="btn ghost" id="gcEdit">목표 · 일정 새로 짜기</button></div></div>`;
