@@ -700,6 +700,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .gt-more-btn{display:block;width:100%;margin-top:12px;background:none;border:none;border-top:1px solid var(--line);padding:11px 0 0;font:inherit;font-size:13px;font-weight:700;color:var(--accent);text-align:left;cursor:pointer;min-height:44px}
 .tbasis{margin-top:10px;background:var(--bg);border-radius:12px;padding:8px 10px;font-size:11.5px;line-height:1.55;color:var(--ink-2)}
 .tbasis b{display:block;font-size:11px;font-weight:800;color:var(--accent);margin-bottom:1px}.tbasis span{display:block}.tbasis span.w{color:#8A3A1C;margin-top:4px}
+.aenow{font-family:var(--num);font-size:15px;font-weight:800;color:var(--ink-2)}
 .aerow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
 .aerow:last-of-type{border-bottom:none}
 .aerow label{min-width:0;flex:1}.aerow label b{display:block;font-size:13px;color:var(--ink)}.aerow label i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:2px;line-height:1.45}
@@ -1766,6 +1767,8 @@ details.noti .sigc{margin:6px 0}
 .gc-ef{display:flex;flex-direction:column;gap:8px;background:var(--panel-2);border-radius:14px;padding:12px}
 .gc-ef label{display:grid;grid-template-columns:1fr 120px 36px;align-items:center;gap:8px;font-size:13px}.gc-ef input{font:inherit;font-family:var(--num);font-size:16px;font-weight:700;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--panel);min-width:0}
 .gc-ef em{font-style:normal;font-size:11px;color:var(--ink-3)}.gc-ehint{font-size:11.5px;color:var(--ink-3);margin:0}.gc-ef .btn{margin:4px 0 0}
+.gc-set{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}.gc-setl{font-size:11px;font-weight:800;color:var(--ink-3);margin-right:2px}
+.gc-chip{display:inline-flex;flex-direction:column;background:var(--panel-2);border-radius:10px;padding:5px 9px;line-height:1.2}.gc-chip i{font-style:normal;font-size:10px;color:var(--ink-3)}.gc-chip b{font-size:13px;font-family:var(--num)}
 .gc-ttl{font-size:12.5px;font-weight:800;color:var(--accent);letter-spacing:.2px;margin:0 0 10px}
 .gc-top{display:flex;align-items:center;gap:12px}.gc-ic{flex:none;width:44px;height:44px;border-radius:14px;background:var(--panel-2);display:grid;place-items:center;font-size:22px}
 .gc-t b{display:block;font-size:19px;font-weight:900;line-height:1.2}.mygoal.full .gc-t b{font-size:22px}.gc-t i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:2px}
@@ -1995,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='12.0';
+const APPVER='12.1';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2822,7 +2825,7 @@ function makePlan(opts){
   out.forEach(termSess);
   return {made:new Date().toISOString(),
           start:start.getFullYear()+'-'+pad(start.getMonth()+1)+'-'+pad(start.getDate()),
-          weeks:4, base:+base.toFixed(1), goal:g||null, ladder, why, sessions:out};
+          weeks:4, base:+base.toFixed(1), goal:g||null, ladder, why, days:days.slice(), sessions:out};
 }
 
 /* 저장된 일정이 있으면 그걸 쓰고, 없으면 예전 하드코딩 일정을 쓴다 */
@@ -6005,11 +6008,9 @@ const GSTEP=[
  ok(){ const d=GB.d;
    if(d.kind==='aero'){ aeroRead(); const a=d.aero||{};
      if(!(a.hrCap>=100&&a.hrCap<=200))return '기준 심박을 100~200 사이로 넣어주세요.';
-     if(a.mode==='speed'){ if(!(a.pace0>=180&&a.pace0<=900&&a.paceT>=150&&a.paceT<=900))return '속도를 분:초로 넣어주세요 (예: 7:10).';
-       if(a.paceT>=a.pace0)return '목표 속도는 지금보다 빨라야 합니다 (숫자가 더 작아야 합니다).'; }
-     else { if(!(a.ref>=180&&a.ref<=900))return '기준 속도를 분:초로 넣어주세요 (예: 7:00).';
-       if(!(a.hr0>=80&&a.hr0<=210&&a.hrT>=70&&a.hrT<=210))return '심박을 숫자로 넣어주세요.';
-       if(a.hrT>=a.hr0)return '목표 심박은 지금보다 낮아야 합니다.'; }
+     if(a.mode==='speed'){ if(!(a.paceT>=150&&a.paceT<=900))return '목표 페이스를 분:초로 넣어주세요 (예: 5:30).'; }
+     else { if(!(a.ref>=150&&a.ref<=900))return '기준 페이스를 분:초로 넣어주세요 (예: 5:30).';
+       if(!(a.hrT>=70&&a.hrT<=210))return '목표 심박을 숫자로 넣어주세요 (예: 150).'; }
      return true; }
    if(['weight','health','back','finish'].includes(d.kind))return true;
    if(!d.sec)return '목표를 분·초로 넣어주세요.';
@@ -6283,25 +6284,24 @@ function aeroBody(){
     <div class="card tight" style="margin-top:12px">
       ${row('aCap','기준 심박 (편함 상한)',a.hrCap,`${sg.hrCap} · 최대 심박 ${HRMAX}의 80%`,'bpm')}
       ${a.mode==='speed'
-        ? row('aP0','지금 그 심박에서의 속도',mmss(a.pace0),`${mmss(sg.pace0)} · ${sg.src.pace0}`,'/km')+
-          row('aPT','목표 속도',mmss(a.paceT),`${mmss(sg.pace0-15)} · 지금보다 15초`,'/km')
-        : row('aRef','기준 속도',mmss(a.ref),`${mmss(sg.ref)} · 쉬운 날 속도 가운데`,'/km')+
-          row('aH0','지금 그 속도에서의 심박',a.hr0,`${sg.hr0} · ${sg.src.hr0}`,'bpm')+
-          row('aHT','목표 심박',a.hrT,`${sg.hr0-6} · 지금보다 6`,'bpm')}
-      <div class="meta" style="margin-top:8px;line-height:1.7">${a.mode==='speed'
-        ? '앱이 제안한 값입니다. 모두 직접 고칠 수 있습니다. 쉬운 날은 모두 기준 심박 아래로 코칭하고, 같은 심박에서 속도가 얼마나 빨라졌는지를 홈에서 보여 줍니다.'
-        : '앱이 제안한 값입니다. 모두 직접 고칠 수 있습니다. 빠르게 뛰는 날 없이 기준 심박 아래로 양을 쌓고, 기준 속도에서 심박이 얼마나 내려갔는지를 홈에서 보여 줍니다.'}</div>
+        ? row('aPT','목표 페이스 (그 심박에서)',mmss(a.paceT),`${mmss(sg.pace0-15)}`,'/km')+
+          `<div class="aerow"><label><b>지금 그 심박에서의 페이스</b><i>앱이 이지런 기록으로 재요</i></label><span class="aenow">${sg.src.pace0.startsWith('내 기록')?mmss(sg.pace0)+'/km':'측정 전'}</span></div>`
+        : row('aRef','기준 페이스',mmss(a.ref),`${mmss(sg.ref)}`,'/km')+
+          row('aHT','목표 심박 (그 페이스에서)',a.hrT,`${sg.hr0-6}`,'bpm')+
+          `<div class="aerow"><label><b>지금 그 페이스에서의 심박</b><i>앱이 이지런 기록으로 재요</i></label><span class="aenow" id="aNow">${(()=>{ const m=aeroHrAt(a.ref); return m.hr?'♥'+m.hr+` (${m.n}개)`:'측정 전'; })()}</span></div>`}
     </div>`+gDateBox();
 }
 function aeroRead(){ const d=GB.d; if(d.kind!=='aero'||!d.aero)return; const a=d.aero, v=id=>{const el=$(id); return el?el.value:null;};
   const n=x=>{ const k=parseInt(x,10); return isNaN(k)?null:k; }, t=x=>{ const k=parseLoose(x); return isNaN(k)?null:Math.round(k); };
   if(v('aCap')!=null)a.hrCap=n(v('aCap'));
   if(v('aP0')!=null)a.pace0=t(v('aP0')); if(v('aPT')!=null)a.paceT=t(v('aPT'));
-  if(v('aRef')!=null)a.ref=t(v('aRef')); if(v('aH0')!=null)a.hr0=n(v('aH0')); if(v('aHT')!=null)a.hrT=n(v('aHT')); }
+  if(v('aRef')!=null)a.ref=t(v('aRef')); if(v('aHT')!=null)a.hrT=n(v('aHT'));
+  if(a.mode==='speed'){ const m=aeroPaceAt(a.hrCap); a.est=!m.pace; a.pace0=m.pace||(a.paceT?a.paceT+15:a.pace0); }
+  else { const m=aeroHrAt(a.ref); a.est=!m.hr; a.hr0=m.hr||(a.hrT?a.hrT+6:a.hr0); const el=$('aNow'); if(el)el.textContent=m.hr?'♥'+m.hr+` (${m.n}개)`:'측정 전'; } }
 function aeroWire(){ const m=$('gAeroMode'); if(!m)return;
   m.onclick=e=>{ const b=e.target.closest('[data-am]'); if(!b)return; aeroRead();
     const keep=GB.d.aero&&GB.d.aero.hrCap; GB.d.aero=aeroSuggest(b.dataset.am); if(keep)GB.d.aero.hrCap=keep; gPaint(); };
-  ['aCap','aP0','aPT','aRef','aH0','aHT'].forEach(id=>{ const el=$(id); if(el)el.onchange=()=>aeroRead(); }); }
+  ['aCap','aPT','aRef','aHT'].forEach(id=>{ const el=$(id); if(el)el.onchange=()=>aeroRead(); }); }
 /* 날짜 — 직접 치기와 달력 고르기 둘 다. '2026-11-14', '2026.11.14', '11/14', '11월 14일', '1114', '20261114' 모두 받는다 */
 function parseDateLoose(v){
   const t=String(v||'').trim(); if(!t)return null;
@@ -9823,6 +9823,13 @@ function goalModel(){
   M.pct=(M.v0!=null&&M.now!=null&&M.vT!=null)?Math.max(0,Math.min(100,Math.round((M.v0-M.now)/Math.max(1,M.v0-M.vT)*100))):(p?p.pct:0);
   return M;
 }
+function goalSetChips(M){ const g=M.g, a=g.aero, days=(PLAN&&PLAN.days)||SURVEY.days||[]; const c=[];
+  if(a){ if(a.mode==='speed'){ c.push(['기준 심박',`♥${a.hrCap}`]); c.push(['목표 페이스',fmtPace(a.paceT)]); if(!a.est&&a.pace0)c.push(['지금 페이스',fmtPace(a.pace0)]); }
+    else { c.push(['기준 페이스',fmtPace(a.ref)]); c.push(['목표 심박',`♥${a.hrT}`]); if(!a.est&&a.hr0)c.push(['지금 심박',`♥${a.hr0}`]); } }
+  else if(g.m&&(g.final||g.sec)){ c.push(['거리',gdLabel(g.m)]); c.push(['목표 기록',fmtClock(g.final||g.sec)]); }
+  if(M.dateLab)c.push(['언제까지',M.dateLab]);
+  if(days.length)c.push(['훈련 요일',`주 ${days.length}일 · ${days.join('')}`]);
+  return c.length?`<div class="gc-set"><span class="gc-setl">내가 정한 목표</span>${c.map(x=>`<span class="gc-chip"><i>${x[0]}</i><b>${x[1]}</b></span>`).join('')}</div>`:''; }
 function goalGauge(M,big){
   if(M.vT==null)return '';
   const pct=M.v0==null?0:M.pct, has=M.now!=null&&M.v0!=null;
@@ -9839,7 +9846,7 @@ function goalCard(compact){
   if(compact) return `<section class="mygoal" aria-label="내 달리기 목표">
       <div class="gc-ttl">내 달리기 목표</div>
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b><i>${M.sub}</i></div></div>
-      ${goalGauge(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
+      ${goalSetChips(M)}${goalGauge(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
       <button type="button" class="gc-more" data-mygoal="1">자세히 ›</button></section>`;
   /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
   const mx=Math.max(1,...M.wkKm);
@@ -9853,7 +9860,7 @@ function goalCard(compact){
   return `<div class="mygoal full">
       <div class="gc-ttl">내 달리기 목표</div>
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b><i>${M.sub}</i></div></div>
-      ${goalGauge(M,true)}${M.g.kind==='aero'&&M.g.aero?goalEditBox(M.g):''}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}
+      ${goalSetChips(M)}${goalGauge(M,true)}${M.g.kind==='aero'&&M.g.aero?goalEditBox(M.g):''}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}
       <div class="gc-lab">이번 4주 · 주간 km</div>${wk}${mixH}
       ${hist?`<div class="gc-lab">추이</div>${hist}`:''}
       ${M.measure?`<div class="gc-lab">재는 법</div><div class="gc-meas">${M.measure}</div>`:''}
