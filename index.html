@@ -1801,6 +1801,7 @@ details.noti .sigc{margin:6px 0}
 .gl-it{display:flex;align-items:center;gap:10px;background:var(--panel-2);border-radius:14px;padding:10px 12px}.gl-it.act{background:color-mix(in srgb,var(--accent) 10%,transparent);border:1.5px solid var(--accent)}
 .gl-ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--panel);display:grid;place-items:center;font-size:18px}
 .gl-t{flex:1;min-width:0}.gl-t b{display:block;font-size:13.5px;line-height:1.3}.gl-t i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:2px}.gl-t em{display:block;font-style:normal;font-family:var(--num);font-size:12.5px;font-weight:700;margin-top:3px}.gl-t em i{display:inline;font-size:11px;font-weight:600;margin-left:6px}
+.gl-re{margin-top:6px;border:1.5px solid var(--line);background:var(--panel);color:var(--accent);border-radius:999px;padding:5px 10px;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
 .gl-st{flex:none;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:var(--panel);color:var(--ink-3)}.gl-it.act .gl-st{background:var(--accent);color:#fff}.gl-it.done .gl-st{background:#DDF3EA;color:#0E6E55}
 .gc-lab small{font-weight:600;color:var(--ink-3)}
 .gtrend{margin:10px 0 0}.gtrend svg{display:block;width:100%;height:auto}
@@ -2038,7 +2039,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='14.2';
+const APPVER='14.3';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5405,8 +5406,13 @@ const FB={
     let took=false;
     FB._pulling=true;
     try{
+      /* 일정·목표는 '만든 시각'이 더 최근인 쪽을 지킨다 — 시각표(modk)가 어긋나도 새 일정이 옛 일정으로 덮이지 않게 */
+      const localPlan=DEV.store.get('plan',null), cloudPlan=cloud.plan||null;
+      const planNewerHere=!!(localPlan&&localPlan.made&&(!cloudPlan||!cloudPlan.made||Date.parse(localPlan.made)>Date.parse(cloudPlan.made)));
       FB.SETK.forEach(k=>{ if(k==='del'||cloud[k]===undefined||cloud[k]===null)return;
-        const ct=+cMod[k]||theirs, lt=Math.max(+myMod[k]||0,mine);
+        if((k==='plan'||k==='goal'||k==='goals'||k==='dist')&&planNewerHere)return;
+        /* 클라우드에 그 항목의 시각이 없으면(옛 기기가 올린 값) 내 항목 시각이 있는 한 덮지 않는다 — 문서 전체 시각으로 새 값을 옛 값으로 덮던 길을 막는다 */
+        const ct=+cMod[k]||(+myMod[k]?0:theirs), lt=Math.max(+myMod[k]||0,mine);
         if(ct>lt){ DEV.store.set(k,cloud[k]); myMod[k]=ct; took=true; }
         else if(+cMod[k]) myMod[k]=Math.max(+myMod[k]||0,+cMod[k]); });   /* 다음 push가 클라우드의 시각을 지우지 않게 */
     } finally { FB._pulling=false; }
@@ -10213,10 +10219,16 @@ function glogList(){
   const ST={active:['진행 중','act'],done:['달성','done'],ended:['종료','end']};
   const rows=GLOG.slice().reverse().map(x=>{ const g=x.goal, m=glogMetric(g), st=ST[x.status]||ST.ended, d=s=>s?s.slice(5).replace('-','.'):'';
     const vals=m?`${x.v0!=null?m.fmt(x.v0):'—'} → ${x.status==='active'?(m.now!=null?m.fmt(m.now):'측정 전'):(x.vEnd!=null?m.fmt(x.vEnd):'—')} <i>목표 ${m.fmt(m.vT)}</i>`:'';
-    return `<li class="gl-it ${st[1]}"><span class="gl-ic">${ico(g)}</span><div class="gl-t"><b>${glogTitle(g)}</b><i>${d(x.start)}${x.end?' → '+d(x.end):''}${x.closedAt&&x.status!=='active'?' · '+d(x.closedAt)+' 마감':''}</i>${vals?`<em>${vals}</em>`:''}</div><span class="gl-st">${st[0]}</span></li>`; }).join('');
+    const cur=(PLAN&&PLAN.goal)||GOAL, isCur=cur&&JSON.stringify(cur)===JSON.stringify(g);
+    return `<li class="gl-it ${st[1]}"><span class="gl-ic">${ico(g)}</span><div class="gl-t"><b>${glogTitle(g)}</b><i>${d(x.start)}${x.end?' → '+d(x.end):''}${x.closedAt&&x.status!=='active'?' · '+d(x.closedAt)+' 마감':''}</i>${vals?`<em>${vals}</em>`:''}${!isCur?`<button type="button" class="gl-re" data-glre="${x.id}">이 목표로 되돌리기</button>`:''}</div><span class="gl-st">${st[0]}</span></li>`; }).join('');
   return `<div class="gc-lab">내 목표 목록 <small>${GLOG.length}개</small></div><ul class="gl-list">${rows}</ul>`;
 }
 
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-glre]'); if(!b)return; const x=GLOG.find(y=>y.id===b.dataset.glre); if(!x)return;
+  if(!confirm(`'${glogTitle(x.goal)}' 목표로 되돌리고 일정을 다시 짭니다. 지금 일정은 바뀝니다.`))return;
+  try{ const g=JSON.parse(JSON.stringify(x.goal)); GOAL=g; DEV.store.set('goal',g); const p=makePlan({goal:g,keepDays:true}); applyPlan(p); BLOCK=loadPlan();
+    GLOG.forEach(y=>{ if(y.status==='active'){ y.status='ended'; y.closedAt=todayStr(); } }); x.status='active'; x.closedAt=null; x.doneAt=null; glogSave();
+    toast('목표를 되돌렸어요'); renderHome(); openMyGoal(); }catch(err){ alert('되돌리지 못했어요: '+err.message); } });
 (function glogBoot(){ try{ if(!GLOG.length&&GOAL&&PLAN&&PLAN.sessions){ const m=glogMetric(GOAL); GLOG.push({id:'g0',made:(PLAN.made||new Date().toISOString()).slice(0,10),goal:JSON.parse(JSON.stringify(GOAL)),start:PLAN.start||todayStr(),end:GOAL.date?GOAL.date.slice(0,10):null,status:'active',v0:null,vEnd:null,closedAt:null}); glogSave(); } }catch(e){} })();
 </script>
 </body>
