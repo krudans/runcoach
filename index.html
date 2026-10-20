@@ -1774,6 +1774,8 @@ details.noti .sigc{margin:6px 0}
 .gc-chip{display:inline-flex;flex-direction:column;background:var(--panel-2);border-radius:10px;padding:5px 9px;line-height:1.2}.gc-chip i{font-style:normal;font-size:10px;color:var(--ink-3)}.gc-chip b{font-size:13px;font-family:var(--num)}
 .snapb{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink-2);border-radius:999px;padding:6px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 .snapb.wide{width:100%;justify-content:center;border-radius:14px;padding:12px;font-size:14px;margin:8px 0 0}
+.gc-sub{font-size:12.5px;color:var(--ink-2);margin:4px 0 2px}
+.gc-dd{margin-top:4px}.gc-dd>summary{list-style:none;text-align:center;font-size:12.5px;font-weight:800;color:var(--accent);padding:8px;cursor:pointer}.gc-dd>summary::-webkit-details-marker{display:none}.gc-dd>summary::after{content:' ▾'}.gc-dd[open]>summary::after{content:' ▴'}
 .gc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}.gc-foot .gc-more{width:auto;margin:0}
 .rs-snap{display:flex;flex-direction:column;gap:8px;margin-top:10px}.rs-snap .btn{margin:0}
 .gc-ttl{font-size:12.5px;font-weight:800;color:var(--accent);letter-spacing:.2px;margin:0 0 10px}
@@ -2005,7 +2007,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='12.2';
+const APPVER='12.4';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9860,9 +9862,10 @@ function goalCard(compact){
   const how=`<div class="gc-how"><span>이번 4주</span><b>${M.how}</b></div>`;
   if(compact) return `<section class="mygoal" aria-label="내 달리기 목표">
       <div class="gc-ttl">내 달리기 목표</div>
-      <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b><i>${M.sub}</i></div></div>
-      ${goalSetChips(M)}${goalGauge(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
-      <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">자세히 ›</button>${snapBtn('.mygoal','goal','내 달리기 목표')}</div></section>`;
+      <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b></div></div>
+      ${goalGauge(M)}
+      <details class="gc-dd"><summary>더 보기</summary>${M.sub?`<div class="gc-sub">${M.sub}</div>`:''}${goalSetChips(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
+      <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">자세히 ›</button>${snapBtn('.mygoal','goal','내 달리기 목표')}</div></details></section>`;
   /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
   const mx=Math.max(1,...M.wkKm);
   const wk=`<div class="gc-wk">${M.wkKm.map((k,i)=>`<div><i style="height:${Math.max(6,k/mx*56).toFixed(0)}px"></i><b class="num">${Math.round(k)}</b><span>${i+1}주</span></div>`).join('')}</div>`;
