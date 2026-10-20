@@ -753,7 +753,10 @@ details.noti .sigc{margin:6px 0}
 .ws-h{display:flex;align-items:baseline;justify-content:space-between}
 .ws-h>b{font-size:13px;font-weight:800;color:var(--ink-2)}.ws-h span{font-size:12px;color:var(--ink-3)}.ws-h span b{font-size:16px;color:var(--ink);font-weight:900}
 .ws-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:8px}
-.wk-d{display:flex;flex-direction:column;align-items:center;gap:4px}
+.wk-d{display:flex;flex-direction:column;align-items:center;gap:3px}
+.wk-n{font-size:12px;font-weight:800;min-height:14px;line-height:1}.wk-n i{font-style:normal;color:var(--ink-3);font-weight:600}.wk-n.mid{color:#8A5200}.wk-n.hi{color:#9A3E00}.wk-n.bad{color:#A3302A}.wk-n.ok{color:#0E6E55}
+.wk-d em{font-style:normal;font-size:11px;color:var(--ink-3)}.wk-d.now em{color:var(--accent);font-weight:900}
+.ws-note{font-size:10.5px;color:var(--ink-3);margin-top:8px}.ws-h small{font-size:11px;color:var(--ink-3);font-weight:600}
 .wk-bar{position:relative;width:100%;max-width:30px;height:52px;border-radius:9px;background:var(--bg);display:flex;align-items:flex-end;overflow:hidden}
 .wk-bar i{display:block;width:100%;border-radius:9px;opacity:.38}
 .wk-d.done .wk-bar i{opacity:1}
@@ -1769,6 +1772,10 @@ details.noti .sigc{margin:6px 0}
 .gc-ef em{font-style:normal;font-size:11px;color:var(--ink-3)}.gc-ehint{font-size:11.5px;color:var(--ink-3);margin:0}.gc-ef .btn{margin:4px 0 0}
 .gc-set{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}.gc-setl{font-size:11px;font-weight:800;color:var(--ink-3);margin-right:2px}
 .gc-chip{display:inline-flex;flex-direction:column;background:var(--panel-2);border-radius:10px;padding:5px 9px;line-height:1.2}.gc-chip i{font-style:normal;font-size:10px;color:var(--ink-3)}.gc-chip b{font-size:13px;font-family:var(--num)}
+.snapb{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink-2);border-radius:999px;padding:6px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.snapb.wide{width:100%;justify-content:center;border-radius:14px;padding:12px;font-size:14px;margin:8px 0 0}
+.gc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}.gc-foot .gc-more{width:auto;margin:0}
+.rs-snap{display:flex;flex-direction:column;gap:8px;margin-top:10px}.rs-snap .btn{margin:0}
 .gc-ttl{font-size:12.5px;font-weight:800;color:var(--accent);letter-spacing:.2px;margin:0 0 10px}
 .gc-top{display:flex;align-items:center;gap:12px}.gc-ic{flex:none;width:44px;height:44px;border-radius:14px;background:var(--panel-2);display:grid;place-items:center;font-size:22px}
 .gc-t b{display:block;font-size:19px;font-weight:900;line-height:1.2}.mygoal.full .gc-t b{font-size:22px}.gc-t i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:2px}
@@ -1998,7 +2005,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='12.1';
+const APPVER='12.2';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7087,7 +7094,7 @@ function todayResultCard(r,sess){
     ${loadCard(r,true)}
     ${rows?`<ul class="tr-rows">${rows}</ul>`:''}
     <button type="button" class="tr-go" data-tres="${r.rid}">결과 자세히 보기 ›</button>
-    <div class="tr-links">${sess&&!linked&&!RUNS.some(x=>x.planId===sess.d)?`<button type="button" data-tlink="${r.rid}">오늘 훈련으로 치기</button>`:''}<button type="button" data-tstr="1">정리 스트레칭</button>${sess?`<button type="button" id="goAgain">다시 뛰기</button>`:''}</div>
+    <div class="tr-links">${snapBtn('.tres','result','오늘 결과')}${sess&&!linked&&!RUNS.some(x=>x.planId===sess.d)?`<button type="button" data-tlink="${r.rid}">오늘 훈련으로 치기</button>`:''}<button type="button" data-tstr="1">정리 스트레칭</button>${sess?`<button type="button" id="goAgain">다시 뛰기</button>`:''}</div>
   </section>`;
 }
 document.addEventListener('click',e=>{
@@ -7119,7 +7126,7 @@ function todayCard(sess,idx){
       ${hz?`<span>${ic('heart')}<b class="num">${hz}</b>↓</span>`:''}
     </div>
     <button class="hero-go${done?' done':''}" id="goToday">${done?ic('check',22)+'완료 · 다시':ic('play',22)+'시작'}</button>
-    <div class="hero-links"><button type="button" id="todayDet">계획 보기</button><button type="button" id="distEdit">거리 바꾸기</button>${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
+    <div class="hero-links"><button type="button" id="todayDet">계획 보기</button><button type="button" id="distEdit">거리 바꾸기</button>${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">바꾸면?</button></div>
   </section>`;
 }
@@ -7296,23 +7303,30 @@ function goalStrip(){
 /* ───────── 이번 주 — 7일 막대. 높이 = 거리, 색 = 훈련 종류, 체크 = 완료 ───────── */
 function weekStrip(){
   if(!BLOCK.length)return '';
-  const t=todayStr(), mon=weekMonday(t);
+  const t=todayStr(), mon=weekMonday(t), prevMon=addDays(mon,-7);
+  const dayLoad=d=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d).reduce((a,r)=>{ const L=loadOf(r); return a+(L&&L.main?L.main.v:0); },0);
   const days=[0,1,2,3,4,5,6].map(i=>{ const d=addDays(mon,i), ix=BLOCK.findIndex(x=>x.d.slice(0,10)===d&&x.type!=='off'), s=ix>=0?sessionOf(ix):null;
-    return {d,s,km:s?(s.dist||0):0,ran:dayKm(d),st:dayStatus(d)}; });
-  const mx=Math.max(1,...days.map(x=>Math.max(x.km,x.ran)));
-  const planKm=days.reduce((a,x)=>a+x.km,0), ranKm=days.reduce((a,x)=>a+x.ran,0);
+    return {d,s,km:s?(s.dist||0):0,ran:dayKm(d),load:Math.round(dayLoad(d)),st:dayStatus(d)}; });
+  const sumL=days.reduce((a,x)=>a+x.load,0), prevL=[0,1,2,3,4,5,6].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
+  /* 계획된 날의 예상 점수 — 계획 페이스·거리로 rTSS를 미리 계산해 '얼마짜리 훈련인지' 보여준다 */
+  const planLoad=s=>{ if(!s||!s.segs||!Z||!Z.T)return 0; const its=planItems(s,ADJ[s.type]||0); return Math.round(its.reduce((a,x)=>{ const sec=x.dur||0, pace=x.p?(x.p[0]+x.p[1])/2:0; if(!sec||!pace)return a; const IF=Z.T/pace; return a+sec*IF*IF/3600*100; },0)); };
+  days.forEach(x=>{ x.plan=x.s?planLoad(x.s):0; });
+  const mx=Math.max(40,...days.map(x=>Math.max(x.load,x.plan)));
   const cells=days.map(x=>{ const col=x.s?hexes((LOOK[x.s.type]||LOOK.free).bg)[0]:'var(--line)';
-    const done=['kept','free','over','under'].includes(x.st)||x.ran>0, miss=x.st==='missed'||x.st==='missedOk';
-    const h=Math.max(x.km,x.ran)/mx*100;
-    const mark=done?ic('check',12):miss?'×':(!x.s&&x.d<=t&&inPlan(x.d))?ic('moon',11):'';
+    const done=x.load>0||['kept','free','over','under'].includes(x.st)||x.ran>0, miss=!done&&(x.st==='missed'||x.st==='missedOk'), rest=!x.s&&!done;
+    const h=done?Math.max(10,x.load/mx*100):x.plan?Math.max(8,x.plan/mx*100):0;
+    const band=done&&x.load?loadBand('tss',x.load)[2]:'';
     return `<div class="wk-d${x.d===t?' now':''}${done?' done':''}${miss?' miss':''}" title="${dowOf(x.d)} ${x.s?ESC(x.s.t):'쉬는 날'}">
-      <div class="wk-bar">${h?`<i style="height:${Math.max(10,h).toFixed(0)}%;background:${col}"></i>`:''}<span>${mark}</span></div><b>${dowOf(x.d)}</b></div>`; }).join('');
-  return `<section class="wstrip" aria-label="이번 주 ${ranKm.toFixed(1)}km / ${planKm.toFixed(0)}km">
-    <div class="ws-h"><b>이번 주</b><span class="num"><b>${ranKm.toFixed(1)}</b> / ${planKm.toFixed(0)} km</span></div>
-    <div class="ws-days">${cells}</div></section>`;
+      <b class="wk-n num ${band}">${done?(x.load||'✓'):x.plan?`<i>${x.plan}</i>`:(rest?'—':'')}</b>
+      <div class="wk-bar">${h?`<i style="height:${h.toFixed(0)}%;background:${col};opacity:${done?1:.3}"></i>`:''}${miss?'<span>×</span>':''}</div><em>${dowOf(x.d)}</em></div>`; }).join('');
+  const diff=prevL?Math.round((sumL-prevL)/prevL*100):null;
+  return `<section class="wstrip" aria-label="이번 주 훈련 점수">
+    <div class="ws-h"><b>이번 주 훈련 점수</b><span class="num"><b>${sumL}</b>${prevL?` <small>지난주 ${Math.round(prevL)}${diff!=null?` (${diff>0?'+':''}${diff}%)`:''}</small>`:''}</span></div>
+    <div class="ws-days">${cells}</div>
+    <div class="ws-note">숫자 = 그날 훈련 부하(rTSS) · 옅은 막대 = 계획된 훈련의 예상 점수${diff!=null&&diff>30?' · 지난주보다 30% 넘게 늘었어요':''}</div></section>`;
 }
-/* 목표 계단 (예전 카드 — 홈에서는 goalTop이 대신한다) */
-function goalCard(){
+/* 목표 계단 (예전 카드 — 지금은 안 쓴다) */
+function goalCardOld(){
   const g=(PLAN&&PLAN.goal)||GOAL; if(!g||!g.m||!(g.final||g.sec))return '';
   const goalSec=g.final||g.sec, gg=Object.assign({},g,{sec:goalSec});
   const fz=feasible(gg); if(!fz)return '';
@@ -7687,7 +7701,7 @@ function renderResult(host,r,s){
         <span><span class="cs">${[1,2,3,4,5].map(n=>`<button data-bc="${i}:${n}" class="${b.comfort===n?'on':''}">${n}</button>`).join('')}</span>
         <label><input type="checkbox" data-bs="${i}"${b.stitch?' checked':''}>결림</label></span></div>`).join('')}</div>`:''}
     <div class="rsZones"></div>
-        <button class="btn ghost" data-rs="share">사진으로 공유하기</button>`;
+        <div class="rs-snap">${snapBtn('#'+host.id,'result','훈련 결과','wide')}<button class="btn ghost" data-rs="share">꾸며서 공유하기</button></div>`;
   paintZones(host.querySelector('.rsZones'),r.zones,T);
   paintMap(host.querySelector('.rmap'),r.track,r.segments);
   host.querySelector('[data-rs="share"]').onclick=()=>openShare(r,s);
@@ -8711,6 +8725,7 @@ function openTodayPlan(idx){
       ${autoBanner()}
       <div class="card" style="padding:10px 16px 8px">${planDetailHTML(s,adj,TDMODE)}</div>
       <button class="btn" id="tpGo">이대로 시작하기 ▶</button>
+      ${snapBtn('#tpBody','plan','오늘 계획','wide')}
       <div class="st-pair"><button type="button" data-stgo="dyn">출발 전 동적 스트레칭 ▶</button><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
       <button type="button" class="gd-link" data-guide="${ESC(s.type)}">이 훈련은 어떻게 계산되나 ›</button>`;
     $('tpBody').querySelectorAll('[data-pdm]').forEach(b=>b.onclick=()=>{ TDMODE=b.dataset.pdm; paint(); });
@@ -9602,7 +9617,7 @@ function planListHTML(){
         <span class="pw-km"><b class="num">${done?done.toFixed(0)+' / ':''}${plan.toFixed(0)}</b>km</span></header>
       ${done?`<div class="pw-prog"><i style="width:${Math.min(100,done/plan*100)}%"></i></div>`:''}
       <div class="pw-rows">${rows}</div>
-      ${!past?`<div class="pw-tools"><span>거리 조절</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
+      ${!past?`<div class="pw-tools">${snapBtn('.pw','week'+wk,wk+'주차 계획')}<span>거리 조절</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
     </section>`; }).join('');
 }
 document.addEventListener('click',e=>{
@@ -9766,8 +9781,8 @@ function openDebrief(r,s){
     ${A.say?`<p class="db-say">${A.say}</p>`:''}
     ${A.opts.length?`<div class="db-card db-prop"><div class="db-lab">다음 훈련에 이렇게 반영할게요 — 동의하시면 체크</div>
       ${A.opts.map(o=>`<label class="db-opt"><input type="checkbox" data-dbo="${o.id}"${DBF.chosen.has(o.id)?' checked':''}><span><b>${o.t}</b>${o.why?`<i>${o.why}</i>`:''}</span></label>`).join('')}
-      <div class="db-btns"><button type="button" class="btn" id="dbOk">동의하고 반영</button><button type="button" class="btn ghost" id="dbNo">이번엔 그대로</button></div></div>`
-      :`<div class="db-btns one"><button type="button" class="btn" id="dbNo">확인</button></div>`}`;
+      <div class="db-btns"><button type="button" class="btn" id="dbOk">동의하고 반영</button><button type="button" class="btn ghost" id="dbNo">이번엔 그대로</button>${snapBtn('#dbBody','debrief','오늘 훈련 돌아보기','wide')}</div></div>`
+      :`<div class="db-btns one"><button type="button" class="btn" id="dbNo">확인</button>${snapBtn('#dbBody','debrief','오늘 훈련 돌아보기','wide')}</div>`}`;
   const sh=$('dbSheet'); sh.hidden=false; sh.scrollTop=0; requestAnimationFrame(()=>sh.classList.add('up'));
   try{ const g=P.good[0], b=P.bad[0]; DEV.speak(`${vd?vd[0]:'수고했어요'}. ${g?g[1]:''} ${b?b[1]:''}`.replace(/—/g,','),true); }catch(e){}
 }
@@ -9847,7 +9862,7 @@ function goalCard(compact){
       <div class="gc-ttl">내 달리기 목표</div>
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b><i>${M.sub}</i></div></div>
       ${goalSetChips(M)}${goalGauge(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
-      <button type="button" class="gc-more" data-mygoal="1">자세히 ›</button></section>`;
+      <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">자세히 ›</button>${snapBtn('.mygoal','goal','내 달리기 목표')}</div></section>`;
   /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
   const mx=Math.max(1,...M.wkKm);
   const wk=`<div class="gc-wk">${M.wkKm.map((k,i)=>`<div><i style="height:${Math.max(6,k/mx*56).toFixed(0)}px"></i><b class="num">${Math.round(k)}</b><span>${i+1}주</span></div>`).join('')}</div>`;
@@ -9865,7 +9880,7 @@ function goalCard(compact){
       ${hist?`<div class="gc-lab">추이</div>${hist}`:''}
       ${M.measure?`<div class="gc-lab">재는 법</div><div class="gc-meas">${M.measure}</div>`:''}
       ${why}
-      <div class="gc-btns"><button type="button" class="btn ghost" id="gcEdit">목표 · 일정 새로 짜기</button></div></div>`;
+      <div class="gc-btns">${snapBtn('.mygoal','goal','내 달리기 목표','wide')}<button type="button" class="btn ghost" id="gcEdit">목표 · 일정 새로 짜기</button></div></div>`;
 }
 
 /* 목표 숫자 고치기 — 편한 달리기 능력: 기준 페이스 · 목표 심박(또는 기준 심박 · 목표 페이스) · 날짜 */
@@ -9897,6 +9912,49 @@ function openMyGoal(){
   const e=$('gcEdit'); if(e)e.onclick=()=>goalStart();
   show('dec');
 }
+
+/* ═════════════════════ 화면 카드 → 이미지 저장 (SNS용) ═════════════════════
+   보이는 카드를 그대로 PNG로 만든다. 외부 라이브러리 없이: DOM 복제 → 계산된 스타일 인라인 → SVG foreignObject → 캔버스.
+   아래에 가지런 로고 줄을 붙이고, 폰이면 공유창(navigator.share), 아니면 파일 저장. */
+const SNAP_SKIP='button,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
+function snapInline(src,dst){
+  const cs=getComputedStyle(src); let css='';
+  for(let i=0;i<cs.length;i++){ const k=cs[i]; if(/^(transition|animation|cursor|pointer-events|-webkit-tap)/.test(k))continue; css+=`${k}:${cs.getPropertyValue(k)};`; }
+  dst.setAttribute('style',css);
+  const sc=src.children, dc=dst.children;
+  for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
+}
+async function snapCard(el,name,title){
+  if(!el)return; toast('이미지 만드는 중…');
+  const W=el.offsetWidth, H=el.offsetHeight, clone=el.cloneNode(true);
+  const wrap=document.createElement('div'); wrap.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; wrap.appendChild(clone); document.body.appendChild(wrap);
+  clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details').forEach(d=>d.open=true);
+  clone.querySelectorAll('input,textarea').forEach(x=>{ const sp=document.createElement('span'); sp.textContent=x.value; x.replaceWith(sp); });
+  /* 원본 순서가 같아야 스타일을 1:1로 복사할 수 있다 — 지운 요소는 원본에서도 건너뛴다 */
+  const src=el.cloneNode(true); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove());
+  const probe=document.createElement('div'); probe.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; probe.appendChild(src); document.body.appendChild(probe);
+  src.querySelectorAll('details').forEach(d=>d.open=true);
+  snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
+  const h2=clone.offsetHeight||H; probe.remove();
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(clone)}</div></foreignObject></svg>`;
+  wrap.remove();
+  const img=new Image(); img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  try{ await img.decode(); }catch(e){ toast('이미지를 만들지 못했어요'); return; }
+  const k=3, pad=36, foot=84, cv=document.createElement('canvas'); cv.width=(W+pad*2)*k; cv.height=(h2+pad*2+foot)*k;
+  const x=cv.getContext('2d'); x.scale(k,k);
+  x.fillStyle=getComputedStyle(document.body).backgroundColor||'#F4EFF8'; x.fillRect(0,0,W+pad*2,h2+pad*2+foot);
+  x.drawImage(img,pad,pad,W,h2);
+  try{ drawBrand(x,pad,h2+pad+22,40,'#2A1638','#FDFBF6'); }catch(e){}
+  x.fillStyle='#2A1638'; x.font='800 18px "Noto Sans KR",system-ui,sans-serif'; x.fillText('가지런',pad+50,h2+pad+44);
+  x.fillStyle='#72637F'; x.font='700 11px "Outfit",system-ui,sans-serif'; x.fillText('GAJI RUN · '+(title||'')+' · '+todayStr().replace(/-/g,'.'),pad+50,h2+pad+60);
+  const bl=await new Promise(r=>cv.toBlob(r,'image/png')); if(!bl){ toast('이미지를 만들지 못했어요'); return; }
+  const fn=`gajirun_${name}_${todayStr()}.png`, f=new File([bl],fn,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:'가지런 · '+(title||'')}); return; }catch(e){ if(e&&e.name==='AbortError')return; } }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast('이미지로 저장했어요');
+}
+function snapBtn(sel,name,title,cls){ return `<button type="button" class="snapb ${cls||''}" data-snap="${sel}" data-snapn="${name}" data-snapt="${title}" aria-label="이미지로 저장">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'} 이미지</button>`; }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-snap]'); if(!b)return; const el=b.closest(b.dataset.snap)||document.querySelector(b.dataset.snap); snapCard(el,b.dataset.snapn,b.dataset.snapt); });
 </script>
 </body>
 </html>
