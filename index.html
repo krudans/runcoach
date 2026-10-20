@@ -716,6 +716,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #home .hbrand{padding:2px 18px 0;gap:10px}
 #home .happ{width:34px;height:34px;border-radius:10px;box-shadow:none}
 #home .hname b{font-size:21px;letter-spacing:-.5px}
+.hname{display:flex;flex-direction:column;gap:1px;min-width:0}.ichip{display:inline-block;font-size:12px;font-weight:800;color:#2A1638;background:#8DB89A;border-radius:999px;padding:4px 11px;margin-bottom:8px;letter-spacing:.02em}
+.hrow{display:flex;align-items:center;gap:7px;flex-wrap:nowrap}.hchip{font-style:normal;font-size:10.5px;font-weight:800;color:#fff;background:linear-gradient(120deg,#5B2D86,#7A4CC2);border-radius:999px;padding:3px 8px;letter-spacing:0;line-height:1.2;white-space:nowrap;flex:none}.hname i.htag{font-style:normal;font-size:11.5px;font-weight:600;color:var(--ink-3);letter-spacing:0;text-transform:none;opacity:1;line-height:1.2;margin-top:2px;white-space:nowrap}
 #home .streak{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-family:var(--num);font-weight:800;font-size:13px;color:#B04416;background:#FFEFE6;border-radius:999px;padding:5px 10px}
 /* 알림 */
 details.noti{margin:12px 16px 0;padding:0;border:none;box-shadow:none;background:none}
@@ -1380,6 +1382,7 @@ details.noti .sigc{margin:6px 0}
     <h1 style="text-align:center">오늘 뭘 하나</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad">
     <div class="card"><h2 id="cTitle">—</h2><div class="meta" id="cMeta">—</div></div>
+    <div class="idline" id="cCoach" role="note"><span class="idl-ic">🎧</span><div><b>실시간 코칭 프로그램이 이 훈련의 속도·거리·심박 기준으로 안내합니다</b><i>구간마다 빠르면 주황, 느리면 보라, 맞으면 그대로 — 색과 소리로. 화면을 볼 필요가 없어요.</i></div></div>
 
     <div class="card" style="padding:10px 16px 8px"><div class="seglist" id="cSegs" style="margin-top:0"></div></div>
     <div class="brief" id="cBrief"></div>
@@ -1475,7 +1478,7 @@ details.noti .sigc{margin:6px 0}
   <div class="ipad">
     <div class="itop"><span class="brandmark" data-bm="light"></span><span><b>가지런</b><i>GAJI RUN <span id="verIntro" style="opacity:.55;letter-spacing:.1em"></span></i></span></div>
     <div class="ibig">가지런하다</div>
-    <div class="isub">고르게, 약속대로 달립니다</div>
+    <div class="isub"><span class="ichip">실시간 코칭 프로그램</span><br>내가 정한 강도·거리·시간대로 뛴다</div>
     <div class="ilines">
       <div class="il"><s style="background:#E35A32"></s>너무 빠르면 <b>주황</b></div>
       <div class="il"><s style="background:#7355D6"></s>너무 느리면 <b>보라</b></div>
@@ -1792,7 +1795,9 @@ details.noti .sigc{margin:6px 0}
 .cb-prev{margin-top:8px}.cb-prev .pw{margin:8px 0 0}
 .ab.big{margin:0 0 12px;padding:15px 16px}.ab.big b{font-size:15px;line-height:1.35}.ab.big i{display:block;font-style:normal;font-size:12px;opacity:.9;margin-top:3px}
 .gw-edit{position:absolute;right:6px;top:12px;white-space:nowrap;font-size:11.5px;font-weight:800;color:#fff;background:var(--accent);border-radius:999px;padding:5px 10px;line-height:1}
+.hero-coach{font-size:11.5px;font-weight:700;color:var(--accent);margin:8px 2px 0}
 .hero-stats small,.tr-stats small{font-size:11px;font-weight:800;opacity:.85}
+.idline{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(120deg,#5B2D86,#7A4CC2);color:#fff;border-radius:16px;padding:12px 14px;margin:10px 0}.idline.lite{background:color-mix(in srgb,var(--accent) 10%,var(--panel));color:var(--ink);border:1.5px solid color-mix(in srgb,var(--accent) 35%,transparent)}.idline .idl-ic{font-size:20px;flex:none;line-height:1.2}.idline b{display:block;font-size:13.5px;line-height:1.35}.idline i{display:block;font-style:normal;font-size:11.5px;opacity:.9;margin-top:3px;line-height:1.45}
 .rlog{background:var(--panel);border-radius:22px;padding:12px 14px;margin:10px 16px 0;border:1.5px solid var(--line)}
 .rl-hd{display:flex;align-items:center;justify-content:space-between}.rl-hd b{font-size:12.5px;font-weight:800;color:var(--accent)}.rl-hd .rl-add{border:0;background:none;color:var(--accent);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;padding:4px 0}
 .rl-pbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
@@ -2054,7 +2059,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='14.7';
+const APPVER='15.0';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7155,7 +7160,7 @@ function renderHome(){
 
   /* 오늘 무엇을 하는지는 바로 아래 카드에 있다 — 여기는 앱 이름과 로고 자리 */
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
-      <div class="hname"><b>가지런<span class="hada">하다</span></b></div>
+      <div class="hname"><span class="hrow"><b>가지런<span class="hada">하다</span></b><em class="hchip">실시간 코칭 프로그램</em></span><i class="htag">내가 정한 강도·거리·시간대로</i></div>
       ${st>=2?`<span class="streak" title="약속 ${st}번 연속"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}</span>`:''}</div>`;
 
   /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
@@ -7298,6 +7303,7 @@ function todayCard(sess,idx){
       <span>${ic('pace')}<b class="num">${pace}</b>/km</span>
       ${hz?`<span>${ic('heart')}<b class="num">${hz}</b>↓ <small>${zLab(hz-1)}</small></span>`:''}
     </div>
+    <div class="hero-coach">🎧 실시간 코칭 프로그램 — 이 속도·거리·심박 기준으로 안내</div>
     <button class="hero-go${done?' done':''}" id="goToday">${done?ic('check',22)+'완료 · 다시':ic('play',22)+'시작'}</button>
     <div class="hero-links"><button type="button" id="todayDet">계획 보기</button><button type="button" id="distEdit">거리 바꾸기</button>${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">바꾸면?</button></div>
@@ -9513,7 +9519,7 @@ function renderGuide(){
       <em class="gw-q">${e?`${tag(e.man)} 내 기준 ${e.mine}`:'숫자로는 못 재요 — 기분 좋은 그 느낌'}</em>${e?`<span class="gw-edit">${open?'닫기 ▴':'수정 ▾'}</span>`:''}</${e?'button':'div'}>
       ${e&&open?`<div class="gw-ed" data-ed="${r[0]}">${seg(r[0],e.man)}${e.man?`<div class="gw-form">${e.form}<p class="gw-hint" id="gwHint"></p></div>`:e.auto}</div>`:''}</div>`; }).join('')}</div><div class="gw-band"></div>
       <p class="gw-cap">${lr?`최근 달리기 ${String(lr.date).slice(5,10).replace('-','.')} 기준`:'내 기준 값'}${nMan?` · 직접 입력 ${nMan}개`:''}</p></div>`;
-$('gdBody').innerHTML=`<div class="gd-hero"><b>내 숫자</b></div><div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>당신의 현재 기록이 자동으로 입력되며, 수동으로 변경할 수 있습니다.</b><i>각 줄의 '수정' 버튼 → 자동 / 직접 입력</i></div></div>${watch}`+sec('훈련 종류',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+`<details class="gd-all"><summary>계산 기준 전체 보기</summary>${sec('기준 숫자',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`+
+$('gdBody').innerHTML=`<div class="idline lite"><span class="idl-ic">🎧</span><div><b>가지런은 내가 정한 강도·거리·시간에 맞춰 안내하는 실시간 코칭 프로그램입니다</b><i>아래 숫자들이 그 기준이 됩니다 — 자동으로 채워지고, 직접 바꿀 수 있어요.</i></div></div><div class="gd-hero"><b>내 숫자</b></div><div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>당신의 현재 기록이 자동으로 입력되며, 수동으로 변경할 수 있습니다.</b><i>각 줄의 '수정' 버튼 → 자동 / 직접 입력</i></div></div>${watch}`+sec('훈련 종류',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+`<details class="gd-all"><summary>계산 기준 전체 보기</summary>${sec('기준 숫자',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`+
     `<p class="gd-src" style="text-align:center;margin:18px 0 0">근거 등급 — B 연구 있음 · C 경험칙 · D 내 기록</p>`;
 }
 function openGuide(focus,back){
@@ -10345,6 +10351,7 @@ function cbRender(){
     const p=cbBuild(); const wk=[1,2,3,4].map(w=>p.sessions.filter(x=>x.wk===w).reduce((a,x)=>a+(x.dist||0),0));
     h+=`<h2 class="cb-h">확인</h2><p class="cb-sub">${p.start}부터 4주 · ${wk.reduce((a,b)=>a+b,0).toFixed(0)}km · 주 ${Object.values(CB.week).filter(x=>x!=null).length}회</p>
       ${[1,2,3,4].map(w=>`<div class="cb-tpl"><span class="sw" style="background:var(--accent)"></span><span class="sp"><b>${w}주차 · ${wk[w-1].toFixed(1)}km</b><i>${p.sessions.filter(x=>x.wk===w).map(x=>dowOf(x.d.slice(0,10))+' '+x.t).join(' · ')||'쉬는 주'}</i></span></div>`).join('')}
+      <div class="idline" style="margin-top:12px"><span class="idl-ic">🎧</span><div><b>여기서 정한 강도·거리·시간이 실시간 코칭 프로그램의 기준이 됩니다</b><i>뛰는 동안 구간마다 이 값에 맞춰 색과 소리로 안내합니다.</i></div></div>
       <div class="meta" style="margin-top:10px">저장하면 이 계획이 홈·플랜에 들어가고, 목표 목록에 '내가 직접 세운 계획'으로 쌓입니다. 플랜 탭에서 날마다 고칠 수 있어요.</div>
       <div class="note" style="margin-top:10px;font-size:12px">일정은 내가 정한 값으로 만든 제안입니다. 몸 상태와 능력 향상의 책임은 본인에게 있습니다.</div>`;
   }
