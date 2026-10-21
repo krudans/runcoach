@@ -1222,6 +1222,7 @@ details.noti .sigc{margin:6px 0}
         <div class="meta" style="margin-top:3px">워치의 <b>심박 송출</b>을 켠 뒤 연결하세요. 한 번 잡으면 다음부턴 자동.</div></div>
     </div>
     <button class="btn sm ghost" id="btnBT" style="margin:0">기기 검색 · 연결</button>
+    <button class="btn sm ghost" id="btnBTAll" style="margin:8px 0 0;font-size:12px">내 워치가 목록에 없어요 — 전체 기기 보기</button>
   </div>
 
   <div class="setrow">
@@ -1339,6 +1340,7 @@ details.noti .sigc{margin:6px 0}
 <div class="msheet dbs" id="dbSheet" hidden><div class="ms-card db-card0" role="dialog" aria-label="오늘 훈련 디브리핑"><div class="ms-hd"><b>오늘 훈련 돌아보기</b></div><div id="dbBody"></div></div></div>
 <div class="msheet" id="peSheet" hidden><div class="ms-card" role="dialog" aria-label="훈련 고치기">
   <div class="ms-hd"><b>훈련 고치기</b><button type="button" id="peClose" aria-label="닫기">✕</button></div><div id="peBody"></div></div></div>
+<div class="msheet" id="hrAsk" hidden><div class="ms-card hrask" role="dialog" aria-label="심박 기기 확인"><div class="ms-body"></div></div></div>
 <div class="msheet" id="reSheet" hidden><div class="ms-card" role="dialog" aria-label="기록 고치기">
   <div class="ms-hd"><b>기록 고치기</b><button type="button" id="reClose" aria-label="닫기">✕</button></div><div id="reBody"></div></div></div>
 <div class="msheet" id="rlSheet" hidden><div class="ms-card" role="dialog" aria-label="대회 기록">
@@ -1721,6 +1723,7 @@ details.noti .sigc{margin:6px 0}
 .gw-edit{position:absolute;right:6px;top:12px;white-space:nowrap;font-size:11.5px;font-weight:800;color:#fff;background:var(--accent);border-radius:999px;padding:5px 10px;line-height:1}
 .hero-coach{font-size:11.5px;font-weight:700;color:var(--accent);margin:8px 2px 0}
 .hero-stats small,.tr-stats small{font-size:11px;font-weight:800;opacity:.85}
+.hrask{text-align:center;padding:22px 20px calc(24px + env(safe-area-inset-bottom))}.hrask-ic{font-size:34px;margin-bottom:6px}.hrask h3{margin:0 0 8px;font-size:17px}.hrask p{margin:0 0 16px;font-size:13px;color:var(--ink-2);line-height:1.55}
 .devnote{display:flex;align-items:center;gap:10px;background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:11px 13px;margin:10px 0 0}.devnote>span{font-size:20px;flex:none}.devnote>div{flex:1;min-width:0}.devnote b{display:block;font-size:13.5px}.devnote i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);margin-top:2px;line-height:1.45}.devnote.warn{border-color:#E8884F;background:#FFF4EC}.devnote.ok{border-color:#2EAD7A;background:#EAF7F1}.devnote button{flex:none;border:0;background:var(--accent);color:#fff;font:inherit;font-size:13px;font-weight:800;border-radius:999px;padding:9px 14px;cursor:pointer}
 .idline{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(120deg,#5B2D86,#7A4CC2);color:#fff;border-radius:16px;padding:12px 14px;margin:10px 0}.idline.lite{background:color-mix(in srgb,var(--accent) 10%,var(--panel));color:var(--ink);border:1.5px solid color-mix(in srgb,var(--accent) 35%,transparent)}.idline .idl-ic{font-size:20px;flex:none;line-height:1.2}.idline b{display:block;font-size:13.5px;line-height:1.35}.idline i{display:block;font-style:normal;font-size:11.5px;opacity:.9;margin-top:3px;line-height:1.45}
 .setrow{display:flex;flex-direction:column;gap:8px;margin:14px 0 4px}.setlink{display:flex;align-items:center;gap:8px;width:100%;background:var(--panel);border:0;border-radius:14px;padding:13px 14px;font:inherit;color:var(--ink);text-align:left;cursor:pointer}.setlink b{font-size:14px}.setlink i{font-style:normal;font-size:12px;color:var(--ink-3);flex:1}.setlink span{color:var(--ink-3);font-size:18px}
@@ -1985,7 +1988,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='15.8';
+const APPVER='16.0';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2053,8 +2056,16 @@ const DEV = {
     // '가지고 있어도 광고(advertise)하지 않는다'. 그래서
     // filters:[{services:['heart_rate']}] 로는 선택창에 아예 뜨지 않는다.
     // 전체 기기를 띄우고, 고른 기기에서 심박 서비스를 직접 확인하는 방식으로 바꿨다.
-    const dev = known || await navigator.bluetooth.requestDevice({
-      acceptAllDevices:true, optionalServices:['heart_rate','battery_service']});
+    /* 선택창에는 심박 기기만 — 심박 서비스를 광고하는 기기 + 흔한 워치·심박계 이름.
+       (어메이핏처럼 서비스를 광고하지 않는 워치는 이름으로 잡는다. 그래도 안 보이면 '전체 기기' 로 다시 연다) */
+    let dev=known;
+    if(!dev){
+      const saved=(typeof BT!=='undefined'&&BT.name)?String(BT.name):'';
+      const prefixes=['Amazfit','Zepp','Garmin','Polar','Wahoo','TICKR','COROS','Suunto','Galaxy','Watch','Mi ','Xiaomi','Huawei','HUAWEI','HONOR','Fitbit','Coospo','Magene','XOSS','HRM','HR ','Scosche','Whoop','Forerunner','Venu','Fenix','Pace','Apex','Vertix','GTR','GTS','T-Rex','Band'];
+      const filters=[{services:['heart_rate']}].concat(saved?[{name:saved}]:[]).concat(prefixes.map(p=>({namePrefix:p})));
+      const all=DEV._btAll; DEV._btAll=false;
+      dev = await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true, optionalServices:['heart_rate','battery_service']}:{filters, optionalServices:['heart_rate','battery_service']});
+    }
     const srv = await dev.gatt.connect();
     let hsvc;
     try{ hsvc = await srv.getPrimaryService('heart_rate'); }
@@ -3518,6 +3529,7 @@ const btToggle=async()=>{
 };
 $('btnHR').onclick=btToggle;
 $('btnBT').onclick=btToggle;
+const bA=$('btnBTAll'); if(bA)bA.onclick=()=>{ DEV._btAll=true; btToggle(); };
 setInterval(()=>{ const v=$('settings');
   if(v&&v.classList.contains('on'))BT.paint();
   const rb=$('rtBpm'); if(rb&&$('runtab').classList.contains('on'))rb.textContent=(S.hr&&S.hr.bpm)||'—';
@@ -3566,7 +3578,27 @@ function countdown(sec,label){
     $('countX').onclick=()=>done(false);
   });
 }
-$('btnStart').onclick=async()=>{
+/* 시작 전 — 심박 기기가 없으면 묻는다: 연결할지, 심박 없이 갈지 */
+$('btnStart').onclick=()=>{
+  if(BT.dev||$('hrAsk').dataset.skip==='1'){ $('hrAsk').dataset.skip=''; return startRun(); }
+  const T=pendingIx>=0?(TYPES[(sessionOf(pendingIx)||{}).type]||{}):{};
+  const hrDay=T.primary==='hr';
+  const sh=$('hrAsk'); sh.hidden=false; sh.querySelector('.ms-body').innerHTML=`
+    <div class="hrask-ic">${navigator.bluetooth?'💓':'ℹ️'}</div>
+    <h3>심박 기기가 연결되지 않았어요</h3>
+    <p>${hrDay?'오늘은 심박이 기준인 훈련이에요. 심박 없이 가면 속도로만 코칭하고 심박 판정은 하지 않습니다.':'심박 없이 가면 속도 기준으로만 코칭합니다.'}${navigator.bluetooth?'':'<br>이 브라우저는 블루투스를 지원하지 않아요 — 크롬에서 열면 연결할 수 있어요.'}</p>
+    ${navigator.bluetooth?`<button type="button" class="btn" id="hrAskConn" style="margin:0 0 8px">기기 연결하고 시작</button>`:''}
+    <button type="button" class="btn ghost" id="hrAskGo" style="margin:0">심박 없이 그냥 시작</button>
+    ${navigator.bluetooth?`<button type="button" class="hlink" id="hrAskAll" style="margin-top:10px">내 워치가 목록에 없어요 — 전체 기기에서 찾기</button>`:''}`;
+  requestAnimationFrame(()=>sh.classList.add('up'));
+  const close=()=>{ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); };
+  $('hrAskGo').onclick=()=>{ close(); $('hrAsk').dataset.skip='1'; $('btnStart').onclick(); };
+  const a=$('hrAskAll'); if(a)a.onclick=()=>{ DEV._btAll=true; $('hrAskConn').click(); };
+  const c=$('hrAskConn'); if(c)c.onclick=async()=>{ c.disabled=true; c.textContent='찾는 중…'; try{ await BT.connect(); }catch(e){}
+    if(BT.dev){ close(); setTimeout(()=>startRun(),250); } else { c.disabled=false; c.textContent='다시 연결 시도'; } };
+  sh.onclick=e=>{ if(e.target===sh)close(); };
+};
+async function startRun(){
   try{ MUS.onRunStart(); }catch(e){}
   const s=sessionOf(pendingIx), T=TYPES[s.type]||{}, adj=ADJ[s.type]||0;
   /* GPS를 먼저 켜서 카운트 도는 동안 위성을 잡게 한다 */
