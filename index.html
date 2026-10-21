@@ -1757,7 +1757,7 @@ details.noti .sigc{margin:6px 0}
 .gl-ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--panel);display:grid;place-items:center;font-size:18px}
 .gl-t{flex:1;min-width:0}.gl-t b{display:block;font-size:13.5px;line-height:1.3}.gl-t i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:2px}.gl-t em{display:block;font-style:normal;font-family:var(--num);font-size:12.5px;font-weight:700;margin-top:3px}.gl-t em i{display:inline;font-size:11px;font-weight:600;margin-left:6px}
 .gl-re{margin-top:6px;border:1.5px solid var(--line);background:var(--panel);color:var(--accent);border-radius:999px;padding:5px 10px;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
-.gl-st{flex:none;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:var(--panel);color:var(--ink-3)}.gl-it.act .gl-st{background:var(--accent);color:#fff}.gl-it.done .gl-st{background:#DDF3EA;color:#0E6E55}.gl-it.pau .gl-st{background:#FBEBD2;color:#8A4B00}.gl-it.miss .gl-st{background:#F9DEDA;color:#9A2A1F}.gl-list+.gc-lab{margin-top:14px}
+.gl-st{flex:none;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:var(--panel);color:var(--ink-3)}.gl-it.act .gl-st{background:var(--accent);color:#fff}.gl-it.done .gl-st{background:#DDF3EA;color:#0E6E55}.gl-act{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.gl-del{margin-top:6px;border:none;background:none;color:var(--ink-3);font:inherit;font-size:11.5px;text-decoration:underline;padding:5px 6px;cursor:pointer}.gl-pg{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px;font-family:var(--num);font-size:12.5px;color:var(--ink-2)}.gl-pg button{width:34px;height:30px;border:1.5px solid var(--line);background:var(--panel);border-radius:9px;font-size:16px;color:var(--ink-2);cursor:pointer}.gl-pg button:disabled{opacity:.35}.gl-pgset{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:12px;font-size:12px;color:var(--ink-3)}.gl-pgset button{border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 10px;font:inherit;font-size:12px;color:var(--ink-2);cursor:pointer}.gl-pgset button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.gl-it.pau .gl-st{background:#FBEBD2;color:#8A4B00}.gl-it.miss .gl-st{background:#F9DEDA;color:#9A2A1F}.gl-list+.gc-lab{margin-top:14px}
 .gc-lab small{font-weight:600;color:var(--ink-3)}
 .gt-wait{margin:10px 0 0;background:var(--panel-2);border-radius:14px;padding:12px 14px}.gt-wait-h{display:flex;align-items:center;gap:8px;font-size:13.5px}.gt-wait p{margin:8px 0 0;font-size:12px;color:var(--ink-3);line-height:1.5}.gt-bar{height:8px;border-radius:4px;background:var(--line);margin-top:8px;overflow:hidden}.gt-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .gtrend{margin:10px 0 0}.gtrend svg{display:block;width:100%;height:auto}.gt-cap{font-size:11.5px;color:var(--ink-3);margin-top:6px;line-height:1.5}
@@ -10094,7 +10094,7 @@ function glogPush(g,plan){
     if(glogReached(m)){ x.status='done'; x.closedAt=t; }
     else { x.status='paused'; x.pausedAt=t; try{ x.plan=PLAN?JSON.parse(JSON.stringify(PLAN)):null; x.dist=JSON.parse(JSON.stringify(DIST||{})); }catch(e){} } } });
   const m=glogMetric(g);
-  GLOG.push({id:Date.now().toString(36),made:t,goal:JSON.parse(JSON.stringify(g)),start:(plan&&plan.start)||t,end:g.date?g.date.slice(0,10):null,status:'active',v0:m?m.now:null,vEnd:null,closedAt:null});
+  GLOG.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),made:t,goal:JSON.parse(JSON.stringify(g)),start:(plan&&plan.start)||t,end:g.date?g.date.slice(0,10):null,status:'active',v0:m?m.now:null,vEnd:null,closedAt:null});
   if(GLOG.length>60)GLOG=GLOG.slice(-60); glogSave();
 }
 /* 진행 중 목표가 닿았으면 '달성'으로 — 홈을 그릴 때마다 확인 */
@@ -10151,13 +10151,19 @@ function renderGoalsTab(){
     const btn=x.status==='paused'?`<button type="button" class="gl-re" data-glres="${x.id}">다시 이어가기${left?` · 남은 ${left}회`:''}</button>`
              :x.status==='active'?`<button type="button" class="gl-re" data-glend="${x.id}">지금 끝내기</button>`
              :`<button type="button" class="gl-re" data-glre="${x.id}">이 목표로 다시 시작</button>`;
-    return `<li class="gl-it ${st[1]}"><span class="gl-ic">${ico(g)}</span><div class="gl-t"><b>${glogTitle(g)}</b><i>${d(x.start)}${x.end?' → '+d(x.end):''}${x.pausedAt&&x.status==='paused'?' · '+d(x.pausedAt)+' 멈춤':''}${x.closedAt&&!['active','paused'].includes(x.status)?' · '+d(x.closedAt)+' 마감':''}</i>${vals?`<em>${vals}</em>`:''}${btn}</div><span class="gl-st">${st[0]}</span></li>`; };
-  const grp=(lab,arr)=>arr.length?`<div class="gc-lab">${lab} <small>${arr.length}개</small></div><ul class="gl-list">${arr.map(item).join('')}</ul>`:'';
+    const del=x.status!=='active'?`<button type="button" class="gl-del" data-gldel="${x.id}" aria-label="목록에서 지우기">지우기</button>`:'';
+    return `<li class="gl-it ${st[1]}"><span class="gl-ic">${ico(g)}</span><div class="gl-t"><b>${glogTitle(g)}</b><i>${d(x.start)}${x.end?' → '+d(x.end):''}${x.pausedAt&&x.status==='paused'?' · '+d(x.pausedAt)+' 멈춤':''}${x.closedAt&&!['active','paused'].includes(x.status)?' · '+d(x.closedAt)+' 마감':''}</i>${vals?`<em>${vals}</em>`:''}<div class="gl-act">${btn}${del}</div></div><span class="gl-st">${st[0]}</span></li>`; };
+  /* 목록이 길어지면 페이지로 — 한 페이지 개수는 사용자가 정한다(5·10·20) */
+  const PG=+(DEV.store.get('glPg',5))||5; window.GLV=window.GLV||{};
+  const grp=(lab,arr,key)=>{ if(!arr.length)return ''; const pages=Math.max(1,Math.ceil(arr.length/PG)), pg=Math.min(pages,Math.max(1,GLV[key]||1)), show=arr.slice((pg-1)*PG,pg*PG);
+    const nav=pages>1?`<div class="gl-pg"><button type="button" data-glpg="${key}:${pg-1}" ${pg<=1?'disabled':''}>‹</button><span>${pg} / ${pages}</span><button type="button" data-glpg="${key}:${pg+1}" ${pg>=pages?'disabled':''}>›</button></div>`:'';
+    return `<div class="gc-lab">${lab} <small>${arr.length}개</small></div><ul class="gl-list">${show.map(item).join('')}</ul>${nav}`; };
   const L=GLOG.slice().reverse();
   el.innerHTML=`<div class="meta" style="margin:8px 0 12px;line-height:1.7">새 목표를 세우면 하던 목표는 <b>잠시 멈춤</b>으로 보관됩니다. 대회 같은 단기 목표를 끝낸 뒤 '다시 이어가기'를 누르면 멈춘 자리의 남은 일정부터 다시 시작합니다.</div>
     ${GLOG.length?'':'<div class="card tight meta">아직 세운 목표가 없어요.</div>'}
-    ${grp('진행 중',L.filter(x=>x.status==='active'))}${grp('잠시 멈춤',L.filter(x=>x.status==='paused'))}${grp('끝난 목표',L.filter(x=>['done','missed','ended'].includes(x.status)))}
-    <button type="button" class="btn ghost" id="glNew" style="margin-top:14px">새 목표 세우기</button>`;
+    ${grp('진행 중',L.filter(x=>x.status==='active'),'act')}${grp('잠시 멈춤',L.filter(x=>x.status==='paused'),'pau')}${grp('끝난 목표',L.filter(x=>['done','missed','ended'].includes(x.status)),'end')}
+    <button type="button" class="btn ghost" id="glNew" style="margin-top:14px">새 목표 세우기</button>
+    ${GLOG.length>5?`<div class="gl-pgset"><span>한 페이지에</span>${[5,10,20].map(n=>`<button type="button" class="${n===PG?'on':''}" data-glpgs="${n}">${n}개</button>`).join('')}</div>`:''}`;
   const nb=$('glNew'); if(nb)nb.onclick=()=>goalStart();
 }
 document.addEventListener('click',e=>{
@@ -10165,6 +10171,11 @@ document.addEventListener('click',e=>{
     const act=GLOG.find(y=>y.status==='active');
     if(!confirm(`'${glogTitle(x.goal)}'를 이어갑니다.${act?`\n지금 목표('${glogTitle(act.goal)}')는 끝낸 것으로 기록합니다.`:''}`))return;
     try{ glogCloseActive(); const msg=glogResume(x); x.status='active'; x.closedAt=null; x.pausedAt=null; delete x.plan; delete x.dist; glogSave(); BLOCK=loadPlan(); toast(msg); renderHome(); renderPlan(); renderGoalsTab(); }catch(err){ alert('이어가지 못했어요: '+err.message); } return; }
+  const dl=e.target.closest('[data-gldel]'); if(dl){ const x=GLOG.find(y=>y.id===dl.dataset.gldel); if(!x||x.status==='active')return;
+    if(!confirm(`'${glogTitle(x.goal)}'를 목록에서 지울까요? 되돌릴 수 없어요.`))return;
+    GLOG=GLOG.filter(y=>y.id!==x.id); glogSave(); renderGoalsTab(); toast('목록에서 지웠어요'); return; }
+  const pgb=e.target.closest('[data-glpg]'); if(pgb){ const [k,n]=pgb.dataset.glpg.split(':'); GLV[k]=+n; renderGoalsTab(); return; }
+  const pgs=e.target.closest('[data-glpgs]'); if(pgs){ DEV.store.set('glPg',+pgs.dataset.glpgs); window.GLV={}; renderGoalsTab(); return; }
   const n=e.target.closest('[data-glend]'); if(n){ const x=GLOG.find(y=>y.id===n.dataset.glend); if(!x)return;
     if(!confirm(`'${glogTitle(x.goal)}'를 지금 끝낼까요? 일정은 그대로 두고 목록에서만 닫습니다.`))return;
     const m=glogMetric(x.goal); x.vEnd=m?m.now:null; x.status=glogReached(m)?'done':'ended'; x.closedAt=todayStr(); glogSave(); renderGoalsTab(); }
