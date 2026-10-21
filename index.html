@@ -772,8 +772,9 @@ details.noti .sigc{margin:6px 0}
 .hero{position:relative;overflow:hidden;margin:12px 16px 0;padding:16px 18px 14px;background:linear-gradient(160deg,#EFE5FA 0%,#E6D8F4 100%);border:2px solid var(--accent);border-radius:28px;box-shadow:0 10px 30px rgba(91,45,134,.18)}
 .hero-today{display:inline-flex;align-items:center;background:var(--accent);color:#fff;font-size:12px;font-weight:900;padding:5px 11px;border-radius:999px;margin-right:6px}
 .hero-lanes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hero-mark{position:absolute;right:-14%;top:2%;height:80%;width:auto;opacity:.22;pointer-events:none}
 .hero-lanes path{fill:none;stroke:color-mix(in srgb,var(--k1) 22%,transparent);stroke-width:14}
-.hero>*:not(.hero-lanes){position:relative}
+.hero>*:not(.hero-lanes):not(.hero-mark){position:relative}
 .hero-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .hero-chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--ink);background:color-mix(in srgb,var(--k1) 22%,#fff);border-radius:999px;padding:5px 11px}
 .hero-chip i{width:9px;height:9px;border-radius:50%;background:var(--k2)}
@@ -1988,7 +1989,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='16.0';
+const APPVER='16.1';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7070,7 +7071,7 @@ function todayCard(sess,idx){
   const hz=T.hrZone&&T.hrZone[1]&&T.primary==='hr'?T.hrZone[1]:null;
   const b=['recovery','easy','long'].includes(sess.type)?coachBasis():null;
   return `<section class="hero" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
-    <svg class="hero-lanes" viewBox="0 0 400 220" preserveAspectRatio="none" aria-hidden="true"><path d="M-20 200 C120 200 160 40 420 30"/><path d="M-20 222 C130 222 175 62 420 52"/><path d="M-20 244 C140 244 190 84 420 74"/></svg>
+    <svg class="hero-mark" viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(32 50 58)"><path d="${BR_BODY}" fill="#5B2D86"/><g fill="none" stroke="#F4F0EA" stroke-width="3.4">${BR_LANES.map(d=>`<path d="${d}"/>`).join('')}</g><path d="${BR_CAP}" fill="#2EAD7A"/></g></svg>
     <div class="hero-top"><span class="hero-today">오늘 훈련</span><span class="hero-chip"><i></i>${g0.e}${sess.role?' · '+ESC(sess.role):''}</span>
       ${b?`<details class="hero-basis"><summary>${b.easy.src==='D'?'내 몸 기준':'임시 기준'}</summary><p>${b.easy.note}${b.easy.warn?'<br>'+b.easy.warn:''}</p></details>`:''}</div>
     <div class="hero-km"><b class="num">${sess.dist}</b><span>km${edited?' · 바꿈':''}</span></div>
@@ -7081,8 +7082,7 @@ function todayCard(sess,idx){
       <span>${ic('pace')}<b class="num">${pace}</b>/km</span>
       ${hz?`<span>${ic('heart')}<b class="num">${hz}</b>↓ <small>${zLab(hz-1)}</small></span>`:''}
     </div>
-    <div class="hero-coach">🎧 실시간 코칭 프로그램 — 이 속도·거리·심박 기준으로 안내</div>
-    <button class="hero-go${done?' done':''}" id="goToday">${done?ic('check',22)+'완료 · 다시':ic('play',22)+'시작'}</button>
+    <button class="hero-go${done?' done':''}" id="goToday">${done?ic('check',22)+'완료 · 다시':ic('play',22)+'실시간 코칭 시작'}</button>
     <div class="hero-links"><button type="button" id="todayDet">계획 보기</button><button type="button" id="distEdit">거리 바꾸기</button>${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">바꾸면?</button></div>
   </section>`;
