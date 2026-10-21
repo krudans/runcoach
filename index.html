@@ -1989,7 +1989,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='16.1';
+const APPVER='16.3';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2496,12 +2496,12 @@ let PLAN = DEV.store.get('plan', null);      /* {made, weeks, why[], goal, base}
 let CUSTOM = DEV.store.get('custom', {});    /* 받아적은 훈련 — 날짜별로 그날 일정을 덮는다 */
 
 const GOALS = [
+  {k:'custom', nm:'내가 직접 목표 세우기', d:'내 페이스 기준으로 하루 → 주간 → 4주를 직접 짠다', ico:'✍️'},
   {k:'race',   nm:'대회에서 기록 내기', d:'목표 시간이 정해져 있을 때',  ico:'🏅'},
   {k:'finish', nm:'완주해보기',         d:'시간 말고 끝까지 가는 것',    ico:'🎯'},
   {k:'pace',   nm:'1km를 더 빠르게',    d:'1km 속도(페이스) 하나만 보고 간다',      ico:'⚡'},
   {k:'weight', nm:'체중 줄이기',        d:'오래 천천히, 자주',            ico:'🔥'},
   {k:'aero',   nm:'편한 달리기 능력',   d:'같은 심박에 더 빠르게, 또는 같은 속도에 더 낮은 심박', ico:'♡'},
-  {k:'custom', nm:'내가 직접 목표 세우기', d:'내 페이스 기준으로 하루 → 주간 → 4주를 직접 짠다', ico:'✍️'},
   {k:'health', nm:'건강하게 꾸준히',    d:'무리 없이 습관 만들기',        ico:'🌱'},
   {k:'back',   nm:'쉬었다 다시 시작',   d:'예전만큼 돌아가기',            ico:'↩'}
 ];
@@ -2728,7 +2728,7 @@ function makePlan(opts){
     if(testD) testDone=true;
     let pick  = dates.filter(d=>d!==testD);
     /* 하루 최소 3km인데 주간 거리가 그만큼 안 되면 뛰는 날 수를 줄인다 — '주 7km 시작'이라 말하고 16km를 짜면 거짓말이다 */
-    const minDay=Math.max(3,(typicalRunKm()||0)*0.6);   /* 하루 최소 = 3km 또는 평소 거리의 60% */
+    const minDay=opts.baseOverride?3:Math.max(3,(typicalRunKm()||0)*0.6);   /* 하루 최소 = 3km 또는 평소 거리의 60% (직접 정한 주간 거리면 3km) */
     if(pick.length>=3&&pick.length*minDay>km*1.15){
       const n=Math.max(pick.length>=3?Math.min(3,pick.length):2,Math.min(pick.length,Math.floor(km/minDay+0.34)));
       if(n<pick.length){ const keep=new Set(); const wkd=pick.find(d=>IXDOW[d.getDay()]===weekendPick); if(wkd)keep.add(wkd);
@@ -2845,14 +2845,15 @@ function makePlan(opts){
   if(g&&g.date) why.push(`${+g.date.slice(5,7)}월 ${+g.date.slice(8,10)}일까지 ${Math.max(0,Math.floor((Date.parse(g.date)-Date.now())/6048e5))}주 남았습니다.`);
 
   /* 쉬운 날 최소 거리 — 평소 뛰는 거리의 60% 아래로는 내리지 않는다(주간 합은 그만큼 늘고, 이유를 적는다) */
-  { const typ=typicalRunKm(); if(typ&&typ>=5){ const floor=Math.round(typ*0.6*2)/2; let bumped=0;
+  { const typ=opts.baseOverride?null:typicalRunKm(); if(typ&&typ>=5){ const floor=Math.round(typ*0.6*2)/2; let bumped=0;
       out.forEach(x=>{ if(['easy','recovery'].includes(x.type)&&x.dist&&x.dist<floor){ const ns=x.type==='easy'?easy(floor):recovery(floor); Object.assign(x,ns,{t:`${tm(x.type)} ${floor}km`}); bumped++; } });
       if(bumped) why.push(`평소 한 번에 ${typ.toFixed(0)}km쯤 뛰고 계셔서 쉬운 날도 ${floor}km 아래로는 두지 않았습니다.`); } }
   out.forEach(termSess);
-  { const w1=out.filter(x=>x.wk===1).reduce((a,x)=>a+(x.dist||0),0); if(w1>base*1.15) why.push(`하루 최소 3km, 긴 날 최소 4km라 1주차는 ${Math.round(w1)}km입니다.`); }
+  const w1=out.filter(x=>x.wk===1).reduce((a,x)=>a+(x.dist||0),0);
+  if(w1>base*1.15) why.push(`하루 최소 거리와 긴 날 최소 4km 때문에 1주차는 ${Math.round(w1)}km입니다.`);
   return {made:new Date().toISOString(),
           start:start.getFullYear()+'-'+pad(start.getMonth()+1)+'-'+pad(start.getDate()),
-          weeks:4, base:+base.toFixed(1), goal:g||null, ladder, why, days:days.slice(), sessions:out};
+          weeks:4, base:+(w1||base).toFixed(1),   /* base = 실제 1주차 거리 — 화면의 '주간 거리'와 같은 숫자 */ goal:g||null, ladder, why, days:days.slice(), sessions:out};
 }
 
 /* 저장된 일정이 있으면 그걸 쓰고, 없으면 예전 하드코딩 일정을 쓴다 */
