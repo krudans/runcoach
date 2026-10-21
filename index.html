@@ -717,7 +717,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #home .happ{width:34px;height:34px;border-radius:10px;box-shadow:none}
 #home .hname b{font-size:21px;letter-spacing:-.5px}
 .hname{display:flex;flex-direction:column;gap:1px;min-width:0}.ichip{display:inline-block;font-size:12px;font-weight:800;color:#2A1638;background:#8DB89A;border-radius:999px;padding:4px 11px;margin-bottom:8px;letter-spacing:.02em}
-.hrow{display:flex;align-items:center;gap:7px;flex-wrap:nowrap}.hchip{font-style:normal;font-size:10.5px;font-weight:800;color:#fff;background:linear-gradient(120deg,#5B2D86,#7A4CC2);border-radius:999px;padding:3px 8px;letter-spacing:0;line-height:1.2;white-space:nowrap;flex:none}.hname i.htag{font-style:normal;font-size:11.5px;font-weight:600;color:var(--ink-3);letter-spacing:0;text-transform:none;opacity:1;line-height:1.2;margin-top:2px;white-space:nowrap}
+#home .hbrand{align-items:center;gap:10px}#home .hname b{font-size:20px;letter-spacing:-.5px;white-space:nowrap}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}.tlstreak{display:inline-flex;align-items:center;gap:3px;background:#FFF0E3;color:#C8471D;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800}
 #home .streak{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-family:var(--num);font-weight:800;font-size:13px;color:#B04416;background:#FFEFE6;border-radius:999px;padding:5px 10px}
 /* 알림 */
 details.noti{margin:12px 16px 0;padding:0;border:none;box-shadow:none;background:none}
@@ -1134,7 +1134,7 @@ details.noti .sigc{margin:6px 0}
 
 <div class="view on" id="home">
   <div class="topline"><b id="tlDate">—</b><span id="tlBlock" style="font-family:var(--num);font-size:11px"></span>
-    <span class="right" id="tlWk">—</span><span class="tlver" id="tlVer"></span>
+    <span class="right" id="tlWk">—</span><span class="tlver" id="tlVer"></span><span class="tlstreak" id="tlStreak" hidden></span>
     <button id="btnMusic" class="icbtn mus-hb" style="margin-left:9px" aria-label="음악"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
     <button id="bellWrap" class="icbtn" style="margin-left:9px" aria-label="알림">🔔</button>
     <button id="btnGear" class="icbtn" style="margin-left:11px" aria-label="설정">⚙</button>
@@ -2061,7 +2061,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='15.4';
+const APPVER='15.5';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7188,8 +7188,9 @@ function renderHome(){
 
   /* 오늘 무엇을 하는지는 바로 아래 카드에 있다 — 여기는 앱 이름과 로고 자리 */
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
-      <div class="hname"><span class="hrow"><b>가지런<span class="hada">하다</span></b><em class="hchip">실시간 코칭 프로그램</em></span><i class="htag">내가 정한 강도·거리·시간대로</i></div>
-      ${st>=2?`<span class="streak" title="약속 ${st}번 연속"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}</span>`:''}</div>`;
+      <div class="hname"><b>가지런<span class="hada">하다</span></b></div><span class="hvb" aria-hidden="true"></span><span class="hid"><b>실시간 코칭 프로그램</b><i>내가 정한 강도·거리·시간대로</i></span></div>`;
+  /* 연속 배지는 위 날짜 줄로 — 로고 줄이 흔들리지 않게 */
+  try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}`:''; } }catch(e){}
 
   /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
   try{ glogCheck(); }catch(e){}
