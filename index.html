@@ -353,7 +353,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .rpage{flex:1 1 auto;display:flex;flex-direction:column;min-height:0;padding:0 16px}
 .rpage[hidden]{display:none}
 
-.rmis{flex:none;padding:10px 4px 0;display:flex;flex-direction:column;gap:7px}
+.rmis{flex:none;padding:10px 4px 0;display:flex;flex-direction:column;gap:6px}
 .rm-now{display:flex;align-items:center;gap:8px;min-width:0}
 .rm-chip{flex:none;background:var(--rpbg);color:var(--rpink);font-size:12px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap}
 .rm-now b{flex:1;min-width:0;font-size:15px;font-weight:800;color:var(--rink,var(--ink));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -365,14 +365,14 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .rm-seg.pass{background:#2EAD7A}.rm-seg.fail{background:#E35A32}.rm-seg.done{background:#9FA8B8}
 .rm-seg b{position:relative;font-size:9.5px;font-weight:800;color:var(--ink-2);white-space:nowrap;overflow:hidden;max-width:100%;padding:0 2px}
 .rm-seg.pass b,.rm-seg.fail b,.rm-seg.done b{color:#fff}
-.rm-kms{display:flex;gap:3px}
+.rm-kms{display:none}   /* 1km 칸 줄 — 상단이 너무 복잡해 뺐다. 스플릿은 결과 화면에서 */
 .rm-km{flex:1;height:18px;border-radius:5px;background:var(--line);display:grid;place-items:center;position:relative;overflow:hidden}
 .rm-km i{font-style:normal;font-size:9.5px;font-weight:800;color:var(--ink-3);position:relative}
 .rm-km.now::before{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:color-mix(in srgb,var(--rfill) 40%,transparent)}
 .rm-km.pass{background:#2EAD7A}.rm-km.fail{background:#E35A32}.rm-km.pass i,.rm-km.fail i{color:#fff}
 .rm-km.pass i::after{content:' ✓'}.rm-km.fail i::after{content:' ✗'}
-.rm-next{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--rsub)}
-.rm-next span{font-weight:800;color:var(--rfill)}.rm-next em{font-style:normal;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin-left:10px}
+.rm-next{display:flex;align-items:center;justify-content:flex-end;font-size:12px;color:var(--rsub)}
+.rm-next span{display:none}.rm-next em{font-style:normal;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin-left:10px}
 .rhead{display:flex;align-items:center;gap:9px;padding:12px 4px 0}
 .rhead .nm{background:var(--rpbg);color:var(--rpink);font-size:13px;font-weight:700;
   padding:7px 14px;border-radius:999px;flex:none;transition:background .4s,color .4s}
@@ -2453,7 +2453,10 @@ function repsBuild(total,wu,n,len,tgt,recDist,recSec,label){
       segs.push({to:+at.toFixed(2),nm:tm('rest'),pace:PACE.recJog,tol:'ceil',
                  end:recSec?'time':'dist',sec:recSec||null}); }
   }
-  segs.push({to:total,nm:tm('cool'),pace:PACE.easyIn,tol:20});
+  /* 쿨다운은 1~2km — 거리가 더 남으면 그건 쿨다운이 아니라 이지런이다. 따로 '이지런' 구간으로 두고 마지막 2km만 쿨다운 */
+  const left=+(total-at).toFixed(2);
+  if(left>3.5){ segs.push({to:+(total-2).toFixed(2),nm:tm('easy'),pace:PACE.easy,tol:20}); }
+  segs.push({to:total,nm:tm('cool'),pace:PACE.coolOut||PACE.easyIn,tol:null});
   return {segs,reps:n,repTarget:tgt,repLen:len,qvol:n*len,bout:len*tgt};
 }
 const interval=(t,wu,n,len,tgt,rd,rs)=>({type:'interval',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'회차')});
@@ -2788,6 +2791,11 @@ function makePlan(opts){
     const units=easyDs.length + hardD.length*1.15;
     let unit=Math.max(3, rest/Math.max(1,units));
     let easyKm=Math.round(unit*2)/2, hardKm=Math.round(unit*1.15*2)/2;
+    /* 빠른 날의 길이는 주간 거리에 비례하지 않는다 — 웜업 2~3km + 본 운동(T는 주간의 10%, I는 8% 이내) + 쿨다운 1~2km (Daniels).
+       주간 거리가 커져도 남는 거리는 쉬운 날·긴 날로 간다. 24km짜리 템포런은 템포런이 아니다 */
+    const hardMax=Math.round((Math.min(10,km*0.10)+5)*2)/2;
+    if(hardKm>hardMax&&hardD.length){ const over=(hardKm-hardMax)*hardD.length; hardKm=hardMax;
+      if(easyDs.length){ easyKm=Math.min(Math.max(3,longKm-1), Math.round((easyKm+over/easyDs.length)*2)/2); } }
     /* 합이 이번 주 목표를 넘으면 줄인다. 넘치면 계획이 아니라 거짓말이 된다 */
     const tot=longKm+easyKm*easyDs.length+hardKm*hardD.length;
     if(tot>km*1.03&&tot>longKm){
@@ -3923,8 +3931,8 @@ function onTick(){
   let paceU='(페이스)';
   if(isFinite(p)&&tgPace){
     if(p<tgPace[0]-2)paceU=`${Math.round(tgPace[0]-p)}초 빠름`;
-    else if(p>tgPace[1]+2)paceU=`${Math.round(p-tgPace[1])}초 느림`;
-    else paceU='구간 내';
+    else if(p>tgPace[1]+2&&tg.tol!=='ceil'&&tg.tol!=null)paceU=`${Math.round(p-tgPace[1])}초 느림`;   /* 쉬기·쿨다운은 '상한만' — 느린 건 느린 게 아니다 */
+    else paceU=(tg.tol==='ceil'||tg.tol==null)?'천천히 OK':'구간 내';
   } else if(tgPace)paceU=rangeText(tgPace);
   $('rPaceU').textContent=paceU;
 
@@ -3935,12 +3943,13 @@ function onTick(){
      예전엔 템포 상한 176을 그대로 써서 준비 때 178엔 '쉬어가세요', 마무리 175엔 '지금 좋아요'가 나왔다 */
   const easyHZ=(TYPES.easy&&TYPES.easy.hrZone)||null;
   const HZ=T.noHR?null:(!tg.hard&&segs.some(x=>x.hard)&&easyHZ)?easyHZ:(T.hrZone||null);
-  const repInfoOnly = tg.hard&&T.primary==='pace';   /* 세트 중: 속도가 기준, 심박은 참고 */
+  /* 세트 중엔 속도가 기준, 심박은 참고. 빠른 날의 웜업·레스트·쿨다운과 모든 쿨다운도 마찬가지 — 세트 뒤 심박은 한동안 안 내려오는 게 정상이라 경고 대상이 아니다 */
+  const repInfoOnly = (tg.hard&&T.primary==='pace') || (segs.some(x=>x.hard)&&!tg.hard) || isCool(tg);
   const hrPrimary=(T.primary==='hr');
   let state='ok', pill='', say='', hrOver=false;
 
   if(S.hr.bpm&&HZ&&HZ[1]){
-    if(S.hr.bpm>HZ[1]+3){ S.hrOverSec+=TD; S.hrHoldSec+=TD; hrOver=true; }   /* 판정 누적도 음성 큐와 같은 여유(+3) */
+    if(S.hr.bpm>HZ[1]+3){ if(!repInfoOnly)S.hrOverSec+=TD; S.hrHoldSec+=TD; hrOver=true; }   /* 판정 누적도 음성 큐와 같은 여유(+3) — 참고만 하는 구간은 누적하지 않는다 */
     else S.hrHoldSec=0;
     /* 아주 높은 심박이 오래 이어지면 증상을 확인하라고 말한다.
        인터벌 회차(hard)는 최대의 97~100%가 정상 자극(Daniels I)이라 세지 않고, 나이로 추정한 최대심박(±10)일 땐 문턱을 97%로 올린다.
@@ -3964,7 +3973,7 @@ function onTick(){
           : '심박이 조금 높아요. 호흡을 고르세요.', true, false);
     }
     if(hrOver&&repInfoOnly){ /* 세트 중 심박 초과는 화면에 참고로만 — 속도 판정을 덮지 않는다 */
-      S.repHrNote=`심박 ${S.hr.bpm} — 세트 중엔 속도가 기준이에요`; }
+      S.repHrNote=tg.hard?`심박 ${S.hr.bpm} — 세트 중엔 속도가 기준이에요`:isCool(tg)?`심박 ${S.hr.bpm} — 쿨다운은 천천히만 하면 돼요, 심박은 차츰 내려와요`:`심박 ${S.hr.bpm} — 세트 사이엔 속도만 봐요`; }
     else if(hrOver){ state='hr'; pill=`심박 ${S.hr.bpm} · 상한 ${HZ[1]}`;
       const zn=hrZone(S.hr.bpm);
       say = hrPrimary
@@ -7778,8 +7787,9 @@ function openShare(r,s){ SH.r=r; SH.s=s; SH.tpl=((r.segments||[]).filter(g=>g.ha
 function hexes(bg){ const m=String(bg).match(/#[0-9A-Fa-f]{6}/g)||['#3FC59C','#14907A']; return [m[0],m[1]||m[0]]; }
 function drawShare(cv){
   const r=SH.r, T=TYPES[r.type]||{}, tpl=SH.tpl, o=SH.opt;
-  const W=1080, H=tpl==='sticker'?1920:1350; cv.width=W; cv.height=H;
-  const x=cv.getContext('2d'); x.clearRect(0,0,W,H);
+  const W=1080, H=tpl==='sticker'?1920:1350, K=2;   /* 2160×2700 — 폰 화면·SNS 확대에도 선명하게 */
+  cv.width=W*K; cv.height=H*K;
+  const x=cv.getContext('2d'); x.setTransform(K,0,0,K,0,0); x.clearRect(0,0,W,H);
   const F=(w,sz)=>`${w} ${sz}px "Outfit","Noto Sans KR",system-ui,sans-serif`;
   const light=tpl!=='sticker'||!!o.photo;
   if(tpl!=='sticker'||o.photo){
@@ -7856,10 +7866,11 @@ function paintShare(){
   const np=b.querySelector('[data-o="nophoto"]'); if(np)np.onclick=()=>{ SH.opt.photo=null; paintShare(); };
   $('shPhoto').onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(!f)return;
     const im=new Image(); im.onload=()=>{ SH.opt.photo=im; paintShare(); }; im.src=URL.createObjectURL(f); };
-  const blob=()=>new Promise(res=>$('shCv').toBlob(res,'image/png'));
-  const fname=()=>`gajirun_${ldate(SH.r.date).slice(0,10)}_${SH.tpl}.png`;
-  $('shSave').onclick=async()=>{ const bl=await blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fname(); document.body.appendChild(a); a.click(); a.remove(); };
-  $('shSend').onclick=async()=>{ const bl=await blob(); const f=new File([bl],fname(),{type:'image/png'});
+  const jpg=SH.tpl!=='sticker';   /* 스티커는 투명 배경이라 PNG, 나머지는 JPG */
+  const blob=()=>new Promise(res=>jpg?$('shCv').toBlob(res,'image/jpeg',0.92):$('shCv').toBlob(res,'image/png'));
+  const fname=()=>`gajirun_${ldate(SH.r.date).slice(0,10)}_${SH.tpl}.${jpg?'jpg':'png'}`;
+  $('shSave').onclick=async()=>{ const bl=await blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fname(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); toast(jpg?'JPG로 저장했어요':'PNG로 저장했어요'); };
+  $('shSend').onclick=async()=>{ const bl=await blob(); const f=new File([bl],fname(),{type:jpg?'image/jpeg':'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:'가지런'}); }catch(e){} }
     else { $('shSave').onclick(); toast('이 브라우저는 바로 보내기를 못 해서 사진으로 저장했습니다.'); } };
   $('shBack').onclick=()=>history.length&&SH.back?go(SH.back):show(SH.fromView||'sum');
@@ -10057,18 +10068,18 @@ async function snapCard(el,name,title){
   wrap.remove();
   const img=new Image(); img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   try{ await img.decode(); }catch(e){ toast('이미지를 만들지 못했어요'); return; }
-  const k=3, pad=36, foot=84, cv=document.createElement('canvas'); cv.width=(W+pad*2)*k; cv.height=(h2+pad*2+foot)*k;
+  const k=4, pad=36, foot=84, cv=document.createElement('canvas'); cv.width=(W+pad*2)*k; cv.height=(h2+pad*2+foot)*k;   /* 4배 — 폰 카드 폭 360px면 가로 1,700px쯤 */
   const x=cv.getContext('2d'); x.scale(k,k);
   x.fillStyle=getComputedStyle(document.body).backgroundColor||'#F4EFF8'; x.fillRect(0,0,W+pad*2,h2+pad*2+foot);
   x.drawImage(img,pad,pad,W,h2);
   try{ drawBrand(x,pad,h2+pad+22,40,'#2A1638','#FDFBF6'); }catch(e){}
   x.fillStyle='#2A1638'; x.font='800 18px "Noto Sans KR",system-ui,sans-serif'; x.fillText('가지런',pad+50,h2+pad+44);
   x.fillStyle='#72637F'; x.font='700 11px "Outfit",system-ui,sans-serif'; x.fillText('GAJI RUN · '+(title||'')+' · '+todayStr().replace(/-/g,'.'),pad+50,h2+pad+60);
-  const bl=await new Promise(r=>cv.toBlob(r,'image/png')); if(!bl){ toast('이미지를 만들지 못했어요'); return; }
-  const fn=`gajirun_${name}_${todayStr()}.png`, f=new File([bl],fn,{type:'image/png'});
-  if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:'가지런 · '+(title||'')}); return; }catch(e){ if(e&&e.name==='AbortError')return; } }
+  const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지를 만들지 못했어요'); return; }
+  /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다 */
+  const fn=`gajirun_${name}_${todayStr()}.jpg`;
   const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  toast('이미지로 저장했어요');
+  toast('JPG로 저장했어요');
 }
 function snapBtn(sel,name,title,cls){ return `<button type="button" class="snapb ${cls||''}" data-snap="${sel}" data-snapn="${name}" data-snapt="${title}" aria-label="이미지로 저장">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'} 이미지</button>`; }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-snap]'); if(!b)return; const el=b.closest(b.dataset.snap)||document.querySelector(b.dataset.snap); snapCard(el,b.dataset.snapn,b.dataset.snapt); });
