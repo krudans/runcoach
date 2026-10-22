@@ -327,8 +327,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #run{display:none}
 #run.on{display:flex;flex-direction:column;height:100dvh;box-sizing:border-box;
   padding-bottom:calc(78px + env(safe-area-inset-bottom,0px));
-  background:var(--rbg);color:var(--rink);
-  transition:background .4s cubic-bezier(.4,0,.2,1)}
+  background:var(--rbg);color:var(--rink)}   /* 배경만 천천히 바뀌면 글자색은 먼저 바뀌어 잠깐 흰 글자가 연한 바탕에 뜬다 — 한 번에 바꾼다 */
 
 /* ── 평온 — 따뜻한 바탕에 흰 카드 ── */
 #run[data-state="ok"],#run[data-state="soon"]{
@@ -1178,6 +1177,7 @@ details.noti .sigc{margin:6px 0}
         <button class="btn sm ghost" id="plRemake" style="margin:0">목표 · 일정 새로 짜기</button>
         <button class="btn sm ghost" id="plPaste" style="margin:0">훈련 받아적기</button>
       </div>
+      <button class="btn sm ghost" id="plUndo" style="margin:8px 0 0" hidden>직전 일정으로 되돌리기</button>
     </div>
     <div id="planDec" hidden></div>
     <div id="planGoals" hidden></div>
@@ -2918,7 +2918,28 @@ function loadPlan(){
   base.forEach(termSess); base.forEach(refreshEasyPaces); base.forEach(fixRestDist);
   return mergeCustom(base);
 }
+/* 이미 지난 날·이미 뛴 날은 다시 짜도 바뀌지 않는다 — 기록이 붙어 있는 일정이 사라지거나 다른 훈련으로 바뀌면 안 된다.
+   같은 목표를 다시 계산할 때(속도 재계산·기록 반영)는 내가 직접 고친 앞날의 일정도 그대로 둔다 */
+function keepDone(p){
+  if(!PLAN||!PLAN.sessions||!PLAN.sessions.length||!p||!p.sessions)return p;
+  const t=todayStr(), d10=s=>String(s.d).slice(0,10);
+  const sameGoal=JSON.stringify(PLAN.goal||null)===JSON.stringify(p.goal||null);
+  const ran=s=>RUNS.some(r=>r.planId===s.d);
+  const nStart=p.sessions.length?d10(p.sessions[0]):t, mon0=weekMonday(p.start||nStart);
+  const kept=PLAN.sessions.filter(s=>d10(s)>=nStart&&(d10(s)<t||ran(s)||(sameGoal&&s.edited)));
+  if(!kept.length&&!p.sessions.some(s=>d10(s)<t))return p;
+  const keptD=new Set(kept.map(d10));
+  const wkOf=d=>Math.max(1,Math.floor((Date.parse(weekMonday(d))-Date.parse(mon0))/6048e5)+1);
+  p.sessions=p.sessions.filter(s=>d10(s)>=t&&!keptD.has(d10(s)))
+    .concat(kept.map(s=>Object.assign({},s,{wk:wkOf(d10(s))})))
+    .sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  if(kept.length)(p.why=p.why||[]).push(`이미 지난 날과 뛴 날 ${kept.length}개는 그대로 두고, 오늘부터의 일정만 새로 맞췄습니다.`);
+  return p;
+}
 function applyPlan(p){
+  try{ p=keepDone(p); }catch(e){}
+  /* 직전 일정은 하나 보관한다 — 다시 짠 결과가 마음에 안 들면 되돌린다 */
+  try{ if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&PLAN!==p)DEV.store.set('planPrev',{at:new Date().toISOString(),plan:PLAN,goal:GOAL}); }catch(e){}
   if(PLAN&&p&&PLAN.start&&p.start===PLAN.start)p.since=PLAN.since||PLAN.made;
   PLAN=p; DEV.store.set('plan',p);
   (p.sessions||[]).forEach(refreshEasyPaces); (p.sessions||[]).forEach(fixRestDist);
@@ -2940,6 +2961,7 @@ let DIST=DEV.store.get('dist',{});   // 세션별 거리 임의 수정값
 const pad=n=>String(n).padStart(2,'0');
 const fmtPace=s=>{if(!isFinite(s)||s<=0||s>1800)return "--'--\"";
   const r=Math.round(s);return Math.floor(r/60)+"'"+pad(r%60)+'"';};
+const fmtTimeVoice=s=>{ s=Math.round(s); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?`${h}시간 `:'')+(m?`${m}분 `:'')+(!h&&x?`${x}초`:'').trim()||'0초'; };
 const fmtPaceVoice=s=>{const r=Math.round(s),m=Math.floor(r/60),x=r%60;return x?`${m}분 ${x}초`:`${m}분`;};
 function fmtClock(sec){sec=Math.max(0,Math.round(sec));const h=Math.floor(sec/3600),
   m=Math.floor(sec%3600/60),s=sec%60;return h?`${h}:${pad(m)}:${pad(s)}`:`${m}:${pad(s)}`;}
@@ -3300,6 +3322,7 @@ $('btnFree').onclick=()=>{ ACT_MODE=null; FREE_MODE=true; openConfirm(-1); };
 
 /* ───── 플랜 탭 ───── */
 function renderPlan(){
+  try{ paintUndo(); }catch(e){}
   const tot=BLOCK.reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
   const f=BLOCK[0], l=BLOCK[BLOCK.length-1];
   { const g=(PLAN&&PLAN.goal)||GOAL, gd=g&&g.date?g.date.slice(0,10):null, md=s=>s.slice(5,10).replace('-','.');
@@ -3349,6 +3372,15 @@ if($('planTabs'))$('planTabs').onclick=e=>{const b=e.target.closest('button');if
   if(b.dataset.p==='goals')renderGoalsTab();
 };
 if($('plRemake'))$('plRemake').onclick=()=>goalStart();
+function paintUndo(){ const b=$('plUndo'); if(!b)return; const pv=DEV.store.get('planPrev',null);
+  b.hidden=!(pv&&pv.plan&&(Date.now()-Date.parse(pv.at))<7*864e5);
+  if(!b.hidden){ const d=new Date(pv.at); b.textContent=`직전 일정으로 되돌리기 (${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}에 바뀜)`; } }
+if($('plUndo'))$('plUndo').onclick=()=>{ const pv=DEV.store.get('planPrev',null); if(!pv||!pv.plan)return;
+  if(!confirm('바뀌기 전 일정으로 되돌릴까요? 지금 일정은 하나 보관해 두니 다시 되돌릴 수 있어요.'))return;
+  const cur=PLAN, cg=GOAL; PLAN=pv.plan; DEV.store.set('plan',PLAN); if(pv.goal){ GOAL=pv.goal; DEV.store.set('goal',GOAL); }
+  DEV.store.set('planPrev',{at:new Date().toISOString(),plan:cur,goal:cg});
+  (PLAN.sessions||[]).forEach(refreshEasyPaces); BLOCK=mergeCustom(PLAN.sessions); try{ if(FB.user)FB.sync().catch(()=>{}); }catch(e){}
+  renderHome(); renderPlan(); toast('직전 일정으로 되돌렸어요'); };
 if($('plPaste'))$('plPaste').onclick=()=>{ PSRES=null; psRender(); show('paste'); };
 
 /* ───── 알림 탭 ───── */
@@ -3655,7 +3687,7 @@ async function startRun(){
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
-    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},
+    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -3892,13 +3924,23 @@ function onTick(){
       ? (S.elapsed-S.segStart.t)>=tg.sec
       : km>=tg.to-0.004;
     if(done&&S.segIx<segs.length-1){advanceSeg();}
-    else if(done){finish(true);return;}
+    else if(done&&!S.extra){
+      /* 계획을 다 뛰었다고 멈추지 않는다 — 더 뛰면 기록·1km 안내·심박을 그대로 이어간다. 끝내는 건 사용자가 정지로 */
+      S.extra={km,t:S.elapsed}; DEV.buzz([250,90,250]);
+      DEV.speak(`계획한 ${s.dist%1?(+s.dist).toFixed(1):s.dist}킬로를 모두 마쳤습니다. 시간 ${fmtTimeVoice(S.elapsed)}. 더 달리면 계속 기록하고 안내합니다. 끝내려면 정지를 누르세요.`,false,true); }
   }
-  tg=segs[S.segIx];
+  /* 계획 전체 기준 — 절반 지점, 거의 다 왔을 때 */
+  if(S.act==='run'&&s.type!=='free'&&s.dist>=2&&!S.extra){ const pk=+s.dist, left=pk-km, avgP=km>0?S.elapsed/km:NaN;
+    if(!S.planHalf&&km>=pk/2){ S.planHalf=true;
+      DEV.speak(`계획의 절반을 지났습니다. ${left.toFixed(1)}킬로 남았습니다.${isFinite(avgP)?` 평균 페이스 ${fmtPaceVoice(avgP)}.`:''}`,false,true); }
+    const nearAt=0.5;
+    if(!S.planNear&&left<=nearAt&&left>0.05){ S.planNear=true;
+      DEV.speak(`거의 다 왔습니다. ${left<1?Math.round(left*100)*10+'미터':'1킬로'} 남았습니다.`,false,true); } }
+  tg=S.extra?Object.assign({},segs[segs.length-1],{nm:'추가',pace:null,hard:false,tol:null,end:'dist',to:Infinity}):segs[S.segIx];   /* 계획 뒤 — 속도 판정 없이, 심박 안전만 */
   const tgPace = tg.pace?[tg.pace[0]+(tg.hard?S.adj:0),tg.pace[1]+(tg.hard?S.adj:0)]:null;
   const prevTo=S.segIx?segs[S.segIx-1].to:0;
-  $('rSegName').textContent=`${String(tg.nm).replace(/\s*\([^)]*\)/g,'')} ${S.segIx+1}/${segs.length}`;
-  { const hrCap=(T.primary==='hr'&&T.hrZone&&T.hrZone[1])?T.hrZone[1]:null;
+  $('rSegName').textContent=S.extra?'계획 완료':`${String(tg.nm).replace(/\s*\([^)]*\)/g,'')} ${S.segIx+1}/${segs.length}`;
+  if(!S.extra){ const hrCap=(T.primary==='hr'&&T.hrZone&&T.hrZone[1])?T.hrZone[1]:null;
     $('rSegTgt').textContent = tg.hard ? `${rangeText(tgPace)} 로 ${tg.end==='time'?fmtClock(tg.sec):''}`.trim()
       : tg.tol==='ceil' ? `${fmtPace(tgPace[0])}보다 천천히${hrCap?` · ♥${hrCap} 아래`:''}`
       : hrCap ? `♥${hrCap} 아래 · ${rangeText(tgPace)}` : `${rangeText(tgPace)} 유지`; }
@@ -3907,10 +3949,11 @@ function onTick(){
     S.gpsWarn=true;
     DEV.buzz(BZ.off); DEV.speak('거리가 기록되지 않고 있습니다.',true);
   }
-  const prog = tg.end==='time' ? (S.elapsed-S.segStart.t)/tg.sec
+  const prog = S.extra?1:tg.end==='time' ? (S.elapsed-S.segStart.t)/tg.sec
              : (km-prevTo)/Math.max(0.01,tg.to-prevTo);
   paintRail(prog);
-  try{ if(S.act==='run')voiceTick(km,tg,segs,curPace()); if(S.breath)breathTick(km); }catch(e){}
+  if(S.extra){ $('rSegTgt').textContent=`+${(km-S.extra.km).toFixed(2)}km 더 · 편하게`; const sl=$('rSegLeft'); if(sl)sl.textContent='정지로 끝내기'; const nt=$('rNextT'); if(nt)nt.textContent='계획 끝 — 더 뛰는 만큼 기록돼요'; }
+  try{ if(S.act==='run'&&!S.extra)voiceTick(km,tg,segs,curPace()); if(S.breath)breathTick(km); }catch(e){}
   $('rTime').textContent=fmtClock(S.elapsed); $('rDist').textContent=km.toFixed(2);
   const p=curPace();
   /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다.
@@ -4036,6 +4079,7 @@ function onTick(){
   /* 발로 낼 수 없는 속도가 10초 넘게 이어지면 '지금 좋아요'라고 하면 안 된다 */
   if(S.overSince&&Date.now()-S.overSince>10000){ state='fast'; pill='이동 속도가 너무 빨라요';
     say='달리기로는 낼 수 없는 속도입니다. 이 구간은 거리에 넣지 않습니다.'; }
+  if(S.extra&&(state==='ok'||state==='okhr')){ pill='계획 완료 · 계속 기록 중'; say='더 뛰는 거리도 그대로 기록돼요. 1km마다 안내합니다.'; }
   if(state!==S.bannerState){ S.bannerState=state; $('run').dataset.state=state; }
 
   /* 중단 권고 — 이것만 맥박친다. 아끼지 않으면 늑대 소년이 된다. */
@@ -4101,14 +4145,19 @@ function onTick(){
     const hs=S.hr.samples.slice(S.lapStart.h||0);
     /* 이 1km를 거의 한 구간에서 뛰었을 때만 그 구간 목표로 판정한다 — 섞인 km에 한 구간 목표를 대면 틀린 말이 나간다 */
     const ls=S.lapStart.seg||0, lg=S.segIx===ls?tg:(S.segIx===ls+1&&km-S.segStart.d<=0.05)?segs[ls]:null;
-    const lgPace=lg&&lg.pace?[lg.pace[0]+(lg.hard?S.adj:0),lg.pace[1]+(lg.hard?S.adj:0)]:null;
+    const lgPace=!S.extra&&lg&&lg.pace?[lg.pace[0]+(lg.hard?S.adj:0),lg.pace[1]+(lg.hard?S.adj:0)]:null;
     const lapHR=hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null;
     const lapPace=dd>0.1?dt/dd:NaN;
     const lapCad=cadence()||null;
     S.splits.push({km:S.lapKm,time:dt,pace:lapPace,hr:lapHR,cad:lapCad});
     S.lapStart={d:km,t:S.elapsed,h:S.hr.samples.length,seg:S.segIx};
 
-    let msg=`${S.lapKm}킬로미터. ${isFinite(lapPace)?fmtPaceVoice(lapPace):'페이스 측정 안 됨'}. `;
+    /* 1km마다 무조건 — 몇 킬로 · 이번 1km 페이스 · 총 거리 · 평균 페이스. 판정·지시는 그 뒤에 붙는다 */
+    const avgP=km>0?S.elapsed/km:NaN, planKm=(s&&s.dist&&S.act==="run"&&s.type!=="free")?+s.dist:null, leftK=planKm?Math.max(0,planKm-km):null;
+    let msg=`${S.lapKm}킬로미터. 이번 1킬로 ${isFinite(lapPace)?fmtPaceVoice(lapPace):'측정 안 됨'}. `
+      +(planKm&&!S.extra&&leftK>0.05?`총 ${planKm%1?planKm.toFixed(1):planKm}킬로 중 ${leftK<1?Math.round(leftK*1000)+'미터':leftK.toFixed(1)+'킬로'} 남았습니다. `
+        :planKm&&km-planKm>=0.05?`계획보다 ${(km-planKm).toFixed(1)}킬로 더 달렸습니다. 총 ${km.toFixed(1)}킬로미터. `:`총 ${km.toFixed(1)}킬로미터. `)
+      +(isFinite(avgP)?`평균 페이스 ${fmtPaceVoice(avgP)}. `:'');
     let verdictTxt='';
     /* 1순위부터 말한다 */
     if(hrPrimary&&HZ&&HZ[1]&&lapHR){
@@ -4122,13 +4171,13 @@ function onTick(){
         msg+=`상한 ${fmtPaceVoice(s.ceiling)}보다 빠릅니다. 속도를 줄이세요. `; verdictTxt='상한 초과';
       } else if(d===0){ msg+='목표대로입니다. 이대로 유지하세요. '; verdictTxt='목표대로'; }
       else if(d<0){ msg+=`목표보다 ${-d}초 빠릅니다. 속도를 줄이세요. `; verdictTxt=`${-d}초 빠름`; }
-      else if(lg.tol==='ceil'){ msg+='천천히 가는 건 괜찮습니다. '; verdictTxt='목표대로'; }
+      else if(lg.tol==='ceil'||lg.tol==null){ msg+='천천히 가는 건 괜찮습니다. '; verdictTxt='목표대로'; }
       else if(T.primary==='hr'&&lapHR&&HZ&&HZ[1]&&lapHR<=HZ[1]&&!lg.hard){ msg+=`목표 속도보다 ${d}초 느리지만 심박 ${lapHR}로 기준 안이라 괜찮습니다. `; verdictTxt='심박 기준 안'; }
       else { msg+=`목표보다 ${d}초 느립니다. 조금 올리세요. `; verdictTxt=`${d}초 느림`; }
-      if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1])msg+=`심박 ${lapHR}, 목표 ${HZ[1]}보다 높습니다. `;
+      if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly)msg+=`심박 ${lapHR}, 목표 ${HZ[1]}보다 높습니다. `;
     } else if(lapHR){ msg+=`평균 심박 ${lapHR}. `; }
-    if(VOPT.kmBuzzOnly&&s.reps&&S.act==='run') DEV.buzz(BZ.tick);   /* 회차가 있는 날 1km는 진동만 — 회차 안내와 겹치지 않게 */
-    else { DEV.speak(msg,false); DEV.buzz(BZ.tick); }
+    /* 1km 안내는 사용자가 무조건 듣기로 한 것 — 조용히·간격 제한에 걸리지 않게 critical로 낸다 */
+    DEV.speak(msg,false,true); DEV.buzz(BZ.tick);   /* 앞말을 끊지 않고 뒤에 이어서 */
     S.liveRows.push({kind:'lap',nm:`${S.lapKm}km`,actual:lapPace,time:dt,hr:lapHR,cad:lapCad,note:verdictTxt});
     renderLaps();
   }
@@ -4307,6 +4356,7 @@ $('btnStop').addEventListener('pointerdown',startHold);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>
   $('btnStop').addEventListener(ev,endHold));
 function finish(completed){
+  if(S.extra)completed=true;   /* 계획을 다 뛰고 더 달린 뒤 멈춘 것은 '완료'다 */
   try{ MUS.onRunEnd(); }catch(e){}
   try{ VC.keepAlive(false); }catch(e){}
   if(typeof setLock==='function'&&LOCKED)setLock(false);
@@ -4331,7 +4381,7 @@ function finish(completed){
       drop:(!g.hard&&S.lastHrEnd&&hrEnd)?(S.lastHrEnd-hrEnd):null,
       cad:cs.length?Math.round(cs.reduce((a,b)=>a+b,0)/cs.length):null});}
   renderSummary(completed);
-  DEV.speak(completed?'세션을 완료했습니다. 수고하셨습니다.':'세션을 종료했습니다.',true);
+  DEV.speak(completed?`세션을 완료했습니다. 총 ${(S.dist/1000).toFixed(1)}킬로미터, ${fmtTimeVoice(S.elapsed)}. 수고하셨습니다.`:'세션을 종료했습니다.',true);
 
   show('sum');
 }
@@ -4929,7 +4979,7 @@ async function selfTest(){
     const sess=sessionOf(i>=0?i:0), T=TYPES[sess.type];
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
-      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],
+      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
@@ -7832,7 +7882,7 @@ function drawShare(cv){
     x.font=F('700',28); x.globalAlpha=.8; x.textAlign='right'; x.fillText(`목표 ${fmtPace(tgt)}`,W-72,Yp(tgt)-12); x.textAlign='left'; x.globalAlpha=1;
     reps.forEach((g,i)=>{ const yy=Yp(g.pace); const X=80+i*((W-160)/n)+((W-160)/n-bw)/2;
       x.fillStyle=ACC; x.fillRect(X,yy,bw,y0-yy);
-      x.fillStyle='#fff'; x.font=F('800',34); x.textAlign='center'; x.fillText(fmtPace(g.pace),X+bw/2,yy-16); x.font=F('700',30); x.fillText(`${i+1}회`,X+bw/2,y0+44); x.textAlign='left'; });
+      x.font=F('800',34); x.textAlign='center'; { const ly=yy-16, clash=Math.abs((ly-12)-Yp(tgt))<26; /* 목표 점선과 겹치면 막대 안쪽에 쓴다 */ x.fillStyle=clash?'#2A1638':'#fff'; x.fillText(fmtPace(g.pace),X+bw/2,clash?yy+44:ly); } x.fillStyle='#fff'; x.font=F('700',30); x.fillText(`${i+1}회`,X+bw/2,y0+44); x.textAlign='left'; });
     x.fillStyle='rgba(255,255,255,.35)'; x.fillRect(72,y0,W-144,3); x.fillStyle='#fff';
     if(r.spread!=null){ x.font=F('800',40); x.fillText(`회차 차이 ${r.spread}초`,72,y0+120); }
   }
@@ -8052,7 +8102,7 @@ function hrNote(){ const h=S.hr&&S.hr.bpm, e=S.lastHrEnd; if(!h||!e)return '';
   return (e-h)<10?' 심박이 아직 덜 내려왔습니다. 첫 30초는 조금 여유 있게.':''; }
 function voiceOptsHTML(){
   const it=[['pre','미리 알림','다음 회차 300m·100m 전, 또는 30초·10초 전'],['count','5·4·3·2·1','삐 소리와 숫자로 출발 신호'],
-    ['quiet20','회차 시작 20초는 조용히','속도가 아직 안 잡혀서 교정하지 않습니다'],['kmBuzzOnly','회차 있는 날 1km는 진동만','회차 안내와 겹치지 않게'],
+    ['quiet20','회차 시작 20초는 조용히','속도가 아직 안 잡혀서 교정하지 않습니다'],
     ['half','절반 · 100m 남음','회차 안에서'],['firstGuard','첫 회차 과속 경고','첫 회차가 목표보다 5초 넘게 빠르면']];
   return `<details class="vopt"><summary>음성 안내 자세히</summary>${it.map(x=>`<label class="vrow"><input type="checkbox" data-vo="${x[0]}"${VOPT[x[0]]?' checked':''}><span><b>${x[1]}</b><i>${x[2]}</i></span></label>`).join('')}
     <div class="vrow"><span><b>말 빠르기</b></span><select data-vr><option value="0.95"${VOPT.rate<1?' selected':''}>천천히</option><option value="1.05"${VOPT.rate>=1&&VOPT.rate<1.15?' selected':''}>보통</option><option value="1.2"${VOPT.rate>=1.15?' selected':''}>빠르게</option></select></div>
