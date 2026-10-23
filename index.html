@@ -972,7 +972,7 @@ details.noti .sigc{margin:6px 0}
 .cd s{position:absolute;right:3px;bottom:3px;width:5px;height:5px;border-radius:50%;background:#8C6D46}
 .leg{display:flex;gap:9px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--ink-2);font-weight:700}
 .leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px;vertical-align:0}
-.leg i.rr{background:#D8CDF6}.leg i.xx{border:1.5px dashed #E4B5AD;background:#fff}
+.leg i.rr{background:repeating-linear-gradient(135deg,#D8CDF6 0 2px,#F7F4FE 2px 4px)}.cd.tap{cursor:pointer}.cd.tap:active{filter:brightness(.93)}.leg i.xx{border:1.5px dashed #E4B5AD;background:#fff}
 .wbars{display:flex;gap:5px;align-items:flex-end;height:150px}
 .wb{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;position:relative}
 .wb .st{width:100%;max-width:28px;height:110px;display:flex;flex-direction:column;justify-content:flex-end}
@@ -1609,6 +1609,8 @@ details.noti .sigc{margin:6px 0}
     </div>
     <div class="lbl" style="margin:16px 0 8px">오늘 얼마나 힘들었나요</div>
     <div class="rpe" id="sRPE"></div>
+    <div id="sTalkBox" hidden><div class="lbl" style="margin:16px 0 8px">숨 확인 — 그 속도에서 말해 봤을 때</div>
+      <div class="tagrow" id="sTalk"><button type="button" class="tag" data-tk="1">한 문장 편하게</button><button type="button" class="tag" data-tk="2">짧게 끊어서만</button><button type="button" class="tag" data-tk="3">말하기 힘듦</button></div></div>
     <div class="lbl" style="margin:16px 0 8px">지형 · 날씨</div>
     <div class="tagrow" id="sTerrain"></div><div class="tagrow" id="sWeather"></div>
     <div class="lbl" style="margin:16px 0 8px">메모 · 통증</div>
@@ -1757,7 +1759,8 @@ details.noti .sigc{margin:6px 0}
 .gl-ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--panel);display:grid;place-items:center;font-size:18px}
 .gl-t{flex:1;min-width:0}.gl-t b{display:block;font-size:13.5px;line-height:1.3}.gl-t i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:2px}.gl-t em{display:block;font-style:normal;font-family:var(--num);font-size:12.5px;font-weight:700;margin-top:3px}.gl-t em i{display:inline;font-size:11px;font-weight:600;margin-left:6px}
 .gl-re{margin-top:6px;border:1.5px solid var(--line);background:var(--panel);color:var(--accent);border-radius:999px;padding:5px 10px;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
-.gl-st{flex:none;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:var(--panel);color:var(--ink-3)}.gl-it.act .gl-st{background:var(--accent);color:#fff}.gl-it.done .gl-st{background:#DDF3EA;color:#0E6E55}.gl-act{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.gl-del{margin-top:6px;border:none;background:none;color:var(--ink-3);font:inherit;font-size:11.5px;text-decoration:underline;padding:5px 6px;cursor:pointer}.gl-pg{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px;font-family:var(--num);font-size:12.5px;color:var(--ink-2)}.gl-pg button{width:34px;height:30px;border:1.5px solid var(--line);background:var(--panel);border-radius:9px;font-size:16px;color:var(--ink-2);cursor:pointer}.gl-pg button:disabled{opacity:.35}.gl-pgset{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:12px;font-size:12px;color:var(--ink-3)}.gl-pgset button{border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 10px;font:inherit;font-size:12px;color:var(--ink-2);cursor:pointer}.gl-pgset button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.gl-it.pau .gl-st{background:#FBEBD2;color:#8A4B00}.gl-it.miss .gl-st{background:#F9DEDA;color:#9A2A1F}.gl-list+.gc-lab{margin-top:14px}
+.gl-st{flex:none;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;background:var(--panel);color:var(--ink-3)}.gl-it.act .gl-st{background:var(--accent);color:#fff}.gl-it.done .gl-st{background:#DDF3EA;color:#0E6E55}.pw-note{margin:2px 0 8px;padding:8px 10px;border-radius:10px;background:var(--panel-2);font-size:12px;line-height:1.55;color:var(--ink-2)}.pw-note i{font-style:normal;color:var(--ink-3)}
+.gl-act{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.gl-del{margin-top:6px;border:none;background:none;color:var(--ink-3);font:inherit;font-size:11.5px;text-decoration:underline;padding:5px 6px;cursor:pointer}.gl-pg{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px;font-family:var(--num);font-size:12.5px;color:var(--ink-2)}.gl-pg button{width:34px;height:30px;border:1.5px solid var(--line);background:var(--panel);border-radius:9px;font-size:16px;color:var(--ink-2);cursor:pointer}.gl-pg button:disabled{opacity:.35}.gl-pgset{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:12px;font-size:12px;color:var(--ink-3)}.gl-pgset button{border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 10px;font:inherit;font-size:12px;color:var(--ink-2);cursor:pointer}.gl-pgset button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.gl-it.pau .gl-st{background:#FBEBD2;color:#8A4B00}.gl-it.miss .gl-st{background:#F9DEDA;color:#9A2A1F}.gl-list+.gc-lab{margin-top:14px}
 .gc-lab small{font-weight:600;color:var(--ink-3)}
 .gt-wait{margin:10px 0 0;background:var(--panel-2);border-radius:14px;padding:12px 14px}.gt-wait-h{display:flex;align-items:center;gap:8px;font-size:13.5px}.gt-wait p{margin:8px 0 0;font-size:12px;color:var(--ink-3);line-height:1.5}.gt-bar{height:8px;border-radius:4px;background:var(--line);margin-top:8px;overflow:hidden}.gt-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .gtrend{margin:10px 0 0}.gtrend svg{display:block;width:100%;height:auto}.gt-cap{font-size:11.5px;color:var(--ink-3);margin-top:6px;line-height:1.5}
@@ -1995,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.0';
+const APPVER='17.1';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2623,6 +2626,10 @@ function planShape(kind, nDays){
        심박 개선: 빠른 날 없이 심박 상한 아래로 양을 쌓는다(유산소 바탕) */
     case 'aero_speed': return {hard:Math.min(1,hardMax), long:1, longPct:.30, mix:['T'], grow:1.07};
     case 'aero_hr':    return {hard:0,                long:1, longPct:.30, mix:[],       grow:1.06};
+    /* 케이던스 개선: 걸음 바꾸기 첫 몇 주는 종아리·아킬레스 부담이 새로 생긴다 — 거리 증가를 낮게(경험칙 C). 빠른 날은 1회 그대로 */
+    case 'aero_cad':   return {hard:Math.min(1,hardMax), long:1, longPct:.28, mix:['T'], grow:1.03};
+    /* 호흡 개선: 쉬운 날 양 + 주 1회 역치(템포) — 역치 훈련은 환기 역치 속도를 끌어올린다(Daniels T, B) */
+    case 'aero_breath':return {hard:Math.min(1,hardMax), long:1, longPct:.28, mix:['T'], grow:1.06};
     default:       return {hard:0,                long:1, longPct:.26, mix:[],       grow:1.05};
   }
 }
@@ -2712,7 +2719,9 @@ function makePlan(opts){
      8~14일, 거리 41~60% 줄이기가 가장 효과. 대회 날 이후는 이 덩어리에 넣지 않는다. */
   const raceT = (g&&g.date&&g.kind!=='health'&&g.kind!=='aero') ? Date.parse(g.date+'T00:00:00') : null;
   if(g&&g.kind==='aero'&&g.aero){ const a=g.aero;
-    why.push(a.mode==='speed'
+    if(a.mode==='cad') why.push(`편한 달리기 — 케이던스 개선: 쉬운 날 케이던스 ${a.cad0||'측정 전'} → ${a.cadT}보/분. 1주차는 본 구간 내내 박자 소리, 2주차 60%, 3주차 30%, 4주차부터는 박자 없이 유지합니다(Willy 외 2016, 점점 줄이는 피드백 · B). 속도는 그대로 두고 보폭만 줄입니다 — 5~10% 올리면 무릎·엉덩이 부담이 줄었습니다(Heiderscheit 외 2011 · B). 걸음을 바꾸는 동안은 거리를 거의 늘리지 않습니다(C).`);
+    else if(a.mode==='breath') why.push(`편한 달리기 — 호흡 개선: ${fmtPace(a.ref)}에서 힘든 정도 ${a.rpe0||'측정 전'} → ${a.rpeT}. 쉬운 날 양을 쌓고, 주간 거리가 충분하면 주 1회 템포런으로 환기 역치를 끌어올립니다(B). 매주 한 번 '말하기 테스트'로 숨을 잽니다 — 한 문장을 편하게 말할 수 있으면 환기 역치 아래입니다(Persinger 2004 · Reed 2014 리뷰 · B). 호흡근 훈련(하루 2번 30회)은 기구가 있을 때만 — 지구력 기록이 나아졌다는 메타분석이 있습니다(Illi 2012 · HajGhanbari 2013 · A).`);
+    else why.push(a.mode==='speed'
       ? `편한 달리기 — 속도 개선: 심박 ${a.hrCap} 아래에서 ${a.pace0?fmtPace(a.pace0):'측정 전'} → ${fmtPace(a.paceT)}가 목표라, 쉬운 날을 모두 심박 ${a.hrCap} 아래로 두고 주 1회만 벅차게(역치) 뜁니다.`
       : `편한 달리기 — 심박 개선: ${fmtPace(a.ref)}에서 심박 ${a.hr0||'측정 전'} → ${a.hrT}가 목표라, 빠른 날 없이 심박 ${a.hrCap} 아래로 양을 쌓습니다. 같은 속도에서 심박이 내려가는 데는 보통 수 주가 걸립니다(경험칙 C).`); }
   let tapered=false;
@@ -2885,6 +2894,11 @@ function makePlan(opts){
       out.forEach(x=>{ if(x.type==='long'&&x.dist&&x.dist<floor+1.5){ const L=Math.round((floor+1.5)*2)/2; Object.assign(x,long(L),{t:`${tm('long')} ${L}km`}); } });
       if(bumped) why.push(`평소 한 번에 ${typ.toFixed(0)}km쯤 뛰고 계셔서 쉬운 날도 ${floor}km 아래로는 두지 않았습니다.`); } }
   out.forEach(termSess);
+  /* 케이던스·호흡 — 날마다 무엇을 할지 일정에 적는다 */
+  if(g&&g.kind==='aero'&&aeroX(g.aero)){ const a=g.aero, st0=start.getFullYear()+'-'+pad(start.getMonth()+1)+'-'+pad(start.getDate()); if(!a.since)a.since=st0;
+    if(a.mode==='cad'&&a.cadT) out.forEach(x=>{ if(['easy','recovery','long'].includes(x.type)&&x.dist){ x.cadT=a.cadT; x.cadFb=CAD_FB[Math.min(3,aeroWeekIx(a,x.d.slice(0,10)))]; } });
+    if(a.mode==='breath'){ const wks={}; out.forEach(x=>{ if(x.type==='easy'&&x.dist)(wks[weekMonday(x.d)]=wks[weekMonday(x.d)]||[]).push(x); });
+      Object.values(wks).forEach(L=>{ const x=L[Math.floor((L.length-1)/2)]; if(x)x.talkCheck=a.ref; }); } }
   const w1=out.filter(x=>x.wk===1).reduce((a,x)=>a+(x.dist||0),0);
   if(w1>base*1.15) why.push(`하루 최소 거리와 긴 날 최소 4km 때문에 1주차는 ${Math.round(w1)}km입니다.`);
   return {made:new Date().toISOString(),
@@ -2938,6 +2952,8 @@ function keepDone(p){
 }
 function applyPlan(p){
   try{ p=keepDone(p); }catch(e){}
+  /* 케이던스·호흡 프로그램의 시작일은 목표에 남긴다 — 다음 4주를 짤 때 1주차(박자 100%)로 되돌아가지 않게 */
+  try{ const ps=p&&p.goal&&p.goal.aero&&p.goal.aero.since; if(ps&&GOAL&&GOAL.kind==='aero'&&GOAL.aero&&GOAL.aero.mode===p.goal.aero.mode&&!GOAL.aero.since){ GOAL.aero.since=ps; DEV.store.set('goal',GOAL); } }catch(e){}
   /* 직전 일정은 하나 보관한다 — 다시 짠 결과가 마음에 안 들면 되돌린다 */
   try{ if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&PLAN!==p)DEV.store.set('planPrev',{at:new Date().toISOString(),plan:PLAN,goal:GOAL}); }catch(e){}
   if(PLAN&&p&&PLAN.start&&p.start===PLAN.start)p.since=PLAN.since||PLAN.made;
@@ -3933,7 +3949,7 @@ function onTick(){
   /* 계획 전체 기준 — 절반 지점, 거의 다 왔을 때 */
   if(S.act==='run'&&s.type!=='free'&&s.dist>=2&&!S.extra){ const pk=+s.dist, left=pk-km, avgP=km>0?S.elapsed/km:NaN;
     if(!S.planHalf&&km>=pk/2){ S.planHalf=true;
-      DEV.speak(`계획의 절반을 지났습니다. ${left.toFixed(1)}킬로 남았습니다.${isFinite(avgP)?` 평균 페이스 ${fmtPaceVoice(avgP)}.`:''}`,false,true); }
+      DEV.speak(`계획의 절반을 지났습니다. ${left.toFixed(1)}킬로 남았습니다.${isFinite(avgP)?` 평균 페이스 ${fmtPaceVoice(avgP)}.`:''}${s.talkCheck?` 숨 확인입니다. 1킬로미터에 ${fmtPaceVoice(s.talkCheck)}로 달리며 한 문장을 소리 내 말해 보세요.`:''}`,false,true); }
     const nearAt=0.5;
     if(!S.planNear&&left<=nearAt&&left>0.05){ S.planNear=true;
       DEV.speak(`거의 다 왔습니다. ${left<1?Math.round(left*100)*10+'미터':'1킬로'} 남았습니다.`,false,true); } }
@@ -4357,7 +4373,8 @@ $('btnStop').addEventListener('pointerdown',startHold);
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>
   $('btnStop').addEventListener(ev,endHold));
 function finish(completed){
-  if(S.extra)completed=true;   /* 계획을 다 뛰고 더 달린 뒤 멈춘 것은 '완료'다 */
+  if(S.extra)completed=true;
+  try{ metroStop(); }catch(e){}   /* 계획을 다 뛰고 더 달린 뒤 멈춘 것은 '완료'다 */
   try{ MUS.onRunEnd(); }catch(e){}
   try{ VC.keepAlive(false); }catch(e){}
   if(typeof setLock==='function'&&LOCKED)setLock(false);
@@ -4447,7 +4464,7 @@ function sparkline(host,title,right,vals,opt){
 }
 
 /* ───────── 요약 ───────── */
-let rpeVal=null,terrainVal='도로',weatherVal=null;
+let rpeVal=null,terrainVal='도로',weatherVal=null,talkVal=null;
 /* 궤적 자체에서 거리를 다시 잰다 — 누적값이 틀려도 경로는 남아 있다 */
 function trackDist(pts){
   if(!pts||pts.length<2)return 0;
@@ -4593,7 +4610,8 @@ function renderSummary(completed){
       drop:r.drop,cad:r.cad,hard:r.hard,extra:!!r.extra,pass:segPass(r)})),
     track:simplify(S.pts,600)};
 
-  rpeVal=null;terrainVal='도로';weatherVal=null;$('sNote').value='';
+  rpeVal=null;terrainVal='도로';weatherVal=null;talkVal=null;$('sNote').value='';
+  { const ag=aeroGoal(), tb=$('sTalkBox'); if(tb){ tb.hidden=!((s&&s.talkCheck)||(ag&&ag.mode==='breath')); tb.querySelectorAll('[data-tk]').forEach(x=>x.classList.remove('on')); } }
   $('sRPE').innerHTML=[1,2,3,4,5,6,7,8,9,10].map(n=>`<button data-v="${n}">${n}</button>`).join('');
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
   $('sWeather').innerHTML=WEATHER.map(w=>`<button class="tag" data-w="${w}">${w}</button>`).join('');
@@ -4643,6 +4661,8 @@ function simplify(pts,max){
 }
 $('sRPE').onclick=e=>{const b=e.target.closest('button');if(!b)return;rpeVal=+b.dataset.v;
   $('sRPE').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));};
+if($('sTalk'))$('sTalk').onclick=e=>{const b=e.target.closest('[data-tk]');if(!b)return;talkVal=+b.dataset.tk;
+  $('sTalk').querySelectorAll('[data-tk]').forEach(x=>x.classList.toggle('on',x===b));};
 $('sTerrain').onclick=e=>{const b=e.target.closest('button');if(!b)return;terrainVal=b.dataset.t;
   $('sTerrain').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));};
 $('sWeather').onclick=e=>{const b=e.target.closest('button');if(!b)return;
@@ -4651,7 +4671,7 @@ $('sWeather').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 $('btnSave').onclick=()=>{
   if(!S.result)return;
   S.result._saved=true;
-  Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,note:$('sNote').value.trim()});
+  Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,talk:talkVal,note:$('sNote').value.trim()});
   if(!S.result.rid)S.result.rid=newRid(S.result);
   if(S.result.act&&S.result.act!=='run'){
     ACTS.push(S.result); if(ACTS.length>400)ACTS=ACTS.slice(-400);
@@ -5991,6 +6011,12 @@ const GSTEP=[
  ok(){ const d=GB.d;
    if(d.kind==='aero'){ aeroRead(); const a=d.aero||{};
      if(!(a.hrCap>=100&&a.hrCap<=200))return '기준 심박을 100~200 사이로 넣어주세요.';
+     if(a.mode==='cad'){ if(!(a.cad0>=120&&a.cad0<=220))return '지금 케이던스를 넣어주세요 (예: 160). 모르면 먼저 한 번 뛰면 앱이 잽니다.';
+       if(!(a.cadT>a.cad0))return '목표 케이던스는 지금보다 높아야 해요.';
+       if(a.cadT>Math.round(a.cad0*1.10))return `한 번에 10%(${Math.round(a.cad0*1.1)}) 넘게 올린 연구는 없어요 — 그 아래로 넣어주세요.`; return true; }
+     if(a.mode==='breath'){ if(!(a.ref>=150&&a.ref<=900))return '기준 페이스를 분:초로 넣어주세요 (예: 6:10).';
+       if(!(a.rpeT>=1&&a.rpeT<=10))return '목표 힘든 정도를 1~10으로 넣어주세요.';
+       if(a.rpe0&&a.rpeT>=a.rpe0)return '목표 힘든 정도는 지금보다 낮아야 해요.'; return true; }
      if(a.mode==='speed'){ if(!(a.paceT>=150&&a.paceT<=900))return '목표 페이스를 분:초로 넣어주세요 (예: 5:30).'; }
      else { if(!(a.ref>=150&&a.ref<=900))return '기준 페이스를 분:초로 넣어주세요 (예: 5:30).';
        if(!(a.hrT>=70&&a.hrT<=210))return '목표 심박을 숫자로 넣어주세요 (예: 150).'; }
@@ -6237,13 +6263,48 @@ function gOvWire(){ const box=$('gOv'); if(!box)return;
 function ovApply(){ PROF=Object.assign({},PROF,{ov:GB.ov||{}}); recalcProfile(); recalcTypes(); }
 /* ───── 편한 달리기 능력 — 제안값을 채워 두되 모두 고칠 수 있다 ───── */
 const mmss=s=>s?`${Math.floor(s/60)}:${pad(Math.round(s%60))}`:'';
+/* ═════ 편한 달리기 능력 — 4가지 길 ═════
+   속도 개선 · 심박 개선 · 케이던스 개선 · 호흡 개선. 모두 '쉬운 날 위주'가 바탕이고, 재는 값만 다르다 */
+const AERO_MODES={
+  speed:{nm:'속도 개선',sub:'같은 심박에서 더 빠르게',ico:'❤️'},
+  hr:{nm:'심박 개선',sub:'같은 속도에서 심박 낮추기',ico:'❤️'},
+  cad:{nm:'케이던스 개선',sub:'걸음 수 늘리기',ico:'👟'},
+  breath:{nm:'호흡 개선',sub:'숨이 덜 차게',ico:'🫁'}};
+const aeroX=a=>!!a&&(a.mode==='cad'||a.mode==='breath');
+/* 케이던스 박자(메트로놈) 비율 — Willy 외 2016의 '점점 줄이는 피드백(faded feedback)': 처음엔 계속 들려주고, 점점 끄고, 마지막엔 스스로 유지 */
+const CAD_FB=[1,0.6,0.3,0];
+const CAD_FB_TXT=['쉬운 날 본 구간 내내 박자 소리에 발 맞추기','본 구간 앞 60%만 박자 · 나머지는 스스로','처음 30%만 박자로 맞추고 나머지는 스스로','박자 없이 유지 — 목표 아래로 떨어질 때만 안내'];
+function aeroWeekIx(a,ds){ const s=(a&&a.since)||ds; return Math.max(0,Math.round((Date.parse(weekMonday(ds))-Date.parse(weekMonday(s)))/6048e5)); }
+function aeroWeekNote(g,mon){ const a=g&&g.kind==='aero'&&g.aero; if(!aeroX(a))return '';
+  const wi=aeroWeekIx(a,mon);
+  if(a.mode==='cad') return `<b>케이던스 ${wi+1}주차</b> · ${CAD_FB_TXT[Math.min(3,wi)]} (목표 ${a.cadT}보/분)`;
+  const wk=(typeof BLOCK!=='undefined'?BLOCK:[]).filter(x=>weekMonday(x.d)===mon), tc=wk.find(x=>x.talkCheck), tp=wk.some(x=>x.type==='threshold');
+  return `<b>호흡 ${wi+1}주차</b> · ${tc?`${dowOf(tc.d.slice(0,10))}요일 숨 확인(말하기 테스트)`:'숨 확인 1회'}${tp?' · 템포런 1회':' · 템포런은 주간 거리가 쌓이면 들어가요'} · 매일 호흡근 훈련 30회×2 <i>(기구 있을 때만, 선택)</i>`; }
+/* 재는 값 — 케이던스: 쉬운 날 평균 케이던스, 호흡: 기준 페이스로 뛴 쉬운 날의 힘든 정도(RPE, 뛴 뒤 기록) */
+function aeroXHist(a){ const cd=a.mode==='cad', since=Date.now()-56*864e5, by={};
+  (RUNS||[]).filter(r=>isRun(r)&&['easy','recovery','long'].includes(r.type)&&Date.parse(r.date)>since).forEach(r=>{ const wk=weekMonday(ldate(r.date).slice(0,10));
+    if(cd){ if(r.cadAvg)(by[wk]=by[wk]||[]).push(r.cadAvg); }
+    else if(r.rpe&&r.paceAvg&&a.ref&&Math.abs(r.paceAvg-a.ref)<=20)(by[wk]=by[wk]||[]).push(r.rpe); });
+  return Object.keys(by).sort().map(k=>{ const v=by[k].sort((x,y)=>x-y); return {d:k,v:v[Math.floor((v.length-1)/2)],n:v.length}; }); }
+function aeroView(a){ const cd=a.mode==='cad', H=aeroXHist(a), now=H.length?H[H.length-1].v:null;
+  const v0=cd?(a.cad0||(H[0]&&H[0].v)||null):(a.rpe0||(H[0]&&H[0].v)||null), vT=cd?a.cadT:a.rpeT;
+  const f=cd?(v=>v+'보'):(v=>'RPE '+v);
+  const pct=(now!=null&&v0!=null&&vT!=null&&v0!==vT)?Math.max(0,Math.min(100,Math.round((now-v0)/(vT-v0)*100))):0;
+  return {cd,H,now,v0,vT,f,pct,better:cd?'higher':'lower',ico:AERO_MODES[a.mode].ico,
+    title:cd?`케이던스 ${vT}보/분으로 편하게 달리기`:`${fmtPace(a.ref)} 페이스에서 숨이 덜 차게 (힘든 정도 ${vT})`,
+    goal:cd?`이지런 케이던스 ${v0||'측정 전'} → ${vT}보/분${v0?` (+${Math.round((vT-v0)/v0*100)}%)`:''}`:`${fmtPace(a.ref)}에서 힘든 정도 ${v0||'측정 전'} → ${vT}`,
+    measure:cd?'이지런·LSD·리커버리런의 평균 케이던스 — 주별 가운데 값':`${fmtPace(a.ref)}±20초로 뛴 쉬운 날, 뛴 뒤 고른 힘든 정도(RPE) — 주별 가운데 값`}; }
 function aeroSuggest(mode){
   const cap=(ZONES&&ZONES[1]&&ZONES[1][1])||Math.round(HRMAX*0.8);
   const L=learnEasy(HRMAX,cap);
   const pace0=L.paceAtCap||Math.round(PACE.easy[0]);
   const ref=Math.round(midPace(PACE.easy)/5)*5;
   const hrAt=aeroHrAt(ref);
+  const cu=(typeof cadUsual==='function')?cadUsual():null;
+  const rp=(()=>{ const v=RUNS.filter(r=>isRun(r)&&r.rpe&&r.paceAvg&&Math.abs(r.paceAvg-ref)<=20&&['easy','recovery','long'].includes(r.type)).slice(-5).map(r=>r.rpe).sort((x,y)=>x-y); return v.length?v[Math.floor((v.length-1)/2)]:null; })();
   return {mode, hrCap:cap, pace0, paceT:pace0-15, ref, hr0:hrAt.hr||cap+6, hrT:(hrAt.hr||cap+6)-6,
+    cad0:cu||null, cadT:cu?Math.round(cu*1.075):null,          /* +7.5% — Willy 2016·Heiderscheit 2011(5~10%)의 가운데 */
+    rpe0:rp, rpeT:rp?Math.max(2,rp-2):3,                         /* CR-10에서 3 = '편함'(대화 가능) */
     src:{pace0:L.paceAtCap?`내 기록 ${L.n}번에서 계산`:(PROF.race?'대회 기록 공식 — 내 기록이 쌓이면 바뀜':'측정 전 기본값 — TT나 대회 기록을 넣으면 바뀜'), hr0:hrAt.hr?`내 기록 ${hrAt.n}구간에서 계산`:'기록 없음 — 대략의 값'}};
 }
 /* 기준 속도 근처(±12초)로 뛴 1km들의 심박 가운데 값 */
@@ -6262,9 +6323,21 @@ function aeroBody(){
   const a=d.aero, sg=aeroSuggest(a.mode);
   const row=(id,label,val,sugTxt,unit)=>`<div class="aerow"><label for="${id}"><b>${label}</b><i>제안 ${sugTxt}</i></label>
      <span><input type="text" id="${id}" inputmode="${unit==='bpm'?'numeric':'text'}" value="${val}" autocomplete="off"><em>${unit}</em></span></div>`;
-  return `<div class="obgrid c2" id="gAeroMode">
-      <button type="button" class="obopt${a.mode==='speed'?' on':''}" data-am="speed"><b>속도 개선</b><br><small>같은 심박에서 더 빠르게</small></button>
-      <button type="button" class="obopt${a.mode==='hr'?' on':''}" data-am="hr"><b>심박 개선</b><br><small>같은 속도에서 심박 낮추기</small></button></div>
+  const modes=`<div class="obgrid c2" id="gAeroMode">${Object.entries(AERO_MODES).map(([k,m])=>`<button type="button" class="obopt${a.mode===k?' on':''}" data-am="${k}"><b>${m.nm}</b><br><small>${m.sub}</small></button>`).join('')}</div>`;
+  if(a.mode==='cad') return modes+`<div class="card tight" style="margin-top:12px">
+      <div class="aerow"><label><b>지금 케이던스 (쉬운 날)</b><i>${sg.cad0?'앱이 내 기록으로 잰 값':'기록 없음 — 직접 넣거나 먼저 한 번 뛰어 주세요'}</i></label><span><input type="text" id="aC0" inputmode="numeric" value="${a.cad0||''}" placeholder="예: 160" autocomplete="off"><em>보/분</em></span></div>
+      ${row('aCT','목표 케이던스',a.cadT||'',a.cad0?`${Math.round(a.cad0*1.05)}~${Math.round(a.cad0*1.1)} (+5~10%)`:'지금의 +5~10%','보/분')}
+      ${row('aCap','쉬운 날 심박 상한',a.hrCap,`${sg.hrCap}`,'bpm')}
+      <div class="meta" style="margin-top:8px;line-height:1.7">속도는 그대로, 보폭만 줄여 걸음 수를 늘립니다. 1주차는 박자 소리를 계속 들려주고 2·3주차에 줄이고 4주차부터는 스스로 유지합니다. <span class="gr B">B</span> Heiderscheit 2011 · Willy 2016 · Schubert 2014 리뷰 — 무릎·엉덩이 부담 감소는 확인, 부상 예방·기록 향상까지는 확인되지 않음. "180이 정답"은 근거 없음.</div>
+    </div>`+gDateBox();
+  if(a.mode==='breath') return modes+`<div class="card tight" style="margin-top:12px">
+      ${row('aRef','기준 페이스',mmss(a.ref),`${mmss(sg.ref)} (이지런 가운데)`,'/km')}
+      <div class="aerow"><label><b>지금 그 속도에서 힘든 정도</b><i>${sg.rpe0?'최근 기록의 RPE 가운데 값':'기록 없음 — 1(아주 편함)~10(한계)'}</i></label><span><input type="text" id="aR0" inputmode="numeric" value="${a.rpe0||''}" placeholder="예: 5" autocomplete="off"><em>/10</em></span></div>
+      ${row('aRT','목표 힘든 정도',a.rpeT,'3 = 편함, 한 문장 말할 수 있음','/10')}
+      ${row('aCap','쉬운 날 심박 상한',a.hrCap,`${sg.hrCap}`,'bpm')}
+      <div class="meta" style="margin-top:8px;line-height:1.7">앱은 숨을 직접 잴 수 없어서, 뛴 뒤 고르는 힘든 정도(RPE)와 주 1회 '말하기 테스트'로 봅니다. <span class="gr B">B</span> 말하기 테스트 ↔ 환기 역치(Persinger 2004, Reed 2014 리뷰) · <span class="gr A">A</span> 호흡근 훈련 메타분석(Illi 2012) · <span class="gr D">D</span> 2:2·3:2 같은 호흡 박자는 기록 향상 근거 없음(Harbour 2022) — 원하면 호흡 실험으로 내 몸에서 비교.</div>
+    </div>`+gDateBox();
+  return modes+`
     <div class="card tight" style="margin-top:12px">
       ${row('aCap','기준 심박 (편함 상한)',a.hrCap,`${sg.hrCap} · 최대 심박 ${HRMAX}의 80%`,'bpm')}
       ${a.mode==='speed'
@@ -6280,13 +6353,18 @@ function aeroRead(){ const d=GB.d; if(d.kind!=='aero'||!d.aero)return; const a=d
   if(v('aCap')!=null)a.hrCap=n(v('aCap'));
   if(v('aP0')!=null)a.pace0=t(v('aP0')); if(v('aPT')!=null)a.paceT=t(v('aPT'));
   if(v('aRef')!=null)a.ref=t(v('aRef')); if(v('aHT')!=null)a.hrT=n(v('aHT'));
+  if(v('aC0')!=null)a.cad0=n(v('aC0')); if(v('aCT')!=null)a.cadT=n(v('aCT'));
+  if(v('aR0')!=null)a.rpe0=n(v('aR0')); if(v('aRT')!=null)a.rpeT=n(v('aRT'));
+  if(a.mode==='cad'&&a.cad0&&!a.cadT)a.cadT=Math.round(a.cad0*1.075);
+  if(aeroX(a))return;
   /* 측정이 없으면 '지금 값'은 비워 둔다 — 목표에서 역산한 숫자를 실측처럼 쓰면 거짓말이다 */
   if(a.mode==='speed'){ const m=aeroPaceAt(a.hrCap); a.est=!m.pace; a.pace0=m.pace||null; }
   else { const m=aeroHrAt(a.ref); a.est=!m.hr; a.hr0=m.hr||null; const el=$('aNow'); if(el)el.textContent=m.hr?'♥'+m.hr+` (${m.n}개)`:'측정 전'; } }
 function aeroWire(){ const m=$('gAeroMode'); if(!m)return;
   m.onclick=e=>{ const b=e.target.closest('[data-am]'); if(!b)return; aeroRead();
     const keep=GB.d.aero&&GB.d.aero.hrCap; GB.d.aero=aeroSuggest(b.dataset.am); if(keep)GB.d.aero.hrCap=keep; gPaint(); };
-  ['aCap','aPT','aRef','aHT'].forEach(id=>{ const el=$(id); if(el)el.onchange=()=>aeroRead(); }); }
+  ['aCap','aPT','aRef','aHT','aC0','aCT','aR0','aRT'].forEach(id=>{ const el=$(id); if(el)el.onchange=()=>{ aeroRead(); const a=GB.d.aero||{}, ct=$('aCT');
+    if(id==='aC0'&&ct&&a.cad0){ a.cadT=Math.round(a.cad0*1.075); ct.value=a.cadT; } }; }); }
 /* 날짜 — 직접 치기와 달력 고르기 둘 다. '2026-11-14', '2026.11.14', '11/14', '11월 14일', '1114', '20261114' 모두 받는다 */
 function parseDateLoose(v){
   const t=String(v||'').trim(); if(!t)return null;
@@ -7757,7 +7835,8 @@ function promiseRows(r,s){
     else if(r.spread<=3&&r.rpe&&r.rpe<=4)kind='easyreps';
   }
   if(T.judgeBy==='distance'&&r.distRatio<th.dist)kind='short';
-  if(r.cadGoal) rows.push([`발걸음 목표 ${r.cadGoal}`,r.cadAvg?`평균 ${r.cadAvg}`:'못 잼',r.cadAvg&&r.cadAvg>=r.cadGoal-2?'ok':'bad']);
+  if(r.cadGoal) rows.push([`케이던스 목표 ${r.cadGoal}`,r.cadAvg?`평균 ${r.cadAvg}`:'못 잼',r.cadAvg&&r.cadAvg>=r.cadGoal-2?'ok':'bad']);
+  if(r.talk) rows.push(['숨 확인 (말하기 테스트)',['','한 문장 편하게 — 환기 역치 아래','짧게 끊어서만 — 역치 근처','말하기 힘듦 — 역치 위'][r.talk],r.talk===1?'ok':r.talk===3?'bad':'']);
   /* 세트가 있는 날 — 사이 쉬기·준비·마무리도 약속의 일부다 */
   const soft=(r.segments||[]).filter(g=>!g.hard&&g.pace&&g.plan);
   if(T.judgeBy==='spread'&&soft.length){
@@ -8074,9 +8153,21 @@ function repLabel(g,segs){
   const n=segs.filter(x=>x.hard).length, k=g.rep||(segs.filter(x=>x.hard).indexOf(g)+1);
   return k===n&&n>1?'마지막':vOrd(k);
 }
-function cadGoal(s){ const c=DEV.store.get('cadTry',null);
+function cadGoal(s){ if(s&&s.cadT&&['easy','long','recovery'].includes(s.type))return s.cadT;   /* 케이던스 개선 일정 */
+  const c=DEV.store.get('cadTry',null);
   if(!c||!s||!['easy','long','recovery'].includes(s.type))return null;
   return (Date.now()-Date.parse(c.at))<=28*864e5 ? c.to : null; }
+/* 케이던스 박자 — 걸음마다 짧은 '틱'. 쉬운 날 본 구간에서, 그 주의 비율(CAD_FB)만큼 앞부분에 */
+function metroStop(){ if(S.metro){ clearInterval(S.metro); S.metro=null; } S.metroOn=false; }
+function cadMetro(km,tg,segs){
+  if(!S.cadGoal||S.cadFb==null||S.extra||!S.running){ if(S.metroOn)metroStop(); return; }
+  const main=!tg.hard&&!isCool(tg)&&!/웜업|준비/.test(tg.nm||'');
+  const prevTo=S.segIx?segs[S.segIx-1].to:0, prog=(km-prevTo)/Math.max(0.01,tg.to-prevTo);
+  const on=main&&S.cadFb>0&&(S.cadFb>=1||prog<=S.cadFb)&&!S.paused;
+  if(on&&!S.metroOn){ S.metroOn=true; const iv=Math.round(60000/S.cadGoal); S.metro=setInterval(()=>{ if(S.running&&!S.paused)VC.beep(1500,28); },iv);
+    DEV.speak(`박자 소리에 발을 맞추세요. 1분에 ${S.cadGoal}걸음.`,false); }
+  else if(!on&&S.metroOn){ metroStop(); if(main)DEV.speak('박자를 끕니다. 같은 걸음을 스스로 유지하세요.',false); }
+}
 function startVoice(s,T,g){
   VC.audio(); VC.counted=-1; S.vc={seg:-1,cued:{}};
   const n=s.segs.filter(x=>x.hard).length;
@@ -8093,8 +8184,9 @@ function startVoice(s,T,g){
   if(s.segs.length>1) m+=`먼저 ${vnm(g.nm)} ${g.to?kmLabVoice(g.to):''}${pc?`, 1킬로미터에 ${pc}`:''}.${g.nm===tm('warm')&&!n?' 몸을 데우는 구간입니다. 본 구간보다 천천히 가세요.':''}`;
   else if(s.ceiling) m+=`1킬로미터에 ${fmtPaceVoice(s.ceiling)}보다 느리게 가세요.`;
   else if(pc) m+=`1킬로미터에 ${pc}.`;
-  const cg=cadGoal(s); if(cg)m+=` 오늘 발걸음 목표는 1분에 ${cg}걸음. 속도는 그대로, 보폭만 조금 줄이세요.`;
-  S.cadGoal=cg; S.cadLow=0; S.lastCadCue=Date.now();
+  const cg=cadGoal(s); if(cg)m+=` 오늘 케이던스 목표는 1분에 ${cg}걸음. ${s.cadFb>=1?'본 구간 내내 박자 소리에 발을 맞추세요.':s.cadFb>0?`본 구간 앞부분은 박자 소리에 맞추고, 소리가 꺼지면 같은 걸음을 스스로 유지하세요.`:'오늘은 박자 없이 스스로 유지합니다. 떨어지면 알려드릴게요.'} 속도는 그대로, 보폭만 조금 줄이세요.`;
+  if(s.talkCheck)m+=` 오늘은 숨 확인 날입니다. 절반쯤에서 1킬로미터에 ${fmtPaceVoice(s.talkCheck)}로 달리며 한 문장을 소리 내 말해 보세요. 끝나고 어땠는지 고릅니다.`;
+  S.cadGoal=cg; S.cadFb=cg?(s.cadFb!=null?s.cadFb:0):null; S.cadLow=0; S.lastCadCue=Date.now(); S.metroOn=false;
   DEV.speak(m,true);
 }
 const kmLabVoice=km=>km<1?`${Math.round(km*1000)}미터`:`${+km.toFixed(1)}킬로미터`;
@@ -8140,7 +8232,9 @@ function voiceTick(km,tg,segs,p){
       [5,4,3,2,1].forEach((n,i)=>setTimeout(()=>{ if(!S.running||S.paused||S.segIx!==cs)return; VC.beep(n===1?1046:880,140); if(i===0)DEV.speak('5',true); else DEV.speak(String(n),false); $('rSay').hidden=false; $('rSay').textContent=`${L} — ${n}`; },i*1000)); }
   }
   /* 발걸음 +5% 해보기 — 뛴 뒤·일지에서 정한 경우만 */
-  if(S.cadGoal&&!tg.hard){ const cn=cadence();
+  /* 박자(메트로놈) — 쉬운 날 본 구간에서 주차별 비율만큼 */
+  try{ cadMetro(km,tg,segs); }catch(e){}
+  if(S.cadGoal&&!tg.hard&&!S.metroOn){ const cn=cadence();
     if(cn&&cn<S.cadGoal-3)S.cadLow+=0.5; else S.cadLow=0;
     if(S.cadLow>=60&&Date.now()-S.lastCadCue>300000){ S.lastCadCue=Date.now(); S.cadLow=0;
       DEV.speak(`발걸음 ${cn}. 목표 ${S.cadGoal}. 보폭을 조금 줄여 보세요.`); } }
@@ -8284,6 +8378,10 @@ let LOGTAB='sum', LOGPER='month', LOGFLT='all';
 const LTABS=[['sum','한눈에'],['body','몸 상태'],['skill','실력'],['tips','제안'],['list','목록']];
 const TCOL={interval:'#E35A32',rep:'#E35A32',threshold:'#F0A030',goalpace:'#7355D6',mpace:'#7355D6',long:'#2F7FD0',easy:'#2E9E6A',recovery:'#9C8AD8',tt:'#D32F45',free:'#5F7A6E',stride:'#3E8FBF',hill:'#B05C1C'};
 const isHardT=t=>['interval','rep','threshold','goalpace','mpace','tt','hill','stride'].includes(t);
+/* 달력·주간 막대·범례가 같은 네 가지 색을 쓴다 — 예전엔 달력은 종류별 색(템포=노랑·회복=보라), 막대는 세 묶음이라 같은 러닝이 서로 다른 색이었다 */
+const LCAT={hard:['빠르게·벅차게','#E35A32'],easy:['천천히·회복','#2E9E6A'],long:['길게','#2F7FD0'],free:['프리런','#8A7FA0']};
+const lcatOf=t=>isHardT(t)?'hard':t==='long'?'long':(t==='free'||!t)?'free':'easy';
+const lcatLeg=()=>Object.values(LCAT).map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('');
 function needBar(have,need,what){ return `<div class="need">${what} <b>${Math.max(0,need-have)}번 더</b> 쌓이면 보여요<i><em style="width:${Math.max(4,Math.min(100,have/need*100))}%"></em></i></div>`; }
 function nChip(n){ return n>=8?`<span class="nchip g">${n}번 · 확실</span>`:n>=4?`<span class="nchip n">${n}번 · 아직 약함</span>`:''; }
 
@@ -8298,6 +8396,7 @@ function wireLog(host){
   host.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{ LOGPER=b.dataset.per; renderLog(); });
   host.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{ LOGFLT=b.dataset.flt; renderLog(); });
   host.querySelectorAll('[data-rid]').forEach(b=>b.onclick=()=>openRunView(b.dataset.rid));
+  host.querySelectorAll('[data-calp]').forEach(b=>b.onclick=()=>openConfirm(+b.dataset.calp));
   host.querySelectorAll('[data-ts]').forEach(b=>b.onclick=()=>openTimeDec());
   host.querySelectorAll('[data-br]').forEach(b=>b.onclick=()=>openBreathDec());
   host.querySelectorAll('[data-cad]').forEach(b=>b.onclick=()=>openCadDec());
@@ -8340,27 +8439,30 @@ function calCard(){
   for(let i=0;i<lead;i++)h+='<div class="cd e"></div>';
   for(let d=1;d<=n;d++){ const ds=`${y}-${pad(m+1)}-${pad(d)}`, st=dayStatus(ds);
     const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds), k=rs.reduce((s,r)=>s+r.km,0);
-    const ty=rs.length?rs.sort((a,b)=>b.km-a.km)[0].type:null;
+    const top=rs.length?rs.sort((a,b)=>b.km-a.km)[0]:null, ty=top?lcatOf(top.type):null;
+    /* 누르면 — 뛴 날은 그 기록, 아직 안 온 계획 날은 그 일정 */
+    const pi=!top?BLOCK.findIndex(x=>x.d.slice(0,10)===ds&&x.type!=='off'&&x.dist):-1;
+    const tap=top&&top.rid?` data-rid="${top.rid}" role="button" tabindex="0" aria-label="${ds} 기록 보기"`:pi>=0&&ds>=t?` data-calp="${pi}" role="button" tabindex="0" aria-label="${ds} 일정 보기"`:'';
     const cls=st==='restKept'?'r':(st==='missed'||st==='missedOk')?'x':ds>t?'f':'';
-    const dot=ty?`<b style="width:${Math.min(22,8+k*0.9).toFixed(0)}px;height:${Math.min(22,8+k*0.9).toFixed(0)}px;background:${TCOL[ty]||'#5F7A6E'}"></b>`:'';
+    const dot=ty?`<b style="width:${Math.min(22,8+k*0.9).toFixed(0)}px;height:${Math.min(22,8+k*0.9).toFixed(0)}px;background:${LCAT[ty][1]}"></b>`:'';
     const act=ACTS.some(x=>ldate(x.date).slice(0,10)===ds)?'<s></s>':'';
-    h+=`<div class="cd ${cls}${ds===t?' t':''}">${d}${dot}${act}</div>`; }
+    h+=`<div class="cd ${cls}${ds===t?' t':''}${tap?' tap':''}"${tap}>${d}${dot}${act}</div>`; }
   return `<div class="lcard"><div class="bt">${m+1}월 달력<span>색 = 훈련 종류 · 크기 = 거리</span></div>
     <div class="cal"><div class="h">월</div><div class="h">화</div><div class="h">수</div><div class="h">목</div><div class="h">금</div><div class="h">토</div><div class="h">일</div>${h}</div>
-    <div class="leg"><span><i style="background:#E35A32"></i>빠르게</span><span><i style="background:#2E9E6A"></i>천천히</span><span><i style="background:#2F7FD0"></i>길게</span><span><i style="background:#9C8AD8"></i>회복</span><span><i class="rr"></i>지킨 쉬는 날</span><span><i class="xx"></i>못 한 날</span><span><i style="background:#8C6D46;border-radius:50%"></i>걷기·등산·자전거</span></div></div>`;
+    <div class="leg">${lcatLeg()}<span><i class="rr"></i>지킨 쉬는 날</span><span><i class="xx"></i>못 한 날</span><span><i style="background:#8C6D46;border-radius:50%"></i>걷기·등산·자전거</span></div></div>`;
 }
 function weekBars(){
   const mon=weekMonday(todayStr()), W=[];
   for(let i=7;i>=0;i--){ const m=addDays(mon,-7*i), rs=RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===m);
-    W.push({m, e:rs.filter(r=>!isHardT(r.type)&&r.type!=='long').reduce((s,r)=>s+r.km,0), h:rs.filter(r=>isHardT(r.type)).reduce((s,r)=>s+r.km,0),
-      l:rs.filter(r=>r.type==='long').reduce((s,r)=>s+r.km,0), a:ACTS.filter(x=>weekMonday(ldate(x.date).slice(0,10))===m).length, now:i===0}); }
-  const mx=Math.max(10,...W.map(w=>w.e+w.h+w.l));
-  if(!W.some(w=>w.e+w.h+w.l>0))return '';
+    const sum=c=>rs.filter(r=>lcatOf(r.type)===c).reduce((s,r)=>s+r.km,0);
+    W.push({m, e:sum('easy'), h:sum('hard'), l:sum('long'), f:sum('free'), a:ACTS.filter(x=>weekMonday(ldate(x.date).slice(0,10))===m).length, now:i===0}); }
+  const mx=Math.max(10,...W.map(w=>w.e+w.h+w.l+w.f));
+  if(!W.some(w=>w.e+w.h+w.l+w.f>0))return '';
   const bars=W.map(w=>{ const H=v=>(v/mx*96).toFixed(1);
-    return `<div class="wb${w.now?' now':''}"><div class="st"><i style="height:${H(w.l)}%;background:#2F7FD0"></i><i style="height:${H(w.h)}%;background:#E35A32"></i><i style="height:${H(w.e)}%;background:#2E9E6A"></i></div>
-      <em>${(w.e+w.h+w.l).toFixed(0)}</em><span>${w.now?'이번 주':w.m.slice(5).replace('-','/')}</span>${w.a?`<u>${'●'.repeat(Math.min(3,w.a))}</u>`:''}</div>`; }).join('');
+    return `<div class="wb${w.now?' now':''}"><div class="st"><i style="height:${H(w.f)}%;background:${LCAT.free[1]}"></i><i style="height:${H(w.l)}%;background:${LCAT.long[1]}"></i><i style="height:${H(w.h)}%;background:${LCAT.hard[1]}"></i><i style="height:${H(w.e)}%;background:${LCAT.easy[1]}"></i></div>
+      <em>${(w.e+w.h+w.l+w.f).toFixed(0)}</em><span>${w.now?'이번 주':w.m.slice(5).replace('-','/')}</span>${w.a?`<u>${'●'.repeat(Math.min(3,w.a))}</u>`:''}</div>`; }).join('');
   return `<div class="lcard"><div class="bt">주간 거리<span>최근 8주 · km</span></div><div class="wbars">${bars}</div>
-    <div class="leg"><span><i style="background:#2E9E6A"></i>천천히</span><span><i style="background:#E35A32"></i>빠르게·벅차게</span><span><i style="background:#2F7FD0"></i>길게</span><span><i style="background:#8C6D46;border-radius:50%"></i>걷기·등산·자전거(횟수, 거리로 안 바꿈)</span></div></div>`;
+    <div class="leg">${lcatLeg()}<span><i style="background:#8C6D46;border-radius:50%"></i>걷기·등산·자전거(횟수, 거리로 안 바꿈)</span></div></div>`;
 }
 
 /* ── 몸 상태 · 평균 대비 ── */
@@ -8605,6 +8707,7 @@ const PATHWHY={A:'최종 목표는 그대로 두고, 이번 기간에 닿을 수
   D:'훈련은 계단(A)과 같고, 대회 날만 목표 속도로 안내합니다. 지금 실력보다 빨라서 후반에 크게 느려질 수 있습니다.'};
 const GKIND={custom:'내가 직접 세운 계획',aero:'편한 달리기 능력',race:'대회 기록',finish:'완주',pace:'1km 속도',weight:'체중',health:'건강하게 꾸준히',back:'다시 시작'};
 function goalLabel(g){ if(!g)return '목표 없음';
+  if(g.kind==='aero'&&aeroX(g.aero))return aeroView(g.aero).goal;
   if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`♥${a.hrCap}에서 ${fmtPace(a.pace0)} → ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)}에서 ♥${a.hr0} → ♥${a.hrT}`; }
   if(g.m&&(g.final||g.sec))return `${gdLabel(g.m)} ${fmtClock(g.final||g.sec)}${g.kind==='pace'&&g.perKm?` (1km ${fmtPace(g.perKm)})`:''}`;
   return GKIND[g.kind]||'목표'; }
@@ -8661,7 +8764,10 @@ function openDecDetail(id,back){
         ${g.path?`<div class="dr"><span>고른 길</span><b>${g.path} · ${PATHNM[g.path]}</b></div>`:''}
         ${pl.ladder?`<div class="dr"><span>이번 4주 연습 목표</span><b>${fmtClock(pl.ladder)}</b></div>`:''}
         ${g.raceDayPace?`<div class="dr"><span>대회 날 안내 속도</span><b>1km ${fmtPace(g.raceDayPace)}</b></div>`:''}</div>
-      ${g.kind==='aero'&&g.aero?(()=>{ const a=g.aero, sp=a.mode==='speed', cur=sp?aeroPaceAt(a.hrCap):aeroHrAt(a.ref), nowV=sp?cur.pace:cur.hr, v0=sp?a.pace0:a.hr0, vT=sp?a.paceT:a.hrT, f=v=>sp?fmtPace(v):'♥'+v;
+      ${g.kind==='aero'&&aeroX(g.aero)?(()=>{ const V=aeroView(g.aero); return `<div class="dl">가능성</div><div class="dverd">${V.goal}. 걸음·숨 같은 습관은 보통 4~8주에 자리 잡아요(C).</div>
+          <div class="dbox"><div class="feasbar"><i style="width:${V.pct}%"></i></div><div class="feasleg"><span>시작 ${V.v0!=null?V.f(V.v0):'측정 전'}</span><span>목표 ${V.f(V.vT)}</span></div>
+          <div class="dr"><span>지금</span><b>${V.now!=null?V.f(V.now)+` · ${V.pct}%`:'기록 모으는 중'}</b></div><div class="dr"><span>재는 법</span><b>${V.measure}</b></div></div>`; })()
+      :g.kind==='aero'&&g.aero?(()=>{ const a=g.aero, sp=a.mode==='speed', cur=sp?aeroPaceAt(a.hrCap):aeroHrAt(a.ref), nowV=sp?cur.pace:cur.hr, v0=sp?a.pace0:a.hr0, vT=sp?a.paceT:a.hrT, f=v=>sp?fmtPace(v):'♥'+v;
           const pct=nowV!=null?Math.max(0,Math.min(100,Math.round((v0-nowV)/Math.max(1,v0-vT)*100))):0, wks=g.date?Math.max(0,Math.floor((Date.parse(g.date)-Date.now())/6048e5)):null;
           return `<div class="dl">가능성</div><div class="dverd ${wks!=null&&wks<6?'mid':''}">${sp?`같은 심박(♥${a.hrCap})에서 1km ${Math.round(a.pace0-a.paceT)}초 빨라지는 것이 목표예요.`:`같은 페이스(${fmtPace(a.ref)})에서 심박 ${a.hr0-a.hrT} 낮아지는 것이 목표예요.`} 보통 6~12주 걸려요${wks!=null?` · 남은 ${wks}주`:''}.</div>
           <div class="dbox"><div class="feasbar"><i style="width:${pct}%"></i></div><div class="feasleg"><span>시작 ${f(v0)}</span><span>목표 ${f(vT)}</span></div>
@@ -9787,6 +9893,7 @@ function planListHTML(){
         <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i></div>
         <span class="pw-km"><b class="num">${done?done.toFixed(0)+' / ':''}${plan.toFixed(0)}</b>km</span></header>
       ${done?`<div class="pw-prog"><i style="width:${Math.min(100,done/plan*100)}%"></i></div>`:''}
+      ${(()=>{ const n=aeroWeekNote((PLAN&&PLAN.goal)||GOAL,mon); return n?`<div class="pw-note">${n}</div>`:''; })()}
       <div class="pw-rows">${rows}</div>
       ${!past?`<div class="pw-tools">${snapBtn('.pw','week'+wk,wk+'주차 계획')}<span>거리 조절</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
     </section>`; }).join('');
@@ -9993,7 +10100,11 @@ function goalModel(){
   const mix=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,n])=>({k,n:Math.max(1,Math.round(n/4)),nm:(TYPES[k]||{}).nm||k,col:(TYPES[k]||{}).col||'#888'}));
   const thisWk=(()=>{ const mon=weekMonday(t); const items=BLOCK.filter(x=>x.dist&&weekMonday(x.d)===mon); return {n:items.length,done:items.filter(x=>RUNS.some(r=>r.planId===x.d)).length}; })();
   const M={g,p,dd,dateLab,wkKm,mix,thisWk,ico:'🎯',title:'',sub:'',unit:'',v0:null,now:null,vT:null,fmt:v=>String(v),better:'lower',how:'',status:'',measure:'',hist:[]};
-  if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed';
+  if(g.kind==='aero'&&aeroX(g.aero)){ const a=g.aero, V=aeroView(a);
+    Object.assign(M,{ico:V.ico,title:V.title,sub:V.goal,v0:V.v0,now:V.now,vT:V.vT,fmt:V.f,better:V.better,hist:V.H,
+      how:a.mode==='cad'?'쉬운 날 박자 소리(점점 줄임) + 평소 훈련':'쉬운 날 위주 + 주 1회 템포런 + 주 1회 말하기 테스트',measure:V.measure,
+      status:V.now==null?(a.mode==='cad'?'케이던스가 잡히는 쉬운 날을 뛰면 첫 점이 찍혀요':'기준 페이스 근처로 뛰고, 뛴 뒤 힘든 정도를 고르면 첫 점이 찍혀요'):''});
+  } else if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed';
     const cur=sp?aeroPaceAt(a.hrCap):aeroHrAt(a.ref);
     Object.assign(M,{ico:'❤️',title:sp?`심박 ${a.hrCap}으로 달릴 때 페이스 ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)} 페이스로 달릴 때 심박 ${a.hrT}`,
       sub:(a.est&&(sp?!cur.pace:!cur.hr))?'지금 값은 이지런 기록으로 재는 중':sp?`지금은 같은 심박에서 ${fmtPace(cur.pace||a.pace0)} → ${Math.max(0,(cur.pace||a.pace0)-a.paceT)}초 빨라지기`:`지금은 같은 페이스에서 ♥${cur.hr||a.hr0} → ${Math.max(0,(cur.hr||a.hr0)-a.hrT)} 낮추기`,
@@ -10031,7 +10142,8 @@ function goalModel(){
   return M;
 }
 function goalSetChips(M){ const g=M.g, a=g.aero, days=(PLAN&&PLAN.days)||SURVEY.days||[]; const c=[];
-  if(a){ if(a.mode==='speed'){ c.push(['기준 심박',`♥${a.hrCap}`]); c.push(['목표 페이스',fmtPace(a.paceT)]); if(!a.est&&a.pace0)c.push(['지금 페이스',fmtPace(a.pace0)]); }
+  if(a&&aeroX(a)){ if(a.mode==='cad'){ c.push(['길','케이던스 개선']); c.push(['지금',a.cad0?a.cad0+'보':'측정 전']); c.push(['목표',a.cadT+'보']); } else { c.push(['길','호흡 개선']); c.push(['기준 페이스',fmtPace(a.ref)]); c.push(['목표 힘든 정도',a.rpeT+'/10']); } }
+  else if(a){ if(a.mode==='speed'){ c.push(['기준 심박',`♥${a.hrCap}`]); c.push(['목표 페이스',fmtPace(a.paceT)]); if(!a.est&&a.pace0)c.push(['지금 페이스',fmtPace(a.pace0)]); }
     else { c.push(['기준 페이스',fmtPace(a.ref)]); c.push(['목표 심박',`♥${a.hrT}`]); if(!a.est&&a.hr0)c.push(['지금 심박',`♥${a.hr0}`]); } }
   else if(g.m&&(g.final||g.sec)){ c.push(['거리',gdLabel(g.m)]); c.push(['목표 기록',fmtClock(g.final||g.sec)]); }
   if(M.dateLab)c.push(['언제까지',M.dateLab]);
@@ -10046,7 +10158,7 @@ function goalTrend(M,big){
   if(M.vT==null)return '';
   /* 측정값이 없어도 축은 그린다 — 시작점은 공식 추정값(속이 빈 점)으로 두고, 기록이 쌓이면 실측 점이 그 위에 찍힌다 */
   const est=(()=>{ const g=M.g; try{
-    if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?Math.round(a.pace0||PACE.easy[0]):Math.round(a.hr0||a.hrCap); }
+    if(g.kind==='aero'&&g.aero){ const a=g.aero; if(a.mode==='cad')return a.cad0||null; if(a.mode==='breath')return a.rpe0||null; return a.mode==='speed'?Math.round(a.pace0||PACE.easy[0]):Math.round(a.hr0||a.hrCap); }
     if(g.m&&(g.final||g.sec)) return Math.round(raceTime(VDOT,g.m)*60);
     if(g.kind==='finish'&&g.m) return typicalRunKm()||null; }catch(e){} return null; })();
   const v0=M.v0!=null?M.v0:est, v0est=M.v0==null&&est!=null;
@@ -10071,7 +10183,8 @@ function goalTrend(M,big){
   const lastL=last?`<text x="${Math.min(W-PR-2,last[0]+8).toFixed(1)}" y="${(last[1]-8).toFixed(1)}" text-anchor="${last[0]>W-70?'end':'start'}" font-size="11" font-weight="900" fill="var(--accent)">${M.fmt(H[H.length-1].v)}</text>`:'';
   const nowL=`<line x1="${X(TN).toFixed(1)}" y1="${PT}" x2="${X(TN).toFixed(1)}" y2="${PT+ih}" stroke="var(--accent)" stroke-width="1" opacity=".5"/><text x="${X(TN).toFixed(1)}" y="${PT-6}" text-anchor="middle" font-size="9.5" font-weight="800" fill="var(--accent)">오늘</text>`;
   const empty='';
-  const cap=(()=>{ const g=M.g; if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed', n=aeroCount(a); return H.length?`점 = ${sp?`♥${a.hrCap}±4`:`${fmtPace(a.ref)}±12초`} 1km 구간의 주별 중앙값 · ${H.length}주`:`첫 점은 ${sp?`♥${a.hrCap}±4`:`${fmtPace(a.ref)}±12초`} 1km 구간이 한 주 3개 쌓이면 찍혀요 · 이번 주 ${Math.min(n,3)}/3`; }
+  const cap=(()=>{ const g=M.g; if(g.kind==='aero'&&aeroX(g.aero)){ const a=g.aero; return H.length?`점 = ${aeroView(a).measure} · ${H.length}주`:(a.mode==='cad'?'첫 점은 케이던스가 잡힌 쉬운 날을 뛰면 찍혀요':'첫 점은 기준 페이스 근처로 뛰고 힘든 정도를 고르면 찍혀요'); }
+    if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed', n=aeroCount(a); return H.length?`점 = ${sp?`♥${a.hrCap}±4`:`${fmtPace(a.ref)}±12초`} 1km 구간의 주별 중앙값 · ${H.length}주`:`첫 점은 ${sp?`♥${a.hrCap}±4`:`${fmtPace(a.ref)}±12초`} 1km 구간이 한 주 3개 쌓이면 찍혀요 · 이번 주 ${Math.min(n,3)}/3`; }
     if(g.m&&(g.final||g.sec)) return H.length?`점 = TT·대회 기록으로 잰 실력`:`첫 점은 TT 2km나 대회 기록을 넣으면 찍혀요`;
     if(g.kind==='finish') return '점 = 주별 가장 길게 뛴 거리'; return ''; })();
   const legend=`<div class="gt-leg"><span><i class="tg"></i>목표</span>${H.length?'<span><i class="me"></i>내 기록(주별)</span>':''}${need?'<span><i class="nd"></i>필요한 흐름</span>':''}</div>`;
@@ -10119,6 +10232,11 @@ function goalCard(compact){
 
 /* 목표 숫자 고치기 — 편한 달리기 능력: 기준 페이스 · 목표 심박(또는 기준 심박 · 목표 페이스) · 날짜 */
 function goalEditBox(g){ const a=g.aero, sp=a.mode==='speed';
+  if(aeroX(a)) return `<details class="gc-edit"><summary>목표 숫자 고치기</summary><div class="gc-ef">
+    ${a.mode==='cad'?`<label><span>목표 케이던스</span><input type="text" inputmode="numeric" data-ge="cadT" value="${a.cadT}"><em>보/분</em></label>`
+      :`<label><span>기준 페이스</span><input type="text" data-ge="ref" value="${mmss(a.ref)}"><em>/km</em></label><label><span>목표 힘든 정도</span><input type="text" inputmode="numeric" data-ge="rpeT" value="${a.rpeT}"><em>/10</em></label>`}
+    <label><span>언제까지</span><input type="date" data-ge="date" value="${(g.date||'').slice(0,10)}"></label>
+    <div class="gc-eh" id="geHint"></div><button type="button" class="btn sm" id="geSave">저장</button></div></details>`;
   return `<details class="gc-edit"><summary>목표 숫자 고치기</summary><div class="gc-ef">
     ${sp?`<label><span>기준 심박</span><input type="text" inputmode="numeric" data-ge="hrCap" value="${a.hrCap}"><em>bpm</em></label>
          <label><span>목표 페이스</span><input type="text" data-ge="paceT" value="${mmss(a.paceT)}"><em>/km</em></label>`
@@ -10129,6 +10247,11 @@ function goalEditBox(g){ const a=g.aero, sp=a.mode==='speed';
     <button type="button" class="btn sm" id="geSave">저장</button></div></details>`; }
 function goalEditSave(box){ const g=(PLAN&&PLAN.goal)||GOAL; if(!g||!g.aero)return; const a=Object.assign({},g.aero), sp=a.mode==='speed';
   const v=k=>{ const el=box.querySelector(`[data-ge="${k}"]`); return el?el.value.trim():null; }, hint=t=>{ const h=$('geHint'); if(h)h.textContent=t; };
+  if(a.mode==='cad'){ const c=parseInt(v('cadT'),10); if(!(c>(a.cad0||0)&&c<=Math.round((a.cad0||c)*1.1)))return hint(`목표는 지금(${a.cad0||'—'})보다 높고 +10% 이하로`); a.cadT=c; }
+  else if(a.mode==='breath'){ const r=parseLoose(v('ref')), t=parseInt(v('rpeT'),10); if(!(r>=150&&r<=900))return hint('기준 페이스는 분:초'); if(!(t>=1&&t<=10))return hint('힘든 정도는 1~10'); a.ref=Math.round(r); a.rpeT=t; }
+  if(aeroX(a)){ const d=v('date'); const date=d&&/^\d{4}-\d{2}-\d{2}$/.test(d)?d:g.date; const ng=Object.assign({},g,{aero:a,date}); GOAL=ng; DEV.store.set('goal',GOAL);
+    try{ const act=GLOG.find(x=>x.status==='active'); if(act){ act.goal=JSON.parse(JSON.stringify(ng)); act.end=date?date.slice(0,10):null; glogSave(); } }catch(e){}
+    applyPlan(makePlan({goal:ng,start:PLAN&&PLAN.start,keepDays:true})); toast('목표를 고쳤어요'); openMyGoal(); return; }
   if(sp){ const c=parseInt(v('hrCap'),10), pt=parseLoose(v('paceT')); if(!(c>=100&&c<=200))return hint('기준 심박은 100~200'); if(!(pt>=150&&pt<=900))return hint('목표 페이스는 분:초 (예: 5:30)');
     a.hrCap=c; a.paceT=Math.round(pt); const cur=aeroPaceAt(c); a.est=!cur.pace; a.pace0=cur.pace||null; }
   else { const r=parseLoose(v('ref')), ht=parseInt(v('hrT'),10); if(!(r>=150&&r<=900))return hint('기준 페이스는 분:초 (예: 5:30)'); if(!(ht>=90&&ht<=200))return hint('목표 심박은 90~200'); if(ht>a.hrCap)return hint(`목표 심박이 편함 상한(${a.hrCap})보다 높아요 — 이 목표는 편한 속도에서 심박을 낮추는 것이에요`);
@@ -10198,6 +10321,7 @@ function glogSave(){ DEV.store.set('goals',GLOG); }
 function glogMetric(g){ /* 그 목표의 지금 값·목표값 — goalModel과 같은 규칙, 저장된 목표 기준 */
   if(!g)return null;
   /* 홈 목표 카드(goalModel)와 같은 재료만 쓴다 — 측정값 없으면 null(측정 전) */
+  if(g.kind==='aero'&&aeroX(g.aero)){ const V=aeroView(g.aero); return {now:V.now, vT:V.vT, fmt:V.f, better:V.better}; }
   if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed', H=aeroHist(a); return {now:H.length?H[H.length-1].v:null, vT:sp?a.paceT:a.hrT, fmt:v=>sp?fmtPace(v):'♥'+v, better:'lower'}; }
   if(g.m&&(g.final||g.sec)) return {now:needTest()?null:Math.round(raceTime(VDOT,g.m)*60), vT:g.final||g.sec, fmt:fmtClock, better:'lower'};
   if(g.kind==='finish'&&g.m){ const H=finishHist(); return {now:H.length?H[H.length-1].v:null, vT:g.m/1000, fmt:v=>v+'km', better:'higher'}; }
@@ -10219,7 +10343,7 @@ function glogPush(g,plan){
 function glogCheck(){ const a=GLOG.find(x=>x.status==='active'); if(!a)return; const m=glogMetric(a.goal);
   if(a.v0==null&&m&&m.now!=null){ a.v0=m.now; glogSave(); }
   if(glogReached(m)&&!a.doneAt){ a.doneAt=todayStr(); a.status='done'; a.vEnd=m.now; glogSave(); try{ toast('🎉 목표 달성! 새 목표를 정해보세요'); }catch(e){} } }
-function glogTitle(g){ try{ if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`심박 ${a.hrCap}으로 달릴 때 페이스 ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)} 페이스로 달릴 때 심박 ${a.hrT}`; }
+function glogTitle(g){ try{ if(g.kind==='aero'&&aeroX(g.aero))return aeroView(g.aero).title; if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`심박 ${a.hrCap}으로 달릴 때 페이스 ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)} 페이스로 달릴 때 심박 ${a.hrT}`; }
   if(g.m&&(g.final||g.sec))return `${gdLabel(g.m)} ${fmtClock(g.final||g.sec)}${g.kind==='race'?' 안에 들어오기':''}`; if(g.kind==='finish'&&g.m)return `${gdLabel(g.m)} 완주`; return GKIND[g.kind]||'목표'; }catch(e){ return '목표'; } }
 function glogList(){
   if(!GLOG.length)return '';
