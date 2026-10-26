@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.5';
+const APPVER='17.6';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3561,7 +3561,8 @@ const BT={
   want:false,            // 사용자가 연결을 원하는 상태인가 (직접 끊으면 false)
   tries:0, timer:null, lostAt:0, warned:false,
   feed(bpm){ S.hr.bpm=bpm; S.hr.at=Date.now(); S.hr.max=Math.max(S.hr.max||0,bpm); BT.lostAt=0; BT.warned=false;
-    if(S.running&&!S.paused){ S.hr.samples.push(bpm); S.hr.segSamples.push(bpm); } },
+    /* 평균·구간 심박·30초 유지 최대는 '1초에 한 값'으로 쌓는다(onTick). 기기마다 보내는 간격이 달라(1초~5초)
+       알림마다 쌓으면 자주 보내는 구간이 평균을 끌고, '30개 = 30초' 가정도 틀린다 */ },
   async connect(known){
     if(BT.busy)return; BT.busy=true;
     if(!known)BT.paint('기기를 찾는 중…');
@@ -3709,7 +3710,7 @@ async function startRun(){
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
-    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,
+    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -3922,6 +3923,8 @@ function onPos(pos){
 function cadence(){
   const c=S.cad; if(!c||!c.spm)return null;
   const sm=c.samples; if(!sm||sm.length<8)return null;
+  /* 걸음 신호가 3초 넘게 안 오면(화면 꺼짐·센서 멈춤) 값 없음 — 예전엔 마지막 값이 계속 남아 평균에 섞였다 */
+  if(typeof performance!=='undefined'&&performance.now()-sm[sm.length-1]>3000)return null;
   const iv=[]; for(let i=1;i<sm.length;i++)iv.push(sm[i]-sm[i-1]);
   const m=iv.reduce((a,b)=>a+b,0)/iv.length;
   const sd=Math.sqrt(iv.reduce((a,b)=>a+(b-m)**2,0)/iv.length);
@@ -4015,13 +4018,16 @@ function onTick(){
   const p=curPace();
   /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다.
      페이스가 아니라 거리가 늘고 있는지로 판단한다(페이스가 없어도 동작해야 한다) */
-  const moving = !!S.lastMove && (Date.now()-S.lastMove)<8000;
+  const moving = (!!S.lastMove && (Date.now()-S.lastMove)<8000) || !!S.gpsGap;   /* 터널 안에서도 걸음은 센다 */
   const cadNow = moving ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
   { const u=$('rCadU'); if(u)u.textContent=(cadNow&&isFinite(p)&&p>0)?`보폭 ${(1000/p*60/cadNow).toFixed(2)}m`:'분당'; }
   if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
   /* 기기가 송출을 멈추면 마지막 값이 영원히 남는다 — 15초 넘게 새 값이 없으면 심박 없음으로 본다 */
   if(S.hr.bpm&&S.hr.at&&Date.now()-S.hr.at>15000){ S.hr.bpm=null; }
+  /* 심박 1초 표본 — 마지막 값이 5초 안에 들어온 것일 때만(그보다 오래된 값으로 시간을 채우지 않는다) */
+  { const sec=Math.floor(S.elapsed), last=S.hrSec==null?sec-1:S.hrSec, n=Math.min(60,sec-last);
+    if(n>0){ S.hrSec=sec; if(S.hr.bpm&&!S.paused&&Date.now()-(S.hr.at||0)<=5000){ for(let k=0;k<n;k++){ S.hr.samples.push(S.hr.bpm); S.hr.segSamples.push(S.hr.bpm); } } } }
   if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
     /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다 */
     if(S.zoneSec)S.zoneSec[Math.min(4,hrZoneIx(S.hr.bpm)-1)]+=TD; }
@@ -4643,7 +4649,8 @@ function renderSummary(completed){
 
   S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:new Date(S.t0||Date.now()).toISOString(),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
-    hrAvg,hrMax:S.hr.max||null,hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
+    hrAvg,hrMax:heldMax(S.hr.samples,5)||S.hr.max||null,   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
+    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
@@ -5058,7 +5065,7 @@ async function selfTest(){
     const sess=sessionOf(i>=0?i:0), T=TYPES[sess.type];
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
-      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,
+      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
