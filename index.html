@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.4';
+const APPVER='17.5';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3714,7 +3714,7 @@ async function startRun(){
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
-    cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
+    cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]},stride:null,strideRef:null});
   S.act=(pendingIx<0&&ACT_MODE)?ACT_MODE:'run'; ACT_MODE=null;
   { const rr=$('rRail'); if(rr)rr.style.visibility=(s.d==='free')?'hidden':''; }   /* 자유 러닝엔 진행 막대가 의미 없다 */
   S.cadGoal=null; S.breath=null; const ob=$('optBreath'); if(ob&&ob.checked&&S.act==='run'&&breathEligible(s)){ breathStart(); BREATH.on=true; DEV.store.set('breath',BREATH); }
@@ -3844,10 +3844,14 @@ function onPos(pos){
   if(S.gpsGap){ const g=S.gpsGap, a=g.anchor, np={lat:c.latitude,lon:c.longitude,t:now,alt:c.altitude,over:false,seg:S.segIx,hr:(S.hr&&S.hr.bpm)||null};
     const dm=haversine(a,np), dt=Math.max(1,(now-a.t)/1000), cap=S.act==='bike'?25:7, v=dm/dt;
     if(g.stall&&dm<Math.max(15,acc)){ return; }            /* 같은 자리에 멈춘 좌표가 계속 오는 중 — 아직 끊김 */
-    if(v<=cap){ S.dist+=dm; np.gap=true; S.pts.push(np); S.anchor=np; S.smooth=np; S.rawLast={lat:np.lat,lon:np.lon,t:now};
-      S.lastMove=now; S.lastMoveEl=S.elapsed; S.win=[]; S.paceHold=dm>30?dt/(dm/1000):S.paceHold; S.gapEndEl=S.elapsed;
+    if(v<=cap){
+      /* 거리는 줄지 않는다 — 직선거리(최소값)와 걸음으로 이어 온 거리 중 긴 쪽. 걸음 센서가 없으면 끊기기 전 페이스로 이은 거리(직선의 1.3배까지) */
+      const tFill=g.dr>0?0:(S.paceHold?Math.min(dt*1000/S.paceHold,dm*1.3):0);
+      const gapKm=Math.max(dm,g.dr,tFill), add=Math.max(0,gapKm-g.dr);
+      S.dist+=add; np.gap=true; S.pts.push(np); S.anchor=np; S.smooth=np; S.rawLast={lat:np.lat,lon:np.lon,t:now};
+      S.lastMove=now; S.lastMoveEl=S.elapsed; S.lastMoveSteps=(S.cad&&S.cad.steps)||0; S.win=[]; S.paceHold=gapKm>30?dt/(gapKm/1000):S.paceHold; S.gapEndEl=S.elapsed;
       S.gpsGap=null; S.gapN=(S.gapN||0)+1;
-      if(dm>=50)DEV.speak(`GPS가 돌아왔습니다. 끊긴 동안 ${Math.round(dm)}미터, 1킬로미터에 ${fmtPaceVoice(dt/(dm/1000))}로 다시 계산했습니다.`,false);
+      if(gapKm>=50)DEV.speak(`GPS가 돌아왔습니다. 끊긴 동안 ${Math.round(gapKm)}미터, 1킬로미터에 ${fmtPaceVoice(dt/(gapKm/1000))}로 다시 계산했습니다.`,false);
       return; }
     S.gpsGap=null;   /* 발로 낼 수 없는 거리 — 아래 차 탄 구간 검사로 넘긴다 */ }
   /* ── 1단계: 좌표 평활화 ──────────────────────────────
@@ -3896,7 +3900,7 @@ function onPos(pos){
       if(dt>8) S.anchor=p;
       S.pts.push(p); return;
     }
-    S.dist+=dm; S.anchor=p; S.lastMove=now; S.lastMoveEl=S.elapsed;
+    S.dist+=dm; S.anchor=p; S.lastMove=now; S.lastMoveEl=S.elapsed; S.lastMoveSteps=(S.cad&&S.cad.steps)||0;
   } else S.anchor=p;
   if(c.altitude!=null&&(c.altitudeAccuracy==null||c.altitudeAccuracy<18)){
     S.altBuf.push(c.altitude); if(S.altBuf.length>5)S.altBuf.shift();
@@ -3955,8 +3959,18 @@ function onTick(){
   if(S.act!=='walk'&&!S.paused&&S.anchor&&!S.gpsGap&&S.dist>30){ const nowMs=Date.now(), age=(nowMs-(S.lastFixAt||nowMs))/1000, bad=(nowMs-(S.lastGoodAt||nowMs))/1000;
     let cn=null; try{ cn=cadence(); }catch(e){}
     const stall=cn&&cn>=130&&S.lastMoveEl&&S.elapsed-S.lastMoveEl>6;
-    if(age>6||bad>6||stall){ S.gpsGap={el:S.elapsed,d:S.dist,anchor:S.anchor,stall:!!stall&&age<=6&&bad<=6};
-      if(!S.gapCued||S.elapsed-S.gapCued>120){ S.gapCued=S.elapsed; DEV.speak('GPS 신호가 끊겼습니다. 페이스는 멈춰 두고, 신호가 돌아오면 거리와 시간으로 다시 계산합니다.',false); } } }
+    if(age>6||bad>6||stall){ S.gpsGap={el:S.elapsed,d:S.dist,anchor:S.anchor,stall:!!stall&&age<=6&&bad<=6,steps0:S.lastMoveSteps!=null?S.lastMoveSteps:((S.cad&&S.cad.steps)||0),dr:0};   /* 걸음은 마지막으로 좌표가 움직인 순간부터 센다 — 알아채는 6초도 빠지지 않게 */
+      if(!S.gapCued||S.elapsed-S.gapCued>120){ S.gapCued=S.elapsed; DEV.speak(S.stride?'GPS 신호가 끊겼습니다. 걸음 수로 거리를 이어 갑니다. 신호가 돌아오면 다시 맞춥니다.':'GPS 신호가 끊겼습니다. 페이스는 멈춰 두고, 신호가 돌아오면 거리와 시간으로 다시 계산합니다.',false); } } }
+  /* 보폭 배우기 — GPS가 좋을 때 20초마다 '늘어난 거리 ÷ 걸음 수'. 터널에서 걸음으로 거리를 이어 가는 데 쓴다 */
+  if(!S.gpsGap&&S.cad&&!S.paused){ const r=S.strideRef;
+    if(!r){ S.strideRef={el:S.elapsed,d:S.dist,s:S.cad.steps}; }
+    else if(S.elapsed-r.el>=20){ const dd=S.dist-r.d, ds=S.cad.steps-r.s;
+      if(dd>40&&ds>30&&dd/ds>0.5&&dd/ds<2.2) S.stride=S.stride?+(S.stride*0.7+dd/ds*0.3).toFixed(3):+(dd/ds).toFixed(3);
+      S.strideRef={el:S.elapsed,d:S.dist,s:S.cad.steps}; } }
+  /* 끊긴 동안 — 걸음 수 × 내 보폭으로 거리를 이어 간다(내비가 터널에서 차를 계속 움직이는 것과 같은 방식). 거리·1km 안내가 멈추지 않는다 */
+  if(S.gpsGap&&S.cad&&!S.paused){ const g=S.gpsGap, st=S.stride||(S.paceHold&&S.cad.spm?(1000/S.paceHold)/(S.cad.spm/60):null);
+    if(st){ const dr=Math.max(0,(S.cad.steps-g.steps0)*st), cap=(S.act==='bike'?25:7)*(S.elapsed-g.el);
+      const ok=Math.min(dr,(S.act==='bike'?25:7)*(S.elapsed-(g.anchor&&g.anchor.el!=null?g.anchor.el:g.el)+6)); if(ok>g.dr){ S.dist+=ok-g.dr; g.dr=ok; } } }
   /* 돌아온 직후 6초는 좌표 평활이 다시 자리 잡는 중이라 창에 넣지 않는다 */
   if(!S.gpsGap&&!(S.gapEndEl&&S.elapsed-S.gapEndEl<6)){ S.win=S.win||[]; S.win.push({t:S.elapsed,d:S.dist}); while(S.win.length>2&&S.elapsed-S.win[0].t>35)S.win.shift(); }
   const km=S.dist/1000,s=S.session,segs=s.segs,T=S.T;
@@ -4016,14 +4030,15 @@ function onTick(){
   /* 멈춰 둘 값은 '좌표가 막 들어온 때'의 페이스만 — 끊기기 직전 몇 초는 거리가 안 늘어 이미 느려져 있다 */
   if(isFinite(p)&&S.elapsed-(S.lastMoveEl||0)<2)S.paceHold=p;
   const recov=S.gapEndEl&&S.elapsed-S.gapEndEl<20;
-  $('rPace').textContent=fmtPace(isFinite(p)?p:((S.gpsGap||recov)&&S.paceHold?S.paceHold:p));
+  const drPace=(S.gpsGap&&S.stride&&S.cad&&S.cad.spm)?1000/(S.cad.spm/60*S.stride):null;
+  $('rPace').textContent=fmtPace(isFinite(p)?p:(drPace&&drPace>150&&drPace<900?drPace:((S.gpsGap||recov)&&S.paceHold?S.paceHold:p)));
   let paceU='(페이스)';
   if(isFinite(p)&&tgPace){
     if(p<tgPace[0]-2)paceU=`${Math.round(tgPace[0]-p)}초 빠름`;
     else if(p>tgPace[1]+2&&tg.tol!=='ceil'&&tg.tol!=null)paceU=`${Math.round(p-tgPace[1])}초 느림`;   /* 쉬기·쿨다운은 '상한만' — 느린 건 느린 게 아니다 */
     else paceU=(tg.tol==='ceil'||tg.tol==null)?'천천히 OK':'구간 내';
   } else if(tgPace)paceU=rangeText(tgPace);
-  if(S.gpsGap)paceU='GPS 끊김 · 멈춤'; else if(recov)paceU='GPS 복귀 · 다시 재는 중';
+  if(S.gpsGap)paceU=drPace?'GPS 끊김 · 걸음으로 추정':'GPS 끊김 · 멈춤'; else if(recov)paceU='GPS 복귀 · 다시 재는 중';
   $('rPaceU').textContent=paceU;
 
   /* ── 실시간 코칭 ────────────────────────────────────────
@@ -5047,7 +5062,7 @@ async function selfTest(){
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
-      cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]}});
+      cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]},stride:null,strideRef:null});
     buildRail();
     const M=111320, t0=Date.now(); let along=0,t=0,lastTick=0,hr=142;
     for(let km=0;km<sp.length&&S.running;km++){
