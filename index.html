@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.6';
+const APPVER='17.7';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3849,7 +3849,7 @@ function onPos(pos){
       /* 거리는 줄지 않는다 — 직선거리(최소값)와 걸음으로 이어 온 거리 중 긴 쪽. 걸음 센서가 없으면 끊기기 전 페이스로 이은 거리(직선의 1.3배까지) */
       const tFill=g.dr>0?0:(S.paceHold?Math.min(dt*1000/S.paceHold,dm*1.3):0);
       const gapKm=Math.max(dm,g.dr,tFill), add=Math.max(0,gapKm-g.dr);
-      S.dist+=add; np.gap=true; S.pts.push(np); S.anchor=np; S.smooth=np; S.rawLast={lat:np.lat,lon:np.lon,t:now};
+      S.dist+=add; np.gap=true; np.gapM=Math.round(gapKm); S.pts.push(np); S.anchor=np; S.smooth=np; S.rawLast={lat:np.lat,lon:np.lon,t:now};
       S.lastMove=now; S.lastMoveEl=S.elapsed; S.lastMoveSteps=(S.cad&&S.cad.steps)||0; S.win=[]; S.paceHold=gapKm>30?dt/(gapKm/1000):S.paceHold; S.gapEndEl=S.elapsed;
       S.gpsGap=null; S.gapN=(S.gapN||0)+1;
       if(gapKm>=50)DEV.speak(`GPS가 돌아왔습니다. 끊긴 동안 ${Math.round(gapKm)}미터, 1킬로미터에 ${fmtPaceVoice(dt/(gapKm/1000))}로 다시 계산했습니다.`,false);
@@ -4027,10 +4027,10 @@ function onTick(){
   if(S.hr.bpm&&S.hr.at&&Date.now()-S.hr.at>15000){ S.hr.bpm=null; }
   /* 심박 1초 표본 — 마지막 값이 5초 안에 들어온 것일 때만(그보다 오래된 값으로 시간을 채우지 않는다) */
   { const sec=Math.floor(S.elapsed), last=S.hrSec==null?sec-1:S.hrSec, n=Math.min(60,sec-last);
-    if(n>0){ S.hrSec=sec; if(S.hr.bpm&&!S.paused&&Date.now()-(S.hr.at||0)<=5000){ for(let k=0;k<n;k++){ S.hr.samples.push(S.hr.bpm); S.hr.segSamples.push(S.hr.bpm); } } } }
+    if(n>0){ S.hrSec=sec; if(S.hr.bpm&&!S.paused&&Date.now()-(S.hr.at||0)<=5000){ for(let k=0;k<(n>5?1:n);k++){   /* 오래 비었던 틱(앱이 뒤로 갔다 옴)은 한 값만 — 모르는 시간을 지금 값으로 채우지 않는다 */ S.hr.samples.push(S.hr.bpm); S.hr.segSamples.push(S.hr.bpm); } } } }
   if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
     /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다 */
-    if(S.zoneSec)S.zoneSec[Math.min(4,hrZoneIx(S.hr.bpm)-1)]+=TD; }
+    if(S.zoneSec)S.zoneSec[Math.min(4,hrZoneIx(S.hr.bpm)-1)]+=Math.min(TD,5); }   /* 화면이 꺼졌다 돌아온 틱(최대 60초)을 한 심박 값으로 채우지 않는다 */
 
   /* 속도 칸 — GPS가 끊기면 마지막 페이스를 멈춰서 보여 준다 */
   /* 멈춰 둘 값은 '좌표가 막 들어온 때'의 페이스만 — 끊기기 직전 몇 초는 거리가 안 늘어 이미 느려져 있다 */
@@ -4060,13 +4060,13 @@ function onTick(){
   let state='ok', pill='', say='', hrOver=false;
 
   if(S.hr.bpm&&HZ&&HZ[1]){
-    if(S.hr.bpm>HZ[1]+3){ if(!repInfoOnly)S.hrOverSec+=TD; S.hrHoldSec+=TD; hrOver=true; }   /* 판정 누적도 음성 큐와 같은 여유(+3) — 참고만 하는 구간은 누적하지 않는다 */
+    if(S.hr.bpm>HZ[1]+3){ if(!repInfoOnly)S.hrOverSec+=Math.min(TD,5); S.hrHoldSec+=Math.min(TD,5); hrOver=true; }   /* 판정 누적도 음성 큐와 같은 여유(+3) — 참고만 하는 구간은 누적하지 않는다 */
     else S.hrHoldSec=0;
     /* 아주 높은 심박이 오래 이어지면 증상을 확인하라고 말한다.
        인터벌 회차(hard)는 최대의 97~100%가 정상 자극(Daniels I)이라 세지 않고, 나이로 추정한 최대심박(±10)일 땐 문턱을 97%로 올린다.
        '멈추세요'의 근거는 증상(어지러움·가슴 답답함·호흡곤란 — ACSM 운동 중단 징후)이지 숫자가 아니다. */
     const critTh=HRMAX*(PROF.hrmaxSrc==='measured'?0.95:0.97);
-    if(S.hr.bpm>=critTh&&!tg.hard) S.critSec+=TD;
+    if(S.hr.bpm>=critTh&&!tg.hard) S.critSec+=Math.min(TD,5);
     else S.critSec=Math.max(0,S.critSec-1);
     /* 얼마나 늦추면 상한 아래로 내려오나 — 내 기록에서 구한 '심박 1 오를 때 속도' 관계로 계산한다.
        관계를 모르면 숫자를 지어내지 않고 '속도를 줄이세요'만 말한다. */
@@ -4207,6 +4207,11 @@ function onTick(){
   }
 
   /* 1km마다 — 기록하고, 목표 대비 어땠는지 말하고, 무엇을 하라고 지시한다 */
+  /* 끊김을 메우며 1km를 한 번에 두 개 이상 넘었으면 — 건너뛴 km도 스플릿으로 남긴다(시간은 그 사이 평균으로 나눔, '추정' 표시) */
+  if(km>=1&&Math.floor(km)-S.lapKm>1){ const dtA=S.elapsed-S.lapStart.t, ddA=km-S.lapStart.d, per=ddA>0?dtA/ddA:NaN;
+    while(Math.floor(km)-S.lapKm>1&&isFinite(per)){ S.lapKm++; const seg=S.lapKm-S.lapStart.d;
+      S.splits.push({km:S.lapKm,time:per*seg,pace:per,hr:null,cad:null,est:true}); S.liveRows.push({kind:'lap',nm:`${S.lapKm}km`,actual:per,time:per*seg,note:'GPS 끊김 — 추정'});
+      S.lapStart={d:S.lapKm,t:S.lapStart.t+per*seg,h:S.hr.samples.length,seg:S.segIx}; } }
   if(Math.floor(km)>S.lapKm&&km>=1){
     S.lapKm=Math.floor(km);
     const dt=S.elapsed-S.lapStart.t, dd=km-S.lapStart.d;
@@ -4217,12 +4222,13 @@ function onTick(){
     const lapHR=hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null;
     const lapPace=dd>0.1?dt/dd:NaN;
     const lapCad=cadence()||null;
-    S.splits.push({km:S.lapKm,time:dt,pace:lapPace,hr:lapHR,cad:lapCad});
+    const lapEst=!!(S.gpsGap||(S.gapEndEl&&S.elapsed-S.gapEndEl<3));
+    S.splits.push(Object.assign({km:S.lapKm,time:dt,pace:lapPace,hr:lapHR,cad:lapCad},lapEst?{est:true}:{}));
     S.lapStart={d:km,t:S.elapsed,h:S.hr.samples.length,seg:S.segIx};
 
     /* 1km마다 무조건 — 몇 킬로 · 이번 1km 페이스 · 총 거리 · 평균 페이스. 판정·지시는 그 뒤에 붙는다 */
     const avgP=km>0?S.elapsed/km:NaN, planKm=(s&&s.dist&&S.act==="run"&&s.type!=="free")?+s.dist:null, leftK=planKm?Math.max(0,planKm-km):null;
-    let msg=`${S.lapKm}킬로미터. 이번 1킬로 ${isFinite(lapPace)?fmtPaceVoice(lapPace):'측정 안 됨'}. `
+    let msg=`${S.lapKm}킬로미터. 이번 1킬로 ${lapEst?'추정 ':''}${isFinite(lapPace)?fmtPaceVoice(lapPace):'측정 안 됨'}. `
       +(planKm&&!S.extra&&leftK>0.05?`총 ${planKm%1?planKm.toFixed(1):planKm}킬로 중 ${leftK<1?Math.round(leftK*1000)+'미터':leftK.toFixed(1)+'킬로'} 남았습니다. `
         :planKm&&km-planKm>=0.05?`계획보다 ${(km-planKm).toFixed(1)}킬로 더 달렸습니다. 총 ${km.toFixed(1)}킬로미터. `:`총 ${km.toFixed(1)}킬로미터. `)
       +(isFinite(avgP)?`평균 페이스 ${fmtPaceVoice(avgP)}. `:'');
@@ -4525,6 +4531,7 @@ function trackDist(pts){
   let acc=0, an=pts[0];
   for(let i=1;i<pts.length;i++){
     if(pts[i].veh){ an=pts[i]; continue; }   /* 발로 낼 수 없는 속도로 찍힌 점 — 거리에서 뺀다 */
+    if(pts[i].gap){ acc+=pts[i].gapM!=null?pts[i].gapM:haversine(an,pts[i]); an=pts[i]; continue; }   /* GPS 끊김을 메운 점 — 120m 넘는 점프라도 메운 거리 그대로 */
     const d=haversine(an,pts[i]);
     if(d<5)continue;
     if(d<120)acc+=d;
@@ -4658,7 +4665,7 @@ function renderSummary(completed){
     ceiling:s.ceiling||null, cadGoal:S.cadGoal||null, hrCap:(T.hrZone&&T.hrZone[1])||null, hour:new Date(S.t0||Date.now()).getHours(),
     th:{spread:TH.spread,ceil:TH.ceil,hrOver:TH.hrOver,dist:TH.dist},
     breath:S.breath?S.breath.blocks:null, act:S.act||'run',
-    splits:S.splits.map(x=>Object.assign({km:x.km,sec:Math.round(x.time),pace:Math.round(x.pace),hr:x.hr,cad:x.cad},x.part?{part:x.part}:{})),
+    splits:S.splits.map(x=>Object.assign({km:x.km,sec:Math.round(x.time),pace:Math.round(x.pace),hr:x.hr,cad:x.cad},x.part?{part:x.part}:{},x.est?{est:true}:{})),
     segments:S.segRecords.map(r=>({nm:r.nm,plan:r.plan,pace:isFinite(r.actual)?Math.round(r.actual):null,
       km:+r.dist.toFixed(3),sec:Math.round(r.time),hr:r.hr,hrTop:r.hrTop,hrEnd:r.hrEnd,
       drop:r.drop,cad:r.cad,hard:r.hard,extra:!!r.extra,pass:segPass(r)})),
@@ -4702,13 +4709,15 @@ function paintZones(host,zs,T){
 
 /* 트랙 다운샘플 — 모양 유지하며 점 수 제한 */
 function simplify(pts,max){
-  const P=p=>{ const o={lat:+p.lat.toFixed(5),lon:+p.lon.toFixed(5),over:!!p.over}; if(p.seg!=null)o.seg=p.seg; if(p.alt!=null)o.alt=Math.round(p.alt); return o; };
+  const P=p=>{ const o={lat:+p.lat.toFixed(5),lon:+p.lon.toFixed(5),over:!!p.over}; if(p.seg!=null)o.seg=p.seg; if(p.alt!=null)o.alt=Math.round(p.alt); if(p.veh)o.veh=true; if(p.gap){ o.gap=true; if(p.gapM!=null)o.gapM=p.gapM; } return o; };
   if(!pts||pts.length<=max)return (pts||[]).map(P);
   const step=Math.ceil(pts.length/max), out=[];
   for(let i=0;i<pts.length;i+=step){
     const chunk=pts.slice(i,i+step);
     const p=chunk[0];
     out.push(Object.assign(P(p),{over:chunk.some(c=>c.over)}));
+    /* 차 탄 점·끊김 메운 점(과 그 바로 앞 점)은 줄이면서도 남긴다 — 빠지면 다시 계산한 거리가 달라진다 */
+    for(let k=1;k<chunk.length;k++){ const c=chunk[k]; if(c.veh||c.gap){ if(!chunk[k-1].veh&&!chunk[k-1].gap&&k-1>0)out.push(P(chunk[k-1])); out.push(P(c)); } }
   }
   out.push(P(pts[pts.length-1]));
   return out;
@@ -7944,7 +7953,7 @@ function renderResult(host,r,s,opt){
   const segs=(r.segments||[]).map(g=>{ const d=g.pace&&g.plan?Math.round(g.pace-midPace(g.plan)):null;
     return `<div class="sgr${g.hard?' hard':''}"><span>${ESC(g.nm)}</span><span>${g.km!=null?g.km.toFixed(2)+'km':''}</span><span>${g.pace?fmtPace(g.pace):'—'}</span><span class="${g.pass===false?'bad':g.pass?'ok':''}">${d==null?'':(d>0?'+':'')+d+'초'}${g.pass===false?' ✗':g.pass?' ✓':''}</span></div>`; }).join('');
   const sp=(r.splits||[]); const spMin=sp.length?Math.min(...sp.map(x=>x.pace)):0, spMax=sp.length?Math.max(...sp.map(x=>x.pace)):1;
-  const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i></div>`).join('');
+  const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i></div>`).join('');
   host.innerHTML=`
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(r.title||T.nm||'')}</h2>
