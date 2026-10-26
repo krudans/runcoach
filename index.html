@@ -1783,7 +1783,7 @@ details.noti .sigc{margin:6px 0}
 .gc-how{display:flex;gap:8px;align-items:baseline;margin-top:10px;font-size:12.5px}.gc-how span{flex:none;color:var(--ink-3);font-weight:700}.gc-how b{font-weight:700;color:var(--ink)}
 .gc-more{display:block;width:100%;margin-top:8px;border:none;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:800;padding:6px;cursor:pointer;text-align:center}
 .gc-lab{font-size:11.5px;font-weight:800;color:var(--ink-3);margin:16px 0 8px}
-.gc-wk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end}.gc-wk>div{display:flex;flex-direction:column;align-items:center;gap:3px}.gc-wk i{display:block;width:100%;max-width:40px;border-radius:7px 7px 0 0;background:var(--accent);opacity:.75}.gc-wk b{font-size:13px}.gc-wk span{font-size:10.5px;color:var(--ink-3)}
+.gc-wk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end}.gc-wk>div{display:flex;flex-direction:column;align-items:center;gap:3px}.gw-bar{position:relative;display:block;width:100%;max-width:40px;height:64px}.gw-bar i{position:absolute;left:0;right:0;bottom:0;border-radius:7px 7px 0 0}.gw-bar i.pl,.gw-leg i.pl{background:color-mix(in srgb,var(--accent) 22%,transparent)}.gw-bar i.rn,.gw-leg i.rn{background:var(--accent)}.gw-bar i.rn{left:7px;right:7px}.gc-wk b small{font-size:10.5px;color:var(--ink-3);font-weight:600}.gw-leg{display:flex;gap:12px;justify-content:flex-end;font-size:10.5px;color:var(--ink-3);margin-top:6px}.gw-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}.gc-wk b{font-size:13px}.gc-wk span{font-size:10.5px;color:var(--ink-3)}
 .gc-mix{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.gc-mix span{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;background:var(--panel-2);padding:5px 9px;border-radius:999px}.gc-mix i{width:8px;height:8px;border-radius:50%;background:var(--c)}
 .gc-hist{width:100%;height:auto;display:block}.gc-hl{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3);padding:0 8px}
 .gc-meas{font-size:12.5px;color:var(--ink-2)}
@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.9';
+const APPVER='18.1';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2537,7 +2537,7 @@ const GDIST=[{l:'5km',v:5000},{l:'10km',v:10000},{l:'하프',v:21097},{l:'풀',v
    실측이 2번 이상(3주 이상 간격) 쌓이면 내 추세(D)를 같이 쓴다. */
 const RATE_LO=1/6, RATE_HI=1/4;          /* 주당 실력 점수 — Daniels 3판: 4~6주 훈련마다 VDOT 1점 상향 (B) */
 function vTrend(){
-  const h=(PROF.vhist||[]).filter(x=>x&&x.d&&x.v).sort((a,b)=>a.d<b.d?-1:1);
+  const h=(PROF.vhist||[]).filter(x=>x&&x.d&&x.v&&x.src!=='est').sort((a,b)=>a.d<b.d?-1:1);
   if(h.length<2)return null;
   const a=h[0], b=h[h.length-1], wk=(Date.parse(b.d)-Date.parse(a.d))/6048e5;
   if(wk<3)return null;
@@ -5942,7 +5942,7 @@ function obImportDone(got){
    ══════════════════════════════════════════════════════════════════════ */
 const TTNAME='힘껏 2km (TT)';
 const isTTseg=nm=>nm===TTNAME||nm==='전력 2km';
-const needTest=()=>!(PROF.race&&PROF.race.sec);
+const needTest=()=>!(PROF.race&&PROF.race.sec&&PROF.race.kind!=='est');   /* 편한 페이스에서 거꾸로 낸 값(est)은 측정이 아니다 */
 function testRun(){
   const wu=1.5, tt=2, cd=1;
   return {type:'tt',dist:wu+tt+cd,ttKm:tt,
@@ -7160,6 +7160,14 @@ const termChip=t=>t==='off'?'휴식':(GL[t]?GL[t].t+(['tt','free'].includes(t)?'
 /* ═════════════════════ 대회 기록 — 출전한 대회·측정 기록이 쌓인다 ═════════════════════
    {id, date, name, m, sec, kind:'race'|'solo', asc, src} — 거리별 최고 기록(PB)은 여기서 계산 */
 let RLOG=DEV.store.get('races',[]);
+/* 1회 복구 — 예전 '내가 직접 목표 세우기'가 편한 페이스에서 거꾸로 낸 값을 'TT'로 저장해 대회 기록 기반 실력을 덮었다.
+   그런 값(같은 날 TT 러닝도, 같은 대회 기록도 없는 5km 'tt')이고 최근 6개월 안의 대회 기록이 있으면 그 대회 기록으로 되돌린다 */
+try{ if(!DEV.store.get('raceFix1',false)){ const r=PROF&&PROF.race, runs=DEV.store.get('runs',[])||[];
+  const fake=r&&r.m===5000&&r.kind==='tt'&&!runs.some(x=>x.type==='tt'&&String(x.date).slice(0,10)===r.at)&&!RLOG.some(x=>x.m===r.m&&x.sec===r.sec);
+  const since=new Date(Date.now()-183*864e5).toISOString().slice(0,10);
+  const real=RLOG.filter(x=>x.kind!=='solo'&&x.date>=since).sort((a,b)=>a.date<b.date?1:-1)[0];
+  if(fake&&real){ PROF=Object.assign({},PROF,{vhist:(PROF.vhist||[]).filter(x=>!(x.d===r.at&&x.src==='tt'))}); PROF=Object.assign({},PROF,{race:{m:real.m,sec:real.sec,kind:real.kind||'race',asc:real.asc||null,at:real.date}}); DEV.store.set('prof',PROF); DEV.store.set('raceFixed',real.date); try{ recalcProfile(); recalcTypes(); BLOCK=loadPlan(); }catch(e){} }
+  DEV.store.set('raceFix1',true); } }catch(e){}
 function rlogSave(){ DEV.store.set('races',RLOG); }
 const RL_D=[[5000,'5km'],[10000,'10km'],[21097.5,'하프'],[42195,'풀']];
 const rlDist=m=>m>=42000?42195:m>=21000?21097.5:m>=10000?10000:m>=5000?5000:m;
@@ -8496,7 +8504,7 @@ function perRange(){ const t=todayStr();
   if(LOGPER==='3m')return [addDays(t,-90),t,'최근 3달'];
   return ['2000-01-01',t,'전체']; }
 function bodyLight(){
-  const sig=[]; if(jumpAlert())sig.push('jump'); if(rhrAlert())sig.push('rhr'); if(driftAlert())sig.push('drift');
+  const sig=[]; if(!sigSeen('jump',7)&&jumpAlert())sig.push('jump'); if(!sigSeen('rhr',1)&&rhrAlert())sig.push('rhr'); if(!sigSeen('drift',7)&&driftAlert())sig.push('drift');
   const rb=rhrBase();
   const msg=sig.length?`살펴볼 것 ${sig.length} · 눌러서 어떻게 할지 정하기`:`살펴볼 것 0 · ${rb?'아침 심박 · ':''}같은 속도 심박 · 2주 거리 변화가 내 평소 범위 안`;
   return `<div class="light ${sig.length?'warn':''}"${sig.length?` data-sig2="${sig[0]}"`:''}><div class="dot">${sig.length?'!':'✓'}</div><div><b>지금 몸 상태: ${sig.length?'살펴볼 것 있음':'좋음'}</b><p>${msg}</p></div></div>`;
@@ -8588,7 +8596,7 @@ function logBody(){
   h+=`<div class="lcard"><div class="bt">신호 3개<span>모두 내 기록 기준</span></div>
     <div class="st2"><span class="ic g">♥</span><div><b>아침 안정 심박${last?' '+last:''}</b><p>${rb?`평소 범위 ${Math.round(rb.m-2*rb.sd)}~${Math.round(rb.m+2*rb.sd)} ${rhrAlert()?'위':'안'}`:'아직 평소가 없습니다'}</p></div>${rb?`<span class="chip ${rhrAlert()?'y':'g'}">${rhrAlert()?'살펴봄':'좋음'}</span>`:'<span class="chip n">—</span>'}</div>
     <div class="st2"><span class="ic g">≈</span><div><b>같은 속도에서 심박</b><p>${dr?'평소보다 올랐습니다':t.need?'천천히 날 기록이 더 필요합니다':'평소와 비슷합니다'}</p></div><span class="chip ${dr?'y':t.need?'n':'g'}">${dr?'살펴봄':t.need?'—':'좋음'}</span></div>
-    <div class="st2"><span class="ic ${j?'y':'g'}">↗</span><div><b>2주 거리 변화 ${(()=>{ const a=kmBetween(14,0),b=kmBetween(28,14); return b>=10?(a>=b?'+':'')+Math.round((a-b)/b*100)+'%':''; })()}</b><p>30% 넘으면 알려드림 — 연구상 일부 부상 증가 보고 ${GRB('B')}</p></div><span class="chip ${j?'y':'g'}">${j?'살펴봄':'좋음'}</span></div></div>`;
+    <div class="st2"><span class="ic ${j?'y':'g'}">↗</span><div><b>2주 거리 변화 ${(()=>{ const a=kmBetween(14,0),b=kmBetween(28,14); return b>=10?(a>=b?'+':'')+Math.round((a-b)/b*100)+'%':''; })()}</b><p>30% 넘으면 알려드림 — 연구상 일부 부상 증가 보고 ${GRB('B')}</p></div><span class="chip ${j?'y':'g'}">${j?(sigSeen('jump',7)?'정함':'살펴봄'):'좋음'}</span></div></div>`;
   /* 평균 대비 이번 주 */
   const wk=weekly(a=>a.length?a.reduce((s,r)=>s+r.km,0):null,8);
   const thisWk=RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===weekMonday(todayStr()));
@@ -8614,7 +8622,7 @@ function logBody(){
 function logSkill(){
   let h='';
   const g=(PLAN&&PLAN.goal)||GOAL, m=(g&&g.m)||10000, gs=g&&(g.final||g.sec);
-  const hist=(PROF.vhist||[]).filter(x=>x.v);
+  const hist=(PROF.vhist||[]).filter(x=>x.v&&x.src!=='est');
   const now=raceTime(VDOT,m)*60;
   /* 부채꼴 — Daniels 범위(C) + 내 추세(D) */
   const W=320,H=160,PL=34,PR=10,PT=14,PB=22;
@@ -8659,7 +8667,7 @@ function logSkill(){
     if(over.length>=2){ const hrs=over.map(r=>r.hour!=null?r.hour:new Date(r.date).getHours());
       cards.push({up:false,n:E.length,t:'천천히 날 상한 넘기',big:`${E.length}번 중 ${over.length}번`,p:`약속보다 빠르게 뛴 시간이 많았습니다.${hrs.every(x=>x>=21)?' 모두 <b>저녁 9시 이후</b>였습니다.':hrs.every(x=>x<8)?' 모두 <b>아침</b>이었습니다.':''}`}); } }
   const up=cards.filter(c=>c.up), dn=cards.filter(c=>!c.up);
-  if(!cards.length) h+=`<div class="lcard">${needBar(RUNS.length,4,'기록이')}</div>`;
+  if(!cards.length) h+=RUNS.length<4?`<div class="lcard">${needBar(RUNS.length,4,'기록이')}</div>`:`<div class="lcard"><div class="bt">좋아지는 것 · 고칠 것</div><div class="small">아직 비교할 게 없어요 — 같은 종류 훈련(이지런끼리, 템포런끼리)이 3번 이상 쌓이면 그 사이 변화를 보여 줍니다.</div></div>`;
   [...up,...dn].forEach((c,i)=>{ h+=`<div class="card2 ${c.up?'up':'dn'}"><div class="h"><b>${c.up?'좋아지는 것':'고칠 것'} · ${c.t}</b>${nChip(c.n)}</div>
     <div class="big num">${c.big}</div>${c.sp?spark(c.sp,300,40,true,'#2E9E6A').replace('class="spk"','class="spk w"'):''}
     ${c.bars?`<div class="minibars">${c.bars.map((p,j)=>`<i style="height:${(30+70*(p-Math.min(...c.bars))/Math.max(1,Math.max(...c.bars)-Math.min(...c.bars))).toFixed(0)}%" class="${j===c.bars.length-1?'last':''}"><em>${fmtPace(p)}</em></i>`).join('')}</div>`:''}
@@ -10167,11 +10175,25 @@ document.addEventListener('click',e=>{
 /* ═════════════════════ 내 목표 — 홈 카드와 자세히 화면이 같은 재료를 쓴다 ═════════════════════
    무엇을 · 언제까지 · 지금 어디(게이지) · 이번 4주엔 뭘 하나 — 글 대신 숫자·막대·칩 */
 /* 편한 달리기 목표의 측정값 — 최근 8주 이지런 1km 구간에서 주별 중앙값. 추정은 쓰지 않는다 */
-function aeroHist(a){ const sp=a.mode==='speed', since=Date.now()-56*864e5, byWk={};
-  (RUNS||[]).filter(r=>isRun(r)&&['easy','recovery','long','free'].includes(r.type||'free')&&Date.parse(r.date)>since&&Array.isArray(r.splits)).forEach(r=>{ const wk=weekMonday(ldate(r.date).slice(0,10)); r.splits.forEach((x,i)=>{ if(i===0||!x||x.part||!x.hr||!x.pace)return;
-    if(sp){ if(Math.abs(x.hr-a.hrCap)<=4)(byWk[wk]=byWk[wk]||[]).push(x.pace); } else { if(Math.abs(x.pace-a.ref)<=12)(byWk[wk]=byWk[wk]||[]).push(x.hr); } }); });
-  /* 한 주에 1km 구간 3개는 있어야 그 주의 값으로 친다 — 웜업 1km 하나로 주간 값을 정하지 않는다 */
-  return Object.keys(byWk).filter(k=>byWk[k].length>=3).sort().map(k=>{ const v=byWk[k].sort((x,y)=>x-y); return {d:k,v:v[Math.floor(v.length/2)],n:v.length}; }); }
+/* 편한 달리기 목표의 주별 값.
+   1) 기준 속도(±12초)·기준 심박(±4)에 딱 맞는 1km가 한 주 3개 이상이면 그 가운데 값.
+   2) 아니면 그 주 쉬운 날 1km들(심박 있는 것 4개 이상, 속도 폭 15초 이상)로 '심박 = a + b × 페이스' 직선을 그어 기준 속도·심박에서 읽는다.
+      예전엔 1)만 있어서, 평소 이지런이 기준 속도보다 느리면 며칠을 뛰어도 점이 하나도 안 찍혔다.
+      직선 밖으로 너무 멀리(속도 ±30초·심박 ±6) 나가는 값은 쓰지 않는다 — 멀리 늘려 그은 값은 믿기 어렵다 */
+function aeroSplits(since){ const out={};
+  (RUNS||[]).filter(r=>isRun(r)&&['easy','recovery','long','free'].includes(r.type||'free')&&Date.parse(r.date)>since&&Array.isArray(r.splits)).forEach(r=>{ const wk=weekMonday(ldate(r.date).slice(0,10));
+    r.splits.forEach((x,i)=>{ if(i===0||!x||x.part||x.est||!x.hr||!x.pace||x.pace<240||x.pace>660||x.hr<80||x.hr>HRMAX+5)return; (out[wk]=out[wk]||[]).push({p:x.pace,h:x.hr}); }); });
+  return out; }
+function aeroFit(L){ if(!L||L.length<4)return null; const ps=L.map(x=>x.p), hs=L.map(x=>x.h); const pr=Math.max(...ps)-Math.min(...ps); if(pr<15)return null;
+  const n=L.length, mp=ps.reduce((a,b)=>a+b,0)/n, mh=hs.reduce((a,b)=>a+b,0)/n; let sxy=0,sxx=0; L.forEach(x=>{ sxy+=(x.p-mp)*(x.h-mh); sxx+=(x.p-mp)**2; });
+  const b=sxx?sxy/sxx:0, a=mh-b*mp; return {a,b,pmin:Math.min(...ps),pmax:Math.max(...ps),hmin:Math.min(...hs),hmax:Math.max(...hs),n}; }
+function aeroHist(a){ const sp=a.mode==='speed', W=aeroSplits(Date.now()-56*864e5);
+  return Object.keys(W).sort().map(k=>{ const L=W[k];
+    const near=sp?L.filter(x=>Math.abs(x.h-a.hrCap)<=4).map(x=>x.p):L.filter(x=>Math.abs(x.p-a.ref)<=12).map(x=>x.h);
+    if(near.length>=3){ const v=near.sort((x,y)=>x-y); return {d:k,v:v[Math.floor(v.length/2)],n:near.length}; }
+    const f=aeroFit(L); if(!f||!(f.b<0))return null;   /* 느릴수록 심박이 낮아야 정상 — 반대면 그 주 자료는 섞여 있다 */
+    if(sp){ const pc=(a.hrCap-f.a)/f.b; if(a.hrCap<f.hmin-6||a.hrCap>f.hmax+6||!(pc>200&&pc<900))return null; return {d:k,v:Math.round(pc),n:f.n,est:true}; }
+    if(a.ref<f.pmin-30||a.ref>f.pmax+30)return null; return {d:k,v:Math.round(f.a+f.b*a.ref),n:f.n,est:true}; }).filter(Boolean); }
 /* 완주 목표 — 주별 가장 길게 뛴 거리 */
 function finishHist(){ const byWk={}; (RUNS||[]).filter(isRun).forEach(r=>{ const wk=weekMonday(ldate(r.date).slice(0,10)); byWk[wk]=Math.max(byWk[wk]||0,+r.km||0); });
   return Object.keys(byWk).sort().slice(-12).map(k=>({d:k,v:+byWk[k].toFixed(1),n:1})); }
@@ -10204,7 +10226,7 @@ function goalModel(){
     if(M.now==null)M.status='기록을 모으는 중 — 이지런 몇 번(한 주에 1km 구간 3개 이상)이면 채워져요';
   } else if(g.m&&(g.final||g.sec)){
     const goalSec=g.final||g.sec, fz=feasible(Object.assign({},g,{sec:goalSec}));
-    const h0=(PROF.vhist||[]).filter(x=>x&&x.v&&x.d), ps=(PLAN&&PLAN.start)||t;
+    const h0=(PROF.vhist||[]).filter(x=>x&&x.v&&x.d&&x.src!=='est'), ps=(PLAN&&PLAN.start)||t;
     const h=h0.filter(x=>x.d>=ps); const before=h0.filter(x=>x.d<ps).slice(-1)[0]; if(before)h.unshift(before);   /* 시작 시점 실력 = 시작일 이전 마지막 기록 */
     const v0=h.length?h[0].v:VDOT;
     const rr=(fz&&g.date&&fz.reach&&fz.haveW!=null)?fz.reach(fz.haveW):null;
@@ -10237,9 +10259,7 @@ function goalSetChips(M){ const g=M.g, a=g.aero, days=(PLAN&&PLAN.days)||SURVEY.
   return c.length?`<div class="gc-set"><span class="gc-setl">내가 정한 목표</span>${c.map(x=>`<span class="gc-chip"><i>${x[0]}</i><b>${x[1]}</b></span>`).join('')}</div>`:''; }
 /* 시작→목표 추이 — x: 시작일~목표일(주 간격), y: 목표 지표. 목표선 · 지금 · 측정점 · 필요한 흐름(점선) */
 /* 이번 주 측정 진행 — 조건에 맞는 1km 구간이 몇 개 쌓였나 (3개면 그 주의 점이 찍힌다) */
-function aeroCount(a){ const sp=a.mode==='speed', mon=weekMonday(todayStr()); let n=0;
-  (RUNS||[]).filter(r=>isRun(r)&&['easy','recovery','long','free'].includes(r.type||'free')&&ldate(r.date).slice(0,10)>=mon&&Array.isArray(r.splits)).forEach(r=>r.splits.forEach((x,i)=>{ if(i===0||!x||x.part||!x.hr||!x.pace)return;
-    if(sp?Math.abs(x.hr-a.hrCap)<=4:Math.abs(x.pace-a.ref)<=12)n++; })); return n; }
+function aeroCount(a){ const W=aeroSplits(Date.parse(weekMonday(todayStr())+'T00:00:00')-1); return (W[weekMonday(todayStr())]||[]).length; }
 function goalTrend(M,big){
   if(M.vT==null)return '';
   /* 측정값이 없어도 축은 그린다 — 시작점은 공식 추정값(속이 빈 점)으로 두고, 기록이 쌓이면 실측 점이 그 위에 찍힌다 */
@@ -10270,7 +10290,9 @@ function goalTrend(M,big){
   const nowL=`<line x1="${X(TN).toFixed(1)}" y1="${PT}" x2="${X(TN).toFixed(1)}" y2="${PT+ih}" stroke="var(--accent)" stroke-width="1" opacity=".5"/><text x="${X(TN).toFixed(1)}" y="${PT-6}" text-anchor="middle" font-size="9.5" font-weight="800" fill="var(--accent)">오늘</text>`;
   const empty='';
   const cap=(()=>{ const g=M.g; if(g.kind==='aero'&&aeroX(g.aero)){ const a=g.aero; return H.length?`점 = ${aeroView(a).measure} · ${H.length}주`:(a.mode==='cad'?'첫 점은 케이던스가 잡힌 쉬운 날을 뛰면 찍혀요':'첫 점은 기준 페이스 근처로 뛰고 힘든 정도를 고르면 찍혀요'); }
-    if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed', n=aeroCount(a); return H.length?`점 = ${sp?`♥${a.hrCap}±4`:`${fmtPace(a.ref)}±12초`} 1km 구간의 주별 중앙값 · ${H.length}주`:`첫 점은 ${sp?`♥${a.hrCap}±4`:`${fmtPace(a.ref)}±12초`} 1km 구간이 한 주 3개 쌓이면 찍혀요 · 이번 주 ${Math.min(n,3)}/3`; }
+    if(g.kind==='aero'&&g.aero){ const a=g.aero, sp=a.mode==='speed', n=aeroCount(a), est=(M.hist||[]).filter(x=>x.est).length;
+      return H.length?`점 = 그 주 쉬운 날 1km들의 ${sp?`♥${a.hrCap}에서 페이스`:`${fmtPace(a.ref)}에서 심박`}${est?` (${est}주는 내 기록으로 그은 직선에서 읽은 값)`:''} · ${H.length}주`
+        :`첫 점은 심박이 기록된 쉬운 날 1km가 한 주 4개(속도가 15초 이상 다르게) 쌓이면 찍혀요 · 이번 주 ${Math.min(n,4)}/4`; }
     if(g.m&&(g.final||g.sec)) return H.length?`점 = TT·대회 기록으로 잰 실력`:`첫 점은 TT 2km나 대회 기록을 넣으면 찍혀요`;
     if(g.kind==='finish') return '점 = 주별 가장 길게 뛴 거리'; return ''; })();
   const legend=`<div class="gt-leg"><span><i class="tg"></i>목표</span>${H.length?'<span><i class="me"></i>내 기록(주별)</span>':''}${need?'<span><i class="nd"></i>필요한 흐름</span>':''}</div>`;
@@ -10297,7 +10319,13 @@ function goalCard(compact){
       <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">자세히 ›</button>${snapBtn('.mygoal','goal','내 달리기 목표')}</div></details></section>`;
   /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
   const mx=Math.max(1,...M.wkKm);
-  const wk=`<div class="gc-wk">${M.wkKm.map((k,i)=>`<div><i style="height:${Math.max(6,k/mx*56).toFixed(0)}px"></i><b class="num">${Math.round(k)}</b><span>${i+1}주</span></div>`).join('')}</div>`;
+  /* 주간 막대 — 계획(옅은 막대)과 실제로 뛴 거리(진한 막대)를 같이. 예전엔 계획만 그려서 며칠을 뛰어도 막대가 그대로였다 */
+  const wMon=[1,2,3,4].map(w=>{ const x=BLOCK.find(y=>y.wk===w); return x?weekMonday(x.d):null; });
+  const wRan=wMon.map(m=>m?RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===m).reduce((a,r)=>a+(+r.km||0),0):0);
+  const mx2=Math.max(1,...M.wkKm,...wRan), tW=weekMonday(todayStr());
+  const wk=`<div class="gc-wk">${M.wkKm.map((k,i)=>{ const r=wRan[i], past=wMon[i]&&wMon[i]<=tW;
+    return `<div><span class="gw-bar"><i class="pl" style="height:${Math.max(6,k/mx2*64).toFixed(0)}px"></i>${past&&r?`<i class="rn" style="height:${Math.max(4,r/mx2*64).toFixed(0)}px"></i>`:''}</span><b class="num">${past?`${Math.round(r)}<small>/${Math.round(k)}</small>`:Math.round(k)}</b><span>${i+1}주${wMon[i]===tW?' · 이번 주':''}</span></div>`; }).join('')}</div>
+    <div class="gw-leg"><span><i class="rn"></i>뛴 거리</span><span><i class="pl"></i>계획</span></div>`;
   const mixH=`<div class="gc-mix">${M.mix.map(x=>`<span style="--c:${x.col}"><i></i>${x.nm} 주 ${x.n}회</span>`).join('')}</div>`;
   const H=M.hist||[], hist=H.length>=2?(()=>{ const vs=H.map(x=>x.v), lo=Math.min(...vs,M.vT), hi=Math.max(...vs,M.v0), W=320, Hh=90, y=v=>8+(M.better==='lower'?(v-lo)/(hi-lo||1):(1-(v-lo)/(hi-lo||1)))*(Hh-16);
       const pts=H.map((x,i)=>[16+i*(W-32)/Math.max(1,H.length-1),y(x.v)]);
@@ -10309,7 +10337,7 @@ function goalCard(compact){
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b>${M.now!=null&&M.sub?`<i>${M.sub}</i>`:''}</div></div>
       ${goalTrend(M,true)}
       ${tiles}
-      <div class="gc-lab">이번 4주 · 주간 km</div>${wk}${mixH}
+      <div class="gc-lab">이번 4주 · 뛴 km / 계획 km</div>${wk}${mixH}
       ${M.g.kind==='aero'&&M.g.aero?goalEditBox(M.g):''}
       ${why}
       <div class="gc-btns">${snapBtn('.mygoal','goal','내 달리기 목표','wide')}</div></div>`;
@@ -10524,7 +10552,7 @@ function cbZones(){ const vd=cbVdot(); return vd?zonesOf(vd):null; }
 function cbAutoPace(type){ const z=cbZones(); if(!z)return null;
   return type==='easy'?Math.round((z.E[0]+z.E[1])/2):type==='recovery'?Math.round(z.E[1]):type==='long'?Math.round(z.E[1]-10):type==='threshold'?Math.round(z.T+8):type==='interval'?Math.round(z.I+6):Math.round(z.M); }
 function customStart(){
-  CB={step:1,pace:null,paceKind:'easy',start:weekMonday(addDays(todayStr(),7)),useAsVdot:true,tpls:[],week:{월:null,화:null,수:null,목:null,금:null,토:null,일:null},scale:[100,105,110,80],edit:null};
+  CB={step:1,pace:null,paceKind:'easy',start:weekMonday(addDays(todayStr(),7)),useAsVdot:!(PROF.race&&PROF.race.src!=='cb'&&['race','tt','solo'].includes(PROF.race.kind)),tpls:[],week:{월:null,화:null,수:null,목:null,금:null,토:null,일:null},scale:[100,105,110,80],edit:null};
   /* 요즘 편한 페이스가 기록에 있으면 미리 채운다 */
   try{ const L=learnEasy(HRMAX,TYPES.easy.hrZone[1]); if(L&&L.paceAtCap)CB.pace=Math.round(L.paceAtCap); }catch(e){}
   cbRender(); show('dec'); }
@@ -10665,7 +10693,8 @@ function cbBuild(){
 function cbSave(){
   try{
     if(CB.useAsVdot&&CB.pace){ const vd=cbVdot(); const sec5=Math.round(raceTime(vd,5000)*60);
-      PROF=Object.assign({},PROF,{race:{m:5000,sec:sec5,kind:CB.paceKind==='race5k'?'solo':'tt',at:todayStr()}}); DEV.store.set('prof',PROF); recalcProfile(); recalcTypes(); }
+      /* 편한 페이스에서 거꾸로 낸 값은 '측정'이 아니다 — 대회·TT 기록이 있으면 덮지 않는다 */
+      if(!(PROF.race&&PROF.race.src!=='cb'&&['race','tt','solo'].includes(PROF.race.kind))){ PROF=Object.assign({},PROF,{race:{m:5000,sec:sec5,kind:CB.paceKind==='race5k'?'solo':'est',src:'cb',at:todayStr()}}); DEV.store.set('prof',PROF); recalcProfile(); recalcTypes(); } }
     const p=cbBuild(); if(!p.sessions.length)return alert('훈련이 하나도 없어요.');
     GOAL=p.goal; DEV.store.set('goal',GOAL); applyPlan(p); BLOCK=loadPlan();
     try{ SURVEY.days=p.days.slice(); DEV.store.set('survey',SURVEY); }catch(e){}
