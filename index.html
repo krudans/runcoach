@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.3';
+const APPVER='17.4';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3709,7 +3709,7 @@ async function startRun(){
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
-    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,
+    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -3833,10 +3833,23 @@ function onPosErr(e){$('rDot').className='dot bad';
 function onPos(pos){
   if(!S.running||S.paused)return;
   const c=pos.coords,now=pos.timestamp||Date.now(),acc=c.accuracy||99;
+  S.lastFixAt=Date.now(); if(acc<=25)S.lastGoodAt=Date.now();
   $('rDot').className='dot '+(acc<=12?'good':acc<=25?'weak':'bad'); S.gpsAcc=acc;
   if(!(S.overSince&&now-S.overSince>10000))
     $('rGps').textContent=`GPS 정확도 ±${Math.round(acc)}m`+(acc>25?' — 샘플 무시':'');
   if(acc>25)return;
+  /* ── GPS 끊김에서 돌아올 때 ──────────────────────────
+     자동차 내비처럼: 끊긴 동안은 멈춰 두고, 신호가 돌아오면 '끊기기 전 마지막 점 → 돌아온 첫 점'의 거리와
+     그 사이 시간으로 한 번에 메운다. 사람이 낼 수 있는 속도일 때만 넣는다(아니면 차 탄 구간 처리로). */
+  if(S.gpsGap){ const g=S.gpsGap, a=g.anchor, np={lat:c.latitude,lon:c.longitude,t:now,alt:c.altitude,over:false,seg:S.segIx,hr:(S.hr&&S.hr.bpm)||null};
+    const dm=haversine(a,np), dt=Math.max(1,(now-a.t)/1000), cap=S.act==='bike'?25:7, v=dm/dt;
+    if(g.stall&&dm<Math.max(15,acc)){ return; }            /* 같은 자리에 멈춘 좌표가 계속 오는 중 — 아직 끊김 */
+    if(v<=cap){ S.dist+=dm; np.gap=true; S.pts.push(np); S.anchor=np; S.smooth=np; S.rawLast={lat:np.lat,lon:np.lon,t:now};
+      S.lastMove=now; S.lastMoveEl=S.elapsed; S.win=[]; S.paceHold=dm>30?dt/(dm/1000):S.paceHold; S.gapEndEl=S.elapsed;
+      S.gpsGap=null; S.gapN=(S.gapN||0)+1;
+      if(dm>=50)DEV.speak(`GPS가 돌아왔습니다. 끊긴 동안 ${Math.round(dm)}미터, 1킬로미터에 ${fmtPaceVoice(dt/(dm/1000))}로 다시 계산했습니다.`,false);
+      return; }
+    S.gpsGap=null;   /* 발로 낼 수 없는 거리 — 아래 차 탄 구간 검사로 넘긴다 */ }
   /* ── 1단계: 좌표 평활화 ──────────────────────────────
      GPS 한 점 한 점은 몇 미터씩 떨린다. 떨린 점끼리 직선거리를 더하면
      제자리에 서 있어도 거리가 쌓이고, 천천히 걸으면 실제보다 훨씬 길게 나온다.
@@ -3919,6 +3932,7 @@ function cadence(){
    예전엔 GPS가 찍어 준 시각으로 쟀는데, 폰에 따라 그 시각이 늦게 오거나 뭉쳐 와서 실시간만 틀어졌다.
    창 길이는 GPS 정확도에 맞춘다: 좋으면 15초, 나쁘면 30초 — 잡음이 클수록 길게 평균 낸다 */
 function curPace(){
+  if(S.gpsGap||(S.gapEndEl&&S.elapsed-S.gapEndEl<20))return NaN;   /* 돌아온 직후 15초는 창이 비어 있어 느리게 나온다 — 그동안도 멈춤. GPS가 끊긴 동안은 페이스를 계산하지 않는다 — 시간만 흐르고 거리가 안 늘어 '어마어마하게 느린' 값이 나왔다 */
   const w=S.win; if(!w||w.length<2)return NaN;
   const b=w[w.length-1];
   /* 거리가 8초 넘게 안 늘면(서 있음) 페이스 없음 — 멈추기 직전 속도를 계속 보여주면 신호등에서 '너무 빠릅니다'가 나간다 */
@@ -3937,7 +3951,14 @@ function onTick(){
   /* 화면이 꺼지면 타이머가 늦게 돈다. 시간 누적은 0.5초 고정이 아니라 실제 지난 시간으로 */
   const TD=Math.max(0,Math.min(60,S.elapsed-(S.lastTickEl==null?S.elapsed:S.lastTickEl))); S.lastTickEl=S.elapsed;
   /* 실시간 페이스 창 — 앱 시계·거리로 기록 (최근 35초만) */
-  S.win=S.win||[]; S.win.push({t:S.elapsed,d:S.dist}); while(S.win.length>2&&S.elapsed-S.win[0].t>35)S.win.shift();
+  /* GPS 끊김 — (1) 좌표가 6초 넘게 안 오거나 정확도가 나쁜 것만 올 때, (2) 걸음은 뛰는 중(케이던스 130↑)인데 좌표가 6초 넘게 제자리일 때(터널에서 폰이 마지막 자리를 계속 주는 경우) */
+  if(S.act!=='walk'&&!S.paused&&S.anchor&&!S.gpsGap&&S.dist>30){ const nowMs=Date.now(), age=(nowMs-(S.lastFixAt||nowMs))/1000, bad=(nowMs-(S.lastGoodAt||nowMs))/1000;
+    let cn=null; try{ cn=cadence(); }catch(e){}
+    const stall=cn&&cn>=130&&S.lastMoveEl&&S.elapsed-S.lastMoveEl>6;
+    if(age>6||bad>6||stall){ S.gpsGap={el:S.elapsed,d:S.dist,anchor:S.anchor,stall:!!stall&&age<=6&&bad<=6};
+      if(!S.gapCued||S.elapsed-S.gapCued>120){ S.gapCued=S.elapsed; DEV.speak('GPS 신호가 끊겼습니다. 페이스는 멈춰 두고, 신호가 돌아오면 거리와 시간으로 다시 계산합니다.',false); } } }
+  /* 돌아온 직후 6초는 좌표 평활이 다시 자리 잡는 중이라 창에 넣지 않는다 */
+  if(!S.gpsGap&&!(S.gapEndEl&&S.elapsed-S.gapEndEl<6)){ S.win=S.win||[]; S.win.push({t:S.elapsed,d:S.dist}); while(S.win.length>2&&S.elapsed-S.win[0].t>35)S.win.shift(); }
   const km=S.dist/1000,s=S.session,segs=s.segs,T=S.T;
 
   let tg=segs[S.segIx];
@@ -3991,14 +4012,18 @@ function onTick(){
     /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다 */
     if(S.zoneSec)S.zoneSec[Math.min(4,hrZoneIx(S.hr.bpm)-1)]+=TD; }
 
-  /* 속도 칸 */
-  $('rPace').textContent=fmtPace(p);
+  /* 속도 칸 — GPS가 끊기면 마지막 페이스를 멈춰서 보여 준다 */
+  /* 멈춰 둘 값은 '좌표가 막 들어온 때'의 페이스만 — 끊기기 직전 몇 초는 거리가 안 늘어 이미 느려져 있다 */
+  if(isFinite(p)&&S.elapsed-(S.lastMoveEl||0)<2)S.paceHold=p;
+  const recov=S.gapEndEl&&S.elapsed-S.gapEndEl<20;
+  $('rPace').textContent=fmtPace(isFinite(p)?p:((S.gpsGap||recov)&&S.paceHold?S.paceHold:p));
   let paceU='(페이스)';
   if(isFinite(p)&&tgPace){
     if(p<tgPace[0]-2)paceU=`${Math.round(tgPace[0]-p)}초 빠름`;
     else if(p>tgPace[1]+2&&tg.tol!=='ceil'&&tg.tol!=null)paceU=`${Math.round(p-tgPace[1])}초 느림`;   /* 쉬기·쿨다운은 '상한만' — 느린 건 느린 게 아니다 */
     else paceU=(tg.tol==='ceil'||tg.tol==null)?'천천히 OK':'구간 내';
   } else if(tgPace)paceU=rangeText(tgPace);
+  if(S.gpsGap)paceU='GPS 끊김 · 멈춤'; else if(recov)paceU='GPS 복귀 · 다시 재는 중';
   $('rPaceU').textContent=paceU;
 
   /* ── 실시간 코칭 ────────────────────────────────────────
@@ -4312,6 +4337,8 @@ function renderLaps(){
 $('btnPause').onclick=()=>{
   if(!S.running)return;
   S.paused=!S.paused; setPauseIcon(S.paused);
+  /* 멈춘 동안 움직인 거리는 넣지 않는다 — 다시 시작하면 그 자리부터 잰다(GPS 끊김으로 오인하지 않게) */
+  if(!S.paused){ S.gpsGap=null; S.anchor=null; S.smooth=null; S.lastFixAt=S.lastGoodAt=Date.now(); S.win=[{t:S.elapsed,d:S.dist}]; }
   $('btnStop').hidden=!S.paused;
   $('rCtl').classList.toggle('one',!S.paused);
   endHold();
@@ -5016,7 +5043,7 @@ async function selfTest(){
     const sess=sessionOf(i>=0?i:0), T=TYPES[sess.type];
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
-      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,
+      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
