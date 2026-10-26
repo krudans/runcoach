@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.1';
+const APPVER='17.2';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2793,7 +2793,10 @@ function makePlan(opts){
     prevLong=longD;
 
     const longCap = Math.min(ovGet().longMax||999, Math.floor(Math.min(150,twe)*60/midPace(PACE.long)*2)/2);   /* Daniels L 2시간 30분 · 주말에 쓸 수 있는 시간 이내 */
-    const longKm = Math.min(longCap, Math.max(4, Math.round(km*shape.longPct*2)/2));
+    /* 한 번 거리 안전선 — 최근 30일 최장 +10%를 주마다 한 단계씩(Frandsen 2025 · B). 기록이 없으면 적용 안 함 */
+    const capW = (()=>{ const c=sessionCap(); return c?Math.round(c*Math.pow(1.1,w)*2)/2:999; })();
+    const longKm = Math.min(longCap, capW, Math.max(4, Math.round(km*shape.longPct*2)/2));
+    if(capW<999&&Math.round(km*shape.longPct*2)/2>capW&&!why.some(x=>/30일 가장/.test(x))) why.push(`긴 날은 최근 30일 가장 길게 뛴 거리(${longest30()}km)의 +10%를 넘지 않게, 주마다 한 단계씩만 늘렸습니다(Frandsen 2025).`);
     const rest = km - longKm - (testD?4.5:0);
     const easyDs = pick.filter(d=>d!==longD&&!hardD.includes(d));
     /* 빠른 날이 쉬운 날보다 조금 길다 — 웜업·쿨다운이 붙으니까 */
@@ -2805,6 +2808,7 @@ function makePlan(opts){
     const hardMax=Math.round((Math.min(10,km*0.10)+5)*2)/2;
     if(hardKm>hardMax&&hardD.length){ const over=(hardKm-hardMax)*hardD.length; hardKm=hardMax;
       if(easyDs.length){ easyKm=Math.min(Math.max(3,longKm-1), Math.round((easyKm+over/easyDs.length)*2)/2); } }
+    if(capW<999){ easyKm=Math.min(easyKm,Math.max(3,capW-1)); hardKm=Math.min(hardKm,capW); }   /* 쉬운 날·빠른 날도 한 번 거리 안전선 안 */
     /* 합이 이번 주 목표를 넘으면 줄인다. 넘치면 계획이 아니라 거짓말이 된다 */
     const tot=longKm+easyKm*easyDs.length+hardKm*hardD.length;
     if(tot>km*1.03&&tot>longKm){
@@ -2987,6 +2991,10 @@ const hrZone=b=>{for(const[lo,hi,nm]of ZONES)if(b>=lo&&b<hi)return nm;return '�
 const zLab=b=>b?('Z'+hrZoneIx(b)):'';
 const hrZoneIx=b=>{for(let i=0;i<ZONES.length;i++){const[lo,hi]=ZONES[i];if(b>=lo&&b<hi)return Math.min(i+1,5);}return 1;};
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+/* 1회 정리 — 예전 '하루씩 미루기'가 남긴 엉뚱한 거리 수정(옮겨 온 훈련에 붙은 다른 날의 수정)을 앞날 일정에서 지운다 */
+try{ if(!DEV.store.get('distFix1',false)&&PLAN&&PLAN.sessions){ const t=todayStr(); let n=0;
+  PLAN.sessions.forEach(x=>{ if(x.moved&&x.d.slice(0,10)>=t&&DIST[x.d]!=null&&!RUNS.some(r=>r.planId===x.d)){ delete DIST[x.d]; n++; } });
+  if(n){ DEV.store.set('dist',DIST); DEV.store.set('distFixN',n); } DEV.store.set('distFix1',true); } }catch(e){}
 /* 기록 시각은 toISOString(UTC)으로 저장된다. 앞 10글자를 그대로 쓰면 한국 오전 9시 전 기록이 전날로 잡힌다.
    시간대가 붙은 값은 이 기기의 현지 날짜로, 붙지 않은 값(직접 입력 'YYYY-MM-DDTHH:MM')은 그대로. */
 function ldate(v){ const s=String(v||'');
@@ -3513,6 +3521,8 @@ function openConfirm(i){
   if(up){ const isC=!!(s.pasted&&CUSTOM[s.d]);
     up.hidden=!isC;
     up.onclick=()=>{ clearCustom(s.d); go('plan'); }; }
+  { const oc=i>=0&&s.dist?overCap(s.dist):null, el=$('cCapWarn')||(()=>{ const d=document.createElement('div'); d.id='cCapWarn'; d.className='note'; d.style.cssText='margin:8px 0 0;color:var(--alarm);font-weight:700;line-height:1.6'; $('cMeta').after(d); return d; })();
+    el.hidden=!oc; if(oc)el.textContent=`⚠ 오늘 ${s.dist}km는 최근 30일 가장 긴 ${longest30()}km보다 10% 넘게 깁니다(안전선 ${oc}km). 한 번에 크게 늘리면 부상 위험이 오릅니다 — Frandsen 2025.`; }
   $('cMeta').textContent=(i<0?'기록만 남김':`${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)} · ${s.dist}km`)+
     (s.extra?` · +${s.extra}`:'')+(adj?` · 목표 ${adj>0?'+':''}${adj}초 조정됨`:'');
   const br=$('cBrief'); br.className='brief';
@@ -4596,7 +4606,7 @@ function renderSummary(completed){
 
   S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:new Date(S.t0||Date.now()).toISOString(),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
-    hrAvg,hrMax:S.hr.max||null,hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:Math.round(S.asc),desc:Math.round(S.desc),
+    hrAvg,hrMax:S.hr.max||null,hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
@@ -6874,11 +6884,25 @@ function todayUndone(){
   return {ds:t,s,today:true};
 }
 /* 남은 일정을 하루씩 뒤로 — 대회 날은 넘기지 않는다 */
+/* 날짜로 저장한 거리 수정(DIST)·받아적은 훈련(CUSTOM)은 일정을 옮길 때 같이 옮긴다.
+   예전엔 날짜에 남아서, 일정을 하루씩 미루면 원래 그 날짜에 있던 거리 수정이 옮겨 온 다른 훈련에 붙었다(그래서 하루 27km가 나왔다) */
+function remapDates(map){ const ks=Object.keys(map); if(!ks.length)return;
+  const nd={}, nc={}; Object.keys(DIST).forEach(k=>{ if(!(k in map))nd[k]=DIST[k]; }); Object.keys(CUSTOM||{}).forEach(k=>{ if(!(k in map))nc[k]=CUSTOM[k]; });
+  ks.forEach(k=>{ const to=map[k]; if(to==null)return; if(DIST[k]!=null)nd[to]=DIST[k]; else delete nd[to]; if(CUSTOM&&CUSTOM[k])nc[to]=Object.assign({},CUSTOM[k],{d:to}); });
+  DIST=nd; DEV.store.set('dist',DIST); CUSTOM=nc; DEV.store.set('custom',CUSTOM); }
+/* 한 번에 뛰는 거리의 안전선 — 최근 30일 가장 길게 뛴 거리의 +10%.
+   Frandsen 외 2025(BJSM, 5,205명): 한 번 뛴 거리가 최근 30일 최장 거리보다 10% 넘게 길면 부상 위험이 오름(10~30%↑ 위험비 1.64, 2배↑ 2.28). 주간 부하비는 관련 없었음 (B) */
+function longest30(){ const since=addDays(todayStr(),-30); return RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=since).reduce((a,r)=>Math.max(a,+r.km||0),0)||null; }
+function sessionCap(){ const L=longest30(); return L?Math.round(L*1.1*2)/2:null; }
+function overCap(km){ const c=sessionCap(); return c&&km>c+0.01?c:null; }
 function shiftFrom(ds,days){
   if(!(PLAN&&PLAN.sessions))return 0; const g=PLAN.goal||GOAL||{}, race=g.date&&g.kind!=='aero'?g.date.slice(0,10):null; let n=0;
+  const map={}, fixed=new Set(PLAN.sessions.filter(x=>x.d.slice(0,10)<ds||RUNS.some(r=>r.planId===x.d)).map(x=>x.d.slice(0,10)));
   PLAN.sessions.forEach(x=>{ const d0=x.d.slice(0,10); if(d0<ds)return; if(RUNS.some(r=>r.planId===x.d))return;   /* 이미 한 훈련은 옮기지 않는다 — 옮기면 완료 연결이 끊긴다 */
-    const nd=addDays(d0,days);
-    if(race&&nd>=race)return; x.d=nd+x.d.slice(10); x.moved=x.moved||d0; n++; });
+    let nd=addDays(d0,days);
+    while(fixed.has(nd))nd=addDays(nd,1);            /* 이미 뛴 날 위로 겹쳐 놓지 않는다 — 한 날에 두 훈련 = 두 배 거리 */
+    if(race&&nd>=race)return; map[x.d]=nd+x.d.slice(10); x.d=nd+x.d.slice(10); x.moved=x.moved||d0; n++; });
+  remapDates(map);
   PLAN.sessions.sort((a,b)=>a.d<b.d?-1:1); DEV.store.set('plan',PLAN); BLOCK=loadPlan();
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
   return n;
@@ -6896,6 +6920,8 @@ function moveSession(fromD,toD){
     x.splice(i,1); if(tgt>=0){ const j=x.findIndex(y=>y.d.slice(0,10)===toD.slice(0,10)); x.splice(j,1,m); } else x.push(m);
     x.sort((a,b)=>a.d<b.d?-1:1); };
   if(PLAN&&PLAN.sessions){ mv(PLAN.sessions); DEV.store.set('plan',PLAN); }
+  /* 거리 수정은 훈련을 따라간다. 자리를 내준 훈련의 수정은 버린다 */
+  { const tk=Object.keys(DIST).find(k=>k.slice(0,10)===toD.slice(0,10)&&k!==fromD); if(tk!=null)delete DIST[tk]; remapDates({[fromD]:toD}); }
   BLOCK=loadPlan();
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
 }
@@ -6957,10 +6983,10 @@ function openMissed(m){
     const p=planOn(addDays(d,-1)), n=planOn(addDays(d,1));
     if(isHard&&((p&&hardT.includes(p.type))||(n&&hardT.includes(n.type))))continue;
     slot=d; break; }
-  const opts=[{k:'A',t:'그냥 넘기기',rec:true,d:'되찾으려고 몰아서 하지 않습니다. 남은 일정은 그대로 갑니다.',
+  const opts=[{k:'A',t:'그냥 넘기기',rec:!isHard,d:`되찾으려고 몰아서 하지 않습니다. 남은 일정은 그대로 갑니다.${isHard?' 핵심 훈련 하나가 빠지지만, 한 번 빠진 것으로 실력이 줄지는 않습니다.':' 쉬운 날 하루는 빠져도 잃는 게 없습니다.'}`,
       tags:[['이번 주 거리 '+(DIST[s.d]||s.dist||0)+'km 줄어듦',''],['다칠 위험 그대로','ok']],
       apply:()=>{ MISSSEEN[ds]='skip'; DEV.store.set('missSeen',MISSSEEN); return '넘겼습니다. 오늘 일정대로 가면 됩니다.'; }}];
-  if(canSwap) opts.push({k:'B',t:`오늘 ${today.t}와 바꾸기`,d:`오늘 ${s.t}를 하고, 오늘 하려던 ${today.t}는 뺍니다.`,
+  if(canSwap) opts.push({k:'B',t:`오늘 ${today.t}와 바꾸기`,rec:isHard,d:`오늘 ${s.t}를 하고, 오늘 하려던 ${today.t}는 뺍니다. 핵심 훈련은 살리고 이번 주 거리는 늘지 않습니다.`,
       tags:[['내일은 힘든 날이 아님','ok']],
       apply:()=>{ MISSSEEN[ds]='swap'; DEV.store.set('missSeen',MISSSEEN);
         if(PLAN&&PLAN.sessions){ PLAN.sessions=PLAN.sessions.filter(x=>x.d!==today.d); }
@@ -6972,7 +6998,7 @@ function openMissed(m){
       apply:()=>{ MISSSEEN[ds]='tomorrow'; DEV.store.set('missSeen',MISSSEEN); moveSession(s.d,tmr); return `내일 ${s.t}를 합니다.`; }});
   /* 남은 일정을 하루씩 미루기 — 아무것도 빠지지 않는다 */
   const shiftN=isToday?1:addDaysDiff(ds,t);
-  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}일 미루기`:'남은 일정 하루씩 미루기',d:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 남은 일정을 모두 ${shiftN}일 뒤로 옮깁니다. 빠지는 훈련은 없고, 일정이 ${shiftN}일 늘어납니다.`,
+  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}일 미루기`:'남은 일정 하루씩 미루기',rec:isHard&&!canSwap&&!slot,d:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 남은 일정을 모두 ${shiftN}일 뒤로 옮깁니다. 훈련은 하나도 겹치지 않고(하루에 하나), 순서·거리 그대로 — 일정만 ${shiftN}일 늘어납니다.`,
       tags:[['빠지는 훈련 없음','ok'],['대회 날은 그대로','']],
       apply:()=>{ MISSSEEN[ds]='shift'; DEV.store.set('missSeen',MISSSEEN); const n=shiftFrom(ds,isToday?1:addDaysDiff(ds,t));
         return `${n}개 훈련을 ${shiftN}일 뒤로 미뤘습니다.`; }});
@@ -6983,17 +7009,18 @@ function openMissed(m){
   /* 빠진 거리를 남은 쉬운 날에 나눠 넣기 — 하루 +20% 이내, 주간 거리는 계획 그대로. 강도를 올리는 선택지는 일부러 없다 */
   if(!isToday){ const missedKm=DIST[s.d]||s.dist||0;
     const easyLeft=BLOCK.filter(x=>weekMonday(x.d)===mon&&x.d.slice(0,10)>t&&['easy','recovery'].includes(x.type)&&x.dist&&!RUNS.some(r=>r.planId===x.d));
-    if(missedKm>0&&easyLeft.length){ const adds=easyLeft.map(x=>{ const cur=DIST[x.d]||x.dist; return Math.min(Math.round(cur*0.2*2)/2, Math.round(missedKm/easyLeft.length*2)/2); });
+    const cap=sessionCap();
+    if(missedKm>0&&easyLeft.length){ const adds=easyLeft.map(x=>{ const cur=DIST[x.d]||x.dist; return Math.max(0,Math.min(Math.round(cur*0.2*2)/2, Math.round(missedKm/easyLeft.length*2)/2, cap?Math.floor((cap-cur)*2)/2:99)); });
       const tot=adds.reduce((a,b)=>a+b,0);
-      if(tot>=0.5) opts.push({k:'V',t:'남은 쉬운 날에 나눠 넣기',d:`${easyLeft.map((x,i)=>`${dowOf(x.d.slice(0,10))} +${adds[i]}km`).join(' · ')} — 하루 20% 이내로만 더합니다${tot<missedKm?` (${(missedKm-tot).toFixed(1)}km는 포기)`:''}. 강도는 올리지 않습니다.`,
+      if(tot>=0.5) opts.push({k:'V',t:'남은 쉬운 날에 나눠 넣기',d:`${easyLeft.map((x,i)=>`${dowOf(x.d.slice(0,10))} +${adds[i]}km`).join(' · ')} — 하루 20% 이내, ${cap?`한 번 ${cap}km(최근 30일 최장 +10%) 이하로만`:''} 더합니다${tot<missedKm?` (${(missedKm-tot).toFixed(1)}km는 포기)`:''}. 강도는 올리지 않습니다.`,
         tags:[[`주간 거리 ${tot.toFixed(1)}km 되찾음`,'ok'],['하루 +20% 이내','ok']],
         apply:()=>{ MISSSEEN[ds]='spread'; DEV.store.set('missSeen',MISSSEEN); easyLeft.forEach((x,i)=>{ if(adds[i]>0){ DIST[x.d]=Math.round(((DIST[x.d]||x.dist)+adds[i])*2)/2; } }); DEV.store.set('dist',DIST); BLOCK=loadPlan(); return `쉬운 날 ${easyLeft.length}일에 ${tot.toFixed(1)}km를 나눠 넣었습니다.`; }}); } }
   openDec({kind:'missed',kicker:`${ds.slice(5).replace('-','.')} ${dowOf(ds)} · ${isToday?'오늘 아직 안 함':'못 한 날'}`,
     title:`${isToday?'오늘':dowOf(ds)+'요일'} ${ESC(s.t)},<br>어떻게 할까요?`,
     rows:[['못 한 것',ESC(s.t)],['이번 주 남은 계획',BLOCK.filter(x=>weekMonday(x.d)===mon&&x.d.slice(0,10)>=t&&x.type!=='off'&&x.dist).length+'번'],
           isToday?['내일',tmrS?ESC(tmrS.t):'쉬는 날']:['오늘',today?ESC(today.t):'쉬는 날']],
-    say:`하루 빠진 것으로 실력이 측정될 만큼 떨어진다는 자료는 없습니다. 실력이 줄어든 자료는 <b>몇 주를 쉬었을 때</b>의 것입니다. 오히려 못 한 걸 다음 날 몰아서 하면 힘든 날이 이어집니다.`,
-    ev:[['B','Mujika & Padilla 2000: 훈련을 멈춘 지 몇 주 단위에서 최대 산소 섭취량 감소가 측정됨'],['B','Nielsen 2014: 2주 안에 주간 거리가 30% 넘게 늘면 일부 부상 위험이 오름'],['C','Gabbett 2016: 급성:만성 부하비 1.5 초과에서 부상 위험 급증 — 팀 스포츠 자료라 러닝엔 간접 근거. 그래서 빠진 훈련을 강도나 몰아뛰기로 메우는 선택지는 두지 않음'],['C','하루 빠짐의 손실은 측정 자료 없음 — 그래서 "넘기기"를 의견으로 냄']],
+    say:`하루 빠진 것으로 실력이 측정될 만큼 떨어진다는 자료는 없습니다(몇 주를 쉬어야 줄어듭니다). 위험한 건 <b>못 한 거리를 다음 날에 더하는 것</b>입니다 — 한 번에 뛰는 거리가 최근 30일 최장보다 10% 넘게 길어지면 부상 위험이 오릅니다. 그래서 '다음 날에 더하기'는 고를 수 없고, ${isHard?'핵심 훈련은 하루에 하나씩 자리를 옮겨 살리는 쪽':'쉬운 날은 그냥 넘기는 쪽'}을 권합니다.`,
+    ev:[['B','Mujika & Padilla 2000: 훈련을 멈춘 지 몇 주 단위에서 최대 산소 섭취량 감소가 측정됨 — 하루 빠짐은 손실 없음'],['B','Frandsen 외 2025(BJSM, 5,205명): 한 번 뛴 거리가 최근 30일 최장보다 10% 넘게 길면 부상 위험↑(위험비 1.64~2.28). 주간 부하비는 관련 없었음'],['C','힘든 날 사이 48시간 — 핵심 훈련을 옮길 때도 이어 붙이지 않음(Daniels)'],['B','Nielsen 2014: 2주 안에 주간 거리가 30% 넘게 늘면 일부 부상 위험이 오름'],['C','Gabbett 2016: 급성:만성 부하비 1.5 초과에서 부상 위험 급증 — 팀 스포츠 자료라 러닝엔 간접 근거. 그래서 빠진 훈련을 강도나 몰아뛰기로 메우는 선택지는 두지 않음'],['C','하루 빠짐의 손실은 측정 자료 없음 — 그래서 "넘기기"를 의견으로 냄']],
     opts, back:'home', logExtra:{ref:ds},
     onLater:()=>{}});
 }
@@ -7883,7 +7910,7 @@ function renderResult(host,r,s){
     <div class="rmap"></div>
     <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div>
     <div class="rbig"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
-    <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>평균 심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>
+    <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>평균 심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>
     ${(()=>{ let P={good:[],bad:[]}; try{ P=debriefPoints(r,s||{dist:0}); }catch(e){}
       const row=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
       return (P.good.length||P.bad.length)?`<div class="rcard"><ul class="db-pts">${P.good.map(x=>row(x,'ok')).join('')}${P.bad.map(x=>row(x,'bad')).join('')}</ul></div>`:''; })()}
@@ -9886,7 +9913,7 @@ function planListHTML(){
         const st=did?`<em class="pd-st ok">✓${Math.abs(freeKm-km)>=0.5?` ${fmtKm1(freeKm)}km`:''}</em>`:miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" data-pgo="${i}"><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
-            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}</b><i>${summary(sv)}</i></span></button>
+            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${ds>=t&&km&&overCap(km)?'<small style="background:#F9DEDA;color:#9A2A1F">⚠ 최장+10% 넘음</small>':''}</b><i>${summary(sv)}</i></span></button>
           ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:''}</div>`; }).join(''); }).join('');
     return `<section class="pw${cur?' cur':''}${past?' past':''}" id="pw${wk}">
       <header><div><b>${wk}주차</b>${cur?'<span class="pw-now">이번 주</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'쉬어가는 주'}</span>`:''}
