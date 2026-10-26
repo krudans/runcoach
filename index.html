@@ -1167,7 +1167,6 @@ details.noti .sigc{margin:6px 0}
     <div class="ptabs" id="planTabs">
       <button class="on" data-p="sched">일정</button>
       <button data-p="zone">내 속도</button>
-      <button data-p="dec">결정 기록</button>
       <button data-p="goals">내 목표</button>
     </div>
     <div id="planSched">
@@ -1176,10 +1175,10 @@ details.noti .sigc{margin:6px 0}
       <div class="row" style="margin:14px 0 4px">
         <button class="btn sm ghost" id="plRemake" style="margin:0">목표 · 일정 새로 짜기</button>
         <button class="btn sm ghost" id="plPaste" style="margin:0">훈련 받아적기</button>
+        <button class="btn sm ghost" data-guide="" style="margin:0">훈련 원리</button>
       </div>
       <button class="btn sm ghost" id="plUndo" style="margin:8px 0 0" hidden>직전 일정으로 되돌리기</button>
     </div>
-    <div id="planDec" hidden></div>
     <div id="planGoals" hidden></div>
     <div id="planZone" hidden>
       <div id="zoneOut"></div>
@@ -1221,22 +1220,7 @@ details.noti .sigc{margin:6px 0}
   <div class="bar"><button class="sub" id="setBack">← 홈</button><h1 style="text-align:center">설정</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad" style="padding-bottom:80px">
 
-  <div class="lbl" style="margin-bottom:9px">심박 기기</div>
-  <div class="card tight">
-    <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">
-      <div style="flex:0 0 auto" id="btLiveBox"><div class="num" id="btLive" style="font-size:30px;font-weight:600;line-height:1">—</div><div style="font-size:11px;color:var(--ink-3)" id="btZone"></div></div>
-      <div style="flex:1 1 auto"><div id="btState" style="font-size:12.5px;color:var(--ink-2)">미연결</div>
-        <div class="meta" style="margin-top:3px">워치의 <b>심박 송출</b>을 켠 뒤 연결하세요. 한 번 잡으면 다음부턴 자동.</div></div>
-    </div>
-    <button class="btn sm ghost" id="btnBT" style="margin:0">기기 검색 · 연결</button>
-    <button class="btn sm ghost" id="btnBTAll" style="margin:8px 0 0;font-size:12px">내 워치가 목록에 없어요 — 전체 기기 보기</button>
-  </div>
-
-  <div class="setrow">
-    <button type="button" class="setlink" id="setGuide"><b>훈련 원리</b><i>훈련법 · 내 숫자 · 스트레칭</i><span>›</span></button>
-    <button type="button" class="setlink" id="setMusic"><b>음악</b><i>내 폴더 · 플레이리스트</i><span>›</span></button>
-  </div>
-
+  <!-- 설정 순서: 내 정보 → 안정시 심박 → 신발 → 심박 기기 → 훈련 원리·음악 → 백업 → 고급 -->
   <details class="cset"><summary>내 정보 — 모든 훈련 속도와 심박 구간의 근거</summary>
   <div class="card tight" style="margin:0 0 12px">
     <div class="row" style="margin-bottom:10px">
@@ -1285,6 +1269,22 @@ details.noti .sigc{margin:6px 0}
     <div class="row"><input type="date" id="hikeDate"><input type="number" id="hikeHrs" placeholder="시간" step="0.5" inputmode="decimal"><button class="btn sm" style="margin:0;flex:0 0 68px" id="hikeAdd">추가</button></div>
     <div id="hikeOut" style="margin-top:11px"></div>
   </div></details>
+
+  <div class="lbl" style="margin:18px 0 9px">심박 기기</div>
+  <div class="card tight">
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">
+      <div style="flex:0 0 auto" id="btLiveBox"><div class="num" id="btLive" style="font-size:30px;font-weight:600;line-height:1">—</div><div style="font-size:11px;color:var(--ink-3)" id="btZone"></div></div>
+      <div style="flex:1 1 auto"><div id="btState" style="font-size:12.5px;color:var(--ink-2)">미연결</div>
+        <div class="meta" style="margin-top:3px">워치의 <b>심박 송출</b>을 켠 뒤 연결하세요. 한 번 잡으면 다음부턴 자동.</div></div>
+    </div>
+    <button class="btn sm ghost" id="btnBT" style="margin:0">기기 검색 · 연결</button>
+    <button class="btn sm ghost" id="btnBTAll" style="margin:8px 0 0;font-size:12px">내 워치가 목록에 없어요 — 전체 기기 보기</button>
+  </div>
+
+  <div class="setrow">
+    <button type="button" class="setlink" id="setGuide"><b>훈련 원리</b><i>훈련법 · 내 숫자 · 스트레칭</i><span>›</span></button>
+    <button type="button" class="setlink" id="setMusic"><b>음악</b><i>내 폴더 · 플레이리스트</i><span>›</span></button>
+  </div>
 
   <details class="cset"><summary>백업 · 클라우드</summary>
   <div class="card tight" style="margin:0 0 12px">
@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.2';
+const APPVER='17.3';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3390,9 +3390,8 @@ function renderPlan(){
 }
 if($('planTabs'))$('planTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   $('planTabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
-  ['sched','zone','dec','goals'].forEach(k=>{
+  ['sched','zone','goals'].forEach(k=>{
     const el=$('plan'+k[0].toUpperCase()+k.slice(1)); if(el)el.hidden=(k!==b.dataset.p); });
-  if(b.dataset.p==='dec')renderDecLog();
   if(b.dataset.p==='goals')renderGoalsTab();
 };
 if($('plRemake'))$('plRemake').onclick=()=>goalStart();
@@ -3430,12 +3429,8 @@ function renderAlerts(){
       else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
       else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); };
     ph.appendChild(b); });
-  /* 지난 결정 — 결정 기록(DECS)과 답한 제안을 함께, 최근 8개 */
-  const dh=$('alDone'); const items=[];
-  (DECS||[]).slice(-8).forEach(d=>items.push({at:d.d||'',t:d.title||'',c:d.choice||''}));
-  PROPS.filter(x=>x.done).slice(-4).forEach(pr=>items.push({at:pr.at||'',t:pr.title,c:pr.chose>=0?pr.choices[pr.chose].label:'조정하지 않음'}));
-  items.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
-  dh.innerHTML=items.length?items.slice(0,8).map(it=>`<div class="card tight" style="margin-bottom:8px"><div style="font-size:12.5px;font-weight:600">${ESC(it.t)}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">${ESC(it.c)}${it.at?' · '+ldate(it.at).slice(5,10).replace('-','.'):''}</div></div>`).join(''):'<div class="empty">아직 없습니다</div>';
+  /* 지난 결정 — 예전 플랜의 '결정 기록' 탭을 여기로 합쳤다 */
+  renderDecLog($('alDone'));
 }
 $('bellWrap').onclick=()=>go('alerts');
 $('btnGear').onclick=()=>go('settings');
@@ -4626,7 +4621,7 @@ function renderSummary(completed){
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
   $('sWeather').innerHTML=WEATHER.map(w=>`<button class="tag" data-w="${w}">${w}</button>`).join('');
   if(S.act&&S.act!=='run'){ Object.assign(S.result,{act:S.act,title:ACTK[S.act].nm,name:ACTK[S.act].nm}); }
-  try{ SH.fromView='sum'; if(S.act&&S.act!=='run')renderActResult($('sNew'),S.result); else renderResult($('sNew'),S.result,s.d==='free'?null:s); }catch(e){ console.error(e); $('sOld').hidden=false; }
+  try{ SH.fromView='sum'; if(S.act&&S.act!=='run')renderActResult($('sNew'),S.result); else renderResult($('sNew'),S.result,s.d==='free'?null:s,{noPoints:s.d!=='free'}); }catch(e){ console.error(e); $('sOld').hidden=false; }
 }
 /* ───────── 어느 세기로 얼마나 뛰었나 ─────────
    삼성·스트라바는 이 표를 '끝나고' 보여준다. 거기서 멈추면 숫자일 뿐이다.
@@ -6241,24 +6236,19 @@ function disclaimBox(small){ return small
   : `<div class="disc" role="note"><b>${DISCLAIM_T}</b><p>${DISCLAIM}</p></div>`; }
 /* ───── 내 기준 직접 정하기 — 앱의 제안을 보여주고, 바꾸면 일정이 바로 다시 짜인다 ───── */
 function gOvBox(){
-  const o=GB.ov||{}, n=v=>v==null?'':v;
-  const row=(k,label,val,sug,unit,why)=>`<div class="aerow"><label for="ov_${k}"><b>${label}</b><i>제안 ${sug}${why?' · '+why:''}</i></label>
-     <span><input type="text" id="ov_${k}" data-ov="${k}" inputmode="${unit==='/km'?'text':'numeric'}" value="${val}" autocomplete="off"><em>${unit}</em></span></div>`;
-  const touched=Object.keys(o).some(k=>o[k]!=null);
-  return `<details class="adjbox"${touched?' open':''}><summary>속도 · 심박 · 거리 직접 정하기 ${touched?'· 바꿈':''}</summary>
+  /* 속도·심박 기준은 훈련 원리 '내 숫자' 한 곳에서만 고친다 — 여기는 지금 값을 보여주고 그리로 보낸다. 롱런 최대 거리만 이 계획의 값이라 여기 둔다 */
+  const o=GB.ov||{}, n=v=>v==null?'':v, ov=(PROF&&PROF.ov)||{};
+  const man=['E','T','I','hrmax','easyCap'].some(k=>ov[k]!=null);
+  return `<details class="adjbox"><summary>속도 · 심박 기준 ${man?'· 직접 정한 값 사용 중':''}</summary>
     <div id="gOv" style="padding-top:4px">
-    <div class="meta" style="margin:4px 0 8px;line-height:1.7">앱이 내 기록으로 계산한 값을 채워 두었습니다. 고치면 그 값으로 일정과 달리기 중 코칭이 바뀝니다.</div>
-    ${row('E0','쉬운 날 속도 · 빠른 끝',mmss(o.E?o.E[0]:PACE.easy[0]),mmss(SUG.E&&SUG.E[0]),'/km','이보다 빠르면 안내')}
-    ${row('E1','쉬운 날 속도 · 느린 끝',mmss(o.E?o.E[1]:PACE.easy[1]),mmss(SUG.E&&SUG.E[1]),'/km')}
-    ${row('T','벅차게(템포) 속도',mmss(o.T||Z.T),mmss(SUG.T),'/km','세트 목표의 기준')}
-    ${row('I','빠르게(인터벌) 속도',mmss(o.I||Z.I),mmss(SUG.I),'/km')}
-    ${row('hrmax','최대 심박',n(o.hrmax||HRMAX),SUG.hrmax,'bpm',PROF.hrmaxSrc==='measured'?'직접 잰 값':'나이로 추정')}
-    ${row('easyCap','쉬운 날 심박 상한',n(o.easyCap||TYPES.easy.hrZone[1]),SUG.easyCap,'bpm','리커버리런도 같은 상한을 씁니다')}
-    ${row('longMax','롱런 최대 거리',n(o.longMax||''),'자동 (시간·주간 거리로)','km')}
-    ${touched?'<button type="button" class="btn sm ghost" id="ovReset" style="margin-top:8px">앱이 제안한 값으로 되돌리기</button>':''}
+    <div class="meta" style="margin:4px 0 8px;line-height:1.7">쉬운 날 ${mmss(PACE.easy[0])}~${mmss(PACE.easy[1])} · 템포 ${mmss(Z.T)} · 인터벌 ${mmss(Z.I)} · 최대 심박 ${HRMAX} · 쉬운 날 심박 상한 ${TYPES.easy.hrZone[1]}</div>
+    <button type="button" class="btn sm ghost" id="ovGuide" style="margin:0 0 10px">훈련 원리에서 고치기 ›</button>
+    <div class="aerow"><label for="ov_longMax"><b>롱런 최대 거리</b><i>제안 자동 (시간·주간 거리로)</i></label>
+     <span><input type="text" id="ov_longMax" data-ov="longMax" inputmode="numeric" value="${n(o.longMax||'')}" autocomplete="off"><em>km</em></span></div>
     </div></details>`;
 }
 function gOvWire(){ const box=$('gOv'); if(!box)return;
+  const gg=$('ovGuide'); if(gg)gg.onclick=()=>openGuide(null,'goal');
   box.querySelectorAll('[data-ov]').forEach(el=>el.onchange=()=>{
     const k=el.dataset.ov, o=GB.ov=Object.assign({},GB.ov||{});
     const t=x=>{ const v=parseLoose(x); return isNaN(v)?null:Math.round(v); }, i=x=>{ const v=parseInt(x,10); return isNaN(v)?null:v; };
@@ -7234,7 +7224,7 @@ function renderHome(){
   /* 프리런 줄은 쉬는 날에도 늘 보인다 — 계획 없이 움직이는 것도 이 앱의 핵심이다 */
   if(sess||inP) h+=quickGo(true); else h+=quickGo(false);
   h+=rlogCard();   /* 대회 기록 — 오늘 훈련 아래 */
-  if(planned) h+=`<div class="hlinks"><button class="hlink" id="homeGoal2">목표·일정 다시 짜기</button><button class="hlink" data-guide="">훈련 원리</button></div>`;
+  /* 맨 아래 링크 줄은 뺐다 — 목표·일정 다시 짜기와 훈련 원리는 플랜 화면에 있다 */
   h+=`<div id="alertBox" hidden></div><div id="propBox" hidden></div>`;
   $('hMain').innerHTML=h;
   wireHome(sess,idx);
@@ -7745,16 +7735,19 @@ function decResult(dc){
   return null;
 }
 const DECKIND={goal:'목표',today:'오늘',after:'뛴 뒤',week:'매주',missed:'못 한 날',rest:'쉬는 날',stat:'내 통계',breath:'호흡 실험',free:'프리런',misc:'기타'};
-function renderDecLog(){
-  const host=$('planDec'); if(!host)return;
+function renderDecLog(hostIn,lim){
+  const host=hostIn||$('alDone'); if(!host)return;
   if(!DECS.length){ host.innerHTML='<div class="empty">아직 정한 것이 없습니다.<br>목표를 정하거나, 거리를 바꾸거나, 뛴 뒤 다음을 고르면 여기에 남습니다.</div>'; return; }
-  host.innerHTML=`<div class="meta" style="margin:4px 2px 10px">정한 것 — 최근 순. 앱 의견과 다르게 골라도 됩니다.</div>`+
-    DECS.slice().reverse().slice(0,60).map(dc=>{ const r=decResult(dc);
+  const all=DECS.slice().reverse(), n=lim||(window.DECLIM||10);
+  host.innerHTML=`<div class="meta" style="margin:4px 2px 10px">정한 것 — 최근 순. 누르면 무엇을 왜 골랐는지와 결과를 봅니다.</div>`+
+    all.slice(0,n).map(dc=>{ const r=decResult(dc);
       const mine=dc.mine!=null?dc.mine:dc.kind==='goal'?!/앱 제안대로/.test(dc.choice):!(dc.rec&&dc.choice.startsWith(dc.rec));
       return `<button type="button" class="decrow" data-did="${dc.id}"><div class="dm">${ldate(dc.d).slice(5,10).replace('-','.')} ${dowOf(ldate(dc.d))} · ${DECKIND[dc.kind]||dc.kind}<span class="ar">자세히 ›</span></div>
         <b>${dc.kind==='goal'?ESC(dc.title):ESC(dc.choice)} <i class="me${mine?'':' app'}">${mine?'내가 정함':'앱 의견과 같음'}</i></b>
         <div class="dw">${dc.kind==='goal'?ESC(dc.choice)+(dc.why?' · '+ESC(dc.why):''):ESC(dc.title)+(dc.why?' · '+ESC(dc.why):'')}</div>${r?`<div class="drs">${ESC(r)}</div>`:''}</button>`; }).join('');
-  host.querySelectorAll('[data-did]').forEach(b=>b.onclick=()=>openDecDetail(b.dataset.did));
+  if(all.length>n) host.insertAdjacentHTML('beforeend',`<button type="button" class="gl-more" id="decMore" style="display:block;width:100%;margin-top:8px;border:1.5px dashed var(--line);background:none;border-radius:12px;padding:10px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2)">더 보기 (${all.length-n}개)</button>`);
+  host.querySelectorAll('[data-did]').forEach(b=>b.onclick=()=>openDecDetail(b.dataset.did,'alerts'));
+  const mb=host.querySelector('#decMore'); if(mb)mb.onclick=()=>{ window.DECLIM=n+20; renderDecLog(host); };
 }
 
 /* 음성 설정 — 뛰는 중 안내 */
@@ -7884,7 +7877,7 @@ const VERD={short0:['너무 짧은 기록 — 판정 없음','mid'],kept:['가�
   slow:['회차가 목표보다 늦었습니다','mid'],off:['구간 속도를 계획대로 지키지 못했습니다','mid'],short:['거리를 다 못 채웠습니다','mid'],hr:['심박이 기준보다 높았습니다','mid'],easyreps:['아주 고르게, 가볍게 끝냈습니다','ok']};
 
 /* ───────── 결과 화면 ───────── */
-function renderResult(host,r,s){
+function renderResult(host,r,s,opt){
   const T=TYPES[r.type]||{}, pr=promiseRows(r,s||{dist:0});
   const vd=pr.kind?VERD[pr.kind]:null;
   const reps=(r.segments||[]).filter(g=>g.hard&&g.pace);
@@ -7911,7 +7904,7 @@ function renderResult(host,r,s){
     <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div>
     <div class="rbig"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
     <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>평균 심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>
-    ${(()=>{ let P={good:[],bad:[]}; try{ P=debriefPoints(r,s||{dist:0}); }catch(e){}
+    ${(opt&&opt.noPoints)?'':(()=>{ let P={good:[],bad:[]}; try{ P=debriefPoints(r,s||{dist:0}); }catch(e){}
       const row=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
       return (P.good.length||P.bad.length)?`<div class="rcard"><ul class="db-pts">${P.good.map(x=>row(x,'ok')).join('')}${P.bad.map(x=>row(x,'bad')).join('')}</ul></div>`:''; })()}
     ${repsH?`<div class="rcard">${repsH}</div>`:''}
@@ -8402,7 +8395,7 @@ function openTimeDec(){
    모든 비교는 '내 평소 범위'로. 그래프마다 몇 번의 기록으로 본 것인지 붙인다.
    기록이 모자라면 결론 대신 "N번 더 뛰면 보여요". */
 let LOGTAB='sum', LOGPER='month', LOGFLT='all';
-const LTABS=[['sum','한눈에'],['body','몸 상태'],['skill','실력'],['tips','제안'],['list','목록']];
+const LTABS=[['sum','한눈에'],['body','몸 상태'],['skill','실력'],['list','목록']];   /* '제안' 탭(호흡 실험·시간대·케이던스)은 실력 탭 아래로 */
 const TCOL={interval:'#E35A32',rep:'#E35A32',threshold:'#F0A030',goalpace:'#7355D6',mpace:'#7355D6',long:'#2F7FD0',easy:'#2E9E6A',recovery:'#9C8AD8',tt:'#D32F45',free:'#5F7A6E',stride:'#3E8FBF',hill:'#B05C1C'};
 const isHardT=t=>['interval','rep','threshold','goalpace','mpace','tt','hill','stride'].includes(t);
 /* 달력·주간 막대·범례가 같은 네 가지 색을 쓴다 — 예전엔 달력은 종류별 색(템포=노랑·회복=보라), 막대는 세 묶음이라 같은 러닝이 서로 다른 색이었다 */
@@ -8416,7 +8409,8 @@ function renderLog(){
   const host=$('logBody'); if(!host)return;
   $('logTabs').innerHTML=LTABS.map(t=>`<button class="${LOGTAB===t[0]?'on':''}" data-lt="${t[0]}">${t[1]}</button>`).join('');
   $('logTabs').onclick=e=>{ const b=e.target.closest('[data-lt]'); if(!b)return; LOGTAB=b.dataset.lt; renderLog(); window.scrollTo(0,0); };
-  const f={sum:logSum,body:logBody,skill:logSkill,tips:logTips,list:logList}[LOGTAB]||logSum;
+  if(LOGTAB==='tips')LOGTAB='skill';
+  const f={sum:logSum,body:logBody,skill:()=>logSkill()+logTips(),list:logList}[LOGTAB]||logSum;
   host.innerHTML=f(); wireLog(host);
 }
 function wireLog(host){
@@ -8761,7 +8755,7 @@ function openDecDetail(id,back){
   const dc=typeof id==='object'?id:DECS.find(x=>x.id===id); if(!dc)return;
   let sn=dc.snap, rebuilt=false;
   if(dc.kind==='goal'&&!sn&&PLAN){ const g=PLAN.goal||GOAL; sn=goalSnap(g||{},PLAN,g&&g.m&&(g.final||g.sec)?feasible(Object.assign({},g,{sec:g.final||g.sec})):null,SURVEY.days,{}); rebuilt=true; }
-  const head=`<button class="sub dback" data-dd="back">← ${back==='home'?'홈':'결정 기록'}</button>
+  const head=`<button class="sub dback" data-dd="back">← ${back==='home'?'홈':'알림'}</button>
     <div class="dk">${ldate(dc.d).replace(/-/g,'.')} ${dowOf(ldate(dc.d))} · ${DECKIND[dc.kind]||dc.kind}</div>`;
   const mine=dc.mine!=null?dc.mine:dc.kind==='goal'?!/앱 제안대로/.test(dc.choice):!(dc.rec&&dc.choice.startsWith(dc.rec));
   const chip=`<span class="mechip ${mine?'me':''}">${mine?'내가 정함':'앱 의견과 같음'}</span>`;
@@ -8835,7 +8829,7 @@ function openDecDetail(id,back){
   }
   const host=$('decBody'); host.innerHTML=h;
   host.onclick=e=>{ const b=e.target.closest('[data-dd]'); if(!b)return;
-    if(b.dataset.dd==='back'){ if(back==='home'){ go('home'); return; } go('plan'); const t=document.querySelector('#planTabs [data-p="dec"]'); if(t)t.click(); }
+    if(b.dataset.dd==='back'){ if(back==='home'){ go('home'); return; } go('alerts'); }
     if(b.dataset.dd==='remake')goalStart(); };
   { const e=$('gcEdit'); if(e)e.onclick=()=>goalStart(); }
   show('dec'); document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===(back==='home'?'home':'plan')));
@@ -9629,7 +9623,7 @@ document.addEventListener('click',e=>{
     if(mode==='auto'){ GW_MAN[k]=false; const p={}; MINE_KEYS[k].forEach(x=>p[x]=null); mineSave(p); }
     else{ GW_MAN[k]=true; const y=scrollY; renderGuide(); scrollTo(0,y); } return; }
   if(e.target.closest('#setGuide')) return openGuide(null,'settings');
-  if(e.target.closest('#gdBack')) return (GUIDE_BACK==='home'||GUIDE_BACK==='plan')?go(GUIDE_BACK):show(GUIDE_BACK);
+  if(e.target.closest('#gdBack')){ if(GUIDE_BACK==='goal'){ show('goal'); try{ GB.p=null; gPaint(); }catch(err){} return; } return (GUIDE_BACK==='home'||GUIDE_BACK==='plan')?go(GUIDE_BACK):show(GUIDE_BACK); }
   const g=e.target.closest('[data-guide]'); if(g) return openGuide(g.dataset.guide);
   const f=e.target.closest('[data-gfocus]'); if(f){ const el=$('gd-'+f.dataset.gfocus); if(el){ el.open=true; el.scrollIntoView({behavior:'smooth',block:'start'}); } }
 });
@@ -10253,8 +10247,7 @@ function goalCard(compact){
       <div class="gc-lab">이번 4주 · 주간 km</div>${wk}${mixH}
       ${M.g.kind==='aero'&&M.g.aero?goalEditBox(M.g):''}
       ${why}
-      <details class="gc-why"><summary>내 목표 목록 <small>${GLOG.length}개</small> · 대회 기록 <small>${RLOG.length}개</small></summary>${glogList()}${RLOG.length?`<div class="gc-lab">내 대회 기록</div>${rlogList(false)}`:''}</details>
-      <div class="gc-btns">${snapBtn('.mygoal','goal','내 달리기 목표','wide')}<button type="button" class="btn ghost" id="gcEdit">목표 · 일정 새로 짜기</button></div></div>`;
+      <div class="gc-btns">${snapBtn('.mygoal','goal','내 달리기 목표','wide')}</div></div>`;
 }
 
 /* 목표 숫자 고치기 — 편한 달리기 능력: 기준 페이스 · 목표 심박(또는 기준 심박 · 목표 페이스) · 날짜 */
@@ -10292,6 +10285,8 @@ function goalEditSave(box){ const g=(PLAN&&PLAN.goal)||GOAL; if(!g||!g.aero)retu
 document.addEventListener('click',e=>{ const b=e.target.closest('#geSave'); if(b)goalEditSave(b.closest('.gc-ef')); });
 function openMyGoal(){
   if(!PLAN||!PLAN.sessions){ goalStart(); return; }
+  /* '내 달리기 목표' 화면은 플랜 › 내 목표 탭과 합쳤다 */
+  go('plan'); const tb=document.querySelector('#planTabs [data-p="goals"]'); if(tb){ tb.click(); window.scrollTo(0,0); return; }
   const host=$('decBody'); host.innerHTML=`<button class="sub dback" data-dd="back">← 홈</button>${goalCard(false)}`;
   host.querySelector('[data-dd="back"]').onclick=()=>go('home');
   const e=$('gcEdit'); if(e)e.onclick=()=>goalStart();
@@ -10428,9 +10423,11 @@ function renderGoalsTab(){
     const nav=pages>1?`<div class="gl-pg"><button type="button" data-glpg="${key}:${pg-1}" ${pg<=1?'disabled':''}>‹</button><span>${pg} / ${pages}</span><button type="button" data-glpg="${key}:${pg+1}" ${pg>=pages?'disabled':''}>›</button></div>`:'';
     return `<div class="gc-lab">${lab} <small>${arr.length}개</small></div><ul class="gl-list">${show.map(item).join('')}</ul>${nav}`; };
   const L=GLOG.slice().reverse();
-  el.innerHTML=`<div class="meta" style="margin:8px 0 12px;line-height:1.7">새 목표를 세우면 하던 목표는 <b>잠시 멈춤</b>으로 보관됩니다. 대회 같은 단기 목표를 끝낸 뒤 '다시 이어가기'를 누르면 멈춘 자리의 남은 일정부터 다시 시작합니다.</div>
+  let top=''; try{ top=goalModel()?goalCard(false):''; }catch(e){}
+  el.innerHTML=top+`<div class="gc-lab" style="margin-top:18px">목표 목록</div><div class="meta" style="margin:4px 0 12px;line-height:1.7">새 목표를 세우면 하던 목표는 <b>잠시 멈춤</b>으로 보관됩니다. 대회 같은 단기 목표를 끝낸 뒤 '다시 이어가기'를 누르면 멈춘 자리의 남은 일정부터 다시 시작합니다.</div>
     ${GLOG.length?'':'<div class="card tight meta">아직 세운 목표가 없어요.</div>'}
     ${grp('진행 중',L.filter(x=>x.status==='active'),'act')}${grp('잠시 멈춤',L.filter(x=>x.status==='paused'),'pau')}${grp('끝난 목표',L.filter(x=>['done','missed','ended'].includes(x.status)),'end')}
+    <div style="margin-top:14px">${rlogCard()}</div>
     <button type="button" class="btn ghost" id="glNew" style="margin-top:14px">새 목표 세우기</button>
     ${GLOG.length>5?`<div class="gl-pgset"><span>한 페이지에</span>${[5,10,20].map(n=>`<button type="button" class="${n===PG?'on':''}" data-glpgs="${n}">${n}개</button>`).join('')}</div>`:''}`;
   const nb=$('glNew'); if(nb)nb.onclick=()=>goalStart();
