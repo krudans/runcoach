@@ -1132,9 +1132,24 @@ details.noti .sigc{margin:6px 0}
 .gt-prog[open]>summary .gt-sum::after{transform:rotate(-90deg)}
 .hname i{display:block;font-style:normal;font-family:var(--num);font-size:11px;font-weight:800;letter-spacing:.42em;color:var(--plum);margin-top:6px}
 .hbrand .streak{margin-left:auto}
+
+/* 시작 화면 — 새로 켤 때만 1초. 설치 앱의 OS 시작 화면(배경 #2A1638)과 같은 색으로 이어진다 */
+#splash{position:fixed;inset:0;z-index:9999;font-family:'Noto Sans KR','Noto Sans CJK KR',system-ui,sans-serif;background:#2A1638;color:#F4F0EA;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 64px) 28px calc(env(safe-area-inset-bottom) + 34px);transition:opacity .28s ease;cursor:pointer}
+#splash.out{opacity:0;pointer-events:none}
+.sp-c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;margin-top:-40px}
+.sp-c .brandmark{width:64px;height:64px;display:block}.sp-c .brandmark svg{width:100%;height:100%}
+.sp-c b{font-size:46px;font-weight:900;letter-spacing:-.03em;line-height:1;margin-top:36px}
+.sp-c em{font-style:normal;font-size:16px;font-weight:700;color:#BFE0C8;letter-spacing:.02em;margin-top:18px}
+.sp-ft{text-align:center;font-size:12px;letter-spacing:.24em;opacity:.55}
+@media (prefers-reduced-motion:reduce){#splash{transition:none}}
 </style>
 </head>
 <body>
+<div id="splash" role="img" aria-label="가지런하다 · 실시간 코칭 프로그램">
+  <div class="sp-c"><span class="brandmark" data-bm="light"></span><b>가지런하다</b><em>실시간 코칭 프로그램</em></div>
+  <div class="sp-ft">가지런 · GAJI RUN</div>
+</div>
+<script>/* 같은 탭에서 다시 그릴 때(복귀·새로고침)는 띄우지 않는다 */try{ if(sessionStorage.getItem('rc_splashed')||!localStorage.getItem('rc_onboarded')||location.hash||/[?&](run|from)=/.test(location.search)){ document.getElementById('splash').remove(); } }catch(e){ var _sp=document.getElementById('splash'); if(_sp)_sp.remove(); }</script>
 
 <div class="view on" id="home">
   <div class="topline"><b id="tlDate">—</b><span id="tlBlock" style="font-family:var(--num);font-size:11px"></span>
@@ -1998,7 +2013,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='18.2';
+const APPVER='18.5';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9144,7 +9159,14 @@ function goalBadge(){
     else { const er=$('introErr'); if(er){ er.textContent='구글 로그인이 끝나지 않았습니다. 다시 눌러주세요.'; er.style.display='block'; } }
   }).catch(()=>{});
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
+  splashRun();
 })();
+/* 시작 화면 — 브랜드 한 장: 가지런 · 실시간 코칭 프로그램 · 가지런하다 */
+function splashRun(){ const sp=$('splash'); if(!sp)return;
+  try{ sessionStorage.setItem('rc_splashed','1'); }catch(e){}
+  try{ mountBrand(); }catch(e){}
+  let done=false; const end=()=>{ if(done)return; done=true; sp.classList.add('out'); setTimeout(()=>sp.remove(),300); };
+  sp.addEventListener('click',end); setTimeout(end,1100); }
 /* 지난번에 연결했던 기기가 켜져 있으면 조용히 다시 붙는다 */
 (async()=>{ try{
   if(!BT.name||!navigator.bluetooth)return;
@@ -9626,7 +9648,9 @@ function renderGuide(){
     cell('심박수','Heart Rate',`<svg viewBox="0 0 48 44" width="46" height="42" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#E0454B"/><path d="M8 22h8l3-6 5 12 3-6h13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,'1분에 심장이 뛰는 수 (bpm)',`최대 ${HRMAX}`,'hrmax'),
     cell('심박수 존','HR Zone',`<span class="gc-z">${ZONES.slice(0,5).map((z,i)=>`<i style="--c:var(--z${i+1});height:${10+i*5}px"></i>`).join('')}</span>`,'최대 심박의 % 로 나눈 강도 구간',`Z2 ${ZONES[1][0]}~${ZONES[1][1]}`,'zone'),
     cell('케이던스','Cadence',big('<path d="M16 6c3 0 4 4 4 8s-2 7-5 7-5-3-5-7 3-8 6-8zM11 25h8M33 16c3 0 5 4 5 8s-2 7-5 7-5-3-5-7 2-8 5-8zM29 35h8"/>','#E07A1F'),'1분에 디딘 걸음 수 (spm) · 정답 숫자는 없음',cu?`내 평소 ${cu}`:'','cad'),
-    cell('보폭','Stride Length',big('<path d="M8 30c2 0 3 2 3 4s-1 4-3 4-3-2-3-4 1-4 3-4zM38 22c2 0 3 2 3 4s-1 4-3 4-3-2-3-4 1-4 3-4z"/><path d="M8 42h32M8 39v6M40 39v6"/>','#E07A1F'),'보폭(m) = 속도(m/분) ÷ 케이던스<br>억지로 늘리면 부상 위험',strideM?`이지 ${strideM.toFixed(2)}m`:'')
+    cell('보폭','Stride Length',big('<path d="M8 30c2 0 3 2 3 4s-1 4-3 4-3-2-3-4 1-4 3-4zM38 22c2 0 3 2 3 4s-1 4-3 4-3-2-3-4 1-4 3-4z"/><path d="M8 42h32M8 39v6M40 39v6"/>','#E07A1F'),'보폭(m) = 속도(m/분) ÷ 케이던스<br>억지로 늘리면 부상 위험',strideM?`이지 ${strideM.toFixed(2)}m`:''),
+    cell('역치','Threshold',big('<path d="M4 38h40"/><path d="M6 32c8 0 10-18 18-18s10 18 18 18"/><path d="M4 22h40" stroke-dasharray="3 3"/>','#D4B44A'),'한 시간쯤 버틸 수 있는 가장 빠른 강도<br>말이 끊길 만큼 벅참 · 템포런의 기준',`${fp(PACE.T)} · ♥${Math.round(HRMAX*0.88)}~${Math.round(HRMAX*0.92)}`),
+    cell('TSS','Training Stress Score',big('<path d="M8 40V28M18 40V20M28 40V24M38 40V10"/>','#B98AE0'),'훈련 부하 점수 = 시간 × 강도²<br>역치 속도로 1시간 = 100점 (rTSS · Coggan)','150 미만 가벼움 · 300+ 높음')
   ])+
   band('기타 용어','#7A4CC2',[
     cell('PB','Personal Best',big('<circle cx="24" cy="30" r="11"/><path d="M17 4l7 12 7-12M24 24l2 4 4 .5-3 3 .8 4-3.8-2-3.8 2 .8-4-3-3 4-.5z"/>','#C79A1E'),'거리별 내 최고 기록',pb,'vdot'),
@@ -9662,20 +9686,26 @@ function renderGuide(){
     cad:{man:!!(O.cad||GW_MAN.cad), mine:cu?`평소 ${cu}`:'평소 —', auto:autoNote(ca?`최근 10번 평균의 가운데 값 ${ca}`:'기록 3번 이상 쌓이면 자동으로 들어가요'), form:fld('cad','평소 케이던스',O.cad||ca||'','spm','175')},
     stride:{man:!!(O.stride||GW_MAN.stride), mine:myStride?`편하게 ${myStride.toFixed(2)}m`:'—', auto:autoNote('보폭 = 속도(m/분) ÷ 케이던스 · 편한 속도 기준'), form:fld('stride','평소 보폭',O.stride||myStride||'','m','1.00')+autoNote('표시용 — 코칭에는 쓰지 않아요')},
     hr:{man:!!(O.hrmax||GW_MAN.hr), mine:`최대 ${HRMAX}`, auto:autoNote(`최대 ${SUG.hrmax} · ${hsrc==='measured'?'직접 잰 값':hsrc==='observed'?'달리며 30초 넘게 유지된 최고':'나이로 추정 (±10 오차)'}`), form:fld('hrmax','최대 심박',O.hrmax||HRMAX,'bpm','185')},
+    thr:{man:!!(O.T||GW_MAN.thr), mine:`역치 ${fp(PACE.T)} · ♥${Math.round(HRMAX*0.88)}~${Math.round(HRMAX*0.92)}`,
+      auto:autoNote(`역치 = 한 시간쯤 버틸 수 있는 가장 빠른 속도 — 템포런 속도이자 TSS의 기준<br>${fp(SUG.T)} · 기준 기록으로 계산 · 심박은 최대의 88~92% (Daniels, B)`), form:fld('T','역치(템포) 페이스',mmss(PACE.T),'/km')},
     zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`존2 ${ZONES[1][0]}~${ZONES[1][1]}`, auto:autoNote(`존2 상한 = 최대 심박 × 0.80 = ${SUG.easyCap}`), form:fld('easyCap','존2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
   };
+  let lrT=null, wkT=0; try{ const L=lr&&loadOf(lr); lrT=L&&L.tss!=null?L.tss:null; const t7=addDays(todayStr(),-6);
+    wkT=runs.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=t7).reduce((a,r)=>{ const q=loadOf(r); return a+(q&&q.tss!=null?q.tss:0); },0); }catch(e){}
   const WR=[['pace','#4C9BE8',big('<circle cx="24" cy="27" r="16"/><path d="M24 27V18M20 6h8M24 6v5"/><path d="M24 27L24 11A16 16 0 0 1 38 22z" fill="currentColor" stroke="none" opacity=".9"/>','#4C9BE8'),fp(wp),'/km'],
     ['cad','#3FBF7F',big('<path d="M16 6c3 0 4 4 4 8s-2 7-5 7-5-3-5-7 3-8 6-8zM11 25h8M33 16c3 0 5 4 5 8s-2 7-5 7-5-3-5-7 2-8 5-8zM29 35h8"/>','#3FBF7F'),wc||'—','spm'],
     ['stride','#F28C28',big('<path d="M6 26l4-10h12l5 5h9l6 5v4H6z"/><path d="M8 40h32M8 40l4-3M8 40l4 3M40 40l-4-3M40 40l-4 3"/>','#F28C28'),ws?ws.toFixed(2):'—','m'],
     ['hr','#F0525A',`<svg viewBox="0 0 48 44" width="40" height="38" aria-hidden="true"><path d="M24 42S2 29 2 14A11 11 0 0 1 24 8a11 11 0 0 1 22 6c0 15-22 28-22 28z" fill="#F0525A"/><path d="M8 22h8l3-6 5 12 3-6h13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,wh||'—','bpm'],
     ['zone',zc,`<span class="gw-z" style="background:${zc}">Z${wz}</span>`,`Zone ${wz}`,''],
+    ['thr','#D4B44A',big('<path d="M4 38h40"/><path d="M6 32c8 0 10-18 18-18s10 18 18 18"/><path d="M4 22h40" stroke-dasharray="3 3"/>','#D4B44A'),fp(PACE.T),'/km'],
+    [null,'#B98AE0',big('<path d="M8 40V28M18 40V20M28 40V24M38 40V10"/>','#B98AE0'),lrT!=null?lrT:'—','TSS',`최근 7일 합 ${wkT} · 역치로 1시간 = 100점 (rTSS)`],
     [null,'#F5C542',`<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="#F5C542"/><circle cx="17" cy="20" r="2.6" fill="#2A1638"/><circle cx="31" cy="20" r="2.6" fill="#2A1638"/><path d="M15 29c4.5 5.5 13.5 5.5 18 0" fill="none" stroke="#2A1638" stroke-width="3" stroke-linecap="round"/></svg>`,'러너스 하이','']];
   const nMan=Object.values(ED).filter(e=>e.man).length;
   const watch=`<div class="gwatch"><div class="gw-band"></div><div class="gw-face">${WR.map((r,i)=>{ const e=r[0]&&ED[r[0]], open=GW_OPEN===r[0];
       return `<div class="gw-wrap${open?' open':''}"><${e?`button type="button" data-mine="${r[0]}" aria-expanded="${open}"`:'div'} class="gw-r">
       <span class="gw-n" style="color:${r[1]}">${i+1}</span><span class="gw-ic">${r[2]}</span>
       <span class="gw-v"><b class="${/[가-힣]/.test(String(r[3]))?'sm':'num'}">${r[3]}</b>${r[4]?`<i style="color:${r[1]}">${r[4]}</i>`:''}</span>
-      <em class="gw-q">${e?`${tag(e.man)} 내 기준 ${e.mine}`:'숫자로는 못 재요 — 기분 좋은 그 느낌'}</em>${e?`<span class="gw-edit">${open?'닫기 ▴':'수정 ▾'}</span>`:''}</${e?'button':'div'}>
+      <em class="gw-q">${e?`${tag(e.man)} 내 기준 ${e.mine}`:(r[5]||'숫자로는 못 재요 — 기분 좋은 그 느낌')}</em>${e?`<span class="gw-edit">${open?'닫기 ▴':'수정 ▾'}</span>`:''}</${e?'button':'div'}>
       ${e&&open?`<div class="gw-ed" data-ed="${r[0]}">${seg(r[0],e.man)}${e.man?`<div class="gw-form">${e.form}<p class="gw-hint" id="gwHint"></p></div>`:e.auto}</div>`:''}</div>`; }).join('')}</div><div class="gw-band"></div>
       <p class="gw-cap">${lr?`최근 달리기 ${String(lr.date).slice(5,10).replace('-','.')} 기준`:'내 기준 값'}${nMan?` · 직접 입력 ${nMan}개`:''}</p></div>`;
 $('gdBody').innerHTML=`<div class="idline lite"><span class="idl-ic">🎧</span><div><b>가지런은 내가 정한 강도·거리·시간에 맞춰 안내하는 실시간 코칭 프로그램입니다</b><i>아래 숫자들이 그 기준이 됩니다 — 자동으로 채워지고, 직접 바꿀 수 있어요.</i></div></div><div class="gd-hero"><b>내 숫자</b></div><div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>당신의 현재 기록이 자동으로 입력되며, 수동으로 변경할 수 있습니다.</b><i>각 줄의 '수정' 버튼 → 자동 / 직접 입력</i></div></div>${watch}`+sec('훈련 종류',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+`<details class="gd-all"><summary>계산 기준 전체 보기</summary>${sec('기준 숫자',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`+
@@ -9690,7 +9720,7 @@ function openGuide(focus,back){
 function mineSave(patch){ const o=Object.assign({},PROF.ov||{},patch); Object.keys(o).forEach(k=>{ if(o[k]==null)delete o[k]; });
   PROF=Object.assign({},PROF,{ov:o}); DEV.store.set('prof',PROF); recalcProfile(); recalcTypes();
   try{ BLOCK=loadPlan(); }catch(e){} const y=scrollY; renderGuide(); scrollTo(0,y); }
-const MINE_KEYS={pace:['E','T','I','race'],cad:['cad'],stride:['stride'],hr:['hrmax'],zone:['easyCap']};
+const MINE_KEYS={pace:['E','T','I','race'],thr:['T'],cad:['cad'],stride:['stride'],hr:['hrmax'],zone:['easyCap']};
 function mineInput(el){ const k=el.dataset.mset, v=el.value.trim(), hint=t=>{ const h=$('gwHint'); if(h)h.textContent=t; };
   const t=x=>{ const n=parseLoose(x); return isNaN(n)?null:Math.round(n); }, I=x=>{ const n=parseFloat(x); return isNaN(n)?null:n; };
   const O=ovGet();
