@@ -1998,7 +1998,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='17.7';
+const APPVER='17.8';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7224,9 +7224,9 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-rl]'); if
 /* 정할 것 — 홈 카드·종 숫자·알림 페이지가 모두 이 한 목록을 쓴다 */
 function homeSignals(){
   const sig=[]; try{
-  const j=jumpInfo(); if(j)sig.push(['jump',`2주 사이 ${j.pct}% 늘었어요`,'다음 주 거리를 그대로 둘지 정하기']);
-  if(rhrAlert())sig.push(['rhr','아침 심박이 평소 범위 위예요','오늘 훈련을 그대로 할지 정하기']);
-  if(driftAlert())sig.push(['drift','같은 속도인데 심박이 올랐어요','이번 주를 어떻게 할지 정하기']);
+  const j=sigSeen('jump',7)?null:jumpInfo(); if(j)sig.push(['jump',`2주 사이 ${j.pct}% 늘었어요`,'다음 주 거리를 그대로 둘지 정하기']);
+  if(!sigSeen('rhr',1)&&rhrAlert())sig.push(['rhr','아침 심박이 평소 범위 위예요','오늘 훈련을 그대로 할지 정하기']);
+  if(!sigSeen('drift',7)&&driftAlert())sig.push(['drift','같은 속도인데 심박이 올랐어요','이번 주를 어떻게 할지 정하기']);
   const tu=todayUndone(); if(tu)sig.push(['tmiss',`오늘 ${(sessionOf(BLOCK.indexOf(tu.s))||tu.s).t} 아직 안 했어요`,'내일로 넘길지, 일정을 미룰지 정하기']);
   const ms=missedDay(); if(ms)sig.push(['miss',`${dowOf(ms.ds)}요일 ${ms.s.t} 못 했어요`,'넘길지 옮길지 정하기']);
   const ex=extraPending(); if(ex)sig.push(['extra',`계획보다 ${ex.r.extraKm.toFixed(1)}km 더 뛰었어요`,`이번 주 ${ex.proj.toFixed(0)}km(+${ex.pct}%) — 남은 일정 정하기`]);
@@ -7584,9 +7584,13 @@ function weekStrip0(){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람)
     return `<div class="wk-d${x.d===t?' now':''}${done?' done':''}${miss?' miss':''}" title="${dowOf(x.d)} ${x.s?ESC(x.s.t):'쉬는 날'}">
       <b class="wk-n num ${band}">${done?(x.load?x.load+'<small>점</small>':'✓'):''}</b>
       <div class="wk-bar">${h?`<i style="height:${h.toFixed(0)}%;background:${col};opacity:${done?1:.3}"></i>`:''}${miss?'<span>×</span>':''}</div><em>${dowOf(x.d)}</em></div>`; }).join('');
-  const diff=prevL?Math.round((sumL-prevL)/prevL*100):null;
+  /* 지난주와 비교는 '같은 요일까지'끼리 — 월요일 아침에 이번 주 0점을 지난주 전체와 비교하면 늘 -100%가 나왔다 */
+  const dIx=Math.max(0,Math.min(6,Math.round((Date.parse(t)-Date.parse(weekMonday(t)))/864e5))), doneToday=days[dIx]&&days[dIx].load>0;
+  const upto=doneToday?dIx:dIx-1, prevUpto=upto<0?0:[...Array(upto+1).keys()].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
+  const sumUpto=upto<0?0:days.slice(0,upto+1).reduce((a,x)=>a+x.load,0);
+  const diff=(upto>=0&&prevUpto>0)?Math.round((sumUpto-prevUpto)/prevUpto*100):null;
   return `<section class="wstrip" aria-label="이번 주 훈련 점수">
-    <div class="ws-h"><b>이번 주 훈련 점수</b><span class="num"><b>${sumL}</b>점${prevL?` <small>지난주 ${Math.round(prevL)}점${diff!=null?` (${diff>0?'+':''}${diff}%)`:''}</small>`:''}</span></div>
+    <div class="ws-h"><b>이번 주 훈련 점수</b><span class="num"><b>${sumL}</b>점${prevL?` <small>지난주 ${Math.round(prevL)}점${diff!=null?` · 같은 요일까지 ${diff>0?'+':''}${diff}%`:''}</small>`:''}</span></div>
     <div class="ws-days">${cells}</div>
     <div class="ws-note">점수 = 그날 훈련 부하(rTSS, 역치 페이스 1시간 = 100점)${BLOCK.length?' · 옅은 막대 = 아직 안 한 계획':''}${diff!=null&&diff>30?' · 지난주보다 30% 넘게 늘었어요':''}</div></section>`;
 }
@@ -7705,6 +7709,9 @@ function badgeCard(){
 }
 
 /* ───────── 몸 신호 → 결정 카드 ───────── */
+/* 몸 신호에 답하면 그 신호는 한동안 다시 묻지 않는다 — 2주 거리 변화 7일, 아침 심박 그날, 같은 속도 심박 7일 */
+function sigSeen(k,days){ try{ const m=DEV.store.get('sigSeen',{}); return m[k]&&(Date.parse(todayStr())-Date.parse(m[k]))<days*864e5; }catch(e){ return false; } }
+function sigMark(k){ try{ const m=DEV.store.get('sigSeen',{}); m[k]=todayStr(); DEV.store.set('sigSeen',m); }catch(e){} }
 function openJump(){
   const j=jumpInfo(); if(!j)return;
   openDec({kind:'week',kicker:'몸 신호 · 최근 2주',title:`2주 사이 거리가<br>${j.pct}% 늘었습니다`,
@@ -7712,8 +7719,8 @@ function openJump(){
     say:'2주에 30% 넘게 늘린 러너에게서 일부 부상이 더 많았다는 연구가 있습니다. 다만 통계적으로 확실한 결과는 아니어서, 막지 않고 고르시게 합니다.',
     ev:[['B','Nielsen 외 2014(874명): 2주에 30% 넘게 늘린 경우 일부 부상 위험비 1.59, 유의하지 않음'],['B','Buist 외 2008(532명): 10% 규칙을 지켜도 부상률 차이 없음']],
     opts:[{k:'A',t:'다음 주는 늘리지 않기',rec:true,d:'다음 4주 덩어리를 지금 양 그대로 시작합니다.',tags:[['다칠 위험 낮춤','ok']],
-        apply:()=>{ DEV.store.set('holdGrow',todayStr()); return '다음 덩어리는 늘리지 않습니다.'; }},
-      {k:'B',t:'그대로 가기',d:'일정대로 갑니다. 아침 심박을 같이 봅니다.',tags:[['위험 조금 높음','bad']],apply:()=>'그대로 갑니다.'}],
+        apply:()=>{ DEV.store.set('holdGrow',todayStr()); sigMark('jump'); return '다음 덩어리는 늘리지 않습니다.'; }},
+      {k:'B',t:'그대로 가기',d:'일정대로 갑니다. 아침 심박을 같이 봅니다.',tags:[['위험 조금 높음','bad']],apply:()=>{ sigMark('jump'); return '그대로 갑니다.'; }}],
     back:'home'});
 }
 function openRhr(){
@@ -7726,18 +7733,18 @@ function openRhr(){
     opts:[{k:'A',t:s?'오늘은 천천히로 바꾸기':'오늘 쉬기 그대로',rec:true,d:s?`${ESC(s.t)} 대신 같은 거리를 천천히(이지런)로 뜁니다.`:'',
         apply:()=>{ if(s&&PLAN&&PLAN.sessions){ const i=PLAN.sessions.findIndex(x=>x.d===s.d);
           if(i>=0){ PLAN.sessions[i]=Object.assign({d:s.d,wk:s.wk,t:`천천히 ${s.dist}km`},easy(s.dist),{was:s.t}); termSess(PLAN.sessions[i]); DEV.store.set('plan',PLAN); BLOCK=loadPlan(); } }
-          return '오늘은 천천히 뜁니다.'; }},
-      {k:'B',t:'그대로 하기',d:'뛰다가 심박이 평소보다 높으면 음성으로 알려드립니다.',apply:()=>'그대로 갑니다.'}],
+          sigMark('rhr'); return '오늘은 천천히 뜁니다.'; }},
+      {k:'B',t:'그대로 하기',d:'뛰다가 심박이 평소보다 높으면 음성으로 알려드립니다.',apply:()=>{ sigMark('rhr'); return '그대로 갑니다.'; }}],
     back:'home'});
 }
 function openDrift(){
   const m=driftAlert(); if(!m)return;
   openDec({kind:'week',kicker:'몸 신호 · 같은 속도의 심박',title:'같은 속도인데<br>심박이 올랐습니다',
     say:ESC(m),ev:[['D','당신의 천천히 날 기록끼리 비교'],['C','더위·탈수에서도 오름']],
-    opts:[{k:'A',t:'이번 주 빠른 날 하나를 천천히로',rec:true,apply:()=>{ const t=todayStr(); const h=BLOCK.find(x=>x.d.slice(0,10)>=t&&weekMonday(x.d)===weekMonday(t)&&['interval','threshold','goalpace'].includes(x.type));
+    opts:[{k:'A',t:'이번 주 빠른 날 하나를 천천히로',rec:true,apply:()=>{ sigMark('drift'); const t=todayStr(); const h=BLOCK.find(x=>x.d.slice(0,10)>=t&&weekMonday(x.d)===weekMonday(t)&&['interval','threshold','goalpace'].includes(x.type));
           if(h&&PLAN&&PLAN.sessions){ const i=PLAN.sessions.findIndex(x=>x.d===h.d); if(i>=0){ PLAN.sessions[i]=Object.assign({d:h.d,wk:h.wk,t:`천천히 ${h.dist}km`},easy(h.dist),{was:h.t}); termSess(PLAN.sessions[i]); DEV.store.set('plan',PLAN); BLOCK=loadPlan(); return `${dowOf(h.d)}요일을 천천히로 바꿨습니다.`; } }
           return '이번 주에 남은 빠른 날이 없습니다.'; }},
-      {k:'B',t:'그대로',apply:()=>'그대로 갑니다.'}],back:'home'});
+      {k:'B',t:'그대로',apply:()=>{ sigMark('drift'); return '그대로 갑니다.'; }}],back:'home'});
 }
 
 /* ───────── 오늘 거리 바꾸기 — 결정 카드 ───────── */
