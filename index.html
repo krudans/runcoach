@@ -484,7 +484,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .zrow .zn{font-size:12.5px;font-weight:700}
 .zrow .zb{height:9px;border-radius:99px;background:var(--panel-2);overflow:hidden}
 .zrow .zb i{display:block;height:9px;border-radius:99px}
-.zrow .zv{font-family:var(--num);font-size:12px;font-weight:700;color:var(--ink-2);text-align:right}
+.zrow .zv{font-family:var(--num);font-size:12px;font-weight:700;color:var(--ink-2);text-align:right;white-space:nowrap}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
 .dot.good{background:var(--ok)}.dot.weak{background:var(--z3)}.dot.bad{background:var(--alarm)}
 
@@ -2013,7 +2013,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='18.5';
+const APPVER='18.6';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3773,7 +3773,7 @@ function buildRail(){
   const cum=[]; durs.reduce((a,d)=>{const v=a+d;cum.push(v);return v;},0);
   S.rail={durs,tot,cum};
   const short=g=>/웜업|준비/.test(g.nm)?'웜업':/쿨다운|마무리/.test(g.nm)?'쿨다운':/레스트|사이 쉬기|회복 조깅/.test(g.nm)?'레스트':g.hard?(g.rep?String(g.rep):'')+(/세트/.test(g.nm)?'세트':/구간/.test(g.nm)?'':'회차'):String(g.nm).replace(/\s*\([^)]*\)/g,'').slice(0,4);
-  $('rTrack').innerHTML=segs.map((g,i)=>`<div class="rm-seg${g.hard?' hard':''}" data-i="${i}" style="flex:${Math.max(0.6,durs[i]/tot*10).toFixed(2)}"><i></i><b>${segs.length<=9?short(g):(g.hard?(g.rep||'')+'':'')}</b></div>`).join('');
+  $('rTrack').innerHTML=segs.map((g,i)=>`<div class="rm-seg${g.hard?' hard':''}" data-i="${i}" style="flex:${Math.max(0.6,durs[i]/tot*10).toFixed(2)}"><i></i><b>${segs.length<=9?(durs[i]/tot<0.1?String(short(g)).slice(0,1):short(g)):(g.hard?(g.rep||'')+'':'')}</b></div>`).join('');
   /* 1km마다 — 총 거리만큼 칸 */
   const n=Math.max(1,Math.ceil((sess.dist||0)-0.02));
   $('rKms').innerHTML=Array.from({length:n},(_,k)=>`<span class="rm-km" data-k="${k+1}"><i>${k+1}</i></span>`).join('');
@@ -4103,7 +4103,7 @@ function onTick(){
     }
     if(hrOver&&repInfoOnly){ /* 세트 중 심박 초과는 화면에 참고로만 — 속도 판정을 덮지 않는다 */
       S.repHrNote=tg.hard?`심박 ${S.hr.bpm} — 세트 중엔 속도가 기준이에요`:isCool(tg)?`심박 ${S.hr.bpm} — 쿨다운은 천천히만 하면 돼요, 심박은 차츰 내려와요`:`심박 ${S.hr.bpm} — 세트 사이엔 속도만 봐요`; }
-    else if(hrOver){ state='hr'; pill=`심박 ${S.hr.bpm} · 상한 ${HZ[1]}`;
+    else if(hrOver&&S.hrHoldSec>=10){ state='hr'; pill=`심박 ${S.hr.bpm} · 상한 ${HZ[1]}`;
       const zn=hrZone(S.hr.bpm);
       say = hrPrimary
         ? `지금 ${zn}이에요. ${sugg?`${fmtPace(sugg)}까지 늦춰도 괜찮아요 — 내 기록 기준 상한 ${HZ[1]} 아래로 내려오는 속도예요.`:`상한 ${HZ[1]} 아래로 내려올 때까지 속도를 줄이세요.`}`
@@ -4154,7 +4154,10 @@ function onTick(){
     if(segT>150&&segT<200&&isFinite(p))S.segPace0=p;
   }
   /* 구간 전환이 가까우면 */
-  if(state==='okhr')state='ok';
+  /* 상한 바로 위(또는 넘은 지 10초 안) — '지금 좋아요'라고 하면 위에 적힌 '♥상한 아래'와 어긋난다. 말은 안 하고 화면만 노랗게 */
+  const nearCap=hrPrimary&&!repInfoOnly&&HZ&&HZ[1]&&S.hr.bpm>HZ[1]&&state!=='hr';
+  if(nearCap&&(state==='ok'||state==='okhr')){ state='soon'; pill=`심박 ${S.hr.bpm} · 상한 ${HZ[1]} 근처`; say='숨을 길게, 조금만 편하게'; }
+  else if(state==='okhr')state='ok';
   else if(state==='ok'&&repInfoOnly&&hrOver){ pill='속도 기준 · 지금 좋아요'; say=S.repHrNote||''; }
   else if(state==='ok'){
     const left = tg.end==='time' ? (tg.sec-(S.elapsed-S.segStart.t))*1000/Math.max(200,p||400)
@@ -4718,7 +4721,7 @@ function paintZones(host,zs,T){
   const gray=(T&&[TYPES.mpace,TYPES.goalpace,TYPES.threshold].includes(T))?0:pc[2];
   let msg='';
   if(gray>=0.5) msg=`오늘 <b>${Math.round(gray*100)}%</b>를 '보통(Z3)'에서 보냈습니다. 쉬운 날도 빠른 날도 아닌 <b>애매한 강도</b>입니다. 힘은 다 드는데 실력은 잘 안 늡니다.`;
-  else if(easyDay&&(pc[3]+pc[4])>=0.2) msg=`쉬어가는 날인데 <b>${Math.round((pc[3]+pc[4])*100)}%</b>를 힘든 구간에서 보냈습니다. 내일 훈련이 망가집니다.`;
+  else if(easyDay&&(pc[3]+pc[4])>=0.2) msg=`쉬운 날인데 <b>${Math.round((pc[3]+pc[4])*100)}%</b>를 힘듦(Z4) 이상에서 보냈어요. 회복이 덜 돼 다음 힘든 훈련이 무거울 수 있어요. 다음 쉬운 날은 심박 상한을 먼저 보세요.`;
   else if(easyDay&&(pc[0]+pc[1])>=0.7) msg=`<b>${Math.round((pc[0]+pc[1])*100)}%</b>를 편한 구간에서 보냈습니다. 오늘은 이게 정답입니다.`;
   host.innerHTML=`<div class="lbl" style="margin:16px 0 6px">어느 세기로 뛰었나</div>
     <div class="card tight">${rows}
@@ -7912,7 +7915,7 @@ function routeSVG(tr,segs,o){
 async function paintMap(host,tr,segs){
   if(!host)return;
   if(!tr||tr.length<3){ host.innerHTML='<div class="nomap">경로가 기록되지 않았습니다</div>'; return; }
-  host.innerHTML=routeSVG(tr,segs,{cls:'rsvg'});
+  host.innerHTML=routeSVG(tr,segs,{cls:'rsvg'}); host._svg=host.innerHTML;
   const k=await loadKakao(); if(!k||!host.isConnected)return;
   try{
     host.innerHTML=''; const box=document.createElement('div'); box.className='kmap'; host.appendChild(box);
@@ -7938,11 +7941,12 @@ function promiseRows(r,s){
   if(!s||!s.dist||r.type==='free'||r.type==='tt')return {rows,kind:null};
   /* 거의 안 뛴 기록은 판정하지 않는다 — 0km에 '약속대로'가 나가면 거짓말이다 */
   if(!(r.km>=0.5&&r.sec>=120))return {rows:[['기록','너무 짧아 판정하지 않아요 ('+r.km.toFixed(2)+'km · '+fmtClock(r.sec)+')','bad']],kind:'short0'};
-  if(r.distRatio!=null)rows.push([`거리 약속 ${s.dist}km`,`${(r.extraKm>0?(+r.km-r.extraKm):+r.km).toFixed(1)}km${r.distRatio>=th.dist?' ✓':''}${r.extraKm>0?` + 더 뛴 ${r.extraKm.toFixed(1)}km (판정 제외)`:''}`,T.judgeBy==='distance'?(r.distRatio>=th.dist?'ok':'bad'):(r.distRatio>=th.dist?'ok':'')]);
+  if(r.distRatio!=null)rows.push([`거리 약속 ${s.dist}km`,`${(r.extraKm>0?(+r.km-r.extraKm):+r.km).toFixed(1)}km${r.distRatio>=th.dist?' ✓':''}${r.extraKm>=0.05?` + 더 뛴 ${r.extraKm.toFixed(1)}km (판정 제외)`:''}`,T.judgeBy==='distance'?(r.distRatio>=th.dist?'ok':'bad'):(r.distRatio>=th.dist?'ok':'')]);
   let kind='kept';
   if(T.judgeBy==='ceiling'||T.judgeBy==='range'){
     const ce=r.ceiling||s.ceiling, hj=hrJudged(r);
     /* 심박이 기준인 날은 심박으로 판정하고 속도 줄은 참고로만 — 목록·달력(runPass)과 같은 결론 */
+    if(hj&&r.hrCap&&r.hrCap>HRMAX*0.82) rows.push([`쉬운 날 심박 상한 ${r.hrCap}`,`최대 ${HRMAX}의 ${Math.round(r.hrCap/HRMAX*100)}% — 쉬운 날 보통 범위(80% 안팎, ${Math.round(HRMAX*0.8)})보다 높아요. 88%를 넘으면 역치(템포) 강도예요 (Daniels, B)`,'bad']);
     if(hj) rows.push([`심박 ${r.hrCap} 넘은 시간`,`${Math.round(r.hrOverRatio*100)}% (기준 ${Math.round(th.hrOver*100)}%)`,r.hrOverRatio>th.hrOver?'bad':'ok']);
     if(ce){ rows.push([`1km ${fmtPace(ce)}보다 느리게`,`평균 ${fmtPace(r.paceAvg)}${hj?' · 참고':''}`,hj?'':r.paceAvg&&r.paceAvg<ce?'bad':'ok']);
       rows.push(['약속보다 빨랐던 시간',`${Math.round((r.ceilRatio||0)*100)}% (기준 ${Math.round(th.ceil*100)}%)${hj?' · 참고':''}`,hj?'':(r.ceilRatio||0)>th.ceil?'bad':'ok']); }
@@ -7976,7 +7980,10 @@ function promiseRows(r,s){
   const z=r.zones||[], zt=z.reduce((a,b)=>a+b,0);
   const hardFr=(r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec);
   if(zt>300&&T.judgeBy==='spread'&&(z[3]+z[4])/zt>hardFr+0.15) rows.push(['힘듦(Z4) 이상에서 보낸 시간',`${Math.round((z[3]+z[4])/zt*100)}% — 세트는 ${Math.round((r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec)*100)}%였어요`,'bad']);
-  if(zt>300&&['easy','recovery','long'].includes(r.type)) rows.push(['보통(Z3)에서 보낸 시간',`${Math.round(z[2]/zt*100)}%`,z[2]/zt>0.3?'bad':'ok']);
+  if(zt>300&&['easy','recovery','long'].includes(r.type)){ const hi=(z[3]+z[4])/zt;
+    /* 쉬운 날 — Z4 이상이 20% 넘으면 그게 먼저다. 그때 'Z3 적었음'을 좋은 점으로 내세우면 거꾸로 읽힌다 */
+    if(hi>=0.2) rows.push(['힘듦(Z4) 이상에서 보낸 시간',`${Math.round(hi*100)}% — 쉬운 날은 대부분 Z2 이하`,'bad']);
+    else rows.push(['보통(Z3)에서 보낸 시간',`${Math.round(z[2]/zt*100)}%`,z[2]/zt>0.3?'bad':'ok']); }
   return {rows,kind};
 }
 const VERD={short0:['너무 짧은 기록 — 판정 없음','mid'],kept:['가지런했습니다 — 약속대로 갔어요','ok'],softfast:['세트는 가지런했어요 — 쉬기·준비·마무리가 빨랐어요','mid'],fast:['거리는 지켰고, 속도는 넘었습니다','bad'],spread:['뒤 회차가 늦어졌습니다','bad'],
@@ -9688,7 +9695,8 @@ function renderGuide(){
     hr:{man:!!(O.hrmax||GW_MAN.hr), mine:`최대 ${HRMAX}`, auto:autoNote(`최대 ${SUG.hrmax} · ${hsrc==='measured'?'직접 잰 값':hsrc==='observed'?'달리며 30초 넘게 유지된 최고':'나이로 추정 (±10 오차)'}`), form:fld('hrmax','최대 심박',O.hrmax||HRMAX,'bpm','185')},
     thr:{man:!!(O.T||GW_MAN.thr), mine:`역치 ${fp(PACE.T)} · ♥${Math.round(HRMAX*0.88)}~${Math.round(HRMAX*0.92)}`,
       auto:autoNote(`역치 = 한 시간쯤 버틸 수 있는 가장 빠른 속도 — 템포런 속도이자 TSS의 기준<br>${fp(SUG.T)} · 기준 기록으로 계산 · 심박은 최대의 88~92% (Daniels, B)`), form:fld('T','역치(템포) 페이스',mmss(PACE.T),'/km')},
-    zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`존2 ${ZONES[1][0]}~${ZONES[1][1]}`, auto:autoNote(`존2 상한 = 최대 심박 × 0.80 = ${SUG.easyCap}`), form:fld('easyCap','존2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
+    zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`존2 ${ZONES[1][0]}~${ZONES[1][1]}${(()=>{ const c=easyCapOv(); return c&&c!==ZONES[1][1]?` · 이지 상한 ${c}${c>HRMAX*0.82?' ⚠':''}`:''; })()}`,
+      auto:autoNote(`존2 상한 = 최대 심박 × 0.80 = ${SUG.easyCap}${(()=>{ const c=easyCapOv(), a=aeroGoal(); return c&&c>HRMAX*0.82?`<br><b>⚠ 지금 쉬운 날 상한은 ${c}</b> (${!ovGet().easyCap&&a?'내 목표에서 정한 값':'직접 넣은 값'}) — 최대의 ${Math.round(c/HRMAX*100)}%예요(88% 넘으면 역치·템포 강도). 쉬운 날은 보통 최대의 80% 안팎(${SUG.easyCap}) (Daniels E 65~79%, B)`:''; })()}`), form:fld('easyCap','존2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
   };
   let lrT=null, wkT=0; try{ const L=lr&&loadOf(lr); lrT=L&&L.tss!=null?L.tss:null; const t7=addDays(todayStr(),-6);
     wkT=runs.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=t7).reduce((a,r)=>{ const q=loadOf(r); return a+(q&&q.tss!=null?q.tss:0); },0); }catch(e){}
@@ -9798,6 +9806,9 @@ const POSE={
   lungeA:SS({h:[46,31],n:[44,42],p:[44,70],L:[88,0],R:[-40,-92],A:{ik:[42,68],bend:1},B:{ik:[46,68],bend:-1},x:{arr:AR('M28 60v14m-4-4l4 4 4-4')}}),
   lungeB:SS({h:[52,13],n:[50,24],p:[50,52],L:[25,5],R:[-20,-15],A:[30,30],B:[-30,-30]}),
   /* 제자리 뛰기 — 옆모습: 무릎 번갈아, 팔 90° */
+  /* 햄스트링 스윕 — 옆모습: 앞발 뒤꿈치만 대고 무릎 편 채, 뒷무릎 굽히며 엉덩이 뒤로 → 두 손으로 바닥을 쓸 듯 → 일어나 반대 발 */
+  sweepA:SS({h:[81,54],n:[71,57],p:[44,64],L:{ik:[73,93]},R:{ik:[28,93],bend:-1},A:{ik:[74,86],bend:1},B:{ik:[70,87],bend:1},x:{arr:AR('M44 88q14 4 30-2m-6-3l6 3-5 4')}}),
+  sweepB:SS({h:[54,13],n:[52,24],p:[50,52],L:{ik:[64,93]},R:{ik:[40,93],bend:-1},A:[150,160],B:[145,155],x:{arr:AR('M80 40q4-14-2-24m-3 6l3-6 5 4')}}),
   jogA:SS({h:[52,11],n:[50,22],p:[50,50],L:[75,10],R:[-8,-8],A:[40,115],B:[-40,-120],x:{arr:AR('M18 92v-10m-4 4l4-4 4 4')+AR('M82 92v-10m-4 4l4-4 4 4')}}),
   jogB:SS({h:[52,12],n:[50,23],p:[50,51],L:[-8,-8],R:[75,10],A:[-40,-120],B:[40,115],x:{arr:AR('M18 92v-10m-4 4l4-4 4 4')+AR('M82 92v-10m-4 4l4-4 4 4')}}),
   /* ── 정적 ── */
@@ -9841,6 +9852,7 @@ const STEPS={
   toekick:[['바르게 서서 한 팔을 앞으로 뻗기','반대쪽 다리를 쭉 편 채 차올리기','손끝-발끝 터치 후 걸으며 반대쪽'],'무릎 펴고, 높이는 되는 만큼만'],
   gateOpen:[['무릎을 굽혀 몸 앞으로 들기','그대로 옆으로 90° 돌리기','내린 뒤 반대쪽 다리'],'상체가 따라 돌지 않게'],
   gateClose:[['무릎을 굽혀 옆 90°로 들기','앞으로 모아 몸 정면으로','내린 뒤 반대쪽 다리'],'골반은 정면 유지'],
+  sweep:[['한 발을 반 걸음 앞에 — 뒤꿈치만 대고 발끝 세우기','뒷무릎을 굽히며 엉덩이를 뒤로, 등은 곧게 상체 숙이기','두 손으로 바닥을 쓸 듯 앞으로 → 일어나며 반대 발로'],'앞무릎은 편 채 — 허벅지 뒤가 당기는 느낌이 나야 해요'],
   jog:[['제자리에서 가볍게 뛰기','발 앞쪽으로 착지','팔은 앞뒤로 자연스럽게'],'점점 빠르게 — 마지막 10초는 경쾌하게'],
   ham:[['한 발을 앞으로, 뒤꿈치만 바닥에 대고 발끝 세우기','뒷다리 무릎을 살짝 굽히고 엉덩이를 뒤로','등을 편 채 상체를 앞으로 숙여 30초'],'등을 둥글게 말지 않기'],
   glute:[['바르게 서서 한쪽 무릎을 들기','두 손으로 무릎 아래를 감싸기','가슴 쪽으로 당겨 30초'],'서 있는 다리는 곧게, 흔들리면 벽 잡기'],
@@ -9850,7 +9862,7 @@ const STEPS={
 /* 동작: [자세, 이름, 효과 한 줄, 하는 법, 양쪽?] */
 const STR={
   dyn:{en:'WARM-UP',ko:'러닝 전 준비운동',when:'훈련 전',sec:30,key:'짧게 깨우고, 가볍게 출발',
-    desc:'멈춰서 버티지 않고 움직이며 데워요. 상체 → 햄스트링 → 고관절 → 하체 → 제자리 뛰기로 바로 출발.',
+    desc:'멈춰서 버티지 않고 움직이며 데워요(Behm 2016 — 동적 준비운동은 기록에 작은 도움, B). 상체 → 햄스트링 → 고관절 → 하체 → 햄스트링 스윕. 심박은 첫 1km 웜업 구간에서 천천히 올려요.',
     chk:['6가지 · 3분','멈추지 않고 움직이며','아프지 않은 범위'],
     tips:['끝나면 첫 1km는 천천히 출발','추운 날엔 조금 더 길게'],
     moves:[['arm','팔 돌리기','팔·가슴·어깨를 한 번에 풀어요','팔을 옆으로 뻗어 앞으로 · 뒤로',false],
@@ -9858,7 +9870,7 @@ const STR={
            ['toekick','토 터치 킥','햄스트링을 움직이며 풀어요','다리 쭉 펴 차올리고 반대 손으로 발끝 터치 · 좌우 번갈아',false],
            ['gateOpen','고관절 열기·닫기','고관절을 크게 돌려 풀어요','무릎 들고 → 옆으로 90° → 내리기, 다음엔 반대로 · 좌우 번갈아',false],
            ['lunge','워킹 런지','엉덩이·허벅지를 깨워요','크게 한 걸음, 골반을 아래로 · 좌우 번갈아',false],
-           ['jog','제자리 뛰기','심박을 올려 출발 준비','가볍게 통통, 팔도 같이',false]]},
+           ['sweep','햄스트링 스윕','허벅지 뒤를 달릴 때 길이로 깨워요','앞발 뒤꿈치 대고 무릎 편 채, 두 손으로 바닥을 쓸 듯 · 좌우 번갈아',false]]},
   stat:{en:'COOL-DOWN',ko:'러닝 후 정적 스트레칭',when:'훈련 후',sec:30,key:'멈춘 자세로 천천히 늘려요',
     desc:'뛴 뒤 굳은 느낌을 풀어요. 정적 스트레칭이 부상이나 근육통을 줄인다는 근거는 약해요(Herbert 2011·Behm 2016 — 효과 작거나 없음). 유연성·편안함을 위해서만, 모두 선 자세.',chk:['훈련 후','반동 없이 30초','양쪽 모두'],tips:[],
     moves:[['calf','종아리','달리며 가장 많이 쓴 곳','벽 밀며 뒤꿈치 누르기',true],['ham','햄스트링','허벅지 뒤를 풀어요','서서 뒤꿈치 대고 상체 숙이기',true],
@@ -10158,7 +10170,9 @@ function debriefPoints(r,s){
   const pr=promiseRows(r,s);
   if(pr.kind==='short0')return {good:[],bad:(pr.rows||[]).map(x=>[x[0],x[1]])};
   (pr.rows||[]).forEach(x=>{ if(x[2]==='ok')good.push([x[0],x[1]]); else if(x[2]==='bad')bad.push([x[0],x[1]]); });
-  const sp=(r.splits||[]).filter(x=>x.pace&&!x.part);
+  /* 후반 비교는 본 구간만 — 웜업(느리게 시작)·쿨다운(느리게 끝)을 넣으면 계획대로 뛰어도 '후반이 느려졌다'가 나온다 */
+  const sg=r.segments||[]; let wK=0,cK=0; for(const g of sg){ if(/웜업|준비/.test(g.nm||''))wK+=+g.km||0; else break; } for(const g of sg.slice().reverse()){ if(/쿨다운|마무리/.test(g.nm||''))cK+=+g.km||0; else break; }
+  const totK=+r.km||0, sp=(r.splits||[]).filter(x=>x.pace&&!x.part&&!x.est&&(x.km-1)>=wK-0.05&&x.km<=totK-cK+0.05);
   if(sp.length>=4){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
     const d=Math.round(a-b); if(d>=3)good.push(['후반',`네거티브 스플릿 — 후반이 ${d}초/km 빨랐어요`]); else if(d<=-8&&!['interval','threshold','rep'].includes(r.type))bad.push(['후반',`후반이 ${-d}초/km 느려졌어요 — 초반이 빨랐을 수 있어요`]); }
   /* 같은 종류의 최근 러닝과 비교 — 인터벌과 이지런의 케이던스는 원래 다르다 */
@@ -10168,7 +10182,14 @@ function debriefPoints(r,s){
   else if(r.hrAvg&&r.sec>1500&&r.drift&&r.drift.bpm!=null&&r.drift.bpm<6)good.push(['심박',`후반에도 안정적이었어요 (표류 +${r.drift.bpm})`]);   /* 표류를 못 쟀으면 '안정적'이라 말하지 않는다 */
   const z=r.zones||[], zt=z.reduce((a,b)=>a+b,0);
   if(zt>300&&['easy','recovery','long'].includes(r.type)){ const e=(z[0]+z[1])/zt; if(e>=0.8)good.push(['심박 존',`${Math.round(e*100)}%를 Z1·Z2에서 — 이지 날답게`]); }
-  const L=loadOf(r); if(L&&L.main){ const b=loadBand(L.main.k,L.main.v); (b[2]==='bad'?bad:good).push(['훈련 부하',`${L.main.nm} ${L.main.v} · ${b[0]}${b[1]?' — '+b[1]:''}`]); }
+  const L=loadOf(r); if(L&&L.main){ const b=loadBand(L.main.k,L.main.v);
+    /* rTSS는 속도만 본다. 같은 속도에 심박이 유난히 높았던 날(피로·더위·센서)은 몸이 받은 부하가 더 크다 — 그날은 '가벼움'을 좋은 점으로 쓰지 않는다 */
+    const tb=L.trimp!=null?loadBand('trimp',L.trimp):null, rank={ok:0,mid:1,hi:2,bad:3};
+    if(L.main.k==='tss'&&tb&&rank[tb[2]]>rank[b[2]]) bad.push(['훈련 부하',`속도로는 ${b[0]}(rTSS ${L.main.v}), 심박으로는 ${tb[0]}(TRIMP ${L.trimp}) — 같은 속도에 몸은 더 힘들었어요`]);
+    else (b[2]==='bad'?bad:good).push(['훈련 부하',`${L.main.nm} ${L.main.v} · ${b[0]}${b[1]?' — '+b[1]:''}`]); }
+  /* 심박 = 케이던스 — 손목 광학 센서가 발걸음 리듬을 심박으로 읽는 경우가 있다(cadence lock). km 평균이 3 이내로 3km 넘게 같으면 알려만 준다 (C) */
+  try{ const sc=(r.splits||[]).filter(x=>x.hr&&x.cad); const lock=sc.filter(x=>Math.abs(x.hr-x.cad)<=3).length;
+    if(sc.length>=4&&lock>=3&&lock/sc.length>=0.5) bad.push(['심박 센서',`${sc.length}km 중 ${lock}km에서 심박이 케이던스와 거의 같아요(±3) — 손목 센서가 발걸음을 심박으로 읽었을 수 있어요. 가슴 스트랩이면 해당 없음 (C)`]); }catch(e){}
   if(r.learnNote)good.push(['내 몸 기준',r.learnNote]);
   return {good:good.slice(0,5),bad:bad.slice(0,5)};
 }
@@ -10193,7 +10214,7 @@ function openDebrief(r,s){
   const row=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
   $('dbBody').innerHTML=`
     <div class="db-hd" style="--tc:${col}"><span class="db-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span><span class="db-date">${todayStr().slice(5).replace('-','.')} ${dowOf(todayStr())}</span></div>
-    ${vd?`<div class="db-vd ${vd[1]}">${vd[1]==='ok'?'🏅':vd[1]==='mid'?'👍':'💬'} ${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
+    ${vd?`<div class="db-vd ${vd[1]}">${vd[1]==='ok'?'🏅':vd[1]==='mid'?'🔎':'💬'} ${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
     <div class="db-hero">${map?`<div class="db-map">${map}</div>`:''}<div class="db-nums">
       <div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div>
       <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>${r.hrAvg?`<div><b class="num">${r.hrAvg}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
@@ -10450,11 +10471,14 @@ function snapInline(src,dst){
 async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
   const W=el.offsetWidth, H=el.offsetHeight, clone=el.cloneNode(true);
+  /* 카카오 지도 타일은 이미지로 옮길 수 없어(다른 출처) 깨진 그림이 찍힌다 — 저장할 땐 직접 그린 경로 그림으로 바꾼다 */
+  const kHosts=[...el.querySelectorAll('.kmap')].map(k=>k.parentElement); const kFix=root=>[...root.querySelectorAll('.kmap')].forEach((k,i)=>{ const h=kHosts[i]; if(h&&h._svg)k.parentElement.innerHTML=h._svg; else k.remove(); });
+  kFix(clone);
   const wrap=document.createElement('div'); wrap.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; wrap.appendChild(clone); document.body.appendChild(wrap);
   clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details').forEach(d=>d.open=true);
   clone.querySelectorAll('input,textarea').forEach(x=>{ const sp=document.createElement('span'); sp.textContent=x.value; x.replaceWith(sp); });
   /* 원본 순서가 같아야 스타일을 1:1로 복사할 수 있다 — 지운 요소는 원본에서도 건너뛴다 */
-  const src=el.cloneNode(true); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove());
+  const src=el.cloneNode(true); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); kFix(src);
   const probe=document.createElement('div'); probe.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; probe.appendChild(src); document.body.appendChild(probe);
   src.querySelectorAll('details').forEach(d=>d.open=true);
   snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
