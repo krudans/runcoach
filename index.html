@@ -2017,7 +2017,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.0';
+const APPVER='19.1';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2714,7 +2714,7 @@ function starterState(){
   const g=(PLAN&&PLAN.goal&&PLAN.goal.kind==='start')?PLAN.goal:(GOAL&&GOAL.kind==='start'?GOAL:null);
   const st=(g&&g.st)||{}, can=+st.can||0;
   const rs=RUNS.filter(r=>r.rw).sort((a,b)=>String(a.date)<String(b.date)?-1:1);
-  const checks=rs.filter(r=>r.rw.check), needCheck=(can===0||can===2), checksN=checks.length;
+  const checks=rs.filter(r=>r.rw.check&&!r.rw.recheck), needCheck=(can===0||can===2), checksN=checks.length;
   let lv, why='';
   if(needCheck&&checksN<2){ return {phase:'check',checksN,lv:null,ok:0,why:`기본 상태 체크 ${checksN}/2`,g,can}; }
   if(needCheck){ const c=checks.slice(0,2), bad=c.some(r=>r.pain||!r.rw.done), hard=c.some(r=>r.feel==='hard'), easy=c.every(r=>r.feel==='easy');
@@ -2728,13 +2728,18 @@ function starterState(){
     if(r.feel!=='easy'&&r.feel!=='ok')return;            /* 느낌을 안 고른 날은 올리지도 내리지도 않는다 */
     if(lv===8){ grad=true; return; }
     ok++; if(ok>=2&&(Date.parse(d)-Date.parse(since))>=6*864e5){ lv=Math.min(8,lv+1); ok=0; since=d; } });
-  return {phase:grad?'grad':'ladder',checksN,lv,ok,since,painN,lastPain,grad,why,g,can}; }
+  /* 다시 체크 — 마지막 체크(처음 체크 포함)에서 4주가 지나면 같은 체크를 한 번 더 한다. 같은 조건이어야 늘어난 게 보인다 */
+  const allC=rs.filter(r=>r.rw.check), lastC=allC.length?String(allC[allC.length-1].date).slice(0,10):(rs.length?String(rs[0].date).slice(0,10):null);
+  const recheckDue=!grad&&!!lastC&&rs.some(r=>!r.rw.check)&&(Date.parse(todayStr())-Date.parse(lastC))>=28*864e5;
+  return {phase:grad?'grad':'ladder',checksN,lv,ok,since,painN,lastPain,grad,why,g,can,recheckDue,firstCheck:allC[0]||null}; }
 /* 일정의 걷기+달리기·체크 칸은 열 때마다 지금 상태로 다시 만든다 — 일정을 다시 짜지 않아도 단계가 따라온다 */
 function rwLive(base){ const s=starterState();
   if(s.phase==='check'){ /* 아직 안 한 칸 중 앞의 (2-체크 수)칸만 체크 — 나머지는 체크 결과가 나와야 단계가 정해진다 */
     const pend=BLOCK.filter(x=>x.rw&&!RUNS.some(r=>r.planId===x.d)).map(x=>x.d).sort(), k=pend.indexOf(base.d);
     if(k>=0&&k<2-s.checksN) return termSess(rwBuild(base.d,base.wk,0,true));
     const x=termSess(rwBuild(base.d,base.wk,1,false)); x.t='걷기+달리기'; x.rw.sum='단계는 체크 2번 뒤 정해져요'; x.rw.tbd=true; return x; }
+  if(s.recheckDue){ const pend=BLOCK.filter(x=>x.rw&&!RUNS.some(r=>r.planId===x.d)&&x.d.slice(0,10)>=todayStr()).map(x=>x.d).sort();
+    if(pend[0]===base.d){ const x=termSess(rwBuild(base.d,base.wk,0,true)); x.t='다시 체크 (4주)'; x.rw.recheck=true; return x; } }
   return termSess(rwBuild(base.d,base.wk,s.lv==null?1:s.lv,false)); }
 function rwPickDays(days){ const ix=days.map(x=>(DOWIX[x]+6)%7).sort((a,b)=>a-b); if(ix.length<=3)return days.slice();
   let best=null,score=-1; for(let a=0;a<ix.length;a++)for(let b=a+1;b<ix.length;b++)for(let c=b+1;c<ix.length;c++){ const t=[ix[a],ix[b],ix[c]], gaps=[t[1]-t[0],t[2]-t[1],7-t[2]+t[0]], m=Math.min(...gaps);
@@ -2770,9 +2775,10 @@ function rwPromise(r,s){ const rows=[], w=r.rw||{};
   if(r.pain) rows.push(['아픈 곳','있음 — 다음엔 한 단계 낮춰요. 다음 날 아침에도 아프면 하루 더 쉬어요','bad']);
   return {rows,kind:r.pain?'rwpain':!w.done?'rwshort':'rwkept'}; }
 function rwNextLine(){ const s=starterState();
+  if(s.recheckDue) return '다음: 다시 체크 (4주) — 첫 체크와 같은 운동으로 늘어난 걸 봐요';
   if(s.phase==='check') return `다음: 기본 상태 체크 ${s.checksN+1}/2`;
   if(s.phase==='grad') return '30분 쉬지 않고 뛰기 성공 — 졸업이에요. 이제 목적에 맞는 목표를 골라요';
-  const L=RW_LV[s.lv]; return `다음: ${s.lv}단계 · ${rwLabel(L)}${s.ok?` (이 단계 ${s.ok}/2번 통과)`:''}${s.painN>=2?' · 같은 곳이 계속 아프면 쉬고 전문가와 상의하세요':''}`; }
+  const L=RW_LV[s.lv]; return `다음: ${s.lv}단계 · ${rwLabel(L)}${s.ok>=2?' (2번 통과 — 이 단계를 시작한 지 1주가 지나면 올라가요)':s.ok?` (이 단계 ${s.ok}/2번 통과)`:''}${s.painN>=2?' · 같은 곳이 계속 아프면 쉬고 전문가와 상의하세요':''}`; }
 
 function makePlan(opts){
   opts=opts||{};
@@ -4828,13 +4834,16 @@ function renderSummary(completed){
     track:simplify(S.pts,600)};
   if(s.rw){ const segRw=i=>(s.segs[i]||{}).rwk, runR=S.segRecords.filter((r,i)=>segRw(i)==='run'), hrs=runR.filter(r=>r.hr).map(r=>r.hr), okP=runR.filter(r=>isFinite(r.actual)&&r.actual<1200&&r.time>0);
     const dr=S.segRecords.filter((r,i)=>segRw(i)==='walk'&&r.drop!=null).map(r=>r.drop);
-    S.result.rw={lv:s.rw.lv,check:!!s.rw.check,sum:s.rw.sum,done:!!S.extra,runSec:s.rw.runSec,totSec:s.rw.totSec,
+    S.result.rw={lv:s.rw.lv,check:!!s.rw.check,recheck:!!s.rw.recheck,sum:s.rw.sum,done:!!S.extra,runSec:s.rw.runSec,totSec:s.rw.totSec,
       hrRun:hrs.length?Math.round(hrs.reduce((a,b)=>a+b,0)/hrs.length):null,
       paceRun:okP.length?Math.round(okP.reduce((a,r)=>a+r.actual*r.time,0)/okP.reduce((a,r)=>a+r.time,0)):null,
       drop:dr.length?Math.round(dr.reduce((a,b)=>a+b,0)/dr.length):null}; }
 
   rpeVal=null;terrainVal='도로';weatherVal=null;talkVal=null;feelVal=null;painVal=false;$('sNote').value='';
   { const fb=$('sFeelBox'); if(fb){ fb.hidden=!s.rw; fb.querySelectorAll('.tag').forEach(x=>x.classList.remove('on')); } }
+  /* 걷기+달리기 — 끝난 직후 화면은 느낌 고르기가 먼저. 페이스 그래프·구간표·1km표는 숨긴다(기록에는 그대로 남고, 기록 보기의 '자세히'에 있다) */
+  { const rw=!!s.rw; ['chPace','chElev'].forEach(id=>{ const el=$(id); if(el)el.style.display=rw?'none':''; });
+    ['sSegs','sSplits'].forEach(id=>{ const el=$(id), c=el&&el.closest('.card'); if(c){ c.style.display=rw?'none':''; const l=c.previousElementSibling; if(l&&l.classList.contains('lbl'))l.style.display=rw?'none':''; } }); }
   { const ag=aeroGoal(), tb=$('sTalkBox'); if(tb){ tb.hidden=!((s&&s.talkCheck)||(ag&&ag.mode==='breath')); tb.querySelectorAll('[data-tk]').forEach(x=>x.classList.remove('on')); } }
   $('sRPE').innerHTML=[1,2,3,4,5,6,7,8,9,10].map(n=>`<button data-v="${n}">${n}</button>`).join('');
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
@@ -5791,6 +5800,7 @@ const OBSTEP=[
  /* 3 ─ 몸 · 기록 · 문진 */
  {q:'몸과 기록을<br>알려주세요',
   s:'생년월일로 심박 기준이, 기록으로 속도 기준이 정해집니다. 나이는 해마다 저절로 바뀝니다.',
+  get sNov(){ return '처음 달리는 분은 비워도 돼요 — 걷기+달리기 단계는 심박·속도 기준을 쓰지 않아요. 나중에 설정에서 넣으면 졸업 뒤 코칭이 정확해져요.'; },
   body(){ const d=OB.d;
     return `<div class="oblab">몸</div>
       <div class="row">
@@ -5870,6 +5880,9 @@ const OBSTEP=[
       d.rt=(m>0||sx>0)?Math.round(m*60+sx):null; } else d.rt=null;
   },
   ok(){ const d=OB.d;
+    /* 처음 달리는 사람 — 걷기+달리기 단계는 심박·속도 기준을 쓰지 않아서 생년월일·체중이 없어도 시작할 수 있다. 넣으면 확인만 한다 */
+    if(d.novice){ if(d.birth&&!(d.age>=10&&d.age<=95))return {m:'생년월일을 다시 확인해 주세요.',f:'obBirth'};
+      if(d.w&&!(d.w>=25&&d.w<=200))return {m:'체중을 다시 확인해 주세요.',f:'obW'}; return true; }
     if(!d.birth)return {m:'생년월일을 넣어주세요. 해가 바뀌면 나이가 저절로 바뀝니다.',f:'obBirth'};
     if(!(d.age>=10&&d.age<=95))return {m:'생년월일을 다시 확인해 주세요.',f:'obBirth'};
     if(!(d.w>=25&&d.w<=200))return {m:'체중을 넣어주세요.',f:'obW'};
@@ -5916,7 +5929,7 @@ const OBSTEP=[
 function obPaint(){
   const st=OBSTEP[OB.i];
   $('obStep').textContent=`STEP ${OB.i+1} / ${OBSTEP.length}`;
-  $('obQ').innerHTML=st.q; $('obSub').innerHTML=st.s;
+  $('obQ').innerHTML=st.q; $('obSub').innerHTML=(OB.d.novice&&st.sNov)||st.s;
   $('obBody').innerHTML=st.body();
   $('obNext').textContent=st.next||'다음';
   $('obBack').hidden=OB.i===0;
@@ -8192,6 +8205,7 @@ function renderResult(host,r,s,opt){
     ${(opt&&opt.noPoints)?'':(()=>{ let P={good:[],bad:[]}; try{ P=debriefPoints(r,s||{dist:0}); }catch(e){}
       const row=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
       return (P.good.length||P.bad.length)?`<div class="rcard"><ul class="db-pts">${P.good.map(x=>row(x,'ok')).join('')}${P.bad.map(x=>row(x,'bad')).join('')}</ul></div>`:''; })()}
+    ${r.rw?'<details class="bmore rw-more"><summary>자세히 — 구간 · 1km · 부하 · 심박 존</summary>':''}
     ${repsH?`<div class="rcard">${repsH}</div>`:''}
     ${segs||splits?`<div class="rcard rtabs"><div class="rtb">${segs?'<button type="button" class="on" data-rt="seg">구간</button>':''}${splits?`<button type="button"${segs?'':' class="on"'} data-rt="km">1km</button>`:''}</div>${segs?`<div data-rtp="seg"><div class="sgh"><span>구간</span><span>거리</span><span>페이스</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div>`:''}
     ${loadCard(r)}
@@ -8199,7 +8213,7 @@ function renderResult(host,r,s,opt){
       ${r.breath.map((b,i)=>`<div class="bcomf"><b class="num">${b.ratio}</b><span style="font-size:11.5px;color:var(--ink-2)">${b.pace?fmtPace(b.pace):'—'} · ${b.hr?'♥'+b.hr:'심박 없음'}</span>
         <span><span class="cs">${[1,2,3,4,5].map(n=>`<button data-bc="${i}:${n}" class="${b.comfort===n?'on':''}">${n}</button>`).join('')}</span>
         <label><input type="checkbox" data-bs="${i}"${b.stitch?' checked':''}>결림</label></span></div>`).join('')}</div>`:''}
-    <div class="rsZones"></div>
+    <div class="rsZones"></div>${r.rw?'</details>':''}
         <div class="rs-snap">${snapBtn('#'+host.id,'result','훈련 결과','wide')}<button class="btn ghost" data-rs="share">꾸며서 공유하기</button></div>`;
   paintZones(host.querySelector('.rsZones'),r.zones,T);
   paintMap(host.querySelector('.rmap'),r.track,r.segments);
@@ -10314,6 +10328,8 @@ function loadCard(r,compact){
 
 /* ═════════════════════ 뛴 뒤 디브리핑 — 오늘 결과를 그림·숫자로 풀고, 다음 훈련 수정에 동의를 구한다 ═════════════════════ */
 function afterOpts(r,s){
+  /* 걷기+달리기 — 다음 단계는 기록으로 자동으로 정해진다(묻지 않는다) */
+  if(r&&r.rw){ const pr=promiseRows(r,s); return {kind:pr.kind,opts:[],say:''}; }
   /* openAfterDec가 만들던 선택지를 그대로 돌려준다 — 화면만 다르다 */
   const pr=promiseRows(r,s), kind=pr.kind, T=TYPES[s.type]||{}, th=r.th||judgeTh();
   const nextHard=nextOf(['interval','threshold','goalpace','rep','tt'],todayStr(),3);
@@ -10350,9 +10366,14 @@ function debriefPoints(r,s){
   (pr.rows||[]).forEach(x=>{ if(x[2]==='ok')good.push([x[0],x[1]]); else if(x[2]==='bad')bad.push([x[0],x[1]]); });
   if(r.rw){ const w=r.rw, m=[];
     if(w.paceRun)m.push(`뛸 때 1km ${fmtPace(w.paceRun)}`); if(w.hrRun)m.push(`뛸 때 심박 ${w.hrRun}`); if(w.drop!=null)m.push(`걷는 2분 동안 심박 ${w.drop} 내려감`);
-    if(m.length)good.push(['오늘 잰 것',m.join(' · ')+' — 처음 기준이 돼요']);
+    const f0=w.recheck?(starterState().firstCheck||null):null, f=f0&&f0.rw;
+    if(f&&f0!==r){ const c=[]; const dd=Math.round((Date.parse(String(r.date).slice(0,10))-Date.parse(String(f0.date).slice(0,10)))/864e5);
+      if(f.paceRun&&w.paceRun)c.push(`뛸 때 1km ${fmtPace(f.paceRun)} → ${fmtPace(w.paceRun)}`); if(f.hrRun&&w.hrRun)c.push(`심박 ${f.hrRun} → ${w.hrRun}`); if(f.drop!=null&&w.drop!=null)c.push(`걷는 2분 심박 하강 ${f.drop} → ${w.drop}`);
+      if(f0.feel&&r.feel)c.push(`느낌 ${({easy:'쉬웠음',ok:'적당',hard:'힘들었음'})[f0.feel]} → ${({easy:'쉬웠음',ok:'적당',hard:'힘들었음'})[r.feel]}`);
+      if(c.length)good.push([`${dd}일 전 첫 체크와 비교`,c.join(' · ')+' — 같은 체크라 그대로 비교돼요. 하루 컨디션(수면·더위)에 따라 흔들릴 수 있어요']); }
+    else if(m.length)good.push(['오늘 잰 것',m.join(' · ')+(w.check?' — 처음 기준이 돼요':'')]);
     if(!r.feel)bad.push(['느낌','안 골랐어요 — 기록 편집에서 고르면 다음 단계가 정해져요']);
-    good.push(['다음',rwNextLine()]); return {good,bad}; }
+    good.push(['다음',rwNextLine().replace(/^다음: /,'')]); return {good,bad}; }
   /* 후반 비교는 본 구간만 — 웜업(느리게 시작)·쿨다운(느리게 끝)을 넣으면 계획대로 뛰어도 '후반이 느려졌다'가 나온다 */
   const sg=r.segments||[]; let wK=0,cK=0; for(const g of sg){ if(/웜업|준비/.test(g.nm||''))wK+=+g.km||0; else break; } for(const g of sg.slice().reverse()){ if(/쿨다운|마무리/.test(g.nm||''))cK+=+g.km||0; else break; }
   const totK=+r.km||0, sp=(r.splits||[]).filter(x=>x.pace&&!x.part&&!x.est&&(x.km-1)>=wK-0.05&&x.km<=totK-cK+0.05);
@@ -10399,11 +10420,11 @@ function openDebrief(r,s){
     <div class="db-hd" style="--tc:${col}"><span class="db-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span><span class="db-date">${todayStr().slice(5).replace('-','.')} ${dowOf(todayStr())}</span></div>
     ${vd?`<div class="db-vd ${vd[1]}">${vd[1]==='ok'?'🏅':vd[1]==='mid'?'🔎':'💬'} ${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
     <div class="db-hero">${map?`<div class="db-map">${map}</div>`:''}<div class="db-nums">
-      <div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div>
-      <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>${r.hrAvg?`<div><b class="num">${r.hrAvg}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
-    ${debriefShape(r,s)?`<div class="db-card"><div class="db-lab">구간별 계획(띠) vs 실제(막대) · 높을수록 빠름</div>${debriefShape(r,s)}</div>`:''}
+      ${r.rw?`<div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${rwMin(r.rw.runSec||0)}</b><i>뛴 시간(계획)</i></div><div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div>`:`<div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div>
+      <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>`}${r.hrAvg?`<div><b class="num">${r.hrAvg}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
+    ${r.rw?'':`${debriefShape(r,s)?`<div class="db-card"><div class="db-lab">구간별 계획(띠) vs 실제(막대) · 높을수록 빠름</div>${debriefShape(r,s)}</div>`:''}
     ${zt>300?`<div class="db-card"><div class="db-lab">심박 존</div><div class="db-zones">${z.map((v,i)=>v?`<i style="flex:${v};background:${ZCOL[i]}" title="Z${i+1} ${Math.round(v/60)}분"></i>`:'').join('')}</div><div class="db-zl">${z.map((v,i)=>v/zt>0.08?`<span style="color:${ZCOL[i]}">Z${i+1} ${Math.round(v/zt*100)}%</span>`:'').join('')}</div></div>`:''}
-    ${L?`<div class="db-card">${loadCard(r,true)}</div>`:''}
+    ${L?`<div class="db-card">${loadCard(r,true)}</div>`:''}`}
     ${P.good.length?`<div class="db-card"><div class="db-lab">좋았던 점</div><ul class="db-pts">${P.good.map(x=>row(x,'ok')).join('')}</ul></div>`:''}
     ${P.bad.length?`<div class="db-card"><div class="db-lab">아쉬운 점</div><ul class="db-pts">${P.bad.map(x=>row(x,'bad')).join('')}</ul></div>`:''}
     ${A.say?`<p class="db-say">${A.say}</p>`:''}
