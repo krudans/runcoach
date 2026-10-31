@@ -1537,11 +1537,14 @@ details.noti .sigc{margin:6px 0}
       </div>
     </div>
     <div class="grid4" id="rGrid">
-      <button class="cell" data-h="dist"><div class="k">거리</div><div class="v num" id="rDist">0.00</div><div class="u">km</div></button>
-      <button class="cell" data-h="pace"><div class="k">페이스</div><div class="v num" id="rPace">--'--"</div><div class="u" id="rPaceU">/km</div></button>
-      <button class="cell" data-h="time"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
-      <button class="cell" data-h="hr"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
-      <button class="cell" data-h="cad"><div class="k">케이던스</div><div class="v num" id="rCad">—</div><div class="u" id="rCadU">분당</div></button>
+      <button class="cell" data-h="dist" data-acts="run walk hike bike"><div class="k">거리</div><div class="v num" id="rDist">0.00</div><div class="u">km</div></button>
+      <button class="cell" data-h="pace" data-acts="run"><div class="k">페이스</div><div class="v num" id="rPace">--'--"</div><div class="u" id="rPaceU">/km</div></button>
+      <button class="cell" data-h="speed" data-acts="bike"><div class="k">속도</div><div class="v num" id="rSpd">—</div><div class="u" id="rSpdU">km/h</div></button>
+      <button class="cell" data-h="asc" data-acts="hike bike"><div class="k">오른 높이</div><div class="v num" id="rAscC">0</div><div class="u" id="rAscU">m</div></button>
+      <button class="cell" data-h="time" data-acts="run walk hike bike"><div class="k">시간</div><div class="v num" id="rTime">0:00</div><div class="u">경과</div></button>
+      <button class="cell" data-h="steps" data-acts="walk hike"><div class="k">걸음</div><div class="v num" id="rSteps">0</div><div class="u">걸음</div></button>
+      <button class="cell" data-h="hr" data-acts="run walk hike bike"><div class="k">심박</div><div class="v num" id="rHR">—</div><div class="u" id="rHRZ">미연결</div></button>
+      <button class="cell" data-h="cad" data-acts="run walk"><div class="k" id="rCadK">케이던스</div><div class="v num" id="rCad">—</div><div class="u" id="rCadU">분당</div></button>
     </div>
   </div>
 
@@ -2017,7 +2020,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.1';
+const APPVER='19.3';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2238,7 +2241,7 @@ function coachBasis(){
   if(ov.E){ return { easy:{src:'M', n:L.n||0, range:PACE?[PACE.easy[0],PACE.easy[1]]:null, warn:null, note:`직접 정한 이지런 속도 (${fmtPace(PACE.easy[0])}~${fmtPace(PACE.easy[1])})`},
     hrmax:{src:hs, value:HRMAX, note:hs==='manual'?`최대 심박 ${HRMAX} (직접 정한 값)`:hs==='measured'?`최대 심박 ${HRMAX} (직접 잰 값)`:hs==='observed'?`최대 심박 ${HRMAX} (뛰면서 30초 넘게 유지된 최고값)`:`최대 심박 ${HRMAX} (나이로 추정 · 오차 ±10)`} }; }
   return {
-    easy:{src:used?'D':'C', n:L.n||0, range:PACE?[PACE.easy[0],PACE.easy[1]]:null,
+    easy:{src:used?'D':'C', conf:!!(L.paceAtCap&&!used), n:L.n||0, range:PACE?[PACE.easy[0],PACE.easy[1]]:null,
       warn: used&&L.capped&&hs==='estimated' ? `천천히 뛰어도 심박이 높게 나와요. 나이로 추정한 최대 심박 ${HRMAX}이 실제보다 낮을 수 있어요 — 실력 재기(TT)나 대회에서 30초 넘게 유지된 최고 심박이 기록되면 자동으로 다시 맞춥니다` : null,
       note: used ? `내 기록 ${L.n}번의 심박으로 맞춘 속도 (편함 상한 심박 ${L.cap}에서 ${fmtPace(Math.min(L.paceAtCap,PACE.easy[0]))}${L.capped?' — 늦추는 폭은 45초까지만':''})`
           : L.paceAtCap&&!used ? `내 기록 ${L.n}번으로 확인 — 공식 속도가 내 몸에도 맞아요`
@@ -3935,14 +3938,38 @@ let HERO=null;                       /* 사용자가 고른 값. 없으면 세�
 /* 그 세션에서 가장 중요한 것이 자동으로 메인에 올라온다 */
 /* 기본은 '오늘 전체 뛴 거리'. 구간 남은 거리는 칸을 눌러 바꾼다. */
 function defaultHero(){ return S.act==='hike'?'asc':S.act==='bike'?'speed':'dist'; }
+/* 운동마다 보는 숫자가 다르다 — 등산은 오른 높이, 자전거는 속도, 걷기는 걸음. 달리기 페이스·케이던스를 그대로 쓰지 않는다 */
+const actOf=()=>(S.act&&ACTK[S.act])?S.act:'run';
 function setHero(h){
   if(h){ HERO=h; }
-  S.hero = HERO || defaultHero();
-  document.querySelectorAll('#rGrid .cell').forEach(c=>{ c.classList.toggle('sel',c.dataset.h===S.hero); c.hidden=c.dataset.h===S.hero; });
+  const ak=actOf(), okH=x=>{ const c=document.querySelector(`#rGrid .cell[data-h="${x}"]`); return c&&String(c.dataset.acts||'').split(' ').includes(ak); };
+  S.hero = (HERO&&okH(HERO)) ? HERO : defaultHero();
+  document.querySelectorAll('#rGrid .cell').forEach(c=>{ const inAct=String(c.dataset.acts||'').split(' ').includes(ak); c.classList.toggle('sel',c.dataset.h===S.hero); c.hidden=!inAct||c.dataset.h===S.hero; });
+  { const k=$('rCadK'); if(k)k.textContent=ak==='walk'?'분당 걸음':'케이던스'; }
   if(S.running)onTick();
 }
 $('rGrid').onclick=e=>{ const c=e.target.closest('.cell'); if(c)setHero(c.dataset.h); };
 
+/* 걷기·등산·자전거 — 판정은 없고, 지금 상태를 사실대로. 소리 안내는 드물게(걷기 1km · 등산 오른 높이 100m · 자전거 5km) */
+function actTick(km,moving){
+  const ak=actOf(), el=S.elapsed, spd=el>20?km/(el/3600):0, net=(S.asc||0)-(S.desc||0);
+  S.actHist=S.actHist||[]; if(!S.actHist.length||el-S.actHist[S.actHist.length-1].t>=5)S.actHist.push({t:el,net,km}); while(S.actHist.length>2&&el-S.actHist[0].t>90)S.actHist.shift();
+  const h0=S.actHist[0], dAlt=net-h0.net, dKm=km-h0.km, dt=Math.max(1,el-h0.t), curSpd=dKm/(dt/3600);
+  $('rAscC').textContent='+'+Math.round(S.asc||0); $('rAscU').textContent=ak==='hike'?(el>300?`시간당 ${Math.round((S.asc||0)/(el/3600))}m`:'m'):'m';
+  $('rSpd').textContent=dt>=20&&moving?curSpd.toFixed(1):'—'; $('rSpdU').textContent=`평균 ${spd.toFixed(1)}`;
+  $('rSteps').textContent=(S.cad&&S.cad.steps)||0;
+  const cad=moving?cadence():null; let pill='기록 중 · 판정 없음', say='';
+  if(!moving&&el>30) pill=ak==='hike'?'쉬는 중':'멈춤 — 움직이면 이어서 기록';
+  else if(ak==='walk'){ pill=cad>=100?`분당 ${cad}걸음 · 중강도 걷기`:cad>=60?`분당 ${cad}걸음 · 가벼운 걷기`:'걷는 중';
+    if(cad&&cad<100&&el>300)say='분당 100걸음 넘으면 중강도 걷기예요 (Tudor-Locke 2018)'; }
+  else if(ak==='hike') pill=dAlt>=4?'오르는 중 · 말할 수 있을 만큼 천천히':dAlt<=-4?'내려가는 중 · 보폭 짧게, 발밑 조심':'평지 · 기록 중';
+  else if(ak==='bike') pill=dt>=20?`시속 ${curSpd.toFixed(0)}km`:'기록 중';
+  /* 소리 — 드물게 */
+  const V=S.actV=S.actV||{km:0,asc:0};
+  if(ak==='walk'&&Math.floor(km)>V.km){ V.km=Math.floor(km); DEV.speak(`${V.km}킬로미터. 시간 ${fmtTimeVoice(el)}.${cad?` 분당 ${cad}걸음.`:''}`,false); }
+  if(ak==='bike'&&Math.floor(km/5)>V.km){ V.km=Math.floor(km/5); DEV.speak(`${V.km*5}킬로미터. 평균 시속 ${spd.toFixed(0)}킬로미터.`,false); }
+  if(ak==='hike'&&Math.floor((S.asc||0)/100)>V.asc){ V.asc=Math.floor((S.asc||0)/100); DEV.speak(`${V.asc*100}미터 올랐습니다. 시간 ${fmtTimeVoice(el)}.`,false); }
+  return {pill,say}; }
 /* 두 페이지 — 옆으로 넘긴다 */
 let RPAGE=1;
 function runPage(nx){
@@ -4150,7 +4177,7 @@ function onTick(){
       : tg.tol==='ceil' ? `${fmtPace(tgPace[0])}보다 천천히${hrCap?` · ♥${hrCap} 아래`:''}`
       : hrCap ? `♥${hrCap} 아래 · ${rangeText(tgPace)}` : `${rangeText(tgPace)} 유지`; }
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
-  if(!S.gpsWarn&&S.elapsed>180&&km<0.15&&S.pts.length>60){
+  if(!S.gpsWarn&&S.elapsed>180&&km<((S.act==='hike'||S.act==='walk')?0.03:0.15)&&S.pts.length>60){   /* 가파른 등산은 3분에 100m도 안 갈 수 있다 */
     S.gpsWarn=true;
     DEV.buzz(BZ.off); DEV.speak('거리가 기록되지 않고 있습니다.',true);
   }
@@ -4164,6 +4191,7 @@ function onTick(){
   /* 멈춰 있을 때 팔 흔들림을 걸음으로 세지 않도록 — 실제로 움직일 때만 센다.
      페이스가 아니라 거리가 늘고 있는지로 판단한다(페이스가 없어도 동작해야 한다) */
   const moving = (!!S.lastMove && (Date.now()-S.lastMove)<8000) || !!S.gpsGap;   /* 터널 안에서도 걸음은 센다 */
+  { const tdS=Math.min(S._stillT!=null?S.elapsed-S._stillT:0,5); S._stillT=S.elapsed; S.stillSec=moving?0:(S.stillSec||0)+Math.max(0,tdS); }
   const cadNow = moving ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
   { const u=$('rCadU'); if(u)u.textContent=(cadNow&&isFinite(p)&&p>0)?`보폭 ${(1000/p*60/cadNow).toFixed(2)}m`:'분당'; }
@@ -4290,6 +4318,9 @@ function onTick(){
     const left = tg.end==='time' ? (tg.sec-(S.elapsed-S.segStart.t))*1000/Math.max(200,p||400)
                                  : (tg.to-km)*1000;
     if(left>0&&left<=100&&S.segIx<segs.length-1){ state='soon'; pill='곧 바뀝니다'; say=''; }
+    /* 멈췄거나 걷는 속도인데 '지금 좋아요'라고 하면 거짓말이다 — 꾸짖지는 않고 사실만 */
+    else if(!s.rw&&S.elapsed>60&&(S.stillSec||0)>=20){ pill='멈춤 — 다시 출발하면 이어서 기록'; say=''; }
+    else if(!s.rw&&S.elapsed>60&&isFinite(p)&&p>720){ pill='걷는 중 — 괜찮아요, 준비되면 천천히'; say=''; }
     else { pill='지금 좋아요'; say=''; }
   }
   /* 발로 낼 수 없는 속도가 10초 넘게 이어지면 '지금 좋아요'라고 하면 안 된다 */
@@ -4302,6 +4333,7 @@ function onTick(){
       if(left<=3&&S.rwBeep!==S.segIx+':'+Math.ceil(left)){ S.rwBeep=S.segIx+':'+Math.ceil(left); try{ VC.beep(880,120); }catch(e){} } }
     else { state='ok'; pill=tg.rwk==='run'?'달리는 중 · 말할 수 있을 만큼':tg.rwk==='walk'?'걷는 중 · 숨 고르기':'편하게 걷기'; say=tg.rwk==='run'&&s.rw.check&&tg.rep===3?'한 문장을 소리 내 말해 보세요. 말이 끊기면 더 천천히.':''; } }
   if(S.extra&&(state==='ok'||state==='okhr')){ pill='계획 완료 · 계속 기록 중'; say='더 뛰는 거리도 그대로 기록돼요. 1km마다 안내합니다.'; }
+  if(S.act&&S.act!=='run'){ try{ const A=actTick(km,moving); state='ok'; pill=A.pill; say=A.say||''; $('rSegName').textContent=ACTK[S.act].nm; $('rSegTgt').textContent='판정 없이 기록 · 지금 상태만 알려줘요'; }catch(e){} }
   if(state!==S.bannerState){ S.bannerState=state; $('run').dataset.state=state; }
 
   /* 중단 권고 — 이것만 맥박친다. 아끼지 않으면 늑대 소년이 된다. */
@@ -4326,13 +4358,14 @@ function onTick(){
 
   /* 메인 숫자 — 4칸에서 고른 것. 기본은 세션이 정한다 */
   const hv=$('rHeroV');
-  if(S.act&&S.act!=='run'&&(S.hero==='asc'||S.hero==='speed')){
-    if(S.hero==='asc'){ $('rHeroK').textContent='오른 높이'; hv.textContent='+'+Math.round(S.asc); $('rHeroU').textContent=`m · ${km.toFixed(2)}km`; }
+  if(S.act&&S.act!=='run'&&S.hero==='steps'){ $('rHeroK').textContent='걸음'; hv.textContent=(S.cad&&S.cad.steps)||0; $('rHeroU').textContent=`걸음 · ${km.toFixed(2)}km`; }
+  else if(S.act&&S.act!=='run'&&(S.hero==='asc'||S.hero==='speed')){
+    if(S.hero==='asc'){ $('rHeroK').textContent='오른 높이'; hv.textContent='+'+Math.round(S.asc); $('rHeroU').textContent=`m · 내려온 ${Math.round(S.desc)}m · ${km.toFixed(2)}km`; }
     else { $('rHeroK').textContent='속도'; hv.textContent=S.elapsed>20?(km/(S.elapsed/3600)).toFixed(1):'—'; $('rHeroU').textContent=`km/h · ${km.toFixed(2)}km`; } }
   else if(s.rw&&!S.extra&&(S.hero==='dist'||!S.hero)){ /* 걷기+달리기 — 큰 숫자는 '이 구간 남은 시간'. 거리는 아래 칸에 */
     const lf=Math.max(0,Math.ceil(tg.sec-(S.elapsed-S.segStart.t))); $('rHeroK').textContent=tg.rwk==='run'?`달리기 ${tg.rep||''}/${segs.filter(x=>x.rwk==='run').length} 남은 시간`:tg.rwk==='walk'?'걷기 남은 시간':tg.rwk==='warm'?'걷기로 시작':'걷기로 마무리';
     hv.textContent=fmtClock(lf); $('rHeroU').textContent=`${km.toFixed(2)}km · 전체 ${fmtClock(S.elapsed)}`; }
-  else if(S.hero==='hr'){ $('rHeroK').textContent='심박'; hv.textContent=S.hr.bpm||'—';
+  else if(S.hero==='hr'&&(S.hr.bpm||S.hr.dev)){ $('rHeroK').textContent='심박'; hv.textContent=S.hr.bpm||'—';
     $('rHeroU').textContent = (HZ&&HZ[1])
       ? (hrOver?`${S.hr.bpm-HZ[1]} 초과`:`목표 ${HZ[0]?HZ[0]+'~':'≤ '}${HZ[1]}`)
       : (S.hr.dev?'bpm':'기기 미연결'); }
@@ -4408,7 +4441,7 @@ function onTick(){
       if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly)msg+=`심박 ${lapHR}, 목표 ${HZ[1]}보다 높습니다. `;
     } else if(lapHR){ msg+=`평균 심박 ${lapHR}. `; }
     /* 1km 안내는 사용자가 무조건 듣기로 한 것 — 조용히·간격 제한에 걸리지 않게 critical로 낸다 */
-    DEV.speak(msg,false,true); DEV.buzz(BZ.tick);   /* 앞말을 끊지 않고 뒤에 이어서 */
+    if(!(S.act&&S.act!=='run')){ DEV.speak(msg,false,true); DEV.buzz(BZ.tick); }   /* 앞말을 끊지 않고 뒤에 이어서 — 걷기·등산·자전거는 actTick이 따로 짧게 말한다 */
     S.liveRows.push({kind:'lap',nm:`${S.lapKm}km`,actual:lapPace,time:dt,hr:lapHR,cad:lapCad,note:verdictTxt});
     renderLaps();
   }
@@ -4848,7 +4881,7 @@ function renderSummary(completed){
   $('sRPE').innerHTML=[1,2,3,4,5,6,7,8,9,10].map(n=>`<button data-v="${n}">${n}</button>`).join('');
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
   $('sWeather').innerHTML=WEATHER.map(w=>`<button class="tag" data-w="${w}">${w}</button>`).join('');
-  if(S.act&&S.act!=='run'){ Object.assign(S.result,{act:S.act,title:ACTK[S.act].nm,name:ACTK[S.act].nm}); }
+  if(S.act&&S.act!=='run'){ Object.assign(S.result,{act:S.act,title:ACTK[S.act].nm,name:ACTK[S.act].nm,steps:(S.cad&&S.cad.steps)||null}); }
   try{ SH.fromView='sum'; if(S.act&&S.act!=='run')renderActResult($('sNew'),S.result); else renderResult($('sNew'),S.result,s.d==='free'?null:s,{noPoints:s.d!=='free'}); }catch(e){ console.error(e); $('sOld').hidden=false; }
 }
 /* ───────── 어느 세기로 얼마나 뛰었나 ─────────
@@ -7609,7 +7642,7 @@ function todayCard(sess,idx){
   return `<section class="hero" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
     <svg class="hero-mark" viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(32 50 58)"><path d="${BR_BODY}" fill="#5B2D86"/><g fill="none" stroke="#F4F0EA" stroke-width="3.4">${BR_LANES.map(d=>`<path d="${d}"/>`).join('')}</g><path d="${BR_CAP}" fill="#2EAD7A"/></g></svg>
     <div class="hero-top"><span class="hero-today">오늘 훈련</span><span class="hero-chip"><i></i>${g0.e}${sess.role?' · '+ESC(sess.role):''}</span>
-      ${b?`<details class="hero-basis"><summary>${b.easy.src==='D'?'내 몸 기준':'임시 기준'}</summary><p>${b.easy.note}${b.easy.warn?'<br>'+b.easy.warn:''}</p></details>`:''}</div>
+      ${b?`<details class="hero-basis"><summary>${b.easy.src==='D'?'내 몸 기준':b.easy.conf?'내 기록으로 확인':'임시 기준'}</summary><p>${b.easy.note}${b.easy.warn?'<br>'+b.easy.warn:''}</p></details>`:''}</div>
     <div class="hero-km"><b class="num">${sess.dist}</b><span>km${edited?' · 바꿈':''}</span></div>
     ${what?`<div class="hero-what">${what} · ${g0.e}</div>`:''}
     ${heroShape(sess,k1,k2)}
@@ -8435,12 +8468,20 @@ function renderActResult(host,r){
   const kmh=r.sec>0?(r.km/(r.sec/3600)):0;
   const alts=(r.track||[]).map(p=>p.alt).filter(v=>v!=null);
   const big = r.act==='hike' ? [`+${r.asc||0}`,'m 오른 높이'] : r.act==='bike' ? [kmh.toFixed(1),'km/h 평균'] : [r.km.toFixed(2),'km'];
+  const spm=r.steps&&r.sec>60?Math.round(r.steps/(r.sec/60)):(r.cadAvg||null), hr=[r.hrAvg||'—','평균 심박'];
+  /* 운동마다 맞는 숫자 — 등산에 1km 페이스는 의미가 없고, 자전거에 걸음은 없다 */
+  const tiles = r.act==='hike' ? [[r.km.toFixed(2),'km'],[fmtClock(r.sec),'시간'],[r.sec>600?Math.round((r.asc||0)/(r.sec/3600)):'—','시간당 오른 m'],hr]
+              : r.act==='bike' ? [[r.km.toFixed(2),'km'],[fmtClock(r.sec),'시간'],[`+${r.asc||0}`,'오른 높이 m'],hr]
+              : [[fmtClock(r.sec),'시간'],[r.steps||'—','걸음'],[spm||'—','분당 걸음 (평균)'],hr];
+  const note = r.act==='walk'&&spm ? (spm>=100?`평균 분당 ${spm}걸음 — 중강도 걷기예요. 분당 100걸음이 중강도의 경계예요 (Tudor-Locke 2018, B).`:`평균 분당 ${spm}걸음 — 가벼운 걷기예요. 분당 100걸음을 넘기면 중강도예요 (Tudor-Locke 2018, B). 멈춘 시간도 평균에 들어가요.`)
+             : r.act==='hike'&&r.sec>600 ? `시간당 오른 높이는 등산 속도를 보는 숫자예요. 같은 길에서 늘면 체력이 는 거예요.` : '';
   host.innerHTML=`<div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} · <span class="tchip2" style="background:${a.col}">${a.nm}</span></div>
-    <h2 class="rt">${a.nm} · 그냥 움직이기</h2><div class="dverd mid">판정 없이 기록만 남깁니다 · 달리기 거리로 바꾸지 않습니다 ${GRB('B')}</div>
+    <h2 class="rt">${a.nm} 기록</h2><div class="dverd mid">${r.act==='walk'?'걷기':r.act==='hike'?'등산':'자전거'}는 판정하지 않고 기록만 남겨요 · 달리기 거리에는 넣지 않아요</div>
     <div class="actbig"><b class="num">${big[0]}</b><i>${big[1]}</i></div>
-    ${alts.length>3?`<div class="rcard"><div class="rh"><b>높이</b><span>▲${r.asc||0}m ▼${r.desc||0}m</span></div>${spark(alts,300,70,false,'#3F6E3A')}</div>`:''}
+    ${alts.length>3&&r.act!=='walk'?`<div class="rcard"><div class="rh"><b>높이</b><span>▲${r.asc||0}m ▼${r.desc||0}m</span></div>${spark(alts,300,70,false,'#3F6E3A').replace('class="spk"','class="spk" style="width:100%;height:80px" preserveAspectRatio="none"')}</div>`:''}
     <div class="rmap"></div>
-    <div class="rsm"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${r.hrAvg||'—'}</b><i>평균 심박</i></div><div><b class="num">${r.act==='bike'?kmh.toFixed(1):fmtPace(r.paceAvg)}</b><i>${r.act==='bike'?'km/h':'/km'}</i></div></div>
+    <div class="rsm">${tiles.map(t=>`<div><b class="num">${t[0]}</b><i>${t[1]}</i></div>`).join('')}</div>
+    ${note?`<p class="meta" style="line-height:1.7;margin:4px 2px 12px">${note}</p>`:''}
     <button class="btn ghost" data-rs="share">사진으로 공유하기</button>`;
   const m=host.querySelector('.rmap'); if(r.track&&r.track.length>3){ m.innerHTML=routeSVG(r.track,null,{cls:'rsvg',mono:'#3F6E3A'}); } else m.innerHTML='<div class="nomap">경로가 기록되지 않았습니다</div>';
   host.querySelector('[data-rs="share"]').onclick=()=>openShare(r,null);
@@ -10683,12 +10724,12 @@ async function snapCard(el,name,title){
   const kHosts=[...el.querySelectorAll('.kmap')].map(k=>k.parentElement); const kFix=root=>[...root.querySelectorAll('.kmap')].forEach((k,i)=>{ const h=kHosts[i]; if(h&&h._svg)k.parentElement.innerHTML=h._svg; else k.remove(); });
   kFix(clone);
   const wrap=document.createElement('div'); wrap.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; wrap.appendChild(clone); document.body.appendChild(wrap);
-  clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details').forEach(d=>d.open=true);
+  clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); clone.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
   clone.querySelectorAll('input,textarea').forEach(x=>{ const sp=document.createElement('span'); sp.textContent=x.value; x.replaceWith(sp); });
   /* 원본 순서가 같아야 스타일을 1:1로 복사할 수 있다 — 지운 요소는 원본에서도 건너뛴다 */
   const src=el.cloneNode(true); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); kFix(src);
   const probe=document.createElement('div'); probe.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; probe.appendChild(src); document.body.appendChild(probe);
-  src.querySelectorAll('details').forEach(d=>d.open=true);
+  src.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); src.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
   snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
   const h2=clone.offsetHeight||H; probe.remove();
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(clone)}</div></foreignObject></svg>`;
