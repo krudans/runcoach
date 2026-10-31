@@ -2020,7 +2020,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.3';
+const APPVER='19.4';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8129,19 +8129,20 @@ function routeSVG(tr,segs,o){
     out+=`<circle cx="${X(st).toFixed(1)}" cy="${Y(st).toFixed(1)}" r="8" fill="#0E9B72" stroke="#fff" stroke-width="3"/><circle cx="${X(en).toFixed(1)}" cy="${Y(en).toFixed(1)}" r="8" fill="#16211D" stroke="#fff" stroke-width="3"/>`; }
   return `<svg viewBox="0 0 ${W} ${H}" class="${o.cls||''}" role="img" aria-label="경로">${out}</svg>`;
 }
-async function paintMap(host,tr,segs){
+async function paintMap(host,tr,segs,mono){
   if(!host)return;
   if(!tr||tr.length<3){ host.innerHTML='<div class="nomap">경로가 기록되지 않았습니다</div>'; return; }
-  host.innerHTML=routeSVG(tr,segs,{cls:'rsvg'}); host._svg=host.innerHTML;
+  host.innerHTML=routeSVG(tr,segs,mono?{cls:'rsvg',mono}:{cls:'rsvg'}); host._svg=host.innerHTML;
   const k=await loadKakao(); if(!k||!host.isConnected)return;
   try{
     host.innerHTML=''; const box=document.createElement('div'); box.className='kmap'; host.appendChild(box);
     const map=new k.maps.Map(box,{center:new k.maps.LatLng(tr[0].lat,tr[0].lon),level:5});
     const bounds=new k.maps.LatLngBounds();
-    let cur=[tr[0]], col=ptColor(tr[0],segs);
+    const pc=p=>mono?(p.over?'#CF3B36':mono):ptColor(p,segs);
+    let cur=[tr[0]], col=pc(tr[0]);
     const flush=()=>{ if(cur.length>1)new k.maps.Polyline({map,path:cur.map(p=>new k.maps.LatLng(p.lat,p.lon)),strokeWeight:6,strokeColor:col,strokeOpacity:.95}); };
     tr.forEach(p=>bounds.extend(new k.maps.LatLng(p.lat,p.lon)));
-    for(let i=1;i<tr.length;i++){ const c=ptColor(tr[i],segs); cur.push(tr[i]); if(c!==col){ flush(); cur=[tr[i]]; col=c; } }
+    for(let i=1;i<tr.length;i++){ const c=pc(tr[i]); cur.push(tr[i]); if(c!==col){ flush(); cur=[tr[i]]; col=c; } }
     flush();
     const cm=trackCum(tr); let km=1;
     for(let i=1;i<tr.length;i++) if(cm[i]/1000>=km){ new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[i].lat,tr[i].lon),content:`<div class="kmk">${km}</div>`,yAnchor:.5}); km++; }
@@ -8483,7 +8484,8 @@ function renderActResult(host,r){
     <div class="rsm">${tiles.map(t=>`<div><b class="num">${t[0]}</b><i>${t[1]}</i></div>`).join('')}</div>
     ${note?`<p class="meta" style="line-height:1.7;margin:4px 2px 12px">${note}</p>`:''}
     <button class="btn ghost" data-rs="share">사진으로 공유하기</button>`;
-  const m=host.querySelector('.rmap'); if(r.track&&r.track.length>3){ m.innerHTML=routeSVG(r.track,null,{cls:'rsvg',mono:'#3F6E3A'}); } else m.innerHTML='<div class="nomap">경로가 기록되지 않았습니다</div>';
+  /* 달리기와 같은 지도(카카오 지도 + 경로). 지도를 못 불러오면 경로 그림만 */
+  const m=host.querySelector('.rmap'); if(r.track&&r.track.length>3){ paintMap(m,r.track,null,({hike:'#3F6E3A',bike:'#D9761E',walk:'#2F7FD0'})[r.act]||'#3F6E3A'); } else m.innerHTML='<div class="nomap">경로가 기록되지 않았습니다</div>';
   host.querySelector('[data-rs="share"]').onclick=()=>openShare(r,null);
 }
 
