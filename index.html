@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#F4EFF8">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="gaji-icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="gaji-icon-192.png">
+<link rel="icon" type="image/svg+xml" href="gaji-icon.svg">
 <meta name="apple-mobile-web-app-title" content="가지런">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>가지런 · GAJI RUN</title>
@@ -1142,6 +1142,8 @@ details.noti .sigc{margin:6px 0}
 .sp-c em{font-style:normal;font-size:16px;font-weight:700;color:#BFE0C8;letter-spacing:.02em;margin-top:18px}
 .sp-ft{text-align:center;font-size:12px;letter-spacing:.24em;opacity:.55}
 @media (prefers-reduced-motion:reduce){#splash{transition:none}}
+
+.cal .cd.o{opacity:.55}.cal .cd.o em{font-style:normal;font-size:.85em;opacity:.8}
 </style>
 </head>
 <body>
@@ -2020,7 +2022,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.4';
+const APPVER='19.7';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3455,7 +3457,7 @@ function sysNotify(sig){
   try{ if(!sig.length||!('Notification' in window)||Notification.permission!=='granted')return;
     const t=todayStr(), seen=DEV.store.get('notiSeen',{}); let changed=false;
     sig.forEach(x=>{ const k=t+':'+x[0]; if(seen[k])return; seen[k]=1; changed=true;
-      const show=()=>navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.showNotification('가지런 · 알림',{body:x[1]+' — '+x[2],tag:'gaji-'+x[0],icon:'icon-192.png',badge:'icon-192.png'})).catch(()=>{ new Notification('가지런 · 알림',{body:x[1]}); });
+      const show=()=>navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.showNotification('가지런 · 알림',{body:x[1]+' — '+x[2],tag:'gaji-'+x[0],icon:'gaji-icon-192.png',badge:'gaji-icon-192.png'})).catch(()=>{ new Notification('가지런 · 알림',{body:x[1]}); });
       show(); });
     if(changed){ Object.keys(seen).forEach(k=>{ if(k.slice(0,10)<addDays(t,-7))delete seen[k]; }); DEV.store.set('notiSeen',seen); }
   }catch(e){} }
@@ -3706,7 +3708,12 @@ const BT={
   dev:null, batt:null, name:DEV.store.get('btname',''), busy:false,
   want:false,            // 사용자가 연결을 원하는 상태인가 (직접 끊으면 false)
   tries:0, timer:null, lostAt:0, warned:false,
-  feed(bpm){ S.hr.bpm=bpm; S.hr.at=Date.now(); S.hr.max=Math.max(S.hr.max||0,bpm); BT.lostAt=0; BT.warned=false;
+  feed(bpm){ const now=Date.now();
+    /* 값이 30초 넘게 한 숫자로 그대로면 시계가 새로 재지 않고 마지막 값을 되풀이해 보내는 것이다(화면이 다른 데 가 있으면 시계가 측정을 쉬기도 한다).
+       그 값은 화면에 '멈춤'으로만 보이고 판정·코칭·평균에는 쓰지 않는다. 숫자가 바뀌는 순간 다시 쓴다 (앱 규칙 C) */
+    if(bpm!==S.hr.lastRaw){ S.hr.lastRaw=bpm; S.hr.sameSince=now; }
+    S.hr.raw=bpm; S.hr.at=now; S.hr.frozen=(now-(S.hr.sameSince||now))>30000;
+    S.hr.bpm=S.hr.frozen?null:bpm; if(!S.hr.frozen)S.hr.max=Math.max(S.hr.max||0,bpm); BT.lostAt=0; BT.warned=false;
     /* 평균·구간 심박·30초 유지 최대는 '1초에 한 값'으로 쌓는다(onTick). 기기마다 보내는 간격이 달라(1초~5초)
        알림마다 쌓으면 자주 보내는 구간이 평균을 끌고, '30개 = 30초' 가정도 틀린다 */ },
   async connect(known){
@@ -3858,7 +3865,7 @@ async function startRun(){
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
-    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,hrSince:0,liveDrift:null,segPace0:null,
+    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]},stride:null,strideRef:null});
@@ -4201,6 +4208,9 @@ function onTick(){
   /* 심박 1초 표본 — 마지막 값이 5초 안에 들어온 것일 때만(그보다 오래된 값으로 시간을 채우지 않는다) */
   { const sec=Math.floor(S.elapsed), last=S.hrSec==null?sec-1:S.hrSec, n=Math.min(60,sec-last);
     if(n>0){ S.hrSec=sec; if(S.hr.bpm&&!S.paused&&Date.now()-(S.hr.at||0)<=5000){ for(let k=0;k<(n>5?1:n);k++){   /* 오래 비었던 틱(앱이 뒤로 갔다 옴)은 한 값만 — 모르는 시간을 지금 값으로 채우지 않는다 */ S.hr.samples.push(S.hr.bpm); S.hr.segSamples.push(S.hr.bpm); } } } }
+  if(!S.hr.bpm&&!S.hr.frozen){ $('rHR').textContent='—'; $('rHRZ').textContent=(S.hr.dev||BT.dev)?'연결됨 · 값 기다림':'미연결'; }
+  if(S.hr.frozen&&S.hr.raw){ $('rHR').textContent=S.hr.raw; $('rHRZ').textContent='값 멈춤 · 안 씀';
+    if(!S.frozenCue&&S.running){ S.frozenCue=true; DEV.speak('시계에서 오는 심박이 30초째 같은 숫자예요. 시계가 새로 재지 않는 것 같아요. 시계에서 운동 모드나 심박 화면을 켜 주세요. 그동안은 심박으로 판정하지 않습니다.'); } }
   if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':hrZone(S.hr.bpm);
     /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다 */
     if(S.zoneSec)S.zoneSec[Math.min(4,hrZoneIx(S.hr.bpm)-1)]+=Math.min(TD,5); }   /* 화면이 꺼졌다 돌아온 틱(최대 60초)을 한 심박 값으로 채우지 않는다 */
@@ -4293,8 +4303,10 @@ function onTick(){
       DEV.speak(`쉬는 구간입니다. 더 천천히 가세요. 다음 세트를 위해 심박을 내리는 시간입니다.`,true); }
   }
   /* 심박계 없이 심박 기준 날 — 한 번만 알린다 */
-  if(hrPrimary&&!S.hr.bpm&&!S.noHrCue&&S.elapsed>90&&S.act==='run'){ S.noHrCue=true;
-    DEV.speak('심박계가 연결되지 않아 속도로만 코칭합니다. 심박계를 연결하면 내 몸 기준으로 코칭합니다.'); }
+  /* 기기가 연결은 됐는데 값이 늦게 오는 경우(시계가 측정을 막 시작함)는 '연결 안 됨'이 아니다 — 상태를 정확히 말하고, 값이 들어오면 다시 알린다 */
+  if(hrPrimary&&!S.hr.bpm&&!S.hr.frozen&&!S.noHrCue&&S.elapsed>90&&S.act==='run'){ S.noHrCue=true; S.noHrSaid=true;
+    DEV.speak(S.hr.dev||BT.dev?'심박 기기는 연결돼 있는데 아직 심박 값이 오지 않아요. 값이 들어올 때까지 속도로 코칭합니다.':'심박계가 연결되지 않아 속도로만 코칭합니다. 심박계를 연결하면 내 몸 기준으로 코칭합니다.'); }
+  if(S.noHrSaid&&S.hr.bpm&&!S.hrBackSaid){ S.hrBackSaid=true; DEV.speak(`심박이 들어오기 시작했어요. ${S.hr.bpm}. 이제 심박으로 코칭합니다.`); }
   /* 같은 구간 안 심박 표류 — 속도는 그대로인데 심박만 오르면 피로·더위·탈수 신호다 */
   if(S.hr.bpm&&!tg.hard&&S.liveDrift!==S.segIx){
     const segT=S.elapsed-S.segStart.t, ss=S.hr.segSamples;
@@ -8804,18 +8816,21 @@ function logSum(){
 }
 function calCard(){
   const t=todayStr(), y=+t.slice(0,4), m=+t.slice(5,7)-1, first=new Date(y,m,1), n=new Date(y,m+1,0).getDate();
-  const lead=(first.getDay()+6)%7; let h='';
-  for(let i=0;i<lead;i++)h+='<div class="cd e"></div>';
-  for(let d=1;d<=n;d++){ const ds=`${y}-${pad(m+1)}-${pad(d)}`, st=dayStatus(ds);
+  const lead=(first.getDay()+6)%7, tail=(7-((lead+n)%7))%7; let h='';
+  /* 한 칸 — 이번 달이 아닌 날(앞뒤 주를 채우는 지난달·다음 달)도 기록과 함께 보여 준다. 숫자만 옅게 */
+  const cell=(dt,other)=>{ const ds=`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`, d=dt.getDate(), st=dayStatus(ds);
     const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds), k=rs.reduce((s,r)=>s+r.km,0);
     const top=rs.length?rs.sort((a,b)=>b.km-a.km)[0]:null, ty=top?lcatOf(top.type):null;
     /* 누르면 — 뛴 날은 그 기록, 아직 안 온 계획 날은 그 일정 */
-    const pi=!top?BLOCK.findIndex(x=>x.d.slice(0,10)===ds&&x.type!=='off'&&x.dist):-1;
+    const pi=!top?BLOCK.findIndex(x=>x.d.slice(0,10)===ds&&x.type!=='off'&&(x.dist||x.rw)):-1;
     const tap=top&&top.rid?` data-rid="${top.rid}" role="button" tabindex="0" aria-label="${ds} 기록 보기"`:pi>=0&&ds>=t?` data-calp="${pi}" role="button" tabindex="0" aria-label="${ds} 일정 보기"`:'';
     const cls=st==='restKept'?'r':(st==='missed'||st==='missedOk')?'x':ds>t?'f':'';
     const dot=ty?`<b style="width:${Math.min(22,8+k*0.9).toFixed(0)}px;height:${Math.min(22,8+k*0.9).toFixed(0)}px;background:${LCAT[ty][1]}"></b>`:'';
     const act=ACTS.some(x=>ldate(x.date).slice(0,10)===ds)?'<s></s>':'';
-    h+=`<div class="cd ${cls}${ds===t?' t':''}${tap?' tap':''}"${tap}>${d}${dot}${act}</div>`; }
+    return `<div class="cd ${cls}${ds===t?' t':''}${tap?' tap':''}${other?' o':''}"${tap}>${other?`<em>${dt.getMonth()+1}/</em>`:''}${d}${dot}${act}</div>`; };
+  for(let i=lead;i>0;i--)h+=cell(new Date(y,m,1-i),true);
+  for(let d=1;d<=n;d++)h+=cell(new Date(y,m,d),false);
+  for(let i=1;i<=tail;i++)h+=cell(new Date(y,m+1,i),true);
   return `<div class="lcard"><div class="bt">${m+1}월 달력<span>색 = 훈련 종류 · 크기 = 거리</span></div>
     <div class="cal"><div class="h">월</div><div class="h">화</div><div class="h">수</div><div class="h">목</div><div class="h">금</div><div class="h">토</div><div class="h">일</div>${h}</div>
     <div class="leg">${lcatLeg()}<span><i class="rr"></i>지킨 쉬는 날</span><span><i class="xx"></i>못 한 날</span><span><i style="background:#8C6D46;border-radius:50%"></i>걷기·등산·자전거</span></div></div>`;
@@ -9532,7 +9547,7 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     set('seekto',d=>{ if(this.a&&d.seekTime!=null)this.a.currentTime=d.seekTime; }); },
   meta(){ if(!('mediaSession' in navigator)||!this.cur)return; const f=this.files[this.cur], L=this.list();
     try{ navigator.mediaSession.metadata=new MediaMetadata({title:this.title(f),artist:'가지런',album:L?L.nm:'',
-      artwork:[{src:'icon-192.png',sizes:'192x192',type:'image/png'},{src:'icon-512.png',sizes:'512x512',type:'image/png'}]}); }catch(e){} },
+      artwork:[{src:'gaji-icon-192.png',sizes:'192x192',type:'image/png'},{src:'gaji-icon-512.png',sizes:'512x512',type:'image/png'}]}); }catch(e){} },
   /* ── 달리기와 연결 ── */
   onRunStart(){ if(this.st.auto&&this.st.sel&&this.list()&&(!this.a||this.a.paused)){ if(this.cur&&this.q.length)this.a.play().catch(()=>{}); else this.play(this.st.sel); } },
   onRunEnd(){ this.stop(true); },
@@ -10344,8 +10359,9 @@ function loadBand(k,v){
   if(k==='trimp') return v<50?['가벼움','','ok']:v<120?['보통','','mid']:v<200?['높음','','hi']:['아주 높음','','bad'];
   return v<200?['가벼움','','ok']:v<400?['보통','','mid']:v<600?['높음','','hi']:['아주 높음','','bad'];
 }
-function weekLoad(endDs){ const end=endDs||todayStr(), days=[]; for(let i=6;i>=0;i--){ const d=addDays(end,-i);
-    const v=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d).reduce((a,r)=>{ const L=loadOf(r); return a+(L&&L.tss!=null?L.tss:0); },0); days.push({d,v}); }   /* 한 가지 단위(rTSS)만 — 단위를 섞으면 단조도가 망가진다 */
+function weekLoad(endDs,cur){ const end=endDs||todayStr(), days=[], pool=cur&&!RUNS.includes(cur)&&!RUNS.some(x=>x.rid&&x.rid===cur.rid)?RUNS.concat([cur]):RUNS;   /* 저장 전 결과 화면에서도 오늘 기록을 넣어 센다 */
+  for(let i=6;i>=0;i--){ const d=addDays(end,-i);
+    const v=pool.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d).reduce((a,r)=>{ const L=loadOf(r); return a+(L&&L.tss!=null?L.tss:0); },0); days.push({d,v}); }   /* 한 가지 단위(rTSS)만 — 단위를 섞으면 단조도가 망가진다 */
   const sum=days.reduce((a,x)=>a+x.v,0), mean=sum/7, sd=Math.sqrt(days.reduce((a,x)=>a+(x.v-mean)**2,0)/6);   /* Foster 1998: 7일 평균 ÷ 표준편차(표본) */
   const mono=sd>0?+(mean/sd).toFixed(2):null, strain=mono!=null?Math.round(sum*mono):null;
   return {days,sum:Math.round(sum),mono,strain}; }
@@ -10357,7 +10373,7 @@ function loadCard(r,compact){
     L.edw!=null?['존 TRIMP (Edwards)',`${L.edw}`,'존별 분 × 1~5']:null,
     L.srpe!=null?['sRPE (Foster)',`${L.srpe}`,`RPE ${r.rpe} × ${Math.round(r.sec/60)}분`]:null].filter(Boolean);
   if(compact) return `<span class="ld-chip ${band[2]}">${m.nm} <b>${m.v}</b> · ${band[0]}</span>`;
-  const wk=weekLoad(ldate(r.date).slice(0,10));
+  const wk=weekLoad(ldate(r.date).slice(0,10),r);
   return `<div class="rcard ldc"><div class="rh"><b>훈련 부하 점수</b><span>출처 있는 식으로만</span></div>
     <div class="ld-main"><b class="num">${m.v}</b><span><i>${m.nm}</i><em class="${band[2]}">${band[0]}${band[1]?' · '+band[1]:''}</em></span></div>
     <div class="ld-bar"><i class="${band[2]}" style="width:${pct.toFixed(0)}%"></i></div>
@@ -10418,7 +10434,7 @@ function debriefPoints(r,s){
     if(!r.feel)bad.push(['느낌','안 골랐어요 — 기록 편집에서 고르면 다음 단계가 정해져요']);
     good.push(['다음',rwNextLine().replace(/^다음: /,'')]); return {good,bad}; }
   /* 후반 비교는 본 구간만 — 웜업(느리게 시작)·쿨다운(느리게 끝)을 넣으면 계획대로 뛰어도 '후반이 느려졌다'가 나온다 */
-  const sg=r.segments||[]; let wK=0,cK=0; for(const g of sg){ if(/웜업|준비/.test(g.nm||''))wK+=+g.km||0; else break; } for(const g of sg.slice().reverse()){ if(/쿨다운|마무리/.test(g.nm||''))cK+=+g.km||0; else break; }
+  const sg=r.segments||[]; let wK=0,cK=0; for(const g of sg){ if(/웜업|준비/.test(g.nm||''))wK+=+g.km||0; else break; } for(const g of sg.slice().reverse()){ if(g.extra||/쿨다운|마무리|^추가/.test(g.nm||''))cK+=+g.km||0; else break; }
   const totK=+r.km||0, sp=(r.splits||[]).filter(x=>x.pace&&!x.part&&!x.est&&(x.km-1)>=wK-0.05&&x.km<=totK-cK+0.05);
   if(sp.length>=4){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
     const d=Math.round(a-b); if(d>=3)good.push(['후반',`네거티브 스플릿 — 후반이 ${d}초/km 빨랐어요`]); else if(d<=-8&&!['interval','threshold','rep'].includes(r.type))bad.push(['후반',`후반이 ${-d}초/km 느려졌어요 — 초반이 빨랐을 수 있어요`]); }
