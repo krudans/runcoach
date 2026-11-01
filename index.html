@@ -1151,7 +1151,7 @@ details.noti .sigc{margin:6px 0}
 .sp-ft{text-align:center;font-size:12px;letter-spacing:.24em;opacity:.55}
 @media (prefers-reduced-motion:reduce){#splash{transition:none}}
 
-.cal .cd.o{opacity:.55}.cal .cd.o em{font-style:normal;font-size:.85em;opacity:.8}
+.calnav{justify-content:flex-start!important;gap:6px}.calnav span{margin-left:auto}.calnav button{border:1px solid var(--line,#E4DCEB);background:#fff;border-radius:8px;min-width:30px;height:28px;font-size:17px;font-weight:900;color:var(--ink,#2A1638);cursor:pointer}.calnav button:disabled{opacity:.3}.calnav button.now{font-size:11px;padding:0 8px}.cal .cd.o{opacity:.55}.cal .cd.o em{font-style:normal;font-size:.85em;opacity:.8}
 
 /* 대회 찾기 */
 .rc-meta{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin:4px 2px 10px}
@@ -2045,7 +2045,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.9';
+const APPVER='19.10';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8827,7 +8827,7 @@ function openTimeDec(){
 /* ══════════ 러닝 일지 — 한눈에 · 몸 상태 · 실력 · 제안 · 목록 ══════════
    모든 비교는 '내 평소 범위'로. 그래프마다 몇 번의 기록으로 본 것인지 붙인다.
    기록이 모자라면 결론 대신 "N번 더 뛰면 보여요". */
-let LOGTAB='sum', LOGPER='month', LOGFLT='all';
+let LOGTAB='sum', LOGPER='month', LOGFLT='all', CALOFF=0;
 const LTABS=[['sum','한눈에'],['body','몸 상태'],['skill','실력'],['list','목록']];   /* '제안' 탭(호흡 실험·시간대·케이던스)은 실력 탭 아래로 */
 const TCOL={interval:'#E35A32',rep:'#E35A32',threshold:'#F0A030',goalpace:'#7355D6',mpace:'#7355D6',long:'#2F7FD0',easy:'#2E9E6A',recovery:'#9C8AD8',tt:'#D32F45',free:'#5F7A6E',stride:'#3E8FBF',hill:'#B05C1C'};
 const isHardT=t=>['interval','rep','threshold','goalpace','mpace','tt','hill','stride'].includes(t);
@@ -8848,6 +8848,7 @@ function renderLog(){
 }
 function wireLog(host){
   host.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{ LOGPER=b.dataset.per; renderLog(); });
+  host.querySelectorAll('[data-calm]').forEach(b=>b.onclick=()=>{ const v=b.dataset.calm; CALOFF=v==='0'?0:CALOFF+(+v); renderLog(); });
   host.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{ LOGFLT=b.dataset.flt; renderLog(); });
   host.querySelectorAll('[data-rid]').forEach(b=>b.onclick=()=>openRunView(b.dataset.rid));
   host.querySelectorAll('[data-calp]').forEach(b=>b.onclick=()=>openConfirm(+b.dataset.calp));
@@ -8888,7 +8889,12 @@ function logSum(){
     ${R.length?`<div class="small">천천히 비율 ${km?Math.round(easyKm/km*100):0}% — 쉬운 날 80% 원칙 ${GRB('B')}</div>`:''}`;
 }
 function calCard(){
-  const t=todayStr(), y=+t.slice(0,4), m=+t.slice(5,7)-1, first=new Date(y,m,1), n=new Date(y,m+1,0).getDate();
+  const t=todayStr(), t0=new Date(+t.slice(0,4),+t.slice(5,7)-1+CALOFF,1), y=t0.getFullYear(), m=t0.getMonth(), first=new Date(y,m,1), n=new Date(y,m+1,0).getDate();
+  /* 넘겨 볼 수 있는 범위 — 앞으로는 첫 기록(또는 첫 일정) 달까지, 뒤로는 마지막 일정 달까지(최소 다음 달) */
+  const ms=ds=>{ const a=+ds.slice(0,4), b=+ds.slice(5,7)-1; return (a-+t.slice(0,4))*12+(b-(+t.slice(5,7)-1)); };
+  const ds0=[...RUNS.map(r=>ldate(r.date).slice(0,10)),...ACTS.map(x=>ldate(x.date).slice(0,10)),...BLOCK.map(x=>x.d.slice(0,10))].sort();
+  const minOff=Math.min(-1,ds0.length?ms(ds0[0]):-1), maxOff=Math.max(1,ds0.length?ms(ds0[ds0.length-1]):1);
+  const canP=CALOFF>minOff, canN=CALOFF<maxOff;
   const lead=(first.getDay()+6)%7, tail=(7-((lead+n)%7))%7; let h='';
   /* 한 칸 — 이번 달이 아닌 날(앞뒤 주를 채우는 지난달·다음 달)도 기록과 함께 보여 준다. 숫자만 옅게 */
   const cell=(dt,other)=>{ const ds=`${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`, d=dt.getDate(), st=dayStatus(ds);
@@ -8904,7 +8910,7 @@ function calCard(){
   for(let i=lead;i>0;i--)h+=cell(new Date(y,m,1-i),true);
   for(let d=1;d<=n;d++)h+=cell(new Date(y,m,d),false);
   for(let i=1;i<=tail;i++)h+=cell(new Date(y,m+1,i),true);
-  return `<div class="lcard"><div class="bt">${m+1}월 달력<span>색 = 훈련 종류 · 크기 = 거리</span></div>
+  return `<div class="lcard"><div class="bt calnav"><button data-calm="-1" ${canP?'':'disabled'} aria-label="지난달">‹</button><b>${y!==+t.slice(0,4)?y+'년 ':''}${m+1}월 달력</b><button data-calm="1" ${canN?'':'disabled'} aria-label="다음 달">›</button>${CALOFF?'<button class="now" data-calm="0">이번 달</button>':''}<span>색 = 훈련 종류 · 크기 = 거리</span></div>
     <div class="cal"><div class="h">월</div><div class="h">화</div><div class="h">수</div><div class="h">목</div><div class="h">금</div><div class="h">토</div><div class="h">일</div>${h}</div>
     <div class="leg">${lcatLeg()}<span><i class="rr"></i>지킨 쉬는 날</span><span><i class="xx"></i>못 한 날</span><span><i style="background:#8C6D46;border-radius:50%"></i>걷기·등산·자전거</span></div></div>`;
 }
