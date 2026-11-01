@@ -1,0 +1,24 @@
+name: 대회 일정 갱신
+on:
+  schedule:
+    - cron: '7 19 * * *'   # 매일 04:07 (한국 시간)
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  races:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-save iconv-lite@0.6.3 linkedom@0.18.5
+      - run: node scripts/races.js
+      - name: 바뀐 게 있으면 저장
+        run: |
+          git config user.name "gajirun-bot"
+          git config user.email "gajirun-bot@users.noreply.github.com"
+          git add races.json
+          git diff --cached --quiet || git commit -m "대회 일정 갱신"
+          git push
