@@ -1152,6 +1152,19 @@ details.noti .sigc{margin:6px 0}
 @media (prefers-reduced-motion:reduce){#splash{transition:none}}
 
 .cal .cd.o{opacity:.55}.cal .cd.o em{font-style:normal;font-size:.85em;opacity:.8}
+
+/* 대회 찾기 */
+.rc-meta{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin:4px 2px 10px}
+.rc-f{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.rc-f button{border:1px solid var(--line);background:var(--panel,#fff);border-radius:999px;padding:6px 11px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2)}.rc-f button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rc-f2{display:flex;gap:6px;margin-bottom:10px}.rc-f2 select,.rc-f2 input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;background:#fff}
+.rc-m{font-size:12px;font-weight:800;color:var(--ink-3);margin:14px 2px 6px}
+.rc-it{background:#fff;border-radius:14px;padding:11px 13px;margin-bottom:7px;display:grid;grid-template-columns:56px 1fr;gap:10px;cursor:pointer}
+.rc-d{text-align:center;line-height:1.15}.rc-d b{display:block;font-size:19px;font-weight:900}.rc-d i{font-style:normal;font-size:11px;color:var(--ink-3);white-space:nowrap}
+.rc-t b{display:block;font-size:14px;font-weight:800;line-height:1.35}.rc-t span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.rc-cs{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.rc-cs em{font-style:normal;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--bg);color:var(--ink-2)}.rc-cs em.op{background:#DDF3E8;color:#0A7A54}.rc-cs em.dd{background:#FFE9D6;color:#A4520E}
+.rc-x{grid-column:1/-1;border-top:1px solid var(--line);padding-top:9px;font-size:12.5px;line-height:1.7;color:var(--ink-2)}
+.rc-x .rc-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.rc-x .rc-b a,.rc-x .rc-b button{font:inherit;font-size:12.5px;font-weight:700;padding:7px 11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);text-decoration:none}
+.rc-x .rc-b button.go{background:var(--accent);color:#fff;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -1193,6 +1206,7 @@ details.noti .sigc{margin:6px 0}
       <button class="on" data-p="sched">일정</button>
       <button data-p="zone">내 속도</button>
       <button data-p="goals">내 목표</button>
+      <button data-p="races">대회 찾기</button>
     </div>
     <div id="planSched">
       <div id="planHead"></div>
@@ -1205,6 +1219,7 @@ details.noti .sigc{margin:6px 0}
       <button class="btn sm ghost" id="plUndo" style="margin:8px 0 0" hidden>직전 일정으로 되돌리기</button>
     </div>
     <div id="planGoals" hidden></div>
+    <div id="planRaces" hidden></div>
     <div id="planZone" hidden>
       <div id="zoneOut"></div>
       <div class="lbl" style="margin:18px 0 9px">기록으로 다시 계산</div>
@@ -2030,7 +2045,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.8';
+const APPVER='19.9';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2683,6 +2698,54 @@ function timeCapKm(days, twd, twe){
     cap += ((wkend?twe:twd)||40)*60/ePace; });
   return cap;
 }
+
+
+/* ══════════ 대회 찾기 — 국내 마라톤 대회 일정 ══════════
+   출처: 마라톤온라인(roadrun.co.kr · marathon.pe.kr). 깃허브 액션이 매일 새벽 4시쯤 races.json으로 받아 둔다(앱이 남의 사이트를 직접 읽을 수 없어서).
+   '실시간'이 아니라 하루 한 번이라는 걸 화면에 밝힌다. 원본 링크를 항상 단다. */
+let RACES=null, RCF={c:'',a:'',open:false,q:'',n:40,x:null};
+const RC_DIST={'풀':42195,'하프':21097,'10km':10000,'5km':5000};
+async function racesLoad(){
+  try{ const r=await fetch('races.json',{cache:'no-store'}); if(r.ok){ RACES=await r.json(); try{ localStorage.setItem('rc_racesCache',JSON.stringify(RACES)); }catch(e){} return; } }catch(e){}
+  try{ RACES=JSON.parse(localStorage.getItem('rc_racesCache')||'null'); if(RACES)RACES._offline=true; }catch(e){ RACES=null; } }
+async function renderRaces(){
+  const el=$('planRaces'); if(!el)return;
+  if(!RACES){ el.innerHTML='<div class="rc-meta">대회 목록을 불러오는 중…</div>'; await racesLoad(); }
+  if(!RACES||!RACES.races){ el.innerHTML=`<div class="card tight" style="line-height:1.8">아직 대회 목록이 없어요.<br>매일 새벽 4시쯤 마라톤온라인의 국내 대회 일정을 자동으로 받아 와요. 내일 다시 열어 보세요.</div>`; return; }
+  const t=todayStr(), up=RACES.updated?new Date(RACES.updated):null, stale=up&&(Date.now()-up.getTime())>3*864e5;
+  const all=RACES.races.filter(r=>r.date>=t);
+  const cOk=r=>!RCF.c||r.courses.some(c=>c===RCF.c||(RCF.c==='풀'&&/^풀/.test(c))||(RCF.c==='하프'&&/^하프/.test(c)));
+  const qq=RCF.q.trim();
+  const L=all.filter(r=>cOk(r)&&(!RCF.a||r.area===RCF.a)&&(!RCF.open||r.open)&&(!qq||(r.name+' '+r.place+' '+(r.host||'')).includes(qq)));
+  const goalD=((PLAN&&PLAN.goal)||GOAL||{}).date;
+  const areas=[...new Set(all.map(r=>r.area).filter(Boolean))];
+  const AORD=['서울','경기','인천','강원','충북','충남','대전','세종','전북','전남','광주','경북','대구','경남','부산','울산','제주','해외','기타']; areas.sort((a,b)=>AORD.indexOf(a)-AORD.indexOf(b));
+  let h=`<div class="rc-meta">국내 대회 ${all.length}개 · 마지막 갱신 ${up?`${up.getMonth()+1}.${up.getDate()} ${pad(up.getHours())}:${pad(up.getMinutes())}`:'—'}${RACES._offline?' (오프라인 — 저장된 목록)':''}${stale?' · <b style="color:var(--alarm)">3일 넘게 갱신 안 됨</b>':''}<br>출처 <a href="${ESC(RACES.sourceUrl||'http://www.marathon.pe.kr/')}" target="_blank" rel="noopener">마라톤온라인</a> · 하루 한 번 자동으로 받아요. 접수·일정은 꼭 대회 홈페이지에서 다시 확인하세요.</div>
+    <div class="rc-f">${[['','전체'],['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']].map(([k,l])=>`<button type="button" data-rcc="${k}" class="${RCF.c===k?'on':''}">${l}</button>`).join('')}<button type="button" data-rco="1" class="${RCF.open?'on':''}">접수중만</button></div>
+    <div class="rc-f2"><select id="rcArea"><option value="">전국</option>${areas.map(a=>`<option${RCF.a===a?' selected':''}>${a}</option>`).join('')}</select><input id="rcQ" type="search" placeholder="대회 이름 · 장소" value="${ESC(RCF.q)}"></div>`;
+  if(!L.length) h+='<div class="rc-meta" style="padding:14px 2px">조건에 맞는 대회가 없어요.</div>';
+  let lastM='';
+  L.slice(0,RCF.n).forEach(r=>{ const m=r.date.slice(0,7); if(m!==lastM){ lastM=m; h+=`<div class="rc-m">${+m.slice(0,4)}년 ${+m.slice(5)}월</div>`; }
+    const dd=Math.round((Date.parse(r.date)-Date.parse(t))/864e5), open=RCF.x===r.id, mine=goalD&&goalD.slice(0,10)===r.date;
+    h+=`<div class="rc-it" data-rcx="${ESC(r.id)}"${mine?' style="outline:2px solid var(--accent)"':''}><div class="rc-d"><b class="num">${+r.date.slice(8)}</b><i>${dowOf(r.date)} · D-${dd}</i></div>
+      <div class="rc-t"><b>${ESC(r.name)}</b><span>${ESC(r.place)}${r.area?' · '+ESC(r.area):''}</span>
+        <div class="rc-cs">${r.courses.map(c=>`<em>${ESC(c)}</em>`).join('')}${r.open?'<em class="op">접수중</em>':''}${mine?'<em class="dd">내 목표 날짜</em>':''}</div></div>
+      ${open?`<div class="rc-x">${r.host?`주최 ${ESC(r.host)}`:''}${r.tel?` · ☎ ${ESC(r.tel)}`:''}
+        <div class="rc-b">${r.view?`<a href="${ESC(r.view)}" target="_blank" rel="noopener">대회 정보(원본)</a>`:''}${r.home?`<a href="${ESC(r.home)}" target="_blank" rel="noopener">홈페이지</a>`:''}
+        ${r.courses.filter(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).map(c=>`<button type="button" class="go" data-rcg="${ESC(r.id)}" data-rcm="${RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]}">${c==='풀'?'풀코스':ESC(c)}로 목표 세우기</button>`).join('')}</div></div>`:''}</div>`; });
+  if(L.length>RCF.n) h+=`<button type="button" class="btn sm ghost" data-rcmore="1" style="margin:6px 0 0">더 보기 (${L.length-RCF.n}개 더)</button>`;
+  el.innerHTML=h;
+  const ar=$('rcArea'); if(ar)ar.onchange=()=>{ RCF.a=ar.value; RCF.n=40; renderRaces(); };
+  const qi=$('rcQ'); if(qi)qi.onchange=()=>{ RCF.q=qi.value; RCF.n=40; renderRaces(); };
+}
+document.addEventListener('click',e=>{ if(!e.target.closest('#planRaces'))return;
+  const c=e.target.closest('[data-rcc]'); if(c){ RCF.c=c.dataset.rcc; RCF.n=40; return renderRaces(); }
+  if(e.target.closest('[data-rco]')){ RCF.open=!RCF.open; RCF.n=40; return renderRaces(); }
+  if(e.target.closest('[data-rcmore]')){ RCF.n+=40; return renderRaces(); }
+  const g=e.target.closest('[data-rcg]'); if(g){ const r=RACES.races.find(x=>x.id===g.dataset.rcg); if(!r)return;
+    goalStart(); try{ Object.assign(GB.d,{kind:'race',m:+g.dataset.rcm,date:r.date,raceName:r.name,sec:null}); GB.i=1; gPaint(); }catch(err){} return; }
+  if(e.target.closest('a'))return;
+  const x=e.target.closest('[data-rcx]'); if(x){ RCF.x=RCF.x===x.dataset.rcx?null:x.dataset.rcx; renderRaces(); } });
 
 /* ══════════ 처음 시작하기 — 기본 상태 체크 → 걷기+달리기 단계 → 졸업 ══════════
    근거
@@ -3546,9 +3609,10 @@ function renderPlan(){
 }
 if($('planTabs'))$('planTabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   $('planTabs').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
-  ['sched','zone','goals'].forEach(k=>{
+  ['sched','zone','goals','races'].forEach(k=>{
     const el=$('plan'+k[0].toUpperCase()+k.slice(1)); if(el)el.hidden=(k!==b.dataset.p); });
   if(b.dataset.p==='goals')renderGoalsTab();
+  if(b.dataset.p==='races')renderRaces();
 };
 if($('plRemake'))$('plRemake').onclick=()=>goalStart();
 function paintUndo(){ const b=$('plUndo'); if(!b)return; const pv=DEV.store.get('planPrev',null);
@@ -6269,6 +6333,7 @@ function gGoalEff(){ const g=gGoal();
     return Object.assign({},g,{date:fz.dateOk, origDate:g.date}); }
   return g; }
 function gGoal(){ const d=GB.d;
+  if(d.kind==='race'&&d.raceName&&d.date) return {kind:'race', m:d.m, sec:d.sec, perKm:null, date:d.date, raceName:d.raceName};
   if(d.kind==='start') return {kind:'start', st:{can:d.stCan||0, why:d.stWhy||1, sym:d.stSym||1}, date:null};
   if(d.kind==='aero'){ const a=Object.assign({},d.aero); delete a.src; return {kind:'aero', aero:a, date:d.date||null}; }
   return {kind:d.kind, m:d.m,
