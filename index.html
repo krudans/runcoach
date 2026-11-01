@@ -1210,6 +1210,8 @@ details.noti .sigc{margin:6px 0}
     </div>
     <div id="planSched">
       <div id="planHead"></div>
+      <div id="planTools"></div>
+      <div id="planGrid" hidden></div>
       <div id="dayList"></div>
       <div class="row" style="margin:14px 0 4px">
         <button class="btn sm ghost" id="plRemake" style="margin:0">목표 · 일정 새로 짜기</button>
@@ -1354,7 +1356,7 @@ details.noti .sigc{margin:6px 0}
   <div class="bar"><button class="sub" id="backPick">← 목록</button>
     <h1 style="text-align:center">오늘 뭘 하나</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad">
-    <div class="card"><h2 id="cTitle">—</h2><div class="meta" id="cMeta">—</div></div>
+    <div class="card"><h2 id="cTitle">—</h2><div class="meta" id="cMeta">—</div><button type="button" class="btn sm ghost" id="cEdit" hidden style="margin:12px 0 0">✎ 이 훈련 고치기 — 거리 · 시간 · 횟수 · 날짜</button></div>
     <div class="devnote" id="cDev" hidden></div>
     <div class="idline" id="cCoach" role="note"><span class="idl-ic">🎧</span><div><b>실시간 코칭 프로그램이 이 훈련의 속도·거리·심박 기준으로 안내합니다</b><i>구간마다 빠르면 주황, 느리면 보라, 맞으면 그대로 — 색과 소리로. 화면을 볼 필요가 없어요.</i></div></div>
 
@@ -1387,6 +1389,8 @@ details.noti .sigc{margin:6px 0}
 <div class="msheet dbs" id="dbSheet" hidden><div class="ms-card db-card0" role="dialog" aria-label="오늘 훈련 디브리핑"><div class="ms-hd"><b>오늘 훈련 돌아보기</b></div><div id="dbBody"></div></div></div>
 <div class="msheet" id="peSheet" hidden><div class="ms-card" role="dialog" aria-label="훈련 고치기">
   <div class="ms-hd"><b>훈련 고치기</b><button type="button" id="peClose" aria-label="닫기">✕</button></div><div id="peBody"></div></div></div>
+<div class="msheet" id="paSheet" hidden><div class="ms-card" role="dialog" aria-label="플랜 전체 고치기">
+  <div class="ms-hd"><b>플랜 전체 고치기</b><button type="button" id="paClose" aria-label="닫기">✕</button></div><div id="paBody"></div></div></div>
 <div class="msheet" id="hrAsk" hidden><div class="ms-card hrask" role="dialog" aria-label="심박 기기 확인"><div class="ms-body"></div></div></div>
 <div class="msheet" id="reSheet" hidden><div class="ms-card" role="dialog" aria-label="기록 고치기">
   <div class="ms-hd"><b>기록 고치기</b><button type="button" id="reClose" aria-label="닫기">✕</button></div><div id="reBody"></div></div></div>
@@ -1930,6 +1934,24 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pw-tools button{border:none;background:var(--panel-2);border-radius:9px;padding:7px 12px;font:inherit;font-size:12.5px;font-weight:800;color:var(--ink-2);cursor:pointer}
 .pe-prev{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:14px;padding:12px;border-left:5px solid var(--tc)}
 .pe-prev b{display:block;font-size:16px}.pe-prev i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:2px}
+.pe-est{font-size:12px;color:var(--ink-3);margin:8px 2px 0;line-height:1.6}.pe-est b{color:var(--ink)}
+.pe-hm input{width:64px;height:42px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:800;background:var(--panel)}
+.pt-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 2px}
+.pt-seg{display:flex;background:var(--panel-2);border-radius:11px;padding:3px;flex:1 1 100%}.pt-seg button{flex:1;border:0;background:none;border-radius:9px;height:34px;font:inherit;font-size:13px;font-weight:800;color:var(--ink-3);cursor:pointer}.pt-seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(42,22,56,.12)}
+.pt-b{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;height:38px;border-radius:11px;border:1.5px solid var(--line);background:var(--panel);font:inherit;font-size:13px;font-weight:800;color:var(--ink);cursor:pointer}.pt-b.main{background:var(--accent);border-color:var(--accent);color:#fff}
+.pg-card{background:var(--panel);border-radius:18px;padding:14px 10px 12px;margin:12px 0}
+.pg-hd{padding:0 4px 10px}.pg-hd b{display:block;font-size:15px;font-weight:900}.pg-hd span{font-size:11.5px;color:var(--ink-3);font-weight:700}
+.pg-wrap{overflow-x:auto}.pg{width:100%;border-collapse:separate;border-spacing:2px;table-layout:fixed;min-width:330px}
+.pg th{font-size:10.5px;color:var(--ink-3);font-weight:800;padding:2px 0}.pg thead th:first-child,.pg tbody th{width:40px}
+.pg tbody th b{display:block;font-size:11.5px;color:var(--ink)}.pg tbody th span{font-size:9.5px}
+.pg td{vertical-align:top;padding:0;height:52px}.pg td.r{background:var(--panel-2);border-radius:8px;text-align:center;opacity:.6}.pg td.r i,.pg-s i{display:block;font-style:normal;font-size:9px;color:var(--ink-3);font-weight:700}.pg td.r span{font-size:9.5px;color:var(--ink-3)}
+.pg td.t{outline:2px solid var(--accent);border-radius:8px}
+.pg-s{background:color-mix(in srgb,var(--tc) 14%,var(--panel));border-left:3px solid var(--tc);border-radius:7px;padding:3px 3px 4px;min-height:52px;cursor:pointer;margin-bottom:2px}
+.pg-s b{display:block;font-size:10.5px;font-weight:900;line-height:1.15;word-break:keep-all}.pg-s span{display:block;font-size:9.5px;font-weight:700;color:var(--ink-2);line-height:1.2}
+.pg-s.did{opacity:.55}.pg-s.miss{opacity:.4;text-decoration:line-through}
+.pg-leg{display:flex;flex-wrap:wrap;gap:4px 10px;margin:10px 4px 0;font-size:10.5px;color:var(--ink-3);font-weight:700}.pg-leg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.pa-sec{border-top:1px solid var(--line);padding:14px 0}.pa-sec:first-child{border-top:0}.pa-h{font-size:14px;font-weight:900;margin-bottom:6px}.pa-sec p{font-size:12.5px;color:var(--ink-2);line-height:1.65;margin:0}
+.pa-list{margin-top:10px;background:var(--panel);border-radius:12px;padding:4px 10px}.pa-r{display:flex;gap:8px;align-items:center;font-size:12.5px;padding:6px 0;border-top:1px solid var(--line)}.pa-r:first-child{border-top:0}.pa-r span{width:70px;color:var(--ink-3)}.pa-r em{color:var(--ink-3);font-style:normal}.pa-r b.ch{color:var(--accent)}.pa-r small{color:var(--alarm);font-weight:700}
 .pe-lab{font-size:12px;font-weight:800;color:var(--ink-3);margin:14px 2px 7px}
 .pe-chips{display:flex;flex-wrap:wrap;gap:6px}.pe-chips button{display:flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}
 .pe-chips button i{width:9px;height:9px;border-radius:50%;background:var(--tc)}.pe-chips button.on{border-color:var(--accent);background:var(--accent);color:#fff}
@@ -2045,7 +2067,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.10';
+const APPVER='19.11';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3584,7 +3606,7 @@ function renderPlan(){
       $('plMake').onclick=()=>goalStart();
     }
   }
-  const host=$('dayList'); host.innerHTML=planListHTML();
+  const host=$('dayList'); host.innerHTML=planListHTML(); try{ paintPlanView(); }catch(e){}
   if(!renderPlan._did){ renderPlan._did=1; setTimeout(()=>{ const c=host.querySelector('.pw.cur'); if(c)c.scrollIntoView({block:'start'}); },60); }
   // 페이스 존
   const vd=VDOT, z=Z;
@@ -3738,6 +3760,8 @@ function openConfirm(i){
     up.onclick=()=>{ clearCustom(s.d); go('plan'); }; }
   { const oc=i>=0&&s.dist?overCap(s.dist):null, el=$('cCapWarn')||(()=>{ const d=document.createElement('div'); d.id='cCapWarn'; d.className='note'; d.style.cssText='margin:8px 0 0;color:var(--alarm);font-weight:700;line-height:1.6'; $('cMeta').after(d); return d; })();
     el.hidden=!oc; if(oc)el.textContent=`⚠ 오늘 ${s.dist}km는 최근 30일 가장 긴 ${longest30()}km보다 10% 넘게 깁니다(안전선 ${oc}km). 한 번에 크게 늘리면 부상 위험이 오릅니다 — Frandsen 2025.`; }
+  { const ce=$('cEdit'), bx=i>=0?BLOCK[i]:null, ok=bx&&!bx.rw&&PE_TYPES.some(t=>t[0]===bx.type)&&bx.d.slice(0,10)>=todayStr()&&!RUNS.some(r=>r.planId===bx.d);
+    if(ce){ ce.hidden=!ok; ce.onclick=ok?()=>openPlanEdit(bx.d):null; } }
   $('cMeta').textContent=(i<0?'기록만 남김':`${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)} · ${s.dist}km`)+
     (s.extra?` · +${s.extra}`:'')+(adj?` · 목표 ${adj>0?'+':''}${adj}초 조정됨`:'');
   const br=$('cBrief'); br.className='brief';
@@ -5936,9 +5960,12 @@ const OBSTEP=[
       <div class="oblab">최근 기록</div>${obTags('rd')}
       <div id="obRecBox"${d.rd?'':' hidden'} style="margin-top:10px">
         <div class="row">
+          <div><div class="meta">시간</div>
+            <input type="number" id="obRTh" inputmode="numeric" placeholder="0" min="0" max="9"
+              value="${d.rt&&d.rt>=3600?Math.floor(d.rt/3600):''}"></div>
           <div><div class="meta">분</div>
             <input type="number" id="obRTm" inputmode="numeric" placeholder="45"
-              value="${d.rt?Math.floor(d.rt/60):''}"></div>
+              value="${d.rt?Math.floor(d.rt%3600/60):''}"></div>
           <div><div class="meta">초</div>
             <input type="number" id="obRTs" inputmode="numeric" placeholder="46"
               value="${d.rt?pad(d.rt%60):''}"></div>
@@ -5967,13 +5994,13 @@ const OBSTEP=[
     $('obSex').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return;
       OB.d.sex=b.dataset.v; $('obSex').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); paintHr(); };
     const paintRT=()=>{ const o=$('obRTout'); if(!o)return;
-      const m=+($('obRTm')||{}).value||0, sx=+($('obRTs')||{}).value||0;
-      const t=m*60+sx;
+      const hh=+($('obRTh')||{}).value||0, m=+($('obRTm')||{}).value||0, sx=+($('obRTs')||{}).value||0;
+      const t=hh*3600+m*60+sx;
       if(!OB.d.rd||!t){ o.textContent=''; return; }
       const pc=t/(OB.d.rd/1000);
       o.innerHTML=`<b>${fmtClock(t)}</b> · 1km에 ${fmtPace(pc)}`+
         (pc<150||pc>1200?' <span style="color:var(--alarm)">— 다시 확인해 주세요</span>':''); };
-    ['obRTm','obRTs'].forEach(id=>{ const el=$(id); if(el)el.oninput=()=>{
+    ['obRTh','obRTm','obRTs'].forEach(id=>{ const el=$(id); if(el)el.oninput=()=>{
       OB.d.rt=null; paintRT(); }; });
     paintRT();
     function paintHr(){ const b=$('obBirth').value; OB.d.birth=b||null; const a=ageOf(b);
@@ -5993,8 +6020,8 @@ const OBSTEP=[
   },
   read(){ const d=OB.d;
     d.birth=$('obBirth').value||d.birth||null; d.age=ageOf(d.birth); d.w=+$('obW').value||d.w; d.rhr=+$('obRHR').value||null;
-    if(d.rd){ const m=+($('obRTm')||{}).value||0, sx=+($('obRTs')||{}).value||0;
-      d.rt=(m>0||sx>0)?Math.round(m*60+sx):null; } else d.rt=null;
+    if(d.rd){ const hh=+($('obRTh')||{}).value||0, m=+($('obRTm')||{}).value||0, sx=+($('obRTs')||{}).value||0;
+      d.rt=(hh>0||m>0||sx>0)?Math.round(hh*3600+m*60+sx):null; } else d.rt=null;
   },
   ok(){ const d=OB.d;
     /* 처음 달리는 사람 — 걷기+달리기 단계는 심박·속도 기준을 쓰지 않아서 생년월일·체중이 없어도 시작할 수 있다. 넣으면 확인만 한다 */
@@ -6004,7 +6031,7 @@ const OBSTEP=[
     if(!(d.age>=10&&d.age<=95))return {m:'생년월일을 다시 확인해 주세요.',f:'obBirth'};
     if(!(d.w>=25&&d.w<=200))return {m:'체중을 넣어주세요.',f:'obW'};
     if(!d.rd)return true;
-    if(!d.rt)return {m:'기록을 분·초로 넣어주세요. 기록이 없으면 거리에서 "없음"을 고르세요.',f:'obRTm'};
+    if(!d.rt)return {m:'기록을 시간·분·초로 넣어주세요. 기록이 없으면 거리에서 "없음"을 고르세요.',f:'obRTm'};
     const pace=d.rt/(d.rd/1000);
     if(pace<150)return {m:`${fmtClock(d.rt)}이면 1km에 ${fmtPace(pace)}입니다. 너무 빠릅니다 — 분과 초를 바꿔 넣지 않으셨나요?`,f:'obRTm'};
     if(pace>1200)return {m:`${fmtClock(d.rt)}이면 1km에 ${fmtPace(pace)}입니다. 걷는 속도입니다 — 다시 확인해 주세요.`,f:'obRTm'};
@@ -6374,8 +6401,9 @@ const GSTEP=[
      <div><div class="meta">초</div><input type="number" id="gPs" inputmode="numeric" value="${d.sec?pad(d.sec%60):''}"></div></div>
      <div class="meta" id="gPout" style="margin-top:8px"></div>`+gDateBox();
    return dist+`<div class="oblab">목표 기록</div>
-     <div class="row"><div><div class="meta">분</div><input type="number" id="gRm" inputmode="numeric" value="${d.sec?Math.floor(d.sec/60):''}"></div>
-     <div><div class="meta">초</div><input type="number" id="gRs" inputmode="numeric" value="${d.sec?pad(d.sec%60):''}"></div></div>
+     <div class="row"><div><div class="meta">시간</div><input type="number" id="gRh" inputmode="numeric" min="0" max="9" placeholder="0" value="${d.sec&&d.sec>=3600?Math.floor(d.sec/3600):''}"></div>
+     <div><div class="meta">분</div><input type="number" id="gRm" inputmode="numeric" min="0" max="59" value="${d.sec?Math.floor(d.sec%3600/60):''}"></div>
+     <div><div class="meta">초</div><input type="number" id="gRs" inputmode="numeric" min="0" max="59" value="${d.sec?pad(d.sec%60):''}"></div></div>
      <div class="meta" id="gRout" style="margin-top:8px"></div>`+gDateBox();
  },
  wire(){
@@ -6384,7 +6412,7 @@ const GSTEP=[
      gRead(); GB.d[g.dataset.g]=+b.dataset.v; gPaint(); });
    dateWire('gDate',v=>{ GB.d.date=v; });
    aeroWire();
-   ['gRm','gRs','gPm','gPs'].forEach(id=>{const el=$(id); if(el)el.oninput=()=>{gRead(); gPaintOut();}});
+   ['gRh','gRm','gRs','gPm','gPs'].forEach(id=>{const el=$(id); if(el)el.oninput=()=>{gRead(); gPaintOut();}});
    gPaintOut();
  },
  read(){ gRead(); },
@@ -6784,13 +6812,13 @@ function gDateBox(){
 function gRead(){
   const d=GB.d;
   const rm=$('gRm'), rs=$('gRs'), pm=$('gPm'), ps=$('gPs'), dt=$('gDate');
-  if(rm||rs){ const m=+((rm||{}).value)||0, x=+((rs||{}).value)||0; d.sec=(m||x)?m*60+x:null; }
+  if(rm||rs){ const h=+(($('gRh')||{}).value)||0, m=+((rm||{}).value)||0, x=+((rs||{}).value)||0; d.sec=(h||m||x)?h*3600+m*60+x:null; }
   if(pm||ps){ const m=+((pm||{}).value)||0, x=+((ps||{}).value)||0; d.sec=(m||x)?m*60+x:null; }
   if(dt){ const v=parseDateLoose(dt.value); d.date=v||null; }
 }
 function gPaintOut(){
   const d=GB.d;
-  const ro=$('gRout'); if(ro)ro.textContent=(d.sec&&d.m)?`1km를 ${fmtPace(d.sec/(d.m/1000))}로 가야 합니다.`:'';
+  const ro=$('gRout'); if(ro)ro.textContent=(d.sec&&d.m)?`${fmtClock(d.sec)} — 1km를 ${fmtPace(d.sec/(d.m/1000))}로 가야 합니다.`:'';
   const po=$('gPout'); if(po)po.textContent=d.sec?`그 속도로 10km를 가면 ${fmtClock(d.sec*10)} 입니다.`:'';
 }
 function gVis(){ return GSTEP.map((st,i)=>i).filter(i=>!(GSTEP[i].skip&&GSTEP[i].skip())); }
@@ -10273,7 +10301,11 @@ function peBuild(ds,wk,type,km,n,len){
   else if(type==='goalpace'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(1.5,n,len,r)); s=goalPaceRun(t,len,n,peGoalPace()); }
   return termSess(Object.assign({d:ds,wk,t:peTitle(type,s.dist,n,len)},s));
 }
-const PE={d:null,wk:1,type:'easy',km:6,n:4,len:1,date:null,isNew:false};
+const PE={d:null,wk:1,type:'easy',km:6,n:4,len:1,date:null,isNew:false,byTime:false};
+/* 거리 ↔ 시간 — 그 훈련 본 구간 속도 범위의 가운데로 뛴다고 보고 바꾼다(웜업·쿨다운도 같은 속도로 셈 → '약'). 0.5km 단위 */
+function peMainPace(type){ const p=type==='long'?PACE.long:type==='recovery'?PACE.rec:PACE.easy; return midPace(p)||420; }
+const peEstSec=(type,km)=>km*peMainPace(type);
+const fmtHM=sec=>{ const m=Math.round(sec/60), h=Math.floor(m/60); return h?`${h}시간 ${m%60?pad(m%60)+'분':''}`.trim():`${m}분`; };
 function peStore(){ return PLAN&&PLAN.sessions?PLAN.sessions:null; }
 function peSave(fn){ const L=peStore();
   if(L){ fn(L); L.sort((a,b)=>a.d<b.d?-1:1); DEV.store.set('plan',PLAN); }
@@ -10284,6 +10316,8 @@ function openPlanEdit(d,newDate,wk){
     Object.assign(PE,{d,wk:s.wk,type:PE_TYPES.some(t=>t[0]===s.type)?s.type:'easy',km:DIST[d]||s.dist||6,n:s.reps||4,len:s.repLen||1,date:d.slice(0,10),isNew:false}); }
   else Object.assign(PE,{d:null,wk:wk||1,type:'easy',km:6,n:4,len:1,date:newDate,isNew:true});
   const sh=$('peSheet'); sh.hidden=false; peRender(); requestAnimationFrame(()=>sh.classList.add('up')); }
+/* '오늘 뭘 하나'에서 고쳤으면 그 화면은 옛 일정이다 — 고친 뒤 바뀐 날을 다시 연다 */
+function peAfter(){ const c=$('confirm'); if(!c||!c.classList.contains('on'))return; const i=BLOCK.findIndex(x=>x.d.slice(0,10)===PE.date&&x.type!=='off'); if(i>=0)openConfirm(i); else go('plan'); }
 function peClose(){ const sh=$('peSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 function peRender(){
   const hard=['threshold','interval','goalpace'].includes(PE.type), col=(TYPES[PE.type]||{}).col||'#5B2D86';
@@ -10302,10 +10336,17 @@ function peRender(){
       <div class="pe-step"><button type="button" data-pen="-1">−</button><b class="num">${PE.n}<small>번</small></b><button type="button" data-pen="1">+</button></div>
       <div class="pe-lab">한 번 길이</div>
       <div class="pe-chips sm">${lens.map(l=>`<button type="button" data-pel="${l}" class="${PE.len===l?'on':''}">${kmLab(l)}</button>`).join('')}</div>`
-    :`<div class="pe-lab">거리</div>
+    :`<div class="pe-lab">정하는 방법</div>
+      <div class="pe-chips sm"><button type="button" data-pebt="0" class="${PE.byTime?'':'on'}">거리로</button><button type="button" data-pebt="1" class="${PE.byTime?'on':''}">시간으로</button></div>
+      ${PE.byTime?`<div class="pe-lab">시간</div>
+      <div class="pe-step pe-hm"><input class="num" type="number" inputmode="numeric" min="0" max="5" id="peH" value="${Math.floor(Math.round(peEstSec(PE.type,PE.km)/60)/60)}"><span class="pe-u">시간</span>
+        <input class="num" type="number" inputmode="numeric" min="0" max="59" id="peMin" value="${Math.round(peEstSec(PE.type,PE.km)/60)%60}"><span class="pe-u">분</span></div>
+      <p class="pe-est">≈ <b>${PE.km}km</b> — 1km ${fmtPace(peMainPace(PE.type))}(이 훈련 속도 범위 가운데)로 계산. 뛸 때 코칭은 이 거리 기준이에요.</p>`
+      :`<div class="pe-lab">거리</div>
       <div class="pe-step"><button type="button" data-pek="-1">−1</button><button type="button" data-pek="-0.5">−0.5</button>
         <input class="num" type="text" inputmode="decimal" id="peKm" value="${PE.km}"><span class="pe-u">km</span>
-        <button type="button" data-pek="0.5">+0.5</button><button type="button" data-pek="1">+1</button></div>`}
+        <button type="button" data-pek="0.5">+0.5</button><button type="button" data-pek="1">+1</button></div>
+      <p class="pe-est">예상 시간 약 <b>${fmtHM(peEstSec(PE.type,PE.km))}</b> — 1km ${fmtPace(peMainPace(PE.type))} 기준</p>`}`}
     <div class="pe-lab">날짜</div>
     <div class="pe-days">${days.map(d=>{ const o=planOn(d), busy=o&&o.d!==PE.d;
       return `<button type="button" data-ped="${d}" class="${d===PE.date?'on':''}${busy?' busy':''}"${d<t?' disabled':''}><i>${dowOf(d)}</i><b>${+d.slice(8,10)}</b>${busy?'<em>바꿈</em>':''}</button>`; }).join('')}</div>
@@ -10331,13 +10372,13 @@ function peApply(){
     else if(j>=0&&!old){ list.splice(j,1); }
     if(i>=0) list[i]=ns; else list.push(ns);
     if(PE.d&&DIST[PE.d]!=null){ delete DIST[PE.d]; DEV.store.set('dist',DIST); }
-  }); peClose(); toast(PE.isNew?'추가했어요':'고쳤어요'); }
+  }); peClose(); peAfter(); toast(PE.isNew?'추가했어요':'고쳤어요'); }
 function peDelete(){ const L=peStore();
   if(!L){ clearCustom(PE.d.slice(0,10)); peClose(); renderPlan(); return; }
   peSave(list=>{ const i=list.findIndex(x=>x.d===PE.d); if(i>=0){ PLAN.removed=PLAN.removed||[]; PLAN.removed.push(list[i]); list.splice(i,1); } });
-  peClose(); toast('쉬는 날로 바꿨어요'); }
+  peClose(); peAfter(); toast('쉬는 날로 바꿨어요'); }
 function peUndo(){ peSave(list=>{ const i=list.findIndex(x=>x.d===PE.d); if(i>=0&&list[i].orig){ const o=list[i].orig; list[i]=Object.assign({},o,{d:list[i].d,wk:list[i].wk,orig:undefined,edited:false}); } });
-  peClose(); toast('원래대로 돌렸어요'); }
+  peClose(); peAfter(); toast('원래대로 돌렸어요'); }
 /* 주 단위 거리 조정 — 아직 안 한 날만 */
 function weekScale(wk,f){ const t=todayStr();
   let clamped=false;
@@ -10394,6 +10435,7 @@ document.addEventListener('click',e=>{
   const ty=e.target.closest('[data-pet]'); if(ty){ PE.type=ty.dataset.pet; if(PE.type==='long'&&PE.km<8)PE.km=10; return peRender(); }
   const n=e.target.closest('[data-pen]'); if(n){ PE.n=Math.max(2,Math.min(10,PE.n+(+n.dataset.pen))); return peRender(); }
   const l=e.target.closest('[data-pel]'); if(l){ PE.len=+l.dataset.pel; return peRender(); }
+  const bt=e.target.closest('[data-pebt]'); if(bt){ PE.byTime=bt.dataset.pebt==='1'; return peRender(); }
   const k=e.target.closest('[data-pek]'); if(k){ PE.km=Math.max(2,Math.min(45,Math.round((PE.km+(+k.dataset.pek))*2)/2)); return peRender(); }
   const d=e.target.closest('[data-ped]'); if(d&&!d.disabled){ PE.date=d.dataset.ped; return peRender(); }
   if(e.target.closest('#peOk'))return peApply();
@@ -10402,6 +10444,100 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='peKm'){ const v=parseFloat(e.target.value); if(v>=2&&v<=45){ PE.km=Math.round(v*2)/2; } peRender(); }
+  if(e.target.id==='peH'||e.target.id==='peMin'){ const sec=((+($('peH')||{}).value||0)*60+(+($('peMin')||{}).value||0))*60;
+    if(sec>0){ PE.km=Math.max(2,Math.min(45,Math.round(sec/peMainPace(PE.type)*2)/2)); } peRender(); }
+});
+/* ═════════════════════ 플랜 전체 보기 · 이미지 · 전체 고치기 ═════════════════════
+   전체 보기 = 4주를 한 장의 표(주 × 요일)로. 이미지는 그 표를 JPG로.
+   전체 고치기 = ① 목표·기록·날짜·요일 다시 정하기(지난 날·뛴 날은 그대로) ② 같은 종류를 한꺼번에 ③ 남은 일정 거리 전체 ±10% */
+let PLVIEW='list';
+const PSHORT={easy:'이지',recovery:'회복',long:'LSD',threshold:'템포',interval:'인터벌',goalpace:'목표 속도',tt:'TT',mpace:'M페이스',rep:'반복',free:'프리',check:'체크',runwalk:'걷뛰'};
+function planGridHTML(){
+  const t=todayStr(), mons=planMons(), H=['월','화','수','목','금','토','일'];
+  const g=(PLAN&&PLAN.goal)||GOAL, G=g&&GOALS.find(x=>x.k===g.kind);
+  const tot=BLOCK.reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
+  const rows=mons.map((mon,wi)=>{ const items=BLOCK.filter(x=>weekMonday(x.d)===mon&&x.type!=='off');
+    const wkm=items.reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0);
+    const cells=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>x.d.slice(0,10)===ds);
+      if(!L.length)return `<td class="r${ds===t?' t':''}"><i>${+ds.slice(8,10)}</i><span>쉼</span></td>`;
+      return `<td class="${ds===t?'t':''}">${L.map(x=>{ const i=BLOCK.indexOf(x), v=sessionOf(i)||x, T=TYPES[x.type]||{}, km=DIST[x.d]||x.dist, did=RUNS.some(r=>r.planId===x.d);
+        const lab=PSHORT[x.type]||String(v.t||'').split(' ')[0];
+        const det=v.rw?(v.rw.totSec?Math.round(v.rw.totSec/60)+'분':''):x.reps&&x.repLen?`${kmLab(x.repLen)}×${x.reps}`:km?`${fmtKm1(km)}km`:'';
+        return `<div class="pg-s${did?' did':''}${ds<t&&!did?' miss':''}" style="--tc:${T.col||'#5B2D86'}" data-pgo="${i}"><i>${+ds.slice(8,10)}${did?' ✓':''}</i><b>${ESC(lab)}</b><span>${det}</span></div>`; }).join('')}</td>`; }).join('');
+    return `<tr><th><b>${wi+1}주</b><span>${fmtKm1(wkm)}km</span></th>${cells}</tr>`; }).join('');
+  const f=BLOCK[0], l=BLOCK[BLOCK.length-1], md=x=>x.slice(5,10).replace('-','.');
+  return `<div class="pg-card"><div class="pg-hd"><b>${G?G.ico+' ':''}${g&&g.m&&g.sec?`${gdLabel(g.m)} ${fmtClock(g.sec)}`:G?G.nm:'내 일정'}</b><span>${f&&l?`${md(f.d)} – ${md(l.d)}`:''} · 모두 ${fmtKm1(tot)}km${g&&g.date?` · 목표일 ${md(g.date)}`:''}</span></div>
+    <div class="pg-wrap"><table class="pg"><thead><tr><th></th>${H.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="pg-leg">${['easy','recovery','long','threshold','interval','goalpace'].filter(k=>BLOCK.some(x=>x.type===k)).map(k=>`<span><i style="background:${(TYPES[k]||{}).col}"></i>${PSHORT[k]}</span>`).join('')}<span>✓ 뛴 날</span></div></div>`;
+}
+function planToolsHTML(){
+  return `<div class="pt-bar"><div class="pt-seg"><button type="button" data-plv="list" class="${PLVIEW==='list'?'on':''}">주별 목록</button><button type="button" data-plv="grid" class="${PLVIEW==='grid'?'on':''}">전체 한눈에</button></div>
+    <button type="button" class="pt-b" data-plimg="1">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>'} 전체 이미지</button>
+    <button type="button" class="pt-b main" data-plall="1">✎ 전체 고치기</button></div>`;
+}
+function paintPlanView(){ const gr=$('planGrid'), dl=$('dayList'); if(!gr||!dl)return;
+  const tb=$('planTools'); if(tb)tb.innerHTML=planToolsHTML();
+  if(PLVIEW==='grid'){ gr.innerHTML=planGridHTML(); gr.hidden=false; dl.hidden=true; } else { gr.hidden=true; dl.hidden=false; } }
+async function planImage(){ const gr=$('planGrid'); const was=gr.hidden; gr.innerHTML=planGridHTML(); gr.hidden=false;
+  const el=gr.querySelector('.pg-card'); try{ await snapCard(el,'plan_all','전체 일정'); }finally{ if(was&&PLVIEW!=='grid')gr.hidden=true; } }
+/* 전체 고치기 */
+const PA={type:null,dk:0,dn:0,setKm:''};
+function paTargets(type){ const t=todayStr(); return (peStore()||[]).filter(x=>x.type===type&&!x.rw&&x.d.slice(0,10)>=t&&!RUNS.some(r=>r.planId===x.d)); }
+function paHardT(t){ return ['threshold','interval','goalpace'].includes(t); }
+function paNew(x){ const hard=paHardT(x.type);
+  if(hard){ const n=Math.max(2,Math.min(10,(x.reps||4)+PA.dn)); return {n,km:x.dist}; }
+  const base=PA.setKm!==''&&+PA.setKm>=2?+PA.setKm:(DIST[x.d]||x.dist||0)+PA.dk; return {km:Math.max(2,Math.min(45,Math.round(base*2)/2))}; }
+function openPlanAll(){ const sh=$('paSheet'); if(!PA.type||!paTargets(PA.type).length){ const f=PE_TYPES.find(([k])=>paTargets(k).length); PA.type=f?f[0]:null; }
+  sh.hidden=false; paRender(); requestAnimationFrame(()=>sh.classList.add('up')); }
+function paClose(){ const sh=$('paSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
+function paRender(){ const has=!!peStore(), T=PA.type, L=T?paTargets(T):[], hard=T&&paHardT(T);
+  const types=PE_TYPES.filter(([k])=>paTargets(k).length);
+  const prev=L.map(x=>{ const nw=paNew(x), md=x.d.slice(5,10).replace('-','.');
+    const a=hard?`${kmLab(x.repLen||1)}×${x.reps}`:`${fmtKm1(DIST[x.d]||x.dist)}km`, b=hard?`${kmLab(x.repLen||1)}×${nw.n}`:`${fmtKm1(nw.km)}km`;
+    const oc=!hard&&overCap(nw.km);
+    return `<div class="pa-r"><span>${md} ${dowOf(x.d)}</span><b>${a}</b><em>→</em><b class="${a!==b?'ch':''}">${b}</b>${oc?'<small>⚠ 최장+10%</small>':''}</div>`; }).join('');
+  $('paBody').innerHTML=`
+    <div class="pa-sec"><div class="pa-h">① 목표 · 기록 · 대회 날짜 · 달리는 요일 바꾸기</div>
+      <p>지금 목표가 미리 채워진 채로 열려요. 바꾸고 싶은 칸만 고치면 됩니다. <b>지난 날과 이미 뛴 날은 그대로</b> 두고 오늘부터만 다시 짜요. 마음에 안 들면 플랜 위의 '되돌리기'로 돌아갈 수 있어요.</p>
+      <button type="button" class="btn sm" id="paGoal" style="margin:8px 0 0">목표 · 일정 다시 정하기</button></div>
+    ${has?`<div class="pa-sec"><div class="pa-h">② 같은 훈련을 한꺼번에</div>
+      ${types.length?`<div class="pe-chips sm">${types.map(([k,n])=>`<button type="button" data-pat="${k}" class="${T===k?'on':''}" style="--tc:${(TYPES[k]||{}).col}"><i></i>${k==='long'?'LSD':n} ${paTargets(k).length}</button>`).join('')}</div>
+      ${T?(hard?`<div class="pe-lab">반복 횟수 — 남은 ${L.length}번 모두</div><div class="pe-step"><button type="button" data-padn="-1">−1번</button><b class="num" style="min-width:70px;text-align:center">${PA.dn>0?'+':''}${PA.dn}번</b><button type="button" data-padn="1">+1번</button></div>`
+        :`<div class="pe-lab">거리 — 남은 ${L.length}번 모두</div><div class="pe-step"><button type="button" data-padk="-1">−1</button><button type="button" data-padk="-0.5">−0.5</button><b class="num" style="min-width:64px;text-align:center">${PA.dk>0?'+':''}${PA.dk}km</b><button type="button" data-padk="0.5">+0.5</button><button type="button" data-padk="1">+1</button></div>
+          <label class="pe-other">또는 모두 같은 거리로 <input type="number" inputmode="decimal" step="0.5" min="2" max="45" id="paSet" value="${PA.setKm}" placeholder="예: 14"> km</label>`)
+        +`<div class="pa-list">${prev}</div>
+        <button type="button" class="btn" id="paOk" style="margin:12px 0 0"${(hard?PA.dn:(PA.dk||PA.setKm!==''))?'':' disabled'}>${L.length}개 바꾸기</button>`:''}`
+      :'<p>오늘부터 남은 훈련이 없어요.</p>'}</div>
+    <div class="pa-sec"><div class="pa-h">③ 남은 일정 거리 전체</div>
+      <p>오늘부터 남은 날을 모두 같은 비율로. 원래 계획의 ±20%까지만 바뀌어요 — 한 번에 크게 늘리면 부상 위험이 올라요 (Nielsen 2014 B · Gabbett 2016 B).</p>
+      <div class="pe-step"><button type="button" data-pasc="0.9">−10%</button><button type="button" data-pasc="1.1">+10%</button></div></div>`
+    :`<div class="pa-sec"><p>지금은 예시 일정이에요. ①에서 내 일정을 먼저 만들면 ②·③도 쓸 수 있어요.</p></div>`}`;
+}
+function paApply(){ const T=PA.type; if(!T)return; const t=todayStr(); let n=0;
+  peSave(list=>{ list.forEach((x,i)=>{ if(x.type!==T||x.rw||x.d.slice(0,10)<t||RUNS.some(r=>r.planId===x.d))return;
+    const nw=paNew(x), hard=paHardT(T);
+    if(hard&&nw.n===x.reps)return; if(!hard&&nw.km===(DIST[x.d]||x.dist))return;
+    const ns=hard?peBuild(x.d,x.wk,T,Math.max(0,x.dist+(nw.n-x.reps)*(x.repLen||1)),nw.n,x.repLen||1):peBuild(x.d,x.wk,T,nw.km);
+    ns.d=x.d; ns.orig=x.orig||JSON.parse(JSON.stringify(x)); ns.edited=true; list[i]=ns; n++;
+    if(DIST[x.d]!=null){ delete DIST[x.d]; } }); DEV.store.set('dist',DIST); });
+  PA.dk=0; PA.dn=0; PA.setKm=''; paRender(); paintPlanView(); toast(n?`${n}개를 바꿨어요`:'바뀐 게 없어요'); }
+function paScaleAll(f){ const t=todayStr(); const ws=[...new Set((peStore()||[]).filter(x=>x.d.slice(0,10)>=t).map(x=>weekMonday(x.d)))];
+  ws.forEach(w=>weekScale(w,f)); paRender(); paintPlanView(); }
+document.addEventListener('click',e=>{
+  const v=e.target.closest('[data-plv]'); if(v){ PLVIEW=v.dataset.plv; paintPlanView(); return; }
+  if(e.target.closest('[data-plimg]'))return planImage();
+  if(e.target.closest('[data-plall]'))return openPlanAll();
+  if(!e.target.closest('#paSheet'))return;
+  if(e.target.id==='paSheet'||e.target.closest('#paClose'))return paClose();
+  if(e.target.closest('#paGoal')){ paClose(); return goalStart(); }
+  const ty=e.target.closest('[data-pat]'); if(ty){ PA.type=ty.dataset.pat; PA.dk=0; PA.dn=0; PA.setKm=''; return paRender(); }
+  const dk=e.target.closest('[data-padk]'); if(dk){ PA.dk=Math.max(-10,Math.min(10,PA.dk+(+dk.dataset.padk))); PA.setKm=''; return paRender(); }
+  const dn=e.target.closest('[data-padn]'); if(dn){ PA.dn=Math.max(-6,Math.min(6,PA.dn+(+dn.dataset.padn))); return paRender(); }
+  const sc=e.target.closest('[data-pasc]'); if(sc)return paScaleAll(+sc.dataset.pasc);
+  if(e.target.closest('#paOk'))return paApply();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='paSet'){ const x=parseFloat(e.target.value); PA.setKm=x>=2&&x<=45?String(Math.round(x*2)/2):''; if(PA.setKm)PA.dk=0; paRender(); }
   if(e.target.id==='peDate'&&e.target.value){ PE.date=e.target.value; peRender(); }
 });
 
