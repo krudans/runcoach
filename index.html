@@ -1993,6 +1993,26 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .mc-grid i{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700}.mc-grid b{display:block;font-size:16px;font-weight:900;margin-top:1px}.mc-grid b small{font-size:10.5px;color:var(--ink-3)}.mc-grid em{display:block;font-style:normal;font-size:10px;color:var(--ink-3);margin-top:1px}
 .mc-btns .snapb{white-space:nowrap;flex:none}.mc-btns .btn{flex:1}
 .mc-foot{font-size:10.5px;color:var(--ink-3);margin-top:8px;text-align:center}.mc-btns{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+/* ── 달릴 때 보는 8가지 — 밝은 2열 타일. 한 화면에 다 보이고, 이미지로 저장된다 ── */
+.gwatch.lite{align-items:stretch;margin:0 0 16px;border:1.5px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:22px;padding:14px 12px 12px;background:color-mix(in srgb,var(--accent) 4%,var(--bg,#F4EFF8))}.gwatch.lite .gw-band{display:none}
+.gwatch.lite .gw-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 8px}.gwatch.lite .gw-hd b{display:block;font-size:15px;font-weight:900;color:var(--ink)}.gwatch.lite .gw-hd i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:2px}
+.gwatch.lite .gw-face{max-width:none;background:none;border:0;border-radius:0;padding:0;box-shadow:none;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gwatch.lite .gw-wrap{border:0;background:var(--panel);border-radius:16px;box-shadow:0 1px 0 var(--line),0 0 0 1px var(--line) inset;min-width:0}
+.gwatch.lite .gw-wrap.open{grid-column:1/-1}
+.gwatch.lite .gw-r{display:grid;grid-template-columns:22px 1fr;grid-template-rows:auto auto auto;column-gap:6px;row-gap:2px;padding:10px 11px 10px!important;color:var(--ink);align-items:center}
+.gwatch.lite .gw-n{display:none}
+.gwatch.lite .gw-ic{grid-row:1;grid-column:1}.gwatch.lite .gw-ic svg,.gwatch.lite .gw-ic .gw-z{width:20px;height:20px}.gwatch.lite .gw-ic .gw-z{font-size:9px}
+.gwatch.lite .gw-lb{grid-row:1;grid-column:2;font-size:11.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:30px}
+.gwatch.lite .gw-v{grid-column:1/-1;grid-row:2;margin-top:2px}.gwatch.lite .gw-v b.num{font-size:26px;color:var(--ink)}.gwatch.lite .gw-v b.sm{font-size:16px;color:var(--ink)}.gwatch.lite .gw-v i{font-size:11.5px}
+.gwatch.lite .gw-q{grid-column:1/-1;grid-row:3;font-size:10.5px;line-height:1.4;color:var(--ink-3);margin-top:1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gwatch.lite .gw-wrap.open .gw-q{-webkit-line-clamp:unset}
+.gwatch.lite .gw-tag{background:var(--line);color:var(--ink-2)}.gwatch.lite .gw-tag.on{background:#F6C27A;color:#2A1638}
+.gwatch.lite .gw-edit{top:8px;right:8px;font-size:10.5px;padding:4px 8px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));color:var(--accent)}
+.gwatch.lite .gw-ed{padding:2px 12px 12px}.gwatch.lite .gw-seg{background:var(--line)}.gwatch.lite .gw-seg button{color:var(--ink-2)}.gwatch.lite .gw-seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.gwatch.lite .gw-f{color:var(--ink-2)}.gwatch.lite .gw-f input{background:var(--bg,#fff);border-color:var(--line);color:var(--ink)}.gwatch.lite .gw-f input:focus{border-color:var(--accent)}.gwatch.lite .gw-src{color:var(--ink-2)}
+.gwatch.lite .gw-cap{margin-top:8px}
+.gw-live{display:inline-flex;align-items:center;gap:4px;vertical-align:2px;margin-left:6px;font-size:10.5px;font-weight:900;color:#0E9B72;background:#E3F5EE;border-radius:999px;padding:2px 8px}.gw-live i{width:6px;height:6px;border-radius:50%;background:#0E9B72;display:inline-block}
+.gw-key{display:flex;flex-direction:column;gap:3px;margin:0 2px 10px;font-size:11.5px;color:var(--ink-2);line-height:1.45}.gw-key b{font-weight:900;color:var(--ink);margin-right:3px}.gw-key u{text-decoration:none;font-weight:900;color:var(--accent)}
 .pe-est{font-size:12px;color:var(--ink-3);margin:8px 2px 0;line-height:1.6}.pe-est b{color:var(--ink)}
 .pe-hm input{width:64px;height:42px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:800;background:var(--panel)}
 .pt-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 2px}
@@ -2133,7 +2153,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.32';
+const APPVER='19.33';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10539,13 +10559,15 @@ function renderGuide(){
     [null,'#B98AE0',big('<path d="M8 40V28M18 40V20M28 40V24M38 40V10"/>','#B98AE0'),lrT!=null?lrT:'—','TSS',`최근 7일 합 ${wkT} · 역치로 1시간 = 100점 (rTSS)`],
     [null,'#F5C542',`<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="#F5C542"/><circle cx="17" cy="20" r="2.6" fill="#2A1638"/><circle cx="31" cy="20" r="2.6" fill="#2A1638"/><path d="M15 29c4.5 5.5 13.5 5.5 18 0" fill="none" stroke="#2A1638" stroke-width="3" stroke-linecap="round"/></svg>`,'러너스 하이','']];
   const nMan=Object.values(ED).filter(e=>e.man).length;
-  const watch=`<div class="gwatch"><div class="gw-band"></div><div class="gw-face">${WR.map((r,i)=>{ const e=r[0]&&ED[r[0]], open=GW_OPEN===r[0];
+  const GWN=['페이스','케이던스','보폭','심박','심박 존','역치 페이스','훈련 부하','러너스 하이'];
+  const watch=`<div class="gwatch lite"><div class="gw-hd"><div><b>달릴 때 보는 8가지 <span class="gw-live"><i></i>실시간</span></b></div>${snapBtn('.gwatch','numbers','달릴 때 보는 숫자')}</div>
+      <div class="gw-key"><span><b>큰 숫자</b> ${lr?`최근 달리기 ${String(lr.date).slice(5,10).replace('-','.')}`:'아직 기록 없음'} — 뛸 때마다 자동으로 바뀌어요</span><span><b>내 기준</b> 일정·안내의 기준 — <u>✎ 수정</u>을 누르면 직접 바꿀 수 있어요</span></div><div class="gw-face">${WR.map((r,i)=>{ const e=r[0]&&ED[r[0]], open=!!r[0]&&GW_OPEN===r[0];
       return `<div class="gw-wrap${open?' open':''}"><${e?`button type="button" data-mine="${r[0]}" aria-expanded="${open}"`:'div'} class="gw-r">
-      <span class="gw-n" style="color:${r[1]}">${i+1}</span><span class="gw-ic">${r[2]}</span>
+      <span class="gw-n" style="color:${r[1]}">${i+1}</span><span class="gw-ic">${r[2]}</span><span class="gw-lb" style="color:${r[1]}">${GWN[i]||''}</span>
       <span class="gw-v"><b class="${/[가-힣]/.test(String(r[3]))?'sm':'num'}">${r[3]}</b>${r[4]?`<i style="color:${r[1]}">${r[4]}</i>`:''}</span>
-      <em class="gw-q">${e?`${tag(e.man)} 내 기준 ${e.mine}`:(r[5]||'숫자로는 못 재요 — 기분 좋은 그 느낌')}</em>${e?`<span class="gw-edit">${open?'닫기 ▴':'수정 ▾'}</span>`:''}</${e?'button':'div'}>
+      <em class="gw-q">${e?`${tag(e.man)} 내 기준 ${e.mine}`:(r[5]||'숫자로는 못 재요 — 기분 좋은 그 느낌')}</em>${e?`<span class="gw-edit">${open?'닫기':'✎ 수정'}</span>`:''}</${e?'button':'div'}>
       ${e&&open?`<div class="gw-ed" data-ed="${r[0]}">${seg(r[0],e.man)}${e.man?`<div class="gw-form">${e.form}<p class="gw-hint" id="gwHint"></p></div>`:e.auto}</div>`:''}</div>`; }).join('')}</div><div class="gw-band"></div>
-      <p class="gw-cap">${lr?`최근 달리기 ${String(lr.date).slice(5,10).replace('-','.')} 기준`:'내 기준 값'}${nMan?` · 직접 입력 ${nMan}개`:''}</p></div>`;
+      ${nMan?`<p class="gw-cap">직접 입력 ${nMan}개 — 나머지는 기록으로 자동</p>`:''}</div>`;
 $('gdBody').innerHTML=`<div class="idline lite"><span class="idl-ic">🎧</span><div><b>가지런은 내가 정한 강도·거리·시간에 맞춰 안내하는 실시간 코칭 프로그램입니다</b><i>아래 숫자들이 그 기준이 됩니다 — 자동으로 채워지고, 직접 바꿀 수 있어요.</i></div></div><div class="gd-hero"><b>내 숫자</b></div><div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>당신의 현재 기록이 자동으로 입력되며, 수동으로 변경할 수 있습니다.</b><i>각 줄의 '수정' 버튼 → 자동 / 직접 입력</i></div></div>${watch}`+sec('훈련 종류',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+`<details class="gd-all"><summary>계산 기준 전체 보기</summary>${sec('기준 숫자',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`+
     `<p class="gd-src" style="text-align:center;margin:18px 0 0">근거 등급 — A 메타분석·대규모 연구 · B 연구 있음 · C 경험칙·코치 관행 · D 내 기록만</p>`;
 }
@@ -11771,7 +11793,7 @@ function openMyGoal(){
 /* ═════════════════════ 화면 카드 → 이미지 저장 (SNS용) ═════════════════════
    보이는 카드를 그대로 PNG로 만든다. 외부 라이브러리 없이: DOM 복제 → 계산된 스타일 인라인 → SVG foreignObject → 캔버스.
    아래에 가지런 로고 줄을 붙이고, 폰이면 공유창(navigator.share), 아니면 파일 저장. */
-const SNAP_SKIP='button,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
+const SNAP_SKIP='button,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
 function snapInline(src,dst){
   const cs=getComputedStyle(src); let css='';
   for(let i=0;i<cs.length;i++){ const k=cs[i]; if(/^(transition|animation|cursor|pointer-events|-webkit-tap)/.test(k))continue; css+=`${k}:${cs.getPropertyValue(k)};`; }
@@ -11780,7 +11802,7 @@ function snapInline(src,dst){
   for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
 }
 /* 내용을 담은 버튼(일정 한 줄·오늘 그림·결정 기록 줄)은 지우지 않고 div로 바꿔 둔다 — 버튼을 통째로 지우던 탓에 주차 이미지에 훈련이 하나도 안 찍혔다 */
-var SNAP_KEEP='button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
+var SNAP_KEEP='button.gw-r,button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
 function snapKeep(root){ root.querySelectorAll(SNAP_KEEP).forEach(b=>{ const d=document.createElement('div'); d.className=b.className; d.setAttribute('style',b.getAttribute('style')||''); d.innerHTML=b.innerHTML; b.replaceWith(d); }); }
 async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
