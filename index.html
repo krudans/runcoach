@@ -2160,7 +2160,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.41';
+const APPVER='19.42';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11906,11 +11906,28 @@ function snapInline(src,dst){
   for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
 }
 /* 내용을 담은 버튼(일정 한 줄·오늘 그림·결정 기록 줄)은 지우지 않고 div로 바꿔 둔다 — 버튼을 통째로 지우던 탓에 주차 이미지에 훈련이 하나도 안 찍혔다 */
+var SNAP_M={l:14,r:34,head:50,foot:26};   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다 */
+function snapCH(w){ return Math.round((w+SNAP_M.l+SNAP_M.r)*16/9)-SNAP_M.head-SNAP_M.foot; }
 var SNAP_KEEP='button.gw-r,button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
 function snapKeep(root){ root.querySelectorAll(SNAP_KEEP).forEach(b=>{ const d=document.createElement('div'); d.className=b.className; d.setAttribute('style',b.getAttribute('style')||''); d.innerHTML=b.innerHTML; b.replaceWith(d); }); }
+/* 쪽 자르는 선 — 꽉 채우되(쪽 끝에 가깝게) ① 묶음(쪽 45% 미만 덩어리)·카드 사이 ② 카드 사이 ③ 글줄 사이 순서로 고른다 */
+function snapCuts(root,h,ch){
+  const cr=root.getBoundingClientRect(), H=Math.ceil(h)+2, bad=[new Uint8Array(H),new Uint8Array(H),new Uint8Array(H)];
+  const mark=(arr,a,b)=>{ for(let y=Math.max(0,Math.floor(a+1));y<Math.min(H,Math.ceil(b-0.5));y++)arr[y]=1; };
+  root.querySelectorAll('*').forEach(e=>{ const r=e.getBoundingClientRect(); const a=r.top-cr.top, b=r.bottom-cr.top, d=b-a; if(d<=0.5)return;
+    const own=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()), leaf=!e.children.length||own||/^(IMG|svg|CANVAS|TR)$/i.test(e.tagName);
+    if(leaf&&d<420){ mark(bad[0],a,b); mark(bad[1],a,b); mark(bad[2],a,b); }
+    if(d>24&&d<h*0.9){ const cs=getComputedStyle(e); if((cs.backgroundColor&&!/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor))||parseFloat(cs.borderTopWidth)>0){ mark(bad[0],a,b); mark(bad[1],a,b); } }
+    if(d>24&&d<ch*0.45)mark(bad[0],a,b); });
+  const cuts=[0]; let at=0;
+  while(h-at>ch){ const hi=Math.floor(at+ch); let y=null;
+    for(const [t,from] of [[0,0.7],[1,0.7],[2,0.7],[0,0.4],[1,0.4],[2,0.3]]){ for(let z=hi;z>=at+ch*from;z--){ if(!bad[t][z]){y=z;break;} } if(y!=null)break; }
+    if(y==null)y=hi; cuts.push(y); at=y; }
+  cuts.push(h); return cuts;
+}
 async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
-  const W=el.offsetWidth, H=el.offsetHeight, clone=el.cloneNode(true);
+  let W=el.offsetWidth; const H=el.offsetHeight, clone=el.cloneNode(true);
   /* 카카오 지도 타일은 이미지로 옮길 수 없어(다른 출처) 깨진 그림이 찍힌다 — 저장할 땐 직접 그린 경로 그림으로 바꾼다 */
   /* 지도: 큰 지도(.rmap)와 썸네일(data-maprid) 모두 — 저장용 지도 그림(타일+경로)으로 바꾼다. 못 그리면 경로 그림만 */
   const MSEL='.rmap,[data-maprid]', mHosts=[...el.querySelectorAll(MSEL)];
@@ -11927,54 +11944,51 @@ async function snapCard(el,name,title){
   const src=el.cloneNode(true); snapKeep(src); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); kFix(src);
   const probe=document.createElement('div'); probe.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; probe.appendChild(src); document.body.appendChild(probe);
   src.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); src.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
+  /* 빈 곳 없는 9:16 — 내용 폭을 바꿔 보며(글줄·칸이 다시 흐른다) 실제로 잘라 본 뒤, 쪽들이 가장 꽉 차는 폭을 고른다 */
+  let best=null; { const base=W, lo=Math.max(280,Math.round(base*0.7)), hi=Math.round(base*1.45);
+    const ws=[]; for(let w=lo; w<=hi; w+=10)ws.push(w); if(!ws.includes(base))ws.push(base);
+    const trunc=()=>{ let c=0; src.querySelectorAll('*').forEach(e=>{ if(e.scrollWidth>e.clientWidth+1&&getComputedStyle(e).textOverflow==='ellipsis')c++; }); return c; };
+    probe.style.width=base+'px'; const t0=trunc();
+    for(const w of ws){ probe.style.width=w+'px'; const h=src.offsetHeight||1, ch=snapCH(w); let cuts=snapCuts(src,h,ch), n=cuts.length-1;
+      if(w<base&&trunc()>t0)continue;   /* 좁혀서 글자가 '…'로 잘리면 그 폭은 안 쓴다 */
+      /* 마지막 쪽만 비지 않게 — 같은 쪽 수 안에서 쪽마다 고르게 나눈다(남는 곳은 위아래로 나눠 가운데 둔다) */
+      if(n>1){ for(let f=1.02; f<1.6; f+=0.03){ const c2=snapCuts(src,h,Math.min(ch,h/n*f)); if(c2.length-1===n){ cuts=c2; break; } } }
+      const last=Math.min(...cuts.slice(1).map((c,i)=>c-cuts[i]))/ch, fill=h/(n*ch);
+      const sc=fill-(last<0.5?(0.5-last)*0.6:0)-(w>base?0.3:0.15)*Math.abs(Math.log(w/base));
+      if(!best||sc>best.sc)best={w,sc,cuts,h}; }
+    W=best.w; probe.style.width=W+'px'; wrap.style.width=W+'px'; }
   snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
-  const h2=clone.offsetHeight||H; probe.remove();
-  /* 9:16 쪽 나누기 — 글자·칸 한가운데를 자르지 않게, 잘라도 되는 높이(어느 칸에도 걸치지 않는 선)를 미리 모아 둔다 */
-  const cr=clone.getBoundingClientRect(), iv=[];
-  clone.querySelectorAll('*').forEach(e=>{ const own=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()); if(e.children.length&&!own&&!/^(IMG|svg|CANVAS|TR)$/i.test(e.tagName))return;
-    const r=e.getBoundingClientRect(); const a=r.top-cr.top, b=r.bottom-cr.top; if(b-a>0.5&&b-a<420)iv.push([a,b]); });
-  const safeY=y=>!iv.some(([a,b])=>a<y-0.5&&b>y+0.5);
-  /* 카드(배경·테두리가 있는 덩어리) — 되도록 카드와 카드 사이에서 자른다 */
-  const blk=[]; clone.querySelectorAll('*').forEach(e=>{ const cs=getComputedStyle(e); const bgOn=cs.backgroundColor&&!/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor), bd=parseFloat(cs.borderTopWidth)>0;
-    if(!(bgOn||bd))return; const r=e.getBoundingClientRect(); const a=r.top-cr.top, b=r.bottom-cr.top; if(b-a>24&&b-a<(clone.offsetHeight||H)*0.9)blk.push([a,b]); });
-  const gapY=y=>safeY(y)&&!blk.some(([a,b])=>a<y-0.5&&b>y+0.5);
+  const h2=best.h; probe.remove();
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(clone)}</div></foreignObject></svg>`;
   wrap.remove();
   const img=new Image(); img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   try{ await img.decode(); }catch(e){ toast('이미지를 만들지 못했어요'); return; }
   /* 모든 저장 이미지는 9:16 쪽으로 — 맨 위 머리줄(브랜드·제목·날짜), 가운데 내용, 쪽 번호는 하나만:
      오른쪽 가장자리 한가운데 탭(갤러리 썸네일은 가운데 정사각형만 보여서 위·아래 번호는 잘린다) */
-  const k=4, ML=22, MR=46, PW=W+ML+MR, PH=Math.round(PW*16/9), HEAD=78, FOOT=56, CH=PH-HEAD-FOOT;
-  /* 쪽 나누기 — 쪽 수를 먼저 정하고 고르게, 자르는 선은 ① 카드 사이 ② 줄 사이 ③ 그냥 끝 순서로 */
-  const pick=(lo,hi,target,ok)=>{ let best=null; for(let y=Math.floor(hi);y>=Math.ceil(lo);y--){ if(ok(y)&&(best==null||Math.abs(y-target)<Math.abs(best-target)))best=y; } return best; };
-  const cuts=[0]; let at=0;
-  while(h2-at>CH){ const left=Math.ceil((h2-at)/CH), target=at+(h2-at)/left, hi=at+CH, lo=at+CH*0.45;
-    let y=pick(at+CH*0.3,hi,target,gapY); if(y==null)y=pick(lo,hi,target,safeY); if(y==null)y=Math.floor(hi); cuts.push(y); at=y; }
-  cuts.push(h2);
+  const k=4, ML=SNAP_M.l, MR=SNAP_M.r, PW=W+ML+MR, PH=Math.round(PW*16/9), HEAD=SNAP_M.head, FOOT=SNAP_M.foot, CH=PH-HEAD-FOOT;
+  const cuts=best.cuts;
   const N=cuts.length-1, bg=getComputedStyle(document.body).backgroundColor||'#F4EFF8', stamp=todayStr().replace(/-/g,'.'), files=[];
   const FK='"Noto Sans KR",system-ui,sans-serif', FO='"Outfit","Noto Sans KR",system-ui,sans-serif';
   for(let i=0;i<N;i++){ const sy=cuts[i], ey=cuts[i+1], hh=ey-sy, cv=document.createElement('canvas'); cv.width=PW*k; cv.height=PH*k; const x=cv.getContext('2d'); x.scale(k,k);
     x.fillStyle=bg; x.fillRect(0,0,PW,PH);
-    /* 머리줄 — 왼쪽 브랜드, 오른쪽 제목·날짜, 아래 가는 선 */
-    try{ drawBrand(x,ML,24,30,'#2A1638','#FDFBF6'); }catch(e){}
+    /* 머리줄 — 왼쪽 브랜드, 오른쪽 제목·날짜 */
+    try{ drawBrand(x,ML,12,26,'#2A1638','#FDFBF6'); }catch(e){}
     x.textBaseline='alphabetic'; x.textAlign='left';
-    x.fillStyle='#2A1638'; x.font='800 16px '+FK; x.fillText('가지런',ML+38,38);
-    x.fillStyle='#72637F'; x.font='700 10px '+FO; x.fillText('GAJI RUN',ML+38,52);
-    x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 14px '+FK; x.fillText(title||'',PW-MR,38);
-    x.fillStyle='#72637F'; x.font='700 11px '+FO; x.fillText(stamp,PW-MR,52);
-    x.fillStyle='rgba(42,22,56,.10)'; x.fillRect(ML,HEAD-12,PW-ML-MR,1);
-    /* 내용 — 짧으면 위아래 가운데로 */
-    const top=HEAD+Math.max(0,Math.round((CH-hh)/2)-(i<N-1?0:0));
+    x.fillStyle='#2A1638'; x.font='800 15px '+FK; x.fillText('가지런',ML+32,25);
+    x.fillStyle='#72637F'; x.font='700 9px '+FO; x.fillText('GAJI RUN',ML+32,37);
+    x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 13px '+FK; x.fillText(title||'',PW-MR,25);
+    x.fillStyle='#72637F'; x.font='700 10px '+FO; x.fillText(stamp,PW-MR,37);
+    /* 내용 — 폭을 골라 쪽에 꽉 차게 맞췄다. 조금 남으면 위아래 가운데 */
+    const top=HEAD+Math.max(0,Math.round((CH-hh)/2));
     x.save(); x.beginPath(); x.rect(ML,top,W,hh); x.clip(); x.drawImage(img,0,sy,W,hh,ML,top,W,hh); x.restore();
-    if(i<N-1){ x.fillStyle='#8A7C96'; x.font='700 11px '+FK; x.textAlign='center'; x.fillText('다음 장에 이어져요 ›',ML+W/2,Math.min(top+hh+20,PH-FOOT+20)); }
     /* 아래 — 쪽 점(●○○) */
-    if(N>1){ const dw=6, gap=8, tw=N*dw+(N-1)*gap; let dx=PW/2-tw/2; const dy=PH-FOOT/2+6;
-      for(let j=0;j<N;j++){ x.fillStyle=j===i?'#5B2D86':'rgba(91,45,134,.22)'; x.beginPath(); x.arc(dx+dw/2,dy,j===i?4:3,0,Math.PI*2); x.fill(); dx+=dw+gap; } }
+    if(N>1){ const dw=6, gap=8, tw=N*dw+(N-1)*gap; let dx=ML+W/2-tw/2; const dy=PH-FOOT/2;
+      for(let j=0;j<N;j++){ x.fillStyle=j===i?'#5B2D86':'rgba(91,45,134,.22)'; x.beginPath(); x.arc(dx+dw/2,dy,j===i?3.5:2.5,0,Math.PI*2); x.fill(); dx+=dw+gap; } }
     /* 쪽 번호 탭 — 오른쪽 가장자리 한가운데, 한 장짜리는 안 붙인다 */
-    if(N>1){ const tw=40, th=86, tx=PW-tw, ty=Math.round(PH/2-th/2), r=14;
+    if(N>1){ const tw=30, th=74, tx=PW-tw, ty=Math.round(PH/2-th/2), r=14;
       x.fillStyle='#5B2D86'; x.beginPath(); x.moveTo(PW,ty); x.lineTo(tx+r,ty); x.quadraticCurveTo(tx,ty,tx,ty+r); x.lineTo(tx,ty+th-r); x.quadraticCurveTo(tx,ty+th,tx+r,ty+th); x.lineTo(PW,ty+th); x.closePath(); x.fill();
-      x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle'; x.font='900 30px '+FO; x.fillText(String(i+1),tx+tw/2+1,ty+32);
-      x.fillStyle='rgba(255,255,255,.7)'; x.font='800 12px '+FO; x.fillText('/ '+N,tx+tw/2+1,ty+62); }
+      x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle'; x.font='900 26px '+FO; x.fillText(String(i+1),tx+tw/2+1,ty+28);
+      x.fillStyle='rgba(255,255,255,.7)'; x.font='800 11px '+FO; x.fillText('/'+N,tx+tw/2+1,ty+54); }
     x.textAlign='left'; x.textBaseline='alphabetic';
     const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지를 만들지 못했어요'); return; } files.push(bl); }
   /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다. 여러 쪽이면 차례대로(이름에 쪽 번호) */
