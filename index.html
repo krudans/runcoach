@@ -2073,7 +2073,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.16';
+const APPVER='19.17';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2258,13 +2258,15 @@ function ovGet(){ const o=(PROF&&PROF.ov)||{}; return o; }
 let AERO_PREVIEW=null;
 function aeroGoal(){ if(AERO_PREVIEW)return AERO_PREVIEW; try{ const g=(typeof GOAL!=='undefined'&&GOAL)||DEV.store.get('goal',null); return g&&g.kind==='aero'&&g.aero?g.aero:null; }catch(e){ return null; } }
 function easyCapOv(){ const o=ovGet(), a=aeroGoal(); return o.easyCap||(a&&a.hrCap)||null; }
+/* 심박 = 케이던스(손목 센서가 발걸음을 심박으로 읽음, cadence lock) — km 평균이 ±3 안으로 같은 km가 절반 넘게·3km 이상이면 그 기록의 심박은 믿지 않는다 (C) */
+function hrLocked(r){ try{ const sc=(r&&r.splits||[]).filter(x=>x&&x.hr&&x.cad); const lock=sc.filter(x=>Math.abs(x.hr-x.cad)<=3).length; return sc.length>=4&&lock>=3&&lock/sc.length>=0.5; }catch(e){ return false; } }
 function learnEasy(hrmax,capIn){
   let runs=[]; try{ runs=DEV.store.get('runs',[])||[]; }catch(e){}
   /* 베타차단제 등 심박을 누르는 약 — 심박으로 속도를 배우지 않는다 */
   try{ const sv=DEV.store.get('survey',null); if(sv&&sv.f&&sv.f.med)runs=[]; }catch(e){}
   const cap=capIn||Math.round(hrmax*0.80), since=Date.now()-42*864e5;
   const use=runs.filter(r=>r&&(r.act||'run')==='run'&&['easy','recovery','long','free'].includes(r.type)
-    &&Date.parse(r.date)>since&&Array.isArray(r.splits)&&r.splits.some(x=>x&&x.hr));
+    &&!r.hrSuspect&&!hrLocked(r)&&Date.parse(r.date)>since&&Array.isArray(r.splits)&&r.splits.some(x=>x&&x.hr));
   const pts=[]; const usedRuns=new Set();
   use.forEach(r=>r.splits.forEach((x,i)=>{
     if(i===0||!x||x.part||!x.hr||!x.pace||x.pace<240||x.pace>660||x.hr<80||x.hr>hrmax)return;   /* 첫 1km는 심박이 아직 안 올라와서 뺀다 */
@@ -2328,7 +2330,8 @@ function recalcProfile(){
   if(LEARN.paceAtCap&&LEARN.paceAtCap>E0+3){
     /* 공식의 느린 끝보다 45초 넘게는 늦추지 않는다. 그보다 더 느려야 한다면 속도가 아니라
        최대 심박(추정값)이 낮게 잡혔을 가능성이 크다 — 그 사실을 따로 알린다 */
-    const lim=E1+45, w=E1-E0;
+    /* 최대심박을 실제로 쟀으면(기록 최고값) 내 기록이 우선 — 한도 없이 따른다. 나이 공식(±10~12)일 때만 45초 한도 (D > C) */
+    const hmOk=!!(ovGet().hrmax||PROF.hrmaxSrc==='measured'||(PROF.hrmaxObs&&PROF.hrmaxObs>=estHrMax(PROF.age))), lim=hmOk?E1+150:E1+45, w=E1-E0;   /* 실측이어도 2분 30초를 넘으면 걷기에 가까워 기록 쪽을 의심한다 */
     LEARN.capped = LEARN.paceAtCap>lim;
     E0=Math.min(LEARN.paceAtCap,lim); E1=Math.max(E1,E0+w); LEARN.applied=true; }
   if(LEARN.applied) Z=Object.assign({},Z,{E:[E0,E1]});
@@ -4064,7 +4067,7 @@ async function startRun(){
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
-    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,hrSince:0,liveDrift:null,segPace0:null,
+    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]},stride:null,strideRef:null});
@@ -4441,7 +4444,7 @@ function onTick(){
   const hrPrimary=(T.primary==='hr');
   let state='ok', pill='', say='', hrOver=false;
 
-  if(S.hr.bpm&&HZ&&HZ[1]){
+  if(S.hr.bpm&&!S.hrLocked&&HZ&&HZ[1]){
     if(S.hr.bpm>HZ[1]+3){ if(!repInfoOnly)S.hrOverSec+=Math.min(TD,5); S.hrHoldSec+=Math.min(TD,5); hrOver=true; }   /* 판정 누적도 음성 큐와 같은 여유(+3) — 참고만 하는 구간은 누적하지 않는다 */
     else S.hrHoldSec=0;
     /* 아주 높은 심박이 오래 이어지면 증상을 확인하라고 말한다.
@@ -4483,7 +4486,7 @@ function onTick(){
   /* 심박이 기준인 날(회복·이지)은 심박계가 1분 넘게 잡히고 심박이 상한 안이면 속도로 꾸짖지 않는다.
      같은 속도라도 몸이 편하면 그날은 그 속도가 '천천히'다. 기록에는 그대로 남긴다. */
   if(S.hr.bpm&&!S.hrSince)S.hrSince=S.elapsed; if(!S.hr.bpm)S.hrSince=0;
-  const hrRules = hrPrimary&&HZ&&HZ[1]&&S.hr.bpm;
+  const hrRules = hrPrimary&&HZ&&HZ[1]&&S.hr.bpm&&!S.hrLocked;
   if(isFinite(p)&&s.ceiling&&!tg.hard&&p<s.ceiling-5&&hrRules){
     S.ceilSec+=TD;                                   /* 기록에는 남기되 판정·안내는 심박으로 */
     if(state==='ok'&&S.hrSince&&(S.elapsed-S.hrSince)>60){ pill=`심박 ${S.hr.bpm} · 편함`; say=`속도는 상한보다 빠르지만 심박이 ${HZ[1]} 아래라 괜찮아요. 오늘은 심박이 기준이에요.`; state='okhr'; }
@@ -4501,6 +4504,18 @@ function onTick(){
     if(Date.now()-(S.lastRestCue||0)>60000&&Date.now()-(S.lastAnyCue||0)>30000){ S.lastRestCue=Date.now(); S.lastAnyCue=Date.now(); DEV.buzz(BZ.off);
       DEV.speak(`쉬는 구간입니다. 더 천천히 가세요. 다음 세트를 위해 심박을 내리는 시간입니다.`,true); }
   }
+  /* 쿨다운·계획 뒤 더 뛰는 거리 — 쉬운 날 상한보다 빠르면 알린다. 예전엔 빠른 날의 쿨다운과 계획 뒤 거리는 아무 판정도 없었다.
+     쿨다운 거리는 2km 또는 본 운동의 20% 중 큰 쪽이면 충분 (Daniels: 쿨다운 10~20분, C) */
+  { const cc=(!S.extra&&isCool(tg)&&tg.pace&&tg.pace[0])?Math.round(tg.pace[0]):PACE&&PACE.easyCeil?Math.round(PACE.easyCeil):null;   /* 쿨다운은 그 구간 속도 범위의 빠른 끝, 계획 뒤는 쉬운 날 상한 */
+    if((isCool(tg)||S.extra)&&cc&&isFinite(p)&&p<cc-5&&(S.elapsed-S.segStart.t)>30&&state!=='hr'){
+      state='fast'; pill=S.extra?'더 뛰는 중 — 천천히':'쿨다운 — 천천히'; say=`${S.extra?'계획은 끝났어요.':'쿨다운이에요.'} 1km ${fmtPace(cc)}보다 느리게 — 지금은 몸을 식히는 시간이에요.`;
+      if((S.coolCueN||0)<3&&Date.now()-(S.lastCoolCue||0)>[0,120000,240000][Math.min(2,S.coolCueN||0)]&&Date.now()-(S.lastAnyCue||0)>30000){ S.lastCoolCue=Date.now(); S.lastAnyCue=Date.now(); S.coolCueN=(S.coolCueN||0)+1; DEV.buzz(BZ.tick);
+        DEV.speak(S.coolCueN===1?`${S.extra?'계획은 끝났어요':'쿨다운이에요'}. ${fmtPaceVoice(cc)}보다 천천히.`:'더 천천히요.',true); } }
+    if(S.extra&&!S.extraWarned){ const main=Math.max(0,(+s.dist||0)-((segs[0]&&segs[0].to)||0)), lim=Math.max(2,main*0.2), ex=km-S.extra.km;
+      if(ex>=lim){ S.extraWarned=true; DEV.speak(`계획보다 ${ex.toFixed(1)}킬로 더 뛰었어요. 마무리로는 충분해요 — 여기서 끝내도 됩니다.`,true); } } }
+  /* 심박 = 케이던스 잠김 — 60초 넘게 심박이 걸음 수와 ±3 안으로 붙어 있으면 심박을 판정에 쓰지 않는다 (C) */
+  if(S.hr.bpm&&S.cad&&S.cad.spm){ const lk=Math.abs(S.hr.bpm-S.cad.spm)<=3; S.lockSec=lk?(S.lockSec||0)+TD:Math.max(0,(S.lockSec||0)-TD*2);
+    if(S.lockSec>60&&!S.hrLockSaid){ S.hrLockSaid=true; S.hrLocked=true; DEV.speak('심박 값이 걸음 박자와 똑같이 움직여요. 센서가 걸음을 읽는 것 같아, 오늘은 속도로 코칭합니다.',true); } }
   /* 심박계 없이 심박 기준 날 — 한 번만 알린다 */
   /* 기기가 연결은 됐는데 값이 늦게 오는 경우(시계가 측정을 막 시작함)는 '연결 안 됨'이 아니다 — 상태를 정확히 말하고, 값이 들어오면 다시 알린다 */
   if(hrPrimary&&!S.hr.bpm&&!S.hr.frozen&&!S.noHrCue&&S.elapsed>90&&S.act==='run'){ S.noHrCue=true; S.noHrSaid=true;
@@ -5067,7 +5082,7 @@ function renderSummary(completed){
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
-    completed,shoe:S.shoe,planKm:isFree?null:(+s.dist||null),extraKm:S.extra?+(km-S.extra.km).toFixed(2):0,
+    completed,shoe:S.shoe,planKm:isFree?null:(+s.dist||null),extraKm:S.extra?+(km-S.extra.km).toFixed(2):0,hrSuspect:!!S.hrLocked,
     ceiling:s.ceiling||null, cadGoal:S.cadGoal||null, hrCap:(T.hrZone&&T.hrZone[1])||null, hour:new Date(S.t0||Date.now()).getHours(),
     th:{spread:TH.spread,ceil:TH.ceil,hrOver:TH.hrOver,dist:TH.dist},
     breath:S.breath?S.breath.blocks:null, act:S.act||'run',
@@ -5493,6 +5508,7 @@ async function selfTest(){
     const sess=sessionOf(i>=0?i:0), T=TYPES[sess.type];
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
+      hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,
       segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -10977,6 +10993,9 @@ function debriefPoints(r,s){
   /* 심박 = 케이던스 — 손목 광학 센서가 발걸음 리듬을 심박으로 읽는 경우가 있다(cadence lock). km 평균이 3 이내로 3km 넘게 같으면 알려만 준다 (C) */
   try{ const sc=(r.splits||[]).filter(x=>x.hr&&x.cad); const lock=sc.filter(x=>Math.abs(x.hr-x.cad)<=3).length;
     if(sc.length>=4&&lock>=3&&lock/sc.length>=0.5) bad.push(['심박 센서',`${sc.length}km 중 ${lock}km에서 심박이 케이던스와 거의 같아요(±3) — 손목 센서가 발걸음을 심박으로 읽었을 수 있어요. 가슴 스트랩이면 해당 없음 (C)`]); }catch(e){}
+  /* 계획 뒤 더 뛴 거리 — 쉬운 날 상한보다 빨랐으면 알린다(판정엔 안 넣음) */
+  try{ const ex=(r.segments||[]).find(g=>g.extra); const cc=PACE&&PACE.easyCeil; if(ex&&ex.km>=0.5&&cc&&ex.pace&&ex.pace<cc-5) bad.push(['더 뛴 거리',`계획 뒤 ${ex.km.toFixed(1)}km를 ${fmtPace(ex.pace)}로 — 쉬운 날 상한 ${fmtPace(cc)}보다 빨랐어요. 마무리는 천천히, 2km 안팎이면 충분해요 (C)`]); }catch(e){}
+  if(r.hrSuspect)bad.push(['측정 의심','뛰는 중 심박이 걸음 박자와 붙어 있었어요 — 이 기록의 심박은 내 이지 속도 배우기에 쓰지 않아요']);
   if(r.learnNote)good.push(['내 몸 기준',r.learnNote]);
   return {good:good.slice(0,5),bad:bad.slice(0,5)};
 }
