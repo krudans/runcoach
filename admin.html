@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>가지런 관리자</title>
+<link rel="icon" href="gaji-icon.svg">
+<style>
+:root{--bg:#F4EFF8;--panel:#fff;--ink:#2A1638;--ink-2:#5E4A6E;--ink-3:#72637F;--line:#E6DDEF;--accent:#5B2D86;--soft:#F1ECF7;--ok:#0E9B72;--warn:#C2410C;--num:"Outfit",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Pretendard","Noto Sans KR",system-ui,-apple-system,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top h1{font-size:16px;margin:0;font-weight:900}.top h1 small{font-weight:700;color:var(--ink-3);margin-left:6px;font-size:12px}
+.top .sp{flex:1}.who{font-size:12px;color:var(--ink-3)}
+.btn{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer}
+.btn.ghost{background:var(--soft);color:var(--accent)}.btn.sm{padding:5px 10px;font-size:12px}.btn.warn{background:#FDE7DC;color:var(--warn)}
+.wrap{display:grid;grid-template-columns:200px 1fr;min-height:calc(100vh - 57px)}
+nav{background:var(--panel);border-right:1px solid var(--line);padding:12px 8px}
+nav button{display:flex;justify-content:space-between;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-radius:10px;font-weight:800;color:var(--ink-2);cursor:pointer}
+nav button.on{background:var(--soft);color:var(--accent)}nav button i{font-style:normal;font-size:11px;background:var(--accent);color:#fff;border-radius:999px;padding:0 7px}
+main{padding:20px 24px 60px;min-width:0}
+h2{font-size:18px;margin:0 0 4px}.sub{color:var(--ink-3);font-size:12.5px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}.kpi i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);font-weight:700}.kpi b{display:block;font-family:var(--num);font-size:26px;font-weight:800;margin-top:2px}.kpi em{font-style:normal;font-size:11px;color:var(--ink-3)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.card h3{font-size:14px;margin:0 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bars div{display:grid;grid-template-columns:110px 1fr 44px;gap:8px;align-items:center;font-size:12.5px;margin:4px 0}.bars s{display:block;height:12px;border-radius:6px;background:var(--accent);text-decoration:none}.bars span{text-align:right;font-family:var(--num);font-weight:700}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.tools input,.tools select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--panel);min-width:200px}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft);font-size:12px;color:var(--ink-2);white-space:nowrap;cursor:pointer}
+tr.click{cursor:pointer}tr.click:hover td{background:#FBF9FD}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag{display:inline-block;font-size:11px;font-weight:800;border-radius:6px;padding:1px 7px;background:var(--soft);color:var(--accent)}.tag.red{background:#FDE7DC;color:var(--warn)}.tag.green{background:#E3F5EE;color:var(--ok)}.tag.gray{background:#EEE;color:#777}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--panel);box-shadow:-10px 0 30px rgba(42,22,56,.15);z-index:20;overflow:auto;padding:18px 20px;transform:translateX(100%);transition:transform .2s}
+.drawer.on{transform:none}.drawer h3{margin:0}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:13px;margin:10px 0}.kv i{font-style:normal;color:var(--ink-3)}
+textarea,.fld{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+label.f{display:block;font-size:12px;font-weight:800;color:var(--ink-2);margin:8px 0 3px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.empty{padding:24px;text-align:center;color:var(--ink-3)}
+.gate{max-width:420px;margin:12vh auto;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:28px;text-align:center}
+.gate h1{font-size:20px;margin:6px 0}.gate p{color:var(--ink-3);font-size:13px}
+.err{color:var(--warn);font-size:12.5px;margin-top:10px;white-space:pre-wrap;text-align:left}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:999px;padding:8px 16px;font-size:13px;z-index:30;opacity:0;transition:opacity .2s}.toast.on{opacity:1}
+.mini td,.mini th{padding:5px 8px;font-size:12px}
+@media (max-width:760px){.wrap{grid-template-columns:1fr}nav{display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:6px}nav button{white-space:nowrap;width:auto}.grid2{grid-template-columns:1fr}main{padding:14px}table{display:block;overflow:auto}}
+</style>
+</head>
+<body>
+<div id="gate" class="gate">
+  <img src="gaji-icon.svg" width="56" height="56" alt="">
+  <h1>가지런 관리자</h1>
+  <p>관리자로 등록된 구글 계정만 들어올 수 있어요.</p>
+  <button class="btn" id="login">구글 계정으로 로그인</button>
+  <div class="err" id="gateErr"></div>
+</div>
+<div id="app" hidden>
+  <div class="top"><h1>가지런 관리자<small>실시간 코칭 프로그램</small></h1><span class="sp"></span><span class="who" id="who"></span><button class="btn ghost sm" id="reload">새로 불러오기</button><button class="btn ghost sm" id="logout">로그아웃</button></div>
+  <div class="wrap">
+    <nav id="nav">
+      <button data-tab="dash" class="on">통계</button>
+      <button data-tab="users">회원 관리</button>
+      <button data-tab="plans">목표·일정</button>
+      <button data-tab="races">대회 목록</button>
+      <button data-tab="notices">공지·알림</button>
+      <button data-tab="fb">피드백·문의 <i id="fbN" hidden></i></button>
+    </nav>
+    <main id="main"><div class="empty">불러오는 중…</div></main>
+  </div>
+</div>
+<div class="drawer" id="drawer"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ═══ 가지런 관리자 ═══
+   · 들어오기: 구글 로그인 + 관리자 이메일 목록. 진짜 잠금은 Firestore 보안 규칙(isAdmin)이 한다 — 이 화면의 검사는 안내용.
+   · 회원 데이터는 보기만. 손대는 건 관리자 전용 문서(admin_users/{uid}: 정지·메모)뿐 — 회원의 기록·일정은 바꾸지 않는다.
+   · 공지(notices)·대회 추가/숨김(catalog/races)·피드백(feedback)은 관리자 전용 컬렉션. */
+const ADMINS=['krudans@gmail.com'];
+firebase.initializeApp({apiKey:"AIzaSyDlSwvduhTI3Locdls_wYFn70OtTkPoK8g",authDomain:"runcoach-120ff.firebaseapp.com",projectId:"runcoach-120ff",storageBucket:"runcoach-120ff.firebasestorage.app"});
+const auth=firebase.auth(), db=firebase.firestore();
+const $=id=>document.getElementById(id);
+const ESC=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const D=x=>{ if(!x)return '—'; const d=x.toDate?x.toDate():new Date(x); if(isNaN(d))return '—'; const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+const ago=ms=>{ if(!ms)return '—'; const m=(Date.now()-ms)/6e4; return m<60?Math.round(m)+'분 전':m<1440?Math.round(m/60)+'시간 전':Math.round(m/1440)+'일 전'; };
+const clock=s=>{ if(!s)return '—'; s=Math.round(s); const h=Math.floor(s/3600),m=Math.floor(s%3600/60),c=s%60; return (h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(c).padStart(2,'0'); };
+const DIST=m=>!m?'':m>=42000?'풀코스':m>=21000?'하프':(m/1000)+'km';
+const KIND={race:'대회 기록',finish:'완주',aero:'편한 달리기',custom:'직접 짠 계획',start:'30분 달리기',weight:'체중',health:'건강',back:'복귀'};
+function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>e.classList.remove('on'),2200); }
+let S={users:[],adm:{},notices:[],fb:[],cat:{add:[],hide:[]},racesJson:null,tab:'dash',q:'',sort:'upd'};
+
+/* ── 로그인 ── */
+$('login').onclick=async()=>{ $('gateErr').textContent=''; try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }catch(e){ if(/popup/i.test(e.code||'')){ await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } else $('gateErr').textContent='로그인하지 못했어요: '+(e.message||e); } };
+$('logout').onclick=()=>auth.signOut();
+$('reload').onclick=()=>loadAll();
+auth.getRedirectResult().catch(()=>{});
+auth.onAuthStateChanged(async u=>{
+  if(!u){ $('gate').hidden=false; $('app').hidden=true; return; }
+  if(!ADMINS.includes((u.email||'').toLowerCase())||!u.emailVerified){ $('gateErr').textContent=`${u.email} 은 관리자로 등록되지 않은 계정이에요.`; await auth.signOut(); return; }
+  $('gate').hidden=true; $('app').hidden=false; $('who').textContent=u.email; loadAll();
+});
+
+/* ── 불러오기 ── */
+async function loadAll(){
+  $('main').innerHTML='<div class="empty">불러오는 중…</div>';
+  const errs=[];
+  const get=async(name,fn)=>{ try{ return await fn(); }catch(e){ errs.push(`${name}: ${e.code||e.message||e}`); return null; } };
+  const us=await get('회원(users)',()=>db.collection('users').get());
+  S.users=us?us.docs.map(d=>Object.assign({uid:d.id},d.data())):[];
+  const ad=await get('정지·메모(admin_users)',()=>db.collection('admin_users').get());
+  S.adm={}; if(ad)ad.forEach(d=>S.adm[d.id]=d.data());
+  const no=await get('공지(notices)',()=>db.collection('notices').orderBy('at','desc').get());
+  S.notices=no?no.docs.map(d=>Object.assign({id:d.id},d.data())):[];
+  const fb=await get('피드백(feedback)',()=>db.collection('feedback').orderBy('at','desc').limit(500).get());
+  S.fb=fb?fb.docs.map(d=>Object.assign({id:d.id},d.data())):[];
+  const ct=await get('대회 추가·숨김(catalog)',()=>db.collection('catalog').doc('races').get());
+  S.cat=Object.assign({add:[],hide:[]},ct&&ct.exists?ct.data():{});
+  try{ const r=await fetch('races.json',{cache:'no-store'}); S.racesJson=r.ok?await r.json():null; }catch(e){ S.racesJson=null; }
+  S.errs=errs; const nNew=S.fb.filter(x=>!x.done).length; $('fbN').hidden=!nNew; $('fbN').textContent=nNew;
+  render();
+}
+
+/* ── 회원 한 명 요약 — 앱이 올린 설정 문서에서 ── */
+function U(u){
+  const g=(u.plan&&u.plan.goal)||u.goal||{}, st=u.stat||{}, a=S.adm[u.uid]||{};
+  const ses=(u.plan&&u.plan.sessions)||[];
+  const wk={}; ses.forEach(x=>{ if(x.type==='off')return; const d=new Date(x.d.slice(0,10)+'T00:00:00'); const m=new Date(d); m.setDate(d.getDate()-((d.getDay()+6)%7)); const k=m.toISOString().slice(0,10); wk[k]=(wk[k]||0)+(+x.dist||0); });
+  const dd=g.date?Math.ceil((new Date(g.date.slice(0,10)+'T00:00:00')-new Date(new Date().toDateString()))/864e5):null;
+  return {uid:u.uid,email:u.email||'(이메일 없음)',upd:+u.updatedAt||0,ver:u.appVer||'—',g,goal:g.kind?`${KIND[g.kind]||g.kind}${g.m?' · '+DIST(g.m):''}${g.sec||g.final?' '+clock(g.final||g.sec):''}`:'목표 없음',date:g.date?g.date.slice(0,10):'',dd,
+    runs:st.runs!=null?st.runs:null,km:st.km!=null?st.km:null,last:st.lastRun||'',w7:st.km7!=null?st.km7:null,days:(u.plan&&u.plan.days||[]).join(''),wkKm:Object.keys(wk).sort().map(k=>Math.round(wk[k])),
+    planStart:u.plan&&u.plan.start||'',race:u.prof&&u.prof.race,susp:!!a.suspended,memo:a.memo||'',raw:u};
+}
+const ACT=ms=>ms&&Date.now()-ms<7*864e5;
+
+/* ── 화면 ── */
+function render(){ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===S.tab));
+  const err=S.errs&&S.errs.length?`<div class="card" style="border-color:#F6A07A"><b style="color:var(--warn)">일부를 읽지 못했어요</b><div class="err">${ESC(S.errs.join('\n'))}\n\n대부분 Firestore 보안 규칙에 관리자 권한이 아직 없어서예요 — 함께 드린 규칙을 Firebase 콘솔에 넣어 주세요.</div></div>`:'';
+  $('main').innerHTML=err+({dash,users,plans,races,notices,fb}[S.tab])(); bind(); }
+document.getElementById('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(b){ S.tab=b.dataset.tab; render(); } };
+
+function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).length, a30=L.filter(x=>x.upd&&Date.now()-x.upd<30*864e5).length;
+  const runs=L.reduce((s,x)=>s+(x.runs||0),0), km=L.reduce((s,x)=>s+(x.km||0),0), km7=L.reduce((s,x)=>s+(x.w7||0),0);
+  const cnt=f=>{ const o={}; L.forEach(x=>{ const k=f(x); if(k)o[k]=(o[k]||0)+1; }); return Object.entries(o).sort((a,b)=>b[1]-a[1]); };
+  const bars=(arr)=>{ const mx=Math.max(1,...arr.map(x=>x[1])); return `<div class="bars">${arr.map(([k,v])=>`<div><b style="font-weight:700">${ESC(k)}</b><s style="width:${Math.max(3,v/mx*100)}%"></s><span>${v}</span></div>`).join('')||'<div class="empty">없음</div>'}</div>`; };
+  const up=L.filter(x=>x.dd!=null&&x.dd>=0).sort((a,b)=>a.dd-b.dd).slice(0,8);
+  const md=d=>String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); const days={}; for(let i=13;i>=0;i--){ days[md(new Date(Date.now()-i*864e5))]=0; } L.forEach(x=>{ if(x.upd&&Date.now()-x.upd<14*864e5){ const k=md(new Date(x.upd)); if(k in days)days[k]++; } });
+  return `<h2>통계</h2><p class="sub">회원 = 클라우드 동기화를 켠 사용자(구글 로그인). 거리·기록 수는 앱 v19.35부터 올리는 요약값이라, 그 전 버전 사용자는 '—'로 보여요.</p>
+  <div class="kpis">
+    <div class="kpi"><i>회원</i><b>${n}</b><em>정지 ${L.filter(x=>x.susp).length}</em></div>
+    <div class="kpi"><i>최근 7일 활동</i><b>${a7}</b><em>${n?Math.round(a7/n*100):0}% · 30일 ${a30}</em></div>
+    <div class="kpi"><i>누적 기록</i><b>${runs.toLocaleString()}</b><em>번</em></div>
+    <div class="kpi"><i>누적 거리</i><b>${Math.round(km).toLocaleString()}</b><em>km · 최근 7일 ${Math.round(km7)}km</em></div>
+    <div class="kpi"><i>새 피드백</i><b>${S.fb.filter(x=>!x.done).length}</b><em>전체 ${S.fb.length}</em></div>
+    <div class="kpi"><i>게시 중 공지</i><b>${S.notices.filter(x=>x.active).length}</b><em>전체 ${S.notices.length}</em></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>최근 14일 — 마지막 동기화한 날</h3>${bars(Object.entries(days))}</div>
+    <div class="card"><h3>목표 종류</h3>${bars(cnt(x=>x.g.kind?(KIND[x.g.kind]||x.g.kind)+(x.g.m?' '+DIST(x.g.m):''):'목표 없음'))}</div>
+    <div class="card"><h3>다가오는 대회 (회원 목표)</h3>${up.length?`<table class="mini"><tr><th>D-day</th><th>회원</th><th>목표</th></tr>${up.map(x=>`<tr><td class="num">D-${x.dd}</td><td>${ESC(x.email)}</td><td>${ESC(x.goal)}</td></tr>`).join('')}</table>`:'<div class="empty">없음</div>'}</div>
+    <div class="card"><h3>앱 버전</h3>${bars(cnt(x=>x.ver==='—'?'v19.35 이전':'v'+x.ver))}</div>
+  </div>`; }
+
+function users(){ let L=S.users.map(U); const q=S.q.trim().toLowerCase();
+  if(q)L=L.filter(x=>(x.email+' '+x.goal+' '+x.memo).toLowerCase().includes(q));
+  const so={upd:(a,b)=>b.upd-a.upd,email:(a,b)=>a.email.localeCompare(b.email),km:(a,b)=>(b.km||0)-(a.km||0),runs:(a,b)=>(b.runs||0)-(a.runs||0)}[S.sort]; L.sort(so);
+  return `<h2>회원 관리</h2><p class="sub">회원 기록·일정은 보기만 해요. 바꿀 수 있는 건 '정지'와 '관리자 메모'뿐 — 정지하면 그 회원의 앱은 클라우드 동기화를 멈추고 안내를 보여줘요(폰 안의 기록은 그대로).</p>
+  <div class="tools"><input id="q" placeholder="이메일·목표·메모 검색" value="${ESC(S.q)}"><select id="sort"><option value="upd">최근 동기화순</option><option value="email">이메일순</option><option value="km">누적 거리순</option><option value="runs">기록 수순</option></select><button class="btn ghost sm" id="csv">CSV 내려받기</button><span class="who">${L.length}명</span></div>
+  ${L.length?`<table><tr><th>이메일</th><th>상태</th><th>마지막 동기화</th><th>목표</th><th>대회일</th><th>기록</th><th>누적 km</th><th>버전</th></tr>${L.map(x=>`<tr class="click" data-uid="${x.uid}"><td>${ESC(x.email)}${x.memo?' <span class="tag gray">메모</span>':''}</td><td>${x.susp?'<span class="tag red">정지</span>':ACT(x.upd)?'<span class="tag green">활동</span>':'<span class="tag gray">쉼</span>'}</td><td class="num">${ago(x.upd)}</td><td>${ESC(x.goal)}</td><td class="num">${x.date||'—'}</td><td class="num">${x.runs??'—'}</td><td class="num">${x.km!=null?Math.round(x.km):'—'}</td><td class="num">${ESC(x.ver)}</td></tr>`).join('')}</table>`:'<div class="card empty">회원이 없어요</div>'}`; }
+
+function plans(){ const L=S.users.map(U).filter(x=>x.g.kind).sort((a,b)=>(a.dd??9999)-(b.dd??9999));
+  return `<h2>목표·일정</h2><p class="sub">회원이 정한 목표와 지금 4주 일정의 주간 거리. 행을 누르면 일정 전체를 볼 수 있어요.</p>
+  ${L.length?`<table><tr><th>회원</th><th>목표</th><th>대회일</th><th>D-day</th><th>뛰는 요일</th><th>일정 시작</th><th>4주 주간 거리</th><th>기준 기록</th></tr>${L.map(x=>`<tr class="click" data-uid="${x.uid}"><td>${ESC(x.email)}</td><td>${ESC(x.goal)}</td><td class="num">${x.date||'—'}</td><td class="num">${x.dd!=null?(x.dd>=0?'D-'+x.dd:'지남'):'—'}</td><td>${ESC(x.days)||'—'}</td><td class="num">${x.planStart||'—'}</td><td class="num">${x.wkKm.join(' → ')||'—'}</td><td class="num">${x.race&&x.race.sec?DIST(x.race.m)+' '+clock(x.race.sec):'—'}</td></tr>`).join('')}</table>`:'<div class="card empty">목표를 정한 회원이 없어요</div>'}`; }
+
+function races(){ const R=(S.racesJson&&S.racesJson.races)||[], hide=new Set(S.cat.hide||[]), today=new Date().toISOString().slice(0,10);
+  const fut=R.filter(r=>r.date>=today);
+  return `<h2>대회 목록</h2><p class="sub">앱의 대회 목록 = 매일 자동으로 받는 마라톤온라인 일정(${fut.length}개) + 여기서 추가한 대회 − 숨긴 대회. 바꾸면 앱에 바로 반영돼요.</p>
+  <div class="card"><h3>대회 추가</h3><div class="grid2">
+    <div><label class="f">대회 이름</label><input class="fld" id="rN" placeholder="예: 2027 대구마라톤"></div>
+    <div><label class="f">날짜</label><input class="fld" id="rD" type="date"></div>
+    <div><label class="f">종목 (쉼표로)</label><input class="fld" id="rC" placeholder="풀, 하프, 10km"></div>
+    <div><label class="f">장소</label><input class="fld" id="rP" placeholder="대구 국채보상공원"></div>
+    <div><label class="f">지역</label><input class="fld" id="rA" placeholder="대구"></div>
+    <div><label class="f">홈페이지</label><input class="fld" id="rH" placeholder="https://"></div></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="rAdd">추가</button></div></div>
+  <div class="card"><h3>추가한 대회 (${(S.cat.add||[]).length})</h3>${(S.cat.add||[]).length?`<table class="mini"><tr><th>날짜</th><th>이름</th><th>종목</th><th>장소</th><th></th></tr>${S.cat.add.map((r,i)=>`<tr><td class="num">${r.date}</td><td>${ESC(r.name)}</td><td>${ESC((r.courses||[]).join(', '))}</td><td>${ESC(r.place||'')}</td><td><button class="btn warn sm" data-rdel="${i}">빼기</button></td></tr>`).join('')}</table>`:'<div class="empty">없음</div>'}</div>
+  <div class="card"><h3>자동 목록 (숨김 ${hide.size}개)</h3><div class="tools"><input id="rq" placeholder="이름·장소로 찾기"></div>
+    <table class="mini" id="rTab"><tr><th>날짜</th><th>이름</th><th>종목</th><th>장소</th><th></th></tr>${fut.slice(0,400).map(r=>`<tr data-rtxt="${ESC((r.name+' '+r.place).toLowerCase())}"><td class="num">${r.date}</td><td>${ESC(r.name)}</td><td>${ESC((r.courses||[]).join(', '))}</td><td>${ESC(r.place||'')}</td><td>${hide.has(r.id)?`<button class="btn ghost sm" data-rshow="${ESC(r.id)}">다시 보이기</button>`:`<button class="btn warn sm" data-rhide="${ESC(r.id)}">숨기기</button>`}</td></tr>`).join('')}</table></div>`; }
+
+function notices(){ return `<h2>공지·알림</h2><p class="sub">'게시'한 공지 중 가장 최근 것이 앱 홈 맨 위에 떠요. 회원이 닫으면 그 공지는 다시 안 떠요.</p>
+  <div class="card"><h3 id="nTitle">새 공지</h3><input type="hidden" id="nId">
+    <label class="f">제목</label><input class="fld" id="nT" maxlength="60">
+    <label class="f">내용</label><textarea id="nB" rows="4" maxlength="600"></textarea>
+    <div class="grid2"><div><label class="f">링크 (선택)</label><input class="fld" id="nL" placeholder="https://"></div><div><label class="f">게시 끝나는 날 (선택)</label><input class="fld" type="date" id="nU"></div></div>
+    <div class="row" style="margin-top:10px"><label class="row"><input type="checkbox" id="nA" checked> 바로 게시</label><span class="sp" style="flex:1"></span><button class="btn ghost" id="nClr">새로 쓰기</button><button class="btn" id="nSave">저장</button></div></div>
+  ${S.notices.length?`<table><tr><th>상태</th><th>제목</th><th>내용</th><th>만든 때</th><th>끝</th><th></th></tr>${S.notices.map(n=>`<tr><td>${n.active?'<span class="tag green">게시</span>':'<span class="tag gray">내림</span>'}</td><td><b>${ESC(n.title)}</b></td><td>${ESC(n.body).slice(0,120)}</td><td class="num">${D(n.at)}</td><td class="num">${n.until||'—'}</td><td class="row"><button class="btn ghost sm" data-nedit="${n.id}">고치기</button><button class="btn ghost sm" data-ntog="${n.id}">${n.active?'내리기':'게시'}</button><button class="btn warn sm" data-ndel="${n.id}">지우기</button></td></tr>`).join('')}</table>`:'<div class="card empty">공지가 없어요</div>'}`; }
+
+function fb(){ const L=S.fb; return `<h2>피드백·문의</h2><p class="sub">앱 설정 › '의견 보내기'로 들어온 글. 처리하면 '처리함'으로 표시해 두세요.</p>
+  ${L.length?`<table><tr><th>상태</th><th>받은 때</th><th>보낸 사람</th><th>내용</th><th>버전</th><th></th></tr>${L.map(x=>`<tr><td>${x.done?'<span class="tag gray">처리함</span>':'<span class="tag red">새 글</span>'}</td><td class="num">${D(x.at)}</td><td>${ESC(x.email||'익명')}</td><td style="white-space:pre-wrap;max-width:520px">${ESC(x.text)}${x.reply?`<div class="tag" style="margin-top:4px">메모: ${ESC(x.reply)}</div>`:''}</td><td class="num">${ESC(x.appVer||'')}</td><td class="row"><button class="btn ghost sm" data-fdone="${x.id}">${x.done?'다시 새 글로':'처리함'}</button><button class="btn ghost sm" data-fmemo="${x.id}">메모</button></td></tr>`).join('')}</table>`:'<div class="card empty">아직 들어온 글이 없어요</div>'}`; }
+
+/* ── 회원 상세 ── */
+async function openUser(uid){ const u=S.users.find(x=>x.uid===uid); if(!u)return; const x=U(u), dr=$('drawer');
+  const ses=((u.plan&&u.plan.sessions)||[]).filter(s=>s.type!=='off');
+  dr.innerHTML=`<div class="row"><h3 style="flex:1">${ESC(x.email)}</h3><button class="btn ghost sm" id="drX">닫기</button></div>
+    <div class="kv"><i>회원 ID</i><span class="num" style="font-size:11px">${x.uid}</span><i>마지막 동기화</i><span>${x.upd?D(x.upd)+' ('+ago(x.upd)+')':'—'}</span><i>앱 버전</i><span>${ESC(x.ver)}</span>
+      <i>목표</i><span>${ESC(x.goal)}${x.date?' · '+x.date+(x.dd!=null&&x.dd>=0?' (D-'+x.dd+')':''):''}</span><i>기준 기록</i><span>${x.race&&x.race.sec?DIST(x.race.m)+' '+clock(x.race.sec)+(x.race.at?' · '+x.race.at:''):'—'}</span>
+      <i>기록</i><span>${x.runs??'—'}번 · ${x.km!=null?Math.round(x.km)+'km':'—'} · 최근 7일 ${x.w7!=null?Math.round(x.w7)+'km':'—'} · 마지막 ${x.last||'—'}</span><i>뛰는 요일</i><span>${ESC(x.days)||'—'}</span></div>
+    <div class="card"><h3>관리</h3><div class="row"><span>상태: ${x.susp?'<span class="tag red">정지</span>':'<span class="tag green">정상</span>'}</span><span style="flex:1"></span><button class="btn ${x.susp?'ghost':'warn'} sm" id="uSusp">${x.susp?'정지 풀기':'정지하기'}</button></div>
+      <label class="f">관리자 메모 (회원에게 안 보여요)</label><textarea id="uMemo" rows="3">${ESC(x.memo)}</textarea><div class="row" style="margin-top:6px"><button class="btn sm" id="uMemoSave">메모 저장</button></div></div>
+    <div class="card"><h3>지금 4주 일정 (${ses.length}회)</h3>${ses.length?`<table class="mini"><tr><th>날짜</th><th>훈련</th><th>km</th></tr>${ses.map(s=>`<tr><td class="num">${s.d.slice(5,10)}</td><td>${ESC(s.t)}</td><td class="num">${s.dist!=null?(+s.dist).toFixed(1):''}</td></tr>`).join('')}</table>`:'<div class="empty">없음</div>'}</div>
+    <div class="card"><h3>최근 기록</h3><div id="uRuns"><button class="btn ghost sm" id="uRunsLoad">최근 30개 불러오기</button></div></div>`;
+  dr.classList.add('on');
+  $('drX').onclick=()=>dr.classList.remove('on');
+  $('uSusp').onclick=async()=>{ const on=!x.susp; if(!confirm(on?`${x.email} 회원을 정지할까요?\n정지하면 이 회원의 앱은 클라우드 동기화를 멈춰요. 기록은 지워지지 않아요.`:`${x.email} 회원의 정지를 풀까요?`))return;
+    try{ await db.collection('admin_users').doc(uid).set({suspended:on,suspAt:firebase.firestore.FieldValue.serverTimestamp(),by:auth.currentUser.email},{merge:true}); S.adm[uid]=Object.assign({},S.adm[uid],{suspended:on}); toast(on?'정지했어요':'정지를 풀었어요'); openUser(uid); render(); }catch(e){ alert('저장하지 못했어요: '+(e.code||e.message)); } };
+  $('uMemoSave').onclick=async()=>{ const m=$('uMemo').value.trim(); try{ await db.collection('admin_users').doc(uid).set({memo:m,memoAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}); S.adm[uid]=Object.assign({},S.adm[uid],{memo:m}); toast('메모를 저장했어요'); render(); }catch(e){ alert('저장하지 못했어요: '+(e.code||e.message)); } };
+  $('uRunsLoad').onclick=async()=>{ $('uRuns').innerHTML='불러오는 중…'; try{ const rs=await db.collection('users').doc(uid).collection('runs').orderBy('date','desc').limit(30).get();
+      const L=rs.docs.map(d=>d.data()); $('uRuns').innerHTML=L.length?`<table class="mini"><tr><th>날짜</th><th>km</th><th>시간</th><th>페이스</th><th>심박</th></tr>${L.map(r=>`<tr><td class="num">${String(r.date).slice(0,16).replace('T',' ')}</td><td class="num">${(+r.km||0).toFixed(2)}</td><td class="num">${clock(r.sec)}</td><td class="num">${r.paceAvg?clock(r.paceAvg):'—'}</td><td class="num">${r.hrAvg||'—'}</td></tr>`).join('')}</table>`:'<div class="empty">기록 없음</div>'; }
+    catch(e){ $('uRuns').innerHTML=`<div class="err">읽지 못했어요: ${ESC(e.code||e.message)}</div>`; } };
+}
+
+/* ── 이벤트 ── */
+function bind(){
+  const q=$('q'); if(q){ q.oninput=()=>{ S.q=q.value; const p=q.selectionStart; render(); const n=$('q'); n.focus(); n.setSelectionRange(p,p); }; }
+  const so=$('sort'); if(so){ so.value=S.sort; so.onchange=()=>{ S.sort=so.value; render(); }; }
+  document.querySelectorAll('[data-uid]').forEach(tr=>tr.onclick=()=>openUser(tr.dataset.uid));
+  const csv=$('csv'); if(csv)csv.onclick=()=>{ const L=S.users.map(U); const rows=[['email','uid','상태','마지막동기화','목표','대회일','기록수','누적km','최근7일km','버전','메모']].concat(L.map(x=>[x.email,x.uid,x.susp?'정지':'정상',x.upd?D(x.upd):'',x.goal,x.date,x.runs??'',x.km!=null?Math.round(x.km):'',x.w7!=null?Math.round(x.w7):'',x.ver,x.memo]));
+    const t='﻿'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download=`gajirun_members_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
+  /* 대회 */
+  const saveCat=async()=>{ await db.collection('catalog').doc('races').set({add:S.cat.add||[],hide:S.cat.hide||[],at:firebase.firestore.FieldValue.serverTimestamp()}); };
+  const ra=$('rAdd'); if(ra)ra.onclick=async()=>{ const n=$('rN').value.trim(), d=$('rD').value; if(!n||!d)return alert('이름과 날짜는 꼭 넣어 주세요');
+    const r={id:'adm-'+d.replace(/-/g,'')+'-'+Date.now().toString(36),date:d,name:n,courses:$('rC').value.split(',').map(s=>s.trim()).filter(Boolean),place:$('rP').value.trim(),area:$('rA').value.trim(),home:$('rH').value.trim()||null,admin:true};
+    S.cat.add=(S.cat.add||[]).concat([r]).sort((a,b)=>a.date.localeCompare(b.date)); try{ await saveCat(); toast('대회를 추가했어요'); render(); }catch(e){ alert('저장하지 못했어요: '+(e.code||e.message)); } };
+  document.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{ if(!confirm('이 대회를 목록에서 뺄까요?'))return; S.cat.add.splice(+b.dataset.rdel,1); try{ await saveCat(); render(); }catch(e){ alert(e.code||e.message); } });
+  document.querySelectorAll('[data-rhide]').forEach(b=>b.onclick=async()=>{ S.cat.hide=[...new Set((S.cat.hide||[]).concat([b.dataset.rhide]))]; try{ await saveCat(); toast('숨겼어요'); render(); }catch(e){ alert(e.code||e.message); } });
+  document.querySelectorAll('[data-rshow]').forEach(b=>b.onclick=async()=>{ S.cat.hide=(S.cat.hide||[]).filter(x=>x!==b.dataset.rshow); try{ await saveCat(); render(); }catch(e){ alert(e.code||e.message); } });
+  const rq=$('rq'); if(rq)rq.oninput=()=>{ const v=rq.value.trim().toLowerCase(); document.querySelectorAll('#rTab tr[data-rtxt]').forEach(tr=>tr.hidden=!!v&&!tr.dataset.rtxt.includes(v)); };
+  /* 공지 */
+  const ns=$('nSave'); if(ns)ns.onclick=async()=>{ const t=$('nT').value.trim(), bd=$('nB').value.trim(); if(!t||!bd)return alert('제목과 내용을 넣어 주세요');
+    const o={title:t,body:bd,link:$('nL').value.trim()||null,until:$('nU').value||null,active:$('nA').checked,by:auth.currentUser.email}; const id=$('nId').value;
+    try{ if(id)await db.collection('notices').doc(id).set(o,{merge:true}); else await db.collection('notices').add(Object.assign(o,{at:firebase.firestore.FieldValue.serverTimestamp()})); toast('공지를 저장했어요'); await loadAll(); }catch(e){ alert('저장하지 못했어요: '+(e.code||e.message)); } };
+  const nc=$('nClr'); if(nc)nc.onclick=()=>render();
+  document.querySelectorAll('[data-nedit]').forEach(b=>b.onclick=()=>{ const n=S.notices.find(x=>x.id===b.dataset.nedit); $('nId').value=n.id; $('nT').value=n.title||''; $('nB').value=n.body||''; $('nL').value=n.link||''; $('nU').value=n.until||''; $('nA').checked=!!n.active; $('nTitle').textContent='공지 고치기'; window.scrollTo(0,0); });
+  document.querySelectorAll('[data-ntog]').forEach(b=>b.onclick=async()=>{ const n=S.notices.find(x=>x.id===b.dataset.ntog); try{ await db.collection('notices').doc(n.id).set({active:!n.active},{merge:true}); n.active=!n.active; render(); }catch(e){ alert(e.code||e.message); } });
+  document.querySelectorAll('[data-ndel]').forEach(b=>b.onclick=async()=>{ if(!confirm('이 공지를 지울까요? 되돌릴 수 없어요.'))return; try{ await db.collection('notices').doc(b.dataset.ndel).delete(); await loadAll(); }catch(e){ alert(e.code||e.message); } });
+  /* 피드백 */
+  document.querySelectorAll('[data-fdone]').forEach(b=>b.onclick=async()=>{ const x=S.fb.find(f=>f.id===b.dataset.fdone); try{ await db.collection('feedback').doc(x.id).update({done:!x.done}); x.done=!x.done; const n=S.fb.filter(f=>!f.done).length; $('fbN').hidden=!n; $('fbN').textContent=n; render(); }catch(e){ alert(e.code||e.message); } });
+  document.querySelectorAll('[data-fmemo]').forEach(b=>b.onclick=async()=>{ const x=S.fb.find(f=>f.id===b.dataset.fmemo); const m=prompt('관리자 메모',x.reply||''); if(m==null)return; try{ await db.collection('feedback').doc(x.id).update({reply:m}); x.reply=m; render(); }catch(e){ alert(e.code||e.message); } });
+}
+</script>
+</body>
+</html>
