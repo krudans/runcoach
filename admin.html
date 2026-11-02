@@ -63,7 +63,8 @@ label.f{display:block;font-size:12px;font-weight:800;color:var(--ink-2);margin:8
   <div class="wrap">
     <nav id="nav">
       <button data-tab="dash" class="on">통계</button>
-      <button data-tab="users">회원 관리</button>
+      <button data-tab="inst">사용자 목록</button>
+      <button data-tab="users">클라우드 회원</button>
       <button data-tab="plans">목표·일정</button>
       <button data-tab="races">대회 목록</button>
       <button data-tab="notices">공지·알림</button>
@@ -94,7 +95,7 @@ const clock=s=>{ if(!s)return '—'; s=Math.round(s); const h=Math.floor(s/3600)
 const DIST=m=>!m?'':m>=42000?'풀코스':m>=21000?'하프':(m/1000)+'km';
 const KIND={race:'대회 기록',finish:'완주',aero:'편한 달리기',custom:'직접 짠 계획',start:'30분 달리기',weight:'체중',health:'건강',back:'복귀'};
 function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>e.classList.remove('on'),2200); }
-let S={users:[],adm:{},notices:[],fb:[],cat:{add:[],hide:[]},racesJson:null,tab:'dash',q:'',sort:'upd'};
+let S={inst:[],users:[],adm:{},notices:[],fb:[],cat:{add:[],hide:[]},racesJson:null,tab:'dash',q:'',sort:'upd'};
 
 /* ── 로그인 ── */
 $('login').onclick=async()=>{ $('gateErr').textContent=''; try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }catch(e){ if(/popup/i.test(e.code||'')){ await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } else $('gateErr').textContent='로그인하지 못했어요: '+(e.message||e); } };
@@ -114,6 +115,8 @@ async function loadAll(){
   const get=async(name,fn)=>{ try{ return await fn(); }catch(e){ errs.push(`${name}: ${e.code||e.message||e}`); return null; } };
   const us=await get('회원(users)',()=>db.collection('users').get());
   S.users=us?us.docs.map(d=>Object.assign({uid:d.id},d.data())):[];
+  const ins=await get('사용자(installs)',()=>db.collection('installs').get());
+  S.inst=ins?ins.docs.map(d=>Object.assign({id:d.id},d.data())):[];
   const ad=await get('정지·메모(admin_users)',()=>db.collection('admin_users').get());
   S.adm={}; if(ad)ad.forEach(d=>S.adm[d.id]=d.data());
   const no=await get('공지(notices)',()=>db.collection('notices').orderBy('at','desc').get());
@@ -142,7 +145,7 @@ const ACT=ms=>ms&&Date.now()-ms<7*864e5;
 /* ── 화면 ── */
 function render(){ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===S.tab));
   const err=S.errs&&S.errs.length?`<div class="card" style="border-color:#F6A07A"><b style="color:var(--warn)">일부를 읽지 못했어요</b><div class="err">${ESC(S.errs.join('\n'))}\n\n대부분 Firestore 보안 규칙에 관리자 권한이 아직 없어서예요 — 함께 드린 규칙을 Firebase 콘솔에 넣어 주세요.</div></div>`:'';
-  $('main').innerHTML=err+({dash,users,plans,races,notices,fb}[S.tab])(); bind(); }
+  $('main').innerHTML=err+({dash,inst,users,plans,races,notices,fb}[S.tab])(); bind(); }
 document.getElementById('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(b){ S.tab=b.dataset.tab; render(); } };
 
 function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).length, a30=L.filter(x=>x.upd&&Date.now()-x.upd<30*864e5).length;
@@ -151,9 +154,14 @@ function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).
   const bars=(arr)=>{ const mx=Math.max(1,...arr.map(x=>x[1])); return `<div class="bars">${arr.map(([k,v])=>`<div><b style="font-weight:700">${ESC(k)}</b><s style="width:${Math.max(3,v/mx*100)}%"></s><span>${v}</span></div>`).join('')||'<div class="empty">없음</div>'}</div>`; };
   const up=L.filter(x=>x.dd!=null&&x.dd>=0).sort((a,b)=>a.dd-b.dd).slice(0,8);
   const md=d=>String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); const days={}; for(let i=13;i>=0;i--){ days[md(new Date(Date.now()-i*864e5))]=0; } L.forEach(x=>{ if(x.upd&&Date.now()-x.upd<14*864e5){ const k=md(new Date(x.upd)); if(k in days)days[k]++; } });
-  return `<h2>통계</h2><p class="sub">회원 = 클라우드 동기화를 켠 사용자(구글 로그인). 거리·기록 수는 앱 v19.35부터 올리는 요약값이라, 그 전 버전 사용자는 '—'로 보여요.</p>
+  const I=S.inst, ms=x=>x&&x.toDate?x.toDate().getTime():(x?Date.parse(x):0), i7=I.filter(x=>Date.now()-ms(x.last)<7*864e5).length, i30=I.filter(x=>Date.now()-ms(x.last)<30*864e5).length, iNew=I.filter(x=>Date.now()-ms(x.first)<7*864e5).length;
+  const cntI=f=>{ const o={}; I.forEach(x=>{ const k=f(x); if(k)o[k]=(o[k]||0)+1; }); return Object.entries(o).sort((a,b)=>b[1]-a[1]); };
+  return `<h2>통계</h2><p class="sub"><b>사용자</b> = 앱을 쓰는 기기(로그인 안 해도, v19.36부터 집계) · <b>클라우드 회원</b> = 구글 로그인으로 동기화를 켠 사람.</p>
   <div class="kpis">
-    <div class="kpi"><i>회원</i><b>${n}</b><em>정지 ${L.filter(x=>x.susp).length}</em></div>
+    <div class="kpi"><i>사용자(기기)</i><b>${I.length}</b><em>이번 주 새로 ${iNew}</em></div>
+    <div class="kpi"><i>7일 안에 연 기기</i><b>${i7}</b><em>${I.length?Math.round(i7/I.length*100):0}% · 30일 ${i30}</em></div>
+    <div class="kpi"><i>앱으로 설치</i><b>${I.filter(x=>x.pwa).length}</b><em>홈 화면에 추가해 쓰는 기기</em></div>
+    <div class="kpi"><i>클라우드 회원</i><b>${n}</b><em>정지 ${L.filter(x=>x.susp).length}</em></div>
     <div class="kpi"><i>최근 7일 활동</i><b>${a7}</b><em>${n?Math.round(a7/n*100):0}% · 30일 ${a30}</em></div>
     <div class="kpi"><i>누적 기록</i><b>${runs.toLocaleString()}</b><em>번</em></div>
     <div class="kpi"><i>누적 거리</i><b>${Math.round(km).toLocaleString()}</b><em>km · 최근 7일 ${Math.round(km7)}km</em></div>
@@ -161,12 +169,20 @@ function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).
     <div class="kpi"><i>게시 중 공지</i><b>${S.notices.filter(x=>x.active).length}</b><em>전체 ${S.notices.length}</em></div>
   </div>
   <div class="grid2">
-    <div class="card"><h3>최근 14일 — 마지막 동기화한 날</h3>${bars(Object.entries(days))}</div>
+    <div class="card"><h3>기기 종류</h3>${bars(cntI(x=>x.plat||'기타'))}</div>
+    <div class="card"><h3>사용자 목표</h3>${bars(cntI(x=>x.goal?(KIND[x.goal]||x.goal)+(x.gm?' '+DIST(x.gm):''):'목표 없음'))}</div>
+    <div class="card"><h3>최근 14일 — 마지막 동기화한 날 (클라우드 회원)</h3>${bars(Object.entries(days))}</div>
     <div class="card"><h3>목표 종류</h3>${bars(cnt(x=>x.g.kind?(KIND[x.g.kind]||x.g.kind)+(x.g.m?' '+DIST(x.g.m):''):'목표 없음'))}</div>
     <div class="card"><h3>다가오는 대회 (회원 목표)</h3>${up.length?`<table class="mini"><tr><th>D-day</th><th>회원</th><th>목표</th></tr>${up.map(x=>`<tr><td class="num">D-${x.dd}</td><td>${ESC(x.email)}</td><td>${ESC(x.goal)}</td></tr>`).join('')}</table>`:'<div class="empty">없음</div>'}</div>
     <div class="card"><h3>앱 버전</h3>${bars(cnt(x=>x.ver==='—'?'v19.35 이전':'v'+x.ver))}</div>
   </div>`; }
 
+function inst(){ const ms=x=>x&&x.toDate?x.toDate().getTime():(x?Date.parse(x):0); let L=S.inst.slice(); const q=S.q.trim().toLowerCase();
+  if(q)L=L.filter(x=>((x.email||'')+' '+(x.plat||'')+' '+(x.goal||'')+' '+x.id).toLowerCase().includes(q));
+  L.sort((a,b)=>ms(b.last)-ms(a.last));
+  return `<h2>사용자 목록</h2><p class="sub">앱을 연 기기마다 한 줄 — 로그인하지 않은 사용자도 나와요(이메일은 구글 로그인한 경우만). 앱 설정 › '사용 현황 보내기'를 끈 기기와 v19.36 전 버전에서 아직 한 번도 안 연 기기는 빠져요.</p>
+  <div class="tools"><input id="q" placeholder="이메일·기기·목표 검색" value="${ESC(S.q)}"><button class="btn ghost sm" id="csvI">CSV 내려받기</button><span class="who">${L.length}대</span></div>
+  ${L.length?`<table><tr><th>사용자</th><th>기기</th><th>처음 사용</th><th>마지막 사용</th><th>버전</th><th>목표</th><th>대회일</th><th>기록</th><th>누적 km</th></tr>${L.map(x=>`<tr${x.uid&&S.users.some(u=>u.uid===x.uid)?` class="click" data-uid="${x.uid}"`:''}><td>${x.email?ESC(x.email):`<span class="tag gray">로그인 안 함</span> <span class="num" style="font-size:11px;color:var(--ink-3)">${x.id.slice(0,8)}</span>`}</td><td>${ESC(x.plat||'')}${x.pwa?' <span class="tag">앱</span>':''}</td><td class="num">${D(x.first)}</td><td class="num">${ago(ms(x.last))}</td><td class="num">${ESC(x.ver||'')}</td><td>${x.goal?ESC((KIND[x.goal]||x.goal)+(x.gm?' · '+DIST(x.gm):'')):(x.onb?'목표 없음':'<span class="tag gray">시작 전</span>')}</td><td class="num">${x.gdate||'—'}</td><td class="num">${x.runs??'—'}</td><td class="num">${x.km??'—'}</td></tr>`).join('')}</table>`:'<div class="card empty">아직 집계된 기기가 없어요 — 앱 v19.36을 연 기기부터 나와요</div>'}`; }
 function users(){ let L=S.users.map(U); const q=S.q.trim().toLowerCase();
   if(q)L=L.filter(x=>(x.email+' '+x.goal+' '+x.memo).toLowerCase().includes(q));
   const so={upd:(a,b)=>b.upd-a.upd,email:(a,b)=>a.email.localeCompare(b.email),km:(a,b)=>(b.km||0)-(a.km||0),runs:(a,b)=>(b.runs||0)-(a.runs||0)}[S.sort]; L.sort(so);
@@ -230,6 +246,8 @@ function bind(){
   const q=$('q'); if(q){ q.oninput=()=>{ S.q=q.value; const p=q.selectionStart; render(); const n=$('q'); n.focus(); n.setSelectionRange(p,p); }; }
   const so=$('sort'); if(so){ so.value=S.sort; so.onchange=()=>{ S.sort=so.value; render(); }; }
   document.querySelectorAll('[data-uid]').forEach(tr=>tr.onclick=()=>openUser(tr.dataset.uid));
+  const ci=$('csvI'); if(ci)ci.onclick=()=>{ const rows=[['기기ID','이메일','기기','앱설치','처음','마지막','버전','목표','대회일','기록수','누적km']].concat(S.inst.map(x=>[x.id,x.email||'',x.plat||'',x.pwa?'Y':'',D(x.first),D(x.last),x.ver||'',x.goal||'',x.gdate||'',x.runs??'',x.km??'']));
+    const t='\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download=`gajirun_users_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
   const csv=$('csv'); if(csv)csv.onclick=()=>{ const L=S.users.map(U); const rows=[['email','uid','상태','마지막동기화','목표','대회일','기록수','누적km','최근7일km','버전','메모']].concat(L.map(x=>[x.email,x.uid,x.susp?'정지':'정상',x.upd?D(x.upd):'',x.goal,x.date,x.runs??'',x.km!=null?Math.round(x.km):'',x.w7!=null?Math.round(x.w7):'',x.ver,x.memo]));
     const t='﻿'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download=`gajirun_members_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
   /* 대회 */
