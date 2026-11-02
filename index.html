@@ -2074,7 +2074,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.21';
+const APPVER='19.22';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3040,7 +3040,7 @@ function makePlan(opts){
   const seaDate=(g&&(g.kind==='race'||g.kind==='finish')&&g.m)?(g.date?g.date.slice(0,10):opts.seaDate?opts.seaDate:(sameG&&PLAN.seaDate)?PLAN.seaDate:g.m>=21000?addDays(weekMonday(start.getFullYear()+'-'+pad(start.getMonth()+1)+'-'+pad(start.getDate())),16*7-1):null):null;
   if(seaDate&&!g.date) why.push('대회 날짜가 없어서 16주 뒤를 대회로 보고 시기를 나눴어요. 날짜를 정하면 그 날에 맞춰 다시 짭니다.');
   const SEA=seaDate?(()=>{ const D=g.m>=42000?'M':g.m>=21000?'H':g.m>=10000?'T10':'T5';
-    const P={M:{Lmax:32,taperW:3,longT:240,share:.45,wkTop:75,wkRec:'55~70',nm:'풀코스'},H:{Lmax:22,taperW:2,longT:150,share:.42,wkTop:60,wkRec:'40~55',nm:'하프'},T10:{Lmax:18,taperW:2,longT:120,share:.38,wkTop:55,wkRec:'35~50',nm:'10km'},T5:{Lmax:14,taperW:2,longT:100,share:.35,wkTop:50,wkRec:'30~45',nm:'5km'}}[D];
+    const P={M:{Lmax:32,taperW:3,longT:240,share:.5,wkTop:75,wkRec:'55~70',nm:'풀코스'},H:{Lmax:22,taperW:2,longT:150,share:.42,wkTop:60,wkRec:'40~55',nm:'하프'},T10:{Lmax:18,taperW:2,longT:120,share:.38,wkTop:55,wkRec:'35~50',nm:'10km'},T5:{Lmax:14,taperW:2,longT:100,share:.35,wkTop:50,wkRec:'30~45',nm:'5km'}}[D];
     const raceMon=Date.parse(weekMonday(seaDate)+'T00:00:00');
     const wtrOf=w=>{ const ws=new Date(start); ws.setDate(ws.getDate()+w*7); return Math.round((raceMon-ws.getTime())/6048e5); };
     const phaseOf=wtr=>wtr<P.taperW?'taper':wtr<P.taperW+5?'peak':wtr<P.taperW+10?'build':'base';
@@ -3048,18 +3048,18 @@ function makePlan(opts){
     return Object.assign({D,wtrOf,phaseOf,cutOf},P); })():null;
   if(SEA){
     /* 주간 거리 — 줄이는 주는 대회 기준 자리에. 그 외엔 앞 주보다 grow만큼. 테이퍼는 정점 대비 */
-    let last=null, peak=0; tapered=false;
+    let last=opts.prevPeak||null, peak=0; tapered=false;
     for(let w=0;w<4;w++){ const wtr=SEA.wtrOf(w), ph=SEA.phaseOf(wtr);
       if(ph==='taper'){ const pk=Math.max(peak,base), f=SEA.D==='M'?[0.45,0.6,0.8][wtr]:[0.5,0.72][wtr];
         wkKm[w]=Math.max(6,pk*(f||0.5)); wkRole[w]='대회 전 줄이기'; tapered=true; continue; }
       if(SEA.cutOf(wtr)&&!(w===0&&(!opts.start||(()=>{ const ws=new Date(start); return Date.now()-ws.getTime()<7*864e5&&Date.now()>=ws.getTime(); })()))){ wkKm[w]=Math.max(6,(last||base)*0.72); wkRole[w]='줄이는 주'; continue; }
       /* 정점 주간 — 거리별 상한(관행 C)과 시작 양의 +40%(급격한 증가를 막는 경험칙 C) 중 작은 쪽. 시간 한계도 넘지 않는다 */
-      const top=Math.max(base,Math.min(SEA.wkTop,(opts.seasonBase||base)*(SEA.D==='M'?1.6:1.4)));   /* 풀코스는 +60%까지(사용자 선택 · 경험칙 C), 그 외 +40% */
-      const k=last==null?Math.min(base,Math.max(top,base)):Math.min(last*shape.grow,top,Math.max(base,cap)); wkKm[w]=k; wkRole[w]=''; last=k; peak=Math.max(peak,k); }
+      const top=Math.max(base,Math.min(SEA.wkTop,Math.max(opts.seasonBase||base,recentWeekKm()||0)*(SEA.D==='M'?1.6:1.4)));   /* 기준(시작 양)은 지금 실제로 뛰는 양보다 낮게 남지 않는다 — 옛 덩어리의 작은 값이 남아 시즌 내내 평평해지던 버그 */   /* 풀코스는 +60%까지(사용자 선택 · 경험칙 C), 그 외 +40% */
+      const k=last==null?Math.min(base,Math.max(top,base)):Math.max(w===0&&opts.prevPeak?Math.min(base,top):0,Math.min(last*shape.grow,top,Math.max(base,cap))); wkKm[w]=k; wkRole[w]=''; last=k; peak=Math.max(peak,k); }
     const w0=SEA.wtrOf(0);
     { const i=why.findIndex(x=>/힘든 날 사이엔 최소 하루\(48시간\)/.test(x)); if(i>=0)why[i]=why[i].replace('최소 하루(48시간)','72시간(사흘)'); }
     why.push(`${SEA.nm} 대회까지 ${w0}주 — 지금은 '${{base:'기초',build:'강화',peak:'실전',taper:'대회 전 줄이기'}[SEA.phaseOf(w0)]}' 시기입니다. 4주를 똑같이 되풀이하지 않고, 대회일에서 거꾸로 세어 시기(기초 → 강화 → 실전 → 줄이기)마다 빠른 날 종류와 긴 날 거리를 바꿉니다 (Daniels·Pfitzinger 관행, C).`);
-    why.push(`긴 날은 주마다 최대 10%씩 늘려 ${SEA.Lmax}km까지 갑니다${SEA.D==='M'?' — 마지막 장거리는 대회 3주 전':''}. 4주마다 한 번은 줄입니다 (Frandsen 2025 · B / 최장 거리는 관행 · C).`);
+    why.push(`긴 날은 주마다 최대 10%씩 늘려 ${SEA.Lmax}km까지 갑니다${SEA.D==='M'?' — 마지막 장거리는 대회 3주 전':''}. 4주마다 한 번은 줄입니다 (Frandsen 2025 · B / 최장 거리는 관행 · C).${SEA.D==='M'?' 긴 날은 주간 거리의 절반까지 둡니다 — 주 4~5회 풀코스 계획에서 흔한 비율이에요 (Higdon 계획 등 관행 · C).':''}`);
     if(tapered) why.push(SEA.D==='M'?'대회 전 3주는 거리를 80% → 60% → 45%로 줄이고 속도는 그대로 둡니다 (Bosquet 2007 메타분석 · A, 풀코스 3주는 관행 · C).':'대회 전 2주는 거리를 72% → 50%로 줄이고 속도는 그대로 둡니다 (Bosquet 2007 메타분석 · A).');
     const lc=Math.floor(Math.min(SEA.longT,twe)*60/midPace(PACE.long)*2)/2;
     if(lc<SEA.Lmax*0.9) why.push(`⚠ 주말에 쓸 수 있는 시간을 ${fmtHM(twe*60)}으로 정해 두셔서, 지금 긴 날 속도(1km ${fmtPace(midPace(PACE.long))})로는 긴 날이 ${lc}km에서 막힙니다. ${SEA.nm}는 최장 ${SEA.Lmax}km(약 ${fmtHM(SEA.Lmax*midPace(PACE.long))})가 보통이에요 — 플랜 → 전체 고치기에서 주말 시간을 늘리면 바로 다시 짭니다.`);
@@ -3104,7 +3104,7 @@ function makePlan(opts){
     const hardN = raceTaper ? Math.min(1,shape.hard||1) : taper?Math.max(0,shape.hard-1):SEA&&((phase==='base'&&wtr%2)||(phase==='peak'&&wtr%2&&(SEA.D==='M'||SEA.D==='H')))?Math.min(1,Math.max(1,shape.hard)):SEA?Math.max(1,shape.hard):shape.hard;
     /* 시즌의 빠른 날 종류 — 시기별 (위 주석). 풀코스 강화기의 I는 격주 */
     const seaMix = !SEA?null : phase==='taper'?['GP'] : phase==='base'?(wtr%2?['T']:['T','I'])
-      : phase==='build'?(SEA.D==='M'?(wtr%2?['T','I']:['T','T']):SEA.D==='H'?['T','I']:['I','T'])
+      : phase==='build'?(SEA.D==='M'?(wtr%2?['T','I']:['T','GP']):SEA.D==='H'?['T','I']:['I','T'])
       : (SEA.D==='M'||SEA.D==='H')?(wtr%2?['T']:['T','GP']):['I','GP'];   /* 풀·하프: 긴 날 후반 목표 속도 주(홀수)엔 주중 목표 속도를 빼고 역치만 — 한 주에 목표 속도가 겹치지 않게 (C) */
     /* 긴 날 바로 앞뒤는 비운다. 이어서 힘든 날이 오면 둘 다 망친다 */
     const near=d=>Math.abs(d-longD)<=864e5*1.5||(prevLong&&Math.abs(d-prevLong)<=864e5*1.5);
@@ -3258,6 +3258,11 @@ function makePlan(opts){
   if(gPaceSec&&!SEA&&out.some(s=>s.type==='goalpace')) why.push(`목표 속도(1km ${fmtPace(gPaceSec)})로 뛰는 날을 2·3주차에 넣었습니다. 대회 당일 그 속도가 낯설면 안 됩니다.`);
   if(SEA&&gPaceSec&&out.some(s=>s.type==='goalpace'||s.mpFinish)) why.push(`실전 시기에는 목표 속도(1km ${fmtPace(gPaceSec)})를 주중 한 번${(SEA.D==='M'||SEA.D==='H')?', 그리고 긴 날 후반에':''} 넣습니다. 대회 당일 그 속도가 낯설면 안 됩니다 (C).`);
   if(qDropped) why.push('아직 일주일 거리가 적어서, 빠르게 뛰는 날은 넣지 않았습니다. 거리가 쌓이면 그때 들어갑니다.');
+  /* 자동 점검 — 만든 일정이 스스로 정한 규칙을 어기면 숨기지 않고 알린다 */
+  { const HD=x=>['threshold','interval','goalpace','rep','mpace'].includes(x.type)||x.mpFinish, H=out.filter(HD).sort((a,b)=>a.d<b.d?-1:1), bad=[];
+    for(let i=1;i<H.length;i++){ const gap=(Date.parse(H[i].d.slice(0,10))-Date.parse(H[i-1].d.slice(0,10)))/864e5; if(gap<2)bad.push(`${H[i-1].d.slice(5,10).replace('-','.')}·${H[i].d.slice(5,10).replace('-','.')} 빠른 날이 이어 붙음`); }
+    [...new Set(out.map(x=>x.wk))].forEach(w=>{ const T=out.filter(x=>x.wk===w&&HD(x)&&!x.mpFinish).map(x=>x.type); if(T.length>1&&new Set(T).size<T.length&&!(SEA&&SEA.wtrOf(w-1)<SEA.taperW))bad.push(`${w}주차 같은 종류 빠른 날 ${T.length}번`); });
+    if(bad.length) why.push('⚠ 자동 점검: '+bad.join(' · ')+' — 요일을 바꾸면 다시 짭니다.'); }
   if(g&&g.kind==='weight') why.push('체중이 목적이라 빠르게 뛰는 날보다 오래 천천히 뛰는 날을 많이 넣었습니다.');
   if(g&&g.date) why.push(`${+g.date.slice(5,7)}월 ${+g.date.slice(8,10)}일까지 ${Math.max(0,Math.floor((Date.parse(g.date)-Date.now())/6048e5))}주 남았습니다.`);
 
@@ -3314,16 +3319,23 @@ function keepDone(p){
   const sameGoal=JSON.stringify(PLAN.goal||null)===JSON.stringify(p.goal||null);
   const ran=s=>RUNS.some(r=>r.planId===s.d);
   const nStart=p.sessions.length?d10(p.sessions[0]):t, mon0=weekMonday(p.start||nStart);
-  const kept=PLAN.sessions.filter(s=>d10(s)>=nStart&&(d10(s)<t||ran(s)||(sameGoal&&s.edited)));
+  const kept=PLAN.sessions.filter(s=>d10(s)>=nStart&&(d10(s)<t||ran(s)||(sameGoal&&s.edited&&!p.replan)));   /* '남은 일정을 다시 짜요'(시간·요일 바꾸기)는 앞날의 고친 일정도 새로 — 옛 일정이 남아 새 일정과 부딪히던 버그 */
   if(!kept.length&&!p.sessions.some(s=>d10(s)<t))return p;
   const keptD=new Set(kept.map(d10));
   const wkOf=d=>Math.max(1,Math.floor((Date.parse(weekMonday(d))-Date.parse(mon0))/6048e5)+1);
   p.sessions=p.sessions.filter(s=>d10(s)>=t&&!keptD.has(d10(s)))
     .concat(kept.map(s=>Object.assign({},s,{wk:wkOf(d10(s))})))
     .sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  /* 남겨 둔 빠른 날 바로 옆(72시간 안)에 새 빠른 날이 오면 새 쪽을 천천히 달리기로 — 힘든 날을 이어 붙이지 않는다 (C) */
+  { const HD=x=>['threshold','interval','goalpace','rep','tt','mpace'].includes(x.type);
+    const kh=p.sessions.filter(x=>keptD.has(d10(x))&&HD(x)&&d10(x)>=t);
+    p.sessions=p.sessions.map(x=>(!keptD.has(d10(x))&&HD(x)&&kh.some(k=>Math.abs(Date.parse(d10(k))-Date.parse(d10(x)))<3*864e5-1))?Object.assign({d:x.d,wk:x.wk,t:`천천히 ${x.dist}km`},easy(x.dist),x.role?{role:x.role}:{}):x); }
   if(kept.length)(p.why=p.why||[]).push(`이미 지난 날과 뛴 날 ${kept.length}개는 그대로 두고, 오늘부터의 일정만 새로 맞췄습니다.`);
   return p;
 }
+/* 남은 일정을 새로 — 지난 날·뛴 날만 그대로, 앞날에 손으로 고친 거리도 새 일정으로 (설정을 바꾼 뜻이 그것이다) */
+function replanRest(){ const t=todayStr(); Object.keys(DIST).forEach(k=>{ if(k.slice(0,10)>=t)delete DIST[k]; }); DEV.store.set('dist',DIST);
+  const np=makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true}); np.replan=true; applyPlan(np); delete PLAN.replan; DEV.store.set('plan',PLAN); BLOCK=loadPlan(); FUT_C=null; }
 function applyPlan(p){
   try{ p=keepDone(p); }catch(e){}
   /* 케이던스·호흡 프로그램의 시작일은 목표에 남긴다 — 다음 4주를 짤 때 1주차(박자 100%)로 되돌아가지 않게 */
@@ -3737,6 +3749,10 @@ function renderPlan(){
         /* 경고는 한 카드로 — 원인(쓸 수 있는 시간)을 그 자리에서 바꿀 수 있게 */
         (()=>{ const gg=PLAN.goal||{}, W=PLAN.why.filter(x=>/^⚠/.test(x)).map(x=>x.replace(/^⚠\s*/,'').replace(/ — 플랜 → 전체 고치기에서 주말 시간을 늘리면 바로 다시 짭니다\./,'.'));
           if(gg.m>=42000&&!PLAN.imported){ const A=BLOCK.concat(planFuture()), n=A.filter(x=>x.type==='long'&&x.dist>=28).length; if(n<3)W.unshift(`대회까지 28km 넘는 긴 날이 ${n}번이에요. 풀코스는 보통 3~4번 뛰고 갑니다(관행 · C).`); }
+          /* 시간 한계를 말해 놓고 실제로는 다른 이유로 더 짧게 짜면 모순이다 — 실제로 막은 이유를 적는다 */
+          if(!PLAN.imported){ const A=BLOCK.concat(planFuture()), mL=Math.max(0,...A.filter(x=>x.type==='long').map(x=>x.dist||0)), mW=Math.max(0,...[...new Set(A.map(x=>weekMonday(x.d)))].map(m=>A.filter(x=>weekMonday(x.d)===m).reduce((a,x)=>a+(x.dist||0),0)));
+            const i=W.findIndex(x=>/긴 날이 [\d.]+km에서 막힙니다/.test(x)), lc=i>=0?+(W[i].match(/긴 날이 ([\d.]+)km에서/)||[])[1]:0;
+            if(i>=0&&mL<lc-0.5) W[i]=`가장 긴 날이 ${mL}km예요 — 주말 시간(${lc}km까지 가능) 때문이 아니라 주간 거리 때문입니다. 긴 날은 주간 거리의 ${gg.m>=42000?'절반':'40%'} 안쪽, 주간은 주마다 8%씩·4주마다 한 번 줄이며 늘려서 정점 주간이 ${Math.round(mW)}km예요. 실제로 더 뛰면 4주마다 다시 짤 때 출발점이 올라갑니다.`; }
           if(!W.length)return '';
           const tm=(k,opts,cur)=>`<div class="pa-tm">${'<span>'+(k==='twd'?'평일':'주말')+'</span>'}${opts.map(([v,l])=>`<button type="button" data-tmi="${k}:${v}" class="${cur===v?'on':''}">${l}</button>`).join('')}</div>`;
           return `<div class="note plwarn" style="margin:8px 0 0;line-height:1.65;font-size:12.5px"><b>⚠ 지금 설정으로는 이만큼만 짤 수 있어요</b><ul style="margin:6px 0 0;padding-left:18px">${W.map(x=>`<li>${x}</li>`).join('')}</ul>
@@ -9805,6 +9821,9 @@ function goalBadge(){
      지난 날·뛴 날·직접 고친 날은 그대로(keepDone), 직전 일정은 보관돼 '되돌리기'로 돌아갈 수 있다 */
   try{ const g=PLAN&&PLAN.goal; if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&g&&g.kind==='race'&&g.date&&g.m&&PLAN.season!==2&&!PLAN.imported&&g.date.slice(0,10)>todayStr()){
     applyPlan(makePlan({goal:g,start:PLAN.start,keepDays:true})); DEV.store.set('seasonUp',APPVER); setTimeout(()=>{ try{ toast('대회까지 시기별로 남은 일정을 다시 짰어요 — 지난 날·뛴 날은 그대로'); }catch(e){} },1800); } }catch(e){ console.warn('season up',e); }
+  /* v19.22 — 시즌 상한 기준이 옛 값에 묶여 평평하던 일정·옛 일정과 부딪히던 고친 날을 한 번 바로잡는다. 지난 날·뛴 날은 그대로, '되돌리기'로 돌아갈 수 있다 */
+  try{ const g=PLAN&&PLAN.goal; if(!DEV.store.get('fix22',0)&&PLAN&&PLAN.season===2&&!PLAN.starter&&!PLAN.imported&&g&&g.m>=21000&&(!g.date||g.date.slice(0,10)>todayStr())){
+    replanRest(); DEV.store.set('fix22',1); setTimeout(()=>{ try{ toast('주간 거리가 늘지 않던 문제를 고쳐 남은 일정을 다시 짰어요 — 지난 날·뛴 날은 그대로'); }catch(e){} },1800); } }catch(e){ console.warn('fix22',e); }
   renderHome(); paintFb();
   /* 한 번이라도 로그인한 폰에서만 미리 깨운다.
      안 그러면 로그인 안 쓰는 사람도 열 때마다 400KB를 받는다 */
@@ -10756,18 +10775,19 @@ function planFuture(){
   if(!PLAN||!PLAN.sessions||!PLAN.sessions.length||PLAN.starter||PLAN.imported)return [];
   const g=PLAN.goal||GOAL; if(!g||g.kind==='custom'||g.kind==='start')return [];
   const last=PLAN.sessions[PLAN.sessions.length-1].d.slice(0,10);
-  const key=[PLAN.made,PLAN.sessions.length,last,todayStr(),JSON.stringify(g),JSON.stringify((SURVEY&&SURVEY.dayPref)||{}),SURVEY&&SURVEY.twe].join('|'); if(FUT_C&&FUT_C.key===key)return FUT_C.list;
+  const key=[PLAN.made,PLAN.sessions.length,last,todayStr(),JSON.stringify(g),JSON.stringify((SURVEY&&SURVEY.dayPref)||{}),SURVEY&&SURVEY.twe,SURVEY&&SURVEY.twd].join('|'); if(FUT_C&&FUT_C.key===key)return FUT_C.list;
   const end=g.date?g.date.slice(0,10):PLAN.seaDate?PLAN.seaDate:addDays(weekMonday(last),34);   /* 목표일이 없으면 다음 4주 하나만 */
   let mon=addDays(weekMonday(last),7), prev=PLAN.sessions, out=[], n=0, peakLong=0, longs=[];
   try{
     while(mon<=end&&n<6){
       const wk=w=>prev.filter(x=>x.wk===w).reduce((a,x)=>a+(x.dist||0),0);
-      const base=Math.max(6,wk(3)||wk(2)||wk(1)||PLAN.base||12);   /* 줄이는 주 바로 앞 주(가장 많이 뛴 주)에서 이어 간다 */
+      const pw=[1,2,3,4].filter(w=>!prev.some(x=>x.wk===w&&x.role)).map(wk), prevPeak=Math.max(0,...pw)||null;   /* 앞 덩어리의 가장 많이 뛴 주(줄이는 주 제외) */
+      const base=Math.max(6,prevPeak||wk(3)||wk(2)||wk(1)||PLAN.base||12);   /* 거기서 이어 간다 — 덩어리 경계에서 주간 거리가 한 단계 뒤로 물러나던 버그 */
       const capFrom=Math.max(0,...prev.map(x=>x.dist||0))||null;
       const lw=Math.max(...prev.map(x=>x.wk||0)), prevLong=(prev.filter(x=>x.wk===lw&&x.type==='long')[0]||{}).dist||null;
       peakLong=Math.max(peakLong,...prev.filter(x=>x.type==='long'&&x.role!=='대회 전 줄이기').map(x=>x.dist||0));
       longs=longs.concat(prev.filter(x=>x.type==='long').sort((a,b)=>a.d<b.d?-1:1).map(x=>x.dist||0)).slice(-4);
-      const p=makePlan({goal:JSON.parse(JSON.stringify(g)),start:mon,baseOverride:base,days:(PLAN.days||[]).slice(),capFrom,prevLong,peakLong,longHist:[Math.max(longest30()||0,0)].concat(longs).slice(-4),seasonBase:PLAN.seasonBase||PLAN.base,seaDate:PLAN.seaDate});
+      const p=makePlan({goal:JSON.parse(JSON.stringify(g)),start:mon,baseOverride:base,days:(PLAN.days||[]).slice(),capFrom,prevLong,peakLong,prevPeak,longHist:[Math.max(longest30()||0,0)].concat(longs).slice(-4),seasonBase:PLAN.seasonBase||PLAN.base,seaDate:PLAN.seaDate});
       const ss=(p&&p.sessions||[]).filter(x=>x.d.slice(0,10)>=mon&&x.d.slice(0,10)<=end); if(!ss.length)break;
       ss.forEach(termSess); out=out.concat(ss); prev=p.sessions; mon=addDays(weekMonday(ss[ss.length-1].d),7); n++;
     }
@@ -10841,6 +10861,8 @@ function paDayApply(){
   const dp={}; if(PA.dl&&PA.dl!=='자동')dp.long=PA.dl; if(PA.dh.length)dp.hard=PA.dh.slice();
   SURVEY=Object.assign({},SURVEY,{dayPref:dp}); DEV.store.set('survey',SURVEY); FUT_C=null;
   const t=todayStr(); let moved=0;
+  /* 앱이 짠 일정이면 정한 요일로 남은 일정을 다시 짠다 — 옮기기만 하면 빠른 날이 이어 붙을 수 있다(72시간 규칙). 받아 적은 플랜만 옮긴다 */
+  if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&!PLAN.imported){ replanRest(); paRender(); paintPlanView(); try{renderPlan();}catch(e){} toast('요일을 저장하고 남은 일정을 다시 짰어요'); return; }
   if(peStore())peSave(list=>{
     const free=x=>x.d.slice(0,10)>=t&&!RUNS.some(r=>r.planId===x.d)&&!x.rw;
     const mv=(x,ds)=>{ const old=x.d; if(DIST[old]!=null){ DIST[ds]=DIST[old]; delete DIST[old]; } x.d=ds; x.edited=true; };
@@ -10913,7 +10935,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-g2half]')){ goalStart(); GB.d.m=21097; GB.d.sec=null; try{ gPaint(); }catch(x){} toast('하프로 바꿔 봤어요 — 목표 기록을 넣고 확인하세요'); return; }
   const gtm=e.target.closest('[data-gtm]'); if(gtm){ const [k,v]=gtm.dataset.gtm.split(':'); SURVEY=Object.assign({},SURVEY,{[k]:+v}); DEV.store.set('survey',SURVEY); GB.p=null; try{ gPaint(); }catch(x){} return; }
   const tmi=e.target.closest('[data-tmi]'); if(tmi){ const [k,v]=tmi.dataset.tmi.split(':'); SURVEY=Object.assign({},SURVEY,{[k]:+v}); DEV.store.set('survey',SURVEY); FUT_C=null;
-    if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&!PLAN.imported){ applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true})); BLOCK=loadPlan(); }
+    if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&!PLAN.imported){ replanRest(); }
     renderPlan(); toast('시간을 바꾸고 남은 일정을 다시 짰어요'); return; }
   const v=e.target.closest('[data-plv]'); if(v){ PLVIEW=v.dataset.plv; paintPlanView(); return; }
   if(e.target.closest('[data-plimg]'))return planImage();
@@ -10931,7 +10953,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#paDayOk'))return paDayApply();
   const td=e.target.closest('[data-ptd],[data-pte]'); if(td){ const k=td.dataset.ptd?'twd':'twe', v=+(td.dataset.ptd||td.dataset.pte);
     SURVEY=Object.assign({},SURVEY,{[k]:v}); DEV.store.set('survey',SURVEY); FUT_C=null;
-    if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter){ applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true})); BLOCK=loadPlan(); renderPlan(); }
+    if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&!PLAN.imported){ replanRest(); renderPlan(); }
     paRender(); toast('시간을 바꾸고 남은 일정을 다시 짰어요'); return; }
 });
 document.addEventListener('change',e=>{
