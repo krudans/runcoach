@@ -2074,7 +2074,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.23';
+const APPVER='19.24';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2282,8 +2282,8 @@ function decouple(r){ try{ const sp=(r.splits||[]).filter(x=>x&&x.hr&&x.pace&&!x
   const h=Math.floor(pts.length/2), a=pts.slice(0,h), b=pts.slice(h), m=L=>L.reduce((s,x)=>s+x.ef,0)/L.length, e1=m(a), e2=m(b);
   return +(((e1-e2)/e1)*100).toFixed(1); }catch(e){ return null; } }
 function hrLocked(r){ try{ const sc=(r&&r.splits||[]).filter(x=>x&&x.hr&&x.cad); const lock=sc.filter(x=>Math.abs(x.hr-x.cad)<=3).length; return sc.length>=4&&lock>=3&&lock/sc.length>=0.5; }catch(e){ return false; } }
-/* 존 2 윗선 = 쉬운 날 심박 상한. 안정심박 7번 이상이면 여유심박 70%, 아니면 최대심박 80% — recalcProfile의 ZONES와 같은 식 */
-function rhrMedian(){ try{ const a=(DEV.store.get('rhr',[])||[]).map(x=>x&&(x.bpm||x.v)).filter(v=>v>30&&v<110).slice(-30); return a.length>=7?a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]:null; }catch(e){ return null; } }
+/* 존 2 윗선 = 쉬운 날 심박 상한. 안정심박이 하나라도 있으면 여유심박 70%, 아니면 최대심박 80% — recalcProfile의 ZONES와 같은 식 */
+function rhrMedian(){ try{ const a=(DEV.store.get('rhr',[])||[]).map(x=>x&&(x.bpm||x.v)).filter(v=>v>30&&v<110).slice(-30); if(a.length) return a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)]; const p=(typeof PROF!=='undefined'&&PROF&&+PROF.rhr)||0; return p>30&&p<110?p:null; }catch(e){ return null; } }   /* 안정심박이 하나라도 있으면(잰 값 중앙값, 없으면 설정에 넣은 값) 여유심박 존 — 사용자 결정 2026-11-02 */
 function z2Top(hrmax){ const rl=rhrMedian(); return (rl&&hrmax>rl+40)?Math.round(rl+(hrmax-rl)*.7):Math.round(hrmax*.80); }
 function learnEasy(hrmax,capIn){
   let runs=[]; try{ runs=DEV.store.get('runs',[])||[]; }catch(e){}
@@ -2378,7 +2378,7 @@ function recalcProfile(){
   /* 앱의 5존 — Daniels 강도의 %HRmax 경계에 맞춤: E 65~79 · M 80~89 · T 88~92 · I 92~100 (시계 앱의 Z1~Z5와는 경계가 다르다) */
   ZONES = [[0,f(.70),'아주 편함 (Z1)'],[f(.70),f(.80),'편함 (Z2)'],[f(.80),f(.88),'보통 (Z3)'],
            [f(.88),f(.92),'힘듦 (Z4)'],[f(.92),f(.97),'아주 힘듦 (Z5)'],[f(.97),999,'한계']];
-  /* 아침 안정심박을 7번 넘게 쟀으면 여유심박(Karvonen) 존 — %여유심박이 실제 산소 섭취(%VO2R)와 더 잘 맞는다 (Swain & Leutholtz 1997 · B, ACSM 지침 C).
+  /* 아침 안정심박이 하나라도 있으면(잰 값, 없으면 설정 값) 여유심박(Karvonen) 존 — %여유심박이 실제 산소 섭취(%VO2R)와 더 잘 맞는다 (Swain & Leutholtz 1997 · B, ACSM 지침 C).
      안정심박이 없으면 위의 최대심박 % 존을 그대로 쓴다(틀린 방법은 아님, Daniels C) */
   try{ const rl=rhrMedian();
     if(rl&&HRMAX>rl+40){ const k=x=>Math.round(rl+(HRMAX-rl)*x);
@@ -2395,7 +2395,7 @@ recalcProfile();
    화면 어디서든 용어는 이 표에서만 꺼내 쓴다.
    ══════════════════════════════════════════════════════════════════════ */
 const GL={
-  z1:{e:'Z1',t:'존1',d:'최대 심박의 70% 아래(안정심박을 7번 넘게 쟀으면 여유 심박 60% 아래) — 아주 편함. 웜업·쿨다운. 리커버리런은 Z1~Z2 아래쪽'},
+  z1:{e:'Z1',t:'존1',d:'최대 심박의 70% 아래(안정심박이 있으면 여유 심박 60% 아래) — 아주 편함. 웜업·쿨다운. 리커버리런은 Z1~Z2 아래쪽'},
   z2:{e:'Z2',t:'존2',d:'최대 심박의 70~80% — 편한 유산소. 옆 사람과 대화가 되는 심박. 이지런·LSD는 여기서'},
   z3:{e:'Z3',t:'존3',d:'최대 심박의 80~88% — 보통. 마라톤 페이스(Daniels M)'},
   z4:{e:'Z4',t:'존4',d:'최대 심박의 88~92% — 힘듦. 템포런(역치, Daniels T)'},
@@ -2527,7 +2527,7 @@ function recalcTypes(){
     T.hrZone=T.hrZf.map(f=>f?Math.round(f*HRMAX):f);
   });
   /* 쉬운 날·긴 날 심박 상한 = 앱 존의 Z2 윗선 하나 — 존 표시(Z2)와 뛸 때 안내·판정이 같은 숫자를 쓴다.
-     안정심박을 7번 넘게 재서 여유심박 존으로 바뀌면 상한도 같이 바뀐다 (예전엔 존은 바뀌고 상한은 최대심박 80%에 남았다) */
+     안정심박이 생겨 여유심박 존으로 바뀌면 상한도 같이 바뀐다 (예전엔 존은 바뀌고 상한은 최대심박 80%에 남았다) */
   if(ZONES&&ZONES[1]){ const k=TYPES.recovery.hrZone[1]/TYPES.easy.hrZone[1], z2=ZONES[1][1];
     TYPES.easy.hrZone=[TYPES.easy.hrZone[0],z2]; TYPES.long.hrZone=[TYPES.long.hrZone[0],z2]; TYPES.recovery.hrZone=[0,Math.round(z2*k)]; }
   SUG.easyCap=TYPES.easy.hrZone[1];
@@ -2951,7 +2951,7 @@ function makePlan(opts){
   const shape= planShape(shapeKind(g), days.length);
   if(opts.hardMinus) shape.hard=Math.max(0,shape.hard-opts.hardMinus);
   if(opts.growOverride) shape.grow=opts.growOverride;
-  if(opts.hard!=null) shape.hard=Math.max(0,Math.min(3,opts.hard,days.length-1));
+  if(opts.hard!=null) shape.hard=Math.max(0,Math.min(2,opts.hard,days.length-1));   /* 빠른 날은 주 2회까지 — 3회부터 회복이 안 된다(Seiler 80/20 · C, 사용자 결정 2026-11-02) */
   const why  = [];
   const hold=DEV.store.get('holdGrow',null);
   /* '늘리지 않기'는 고른 날부터 2주만 — 시즌 전체(미리 보기 포함)를 평평하게 만들지 않는다 */
@@ -2997,9 +2997,9 @@ function makePlan(opts){
   for(let i=1;i<3;i++) wkKm[i]=Math.min(wkKm[i],Math.max(base,cap));   /* 시간 한계를 말해 놓고 넘기지 않는다 */
   /* 목표 종류마다 주간 상한 — 거리 목표는 거리별(관행 C), 그 외 50~60km. 시작 양의 +40%도 넘지 않는다(경험칙 C). 이게 없으면 완주 목표가 주 100km를 넘었다 */
   { const kTop=(g&&g.m)?(g.m>=42000?75:g.m>=21000?60:g.m>=10000?55:50):(g&&(g.kind==='pace'||g.kind==='aero'))?60:50;
-    const top=Math.max(base,Math.min(kTop,(opts.seasonBase||base)*(g&&g.m>=42000?1.6:1.4))); let hit=false;
+    const top=Math.max(base,g&&g.m>=42000?kTop:Math.min(kTop,(opts.seasonBase||base)*1.4)); let hit=false;
     for(let i=0;i<4;i++){ if(wkKm[i]>top){ wkKm[i]=top; hit=true; } }
-    if(hit) why.push(`주간 거리는 ${top.toFixed(0)}km를 넘지 않게 했습니다 — 목표 종류별 상한과 시작 양의 +40%(풀코스 +60%) 중 작은 쪽 (경험칙 · C).`); }
+    if(hit) why.push(`주간 거리는 ${top.toFixed(0)}km를 넘지 않게 했습니다 — 목표 종류별 상한과 시작 양의 +40% 중 작은 쪽 — 풀코스는 거리별 상한만 (경험칙 · C).`); }
   if(shape.grow>1.001) why.push(`3주 동안 ${Math.round((shape.grow-1)*100)}%씩 늘리고, 4주차에는 줄입니다. 쉬는 동안 실력이 붙습니다.`);
   else if(!holdTil) why.push('이번 덩어리는 늘리지 않습니다. 같은 양을 한 번 더 지키는 것이 먼저입니다.');
 
@@ -3077,7 +3077,7 @@ function makePlan(opts){
         wkKm[w]=Math.max(6,pk*(f||0.5)); wkRole[w]='대회 전 줄이기'; tapered=true; continue; }
       if(SEA.cutOf(wtr)&&!(w===0&&(!opts.start||(()=>{ const ws=new Date(start); return Date.now()-ws.getTime()<7*864e5&&Date.now()>=ws.getTime(); })()))){ wkKm[w]=Math.max(6,(last||base)*0.72); wkRole[w]='줄이는 주'; continue; }
       /* 정점 주간 — 거리별 상한(관행 C)과 시작 양의 +40%(급격한 증가를 막는 경험칙 C) 중 작은 쪽. 시간 한계도 넘지 않는다 */
-      const top=Math.max(base,Math.min(SEA.wkTop,Math.max(opts.seasonBase||base,recentWeekKm()||0)*(SEA.D==='M'?1.6:1.4)));   /* 기준(시작 양)은 지금 실제로 뛰는 양보다 낮게 남지 않는다 — 옛 덩어리의 작은 값이 남아 시즌 내내 평평해지던 버그 */   /* 풀코스는 +60%까지(사용자 선택 · 경험칙 C), 그 외 +40% */
+      const top=SEA.D==='M'?Math.max(base,SEA.wkTop):Math.max(base,Math.min(SEA.wkTop,Math.max(opts.seasonBase||base,recentWeekKm()||0)*1.4));   /* 풀코스는 시작 양 기준 상한 없음(사용자 결정 2026-11-02) — 주마다 8%·4주마다 줄이는 주·+10% 사다리·거리별 상한 75km만. 그 외 +40% */   /* 기준(시작 양)은 지금 실제로 뛰는 양보다 낮게 남지 않는다 — 옛 덩어리의 작은 값이 남아 시즌 내내 평평해지던 버그 */   /* 풀코스는 +60%까지(사용자 선택 · 경험칙 C), 그 외 +40% */
       const gw=(holdTil&&(()=>{ const ws=new Date(start); ws.setDate(ws.getDate()+w*7); return ws.getTime()<holdTil; })())?1:(holdTil?planShape(shapeKind(g),days.length).grow:shape.grow);
       const k=last==null?Math.min(base,Math.max(top,base)):Math.max(w===0&&opts.prevPeak?Math.min(base,top):0,Math.min(last*gw,top,Math.max(base,cap))); wkKm[w]=k; wkRole[w]=''; last=k; peak=Math.max(peak,k); }
     const w0=SEA.wtrOf(0);
@@ -5473,7 +5473,7 @@ function renderTools(){
 $('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 사이 값을 넣어주세요.');
   RHR=RHR.filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v});
-  DEV.store.set('rhr',RHR); $('rhrIn').value=''; afterRunsChanged();};   /* 안정심박이 7번을 넘으면 존이 바뀐다 — 바로 다시 계산 */
+  DEV.store.set('rhr',RHR); $('rhrIn').value=''; afterRunsChanged();};   /* 안정심박이 생기면 존이 여유심박으로 바뀐다 — 바로 다시 계산 */
 /* 새 버전이 안 들어오던 문제 — 서비스워커가 항상 네트워크를 먼저 본다.
    신호가 없을 때만 캐시에서 꺼내므로 지하도나 산에서도 앱은 열린다. */
 if('serviceWorker' in navigator && location.protocol==='https:'){
@@ -6745,7 +6745,7 @@ const GSTEP=[
         `<i>이번 대회 ${fmtClock(Math.min(r.lo,r.hi))}~${fmtClock(Math.max(r.lo,r.hi))}</i><i>${fmtClock(fz.goalSec)} 예상 ${fmtYM(fz.dateFast)}~${fmtYM(fz.dateOk)}</i><i class="ok">다칠 위험 낮음</i>`)}
      ${card('B','날짜를 뒤로',`${fmtYM(fz.dateOk)} 이후로 미루기`,
         `<i>약 ${fz.needWhi}주</i><i class="ok">다칠 위험 낮음</i>`)}
-     ${card('C','더 세게','빠른 날 +1 · 거리 +10%/주',
+     ${card('C','더 세게','빠른 날 최대 주 2번 · 거리 +10%/주',
         `<i class="bad">다칠 위험 높아질 수 있음 <span class="gr C">C</span></i>`)}
      ${card('D','대회 날만 도전',`훈련은 A, 대회 날 1km ${fmtPace(fz.goalSec/(g.m/1000))}`,
         `<i class="bad">1km ${Math.round((fz.nowSec-fz.goalSec)/(g.m/1000))}초 빠름 · 후반 무너질 수 있음</i>`)}`; },
@@ -6818,7 +6818,7 @@ const GSTEP=[
      const k=b.dataset.a, dir=+b.dataset.d, a=GB.adj, p=GB.p;
      if(k==='km'){ a.base=Math.max(6,Math.min(140,Math.round((a.base||p.base)+dir*2))); }
      if(k==='hard'){ const cur=a.hard!=null?a.hard:gOptsBase().hard!=null?gOptsBase().hard:planShape(shapeKind(gGoalEff()),GB.d.days.length).hard;
-       a.hard=Math.max(0,Math.min(3,cur+dir)); }
+       a.hard=Math.max(0,Math.min(2,cur+dir)); }
      if(k==='pr'){ const g=gGoal(), cur=a.practice||p.ladder||g.sec; const st=Math.max(5,Math.round(cur*0.01/5)*5);
        a.practice=Math.round(cur+dir*st); }
      if(k==='reset'){ GB.adj={}; }
@@ -6846,7 +6846,7 @@ function defDays(n){
 function gOptsBase(){ const path=GB.d.path;
   const fz=feasible(gGoal()), short=fz&&(fz.verdict==='short'||fz.verdict==='maybe');
   const o={};
-  if(short&&path==='C'){ o.hard=Math.min(3,planShape(shapeKind(gGoalEff()),GB.d.days.length).hard+1); o.growOverride=1.10; }
+  if(short&&path==='C'){ o.hard=Math.min(2,planShape(shapeKind(gGoalEff()),GB.d.days.length).hard+1); o.growOverride=1.10; }
   return o; }
 function gOpts(){ const a=GB.adj||{}, o=Object.assign({goal:gGoalEff(),days:GB.d.days,fresh:true},gOptsBase());
   if(GB.d.start)o.start=GB.d.start;
@@ -6861,7 +6861,7 @@ function gAdjBox(p,fz){
   const rk=recentWeekKm()||SURVEY.wk||null;
   const notes=[];
   if(rk&&p.base>rk*1.3) notes.push(`<b>지금 뛰는 양(${rk.toFixed(0)}km)보다 ${Math.round((p.base/rk-1)*100)}% 많습니다.</b> 2주에 30% 넘게 늘린 러너에게서 일부 부상이 더 많았다는 연구가 있습니다(확실하진 않음 <span class="gr B">B</span>). 막지는 않습니다.`);
-  if(hardNow>=3) notes.push(`<b>빠르게 뛰는 날이 주 3번입니다.</b> 쉬운 날 80% 원칙(<span class="gr B">B</span>)보다 힘든 쪽이 많아집니다.`);
+
   const prac=a.practice;   /* 직접 당겼을 때만 — 자동 연습 목표에 '당기셨습니다'라고 하지 않는다 */
   if(fz&&g.m&&prac&&fz.reach&&fz.haveW!=null){ const r=fz.reach(Math.min(4,fz.haveW||4));
     if(prac<r.hi) notes.push(`연습 목표를 <b>${fmtClock(prac)}</b>로 당기셨습니다. 이번 4주에 닿는 실력은 ${fmtClock(r.lo)}~${fmtClock(r.hi)} 근처라, 빠른 날마다 목표보다 늦게 나올 가능성이 큽니다. 늦게 나와도 실패로 치지 않고 <b>'당긴 목표'</b>로 따로 표시합니다.`); }
@@ -10201,7 +10201,7 @@ function renderGuide(){
       src('Tanaka 2001 · 개인 오차 ±10 · 함수 estHrMax, heldMax')),
     item('zone',ic('zone'),'심박 구간 (Z1~Z5)',ZONES.kind==='hrr'?`여유 심박(최대−안정 ${ZONES.rhr})의 비율로 나눠요`:'최대 심박의 비율로 나눠요',`Z2 ≤${ZONES[1][1]}`,
       `<div class="gd-zones">${ZONES.map((z,i)=>`<div style="--c:var(--z${Math.min(5,i+1)})"><i></i><b>${z[2].replace(/\s*\(.*\)/,'')}</b><span>${z[0]||0}~${z[1]>=999?'':z[1]}</span><em>${(ZONES.kind==='hrr'?['~60','60~70','70~80','80~90','90~','97~']:['~70','70~80','80~88','88~92','92~97','97~'])[i]}%</em></div>`).join('')}</div>`+
-      fx(ZONES.kind==='hrr'?`구간 경계 = round(안정 + (최대 − 안정) × 0.60 / 0.70 / 0.80 / 0.90) · 아침 안정심박 7번 이상일 때 (Karvonen)`:`구간 경계 = round(최대 심박 × 0.70 / 0.80 / 0.88 / 0.92 / 0.97)`)+src('ZONES — 최대 심박이 바뀌면 다시 계산')),
+      fx(ZONES.kind==='hrr'?`구간 경계 = round(안정 + (최대 − 안정) × 0.60 / 0.70 / 0.80 / 0.90) · 안정심박이 있을 때 (Karvonen)`:`구간 경계 = round(최대 심박 × 0.70 / 0.80 / 0.88 / 0.92 / 0.97)`)+src('ZONES — 최대 심박이 바뀌면 다시 계산')),
     item('pace',ic('pace'),'훈련 속도 5가지','E · M · T · I · R',`T ${fp(Z.T)}`,
       kv([['E 천천히',`${pr(Z.E)} — VDOT의 59~74% 산소에 해당하는 속도`],['M 마라톤',`${fp(Z.M)} — 풀코스 예상 기록 ÷ 42.195`],
           ['T 템포',`${fp(Z.T)} — 60분 동안 낼 수 있는 거리의 속도`],['I 인터벌',`${fp(Z.I)} — 3km 예상 기록 속도`],['R 레페티션',`${fp(Z.R)} — 1.2km 예상 기록 속도`]])+
@@ -10871,7 +10871,7 @@ function planChecks(P,blk){
       if(F.maxLong>=lc-0.5&&twe>=R.lt) W.push(`${R.nm}의 긴 날은 ${fmtHM(R.lt*60)} 안쪽으로 둡니다(관행 · C) — 지금 긴 날 속도(1km ${fmtPace(lp)})로는 ${lc}km까지예요. 주말 시간을 늘려도 이 선은 그대로이고, 긴 날 속도가 빨라지면 같은 시간에 더 길게 뜁니다.`);
       else if(F.maxLong>=lc-0.5) W.push(`주말에 쓸 수 있는 시간을 ${fmtHM(twe*60)}으로 정해 두셔서, 지금 긴 날 속도(1km ${fmtPace(lp)})로는 긴 날이 ${lc}km에서 막힙니다(이 일정의 가장 긴 날 ${F.maxLong}km). ${R.nm}는 최장 ${R.L}km(약 ${fmtHM(R.L*lp)})가 보통이에요.`);
       else W.push(`가장 긴 날이 ${F.maxLong}km예요 — 주말 시간(${lc}km까지 가능) 때문이 아니라 주간 거리 때문입니다. 긴 날은 주간 거리의 ${D==='M'?'절반':'40%'} 안쪽, 주간은 주마다 8%씩·4주마다 한 번 줄이며 늘려서 정점 주간이 ${Math.round(F.peakW)}km예요. 실제로 더 뛰면 4주마다 다시 짤 때 출발점이 올라갑니다.`); }
-    else if(F.maxLong<R.L-0.4){ const sh={M:50,H:42,T10:38,T5:35}[D]; W.push(`가장 긴 날이 ${F.maxLong}km로 최장 목표 ${R.L}km에 조금 못 미쳐요 — 시간 때문이 아니라 주간 거리 때문입니다. 긴 날은 주간의 ${sh}%까지라 정점 주간 ${Math.round(F.peakW)}km에서는 여기까지예요. 주간은 주마다 8%씩, 시즌 정점은 시작 양의 ${D==='M'?'+60%':'+40%'}까지만 늘립니다(관행 · C). 실제로 더 뛰면 4주마다 다시 짤 때 올라갑니다.`); }
+    else if(F.maxLong<R.L-0.4){ const sh={M:50,H:42,T10:38,T5:35}[D]; W.push(`가장 긴 날이 ${F.maxLong}km로 최장 목표 ${R.L}km에 조금 못 미쳐요 — 시간 때문이 아니라 주간 거리 때문입니다. 긴 날은 주간의 ${sh}%까지라 정점 주간 ${Math.round(F.peakW)}km에서는 여기까지예요. 주간은 주마다 8%씩${D==='M'?', 4주마다 한 번 줄이며':', 시즌 정점은 시작 양의 +40%까지만'} 늘립니다(관행 · C). 실제로 더 뛰면 4주마다 다시 짤 때 올라갑니다.`); }
     if(D==='M'&&F.n28<3) W.unshift(`대회까지 28km 넘는 긴 날이 ${F.n28}번이에요. 풀코스는 보통 3~4번 뛰고 갑니다(관행 · C).`);
     const cap=timeCapKm((P.days||SURVEY.days||[]),twd,twe);
     if(F.peakW<R.rec){ if(F.peakW>=cap-2) W.push(`쓸 수 있는 시간으로는 주간 거리가 약 ${cap.toFixed(0)}km에서 막혀서, 정점 주간이 ${Math.round(F.peakW)}km예요. ${R.nm}는 보통 정점 ${R.rec}km 이상에서 준비합니다(관행 · C).`);
