@@ -2133,7 +2133,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.30';
+const APPVER='19.31';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2593,12 +2593,16 @@ function recalcTypes(){
   /* 쉬운 날·긴 날 심박 상한 = 앱 존의 Z2 윗선 하나 — 존 표시(Z2)와 뛸 때 안내·판정이 같은 숫자를 쓴다.
      안정심박이 생겨 여유심박 존으로 바뀌면 상한도 같이 바뀐다 (예전엔 존은 바뀌고 상한은 최대심박 80%에 남았다) */
   if(ZONES&&ZONES[1]){ const k=TYPES.recovery.hrZone[1]/TYPES.easy.hrZone[1], z2=ZONES[1][1];
-    TYPES.easy.hrZone=[TYPES.easy.hrZone[0],z2]; TYPES.long.hrZone=[TYPES.long.hrZone[0],z2]; TYPES.recovery.hrZone=[0,Math.round(z2*k)]; }
+    TYPES.easy.hrZone=[ZONES[1][0],z2]; TYPES.long.hrZone=[ZONES[1][0],z2]; TYPES.recovery.hrZone=[0,Math.round(z2*k)]; }
+  /* 빠른 날 심박도 같은 존에서 — 템포 = Z4, 목표 속도 = Z3, 인터벌 = Z5 이상. 예전엔 최대심박 %로 따로 계산해서
+     여유심박 존(Z4 156~168)과 템포 심박(158~166)이 서로 다르게 보였다 */
+  if(ZONES&&ZONES[4]){ TYPES.threshold.hrZone=[ZONES[3][0],ZONES[3][1]]; if(TYPES.mpace)TYPES.mpace.hrZone=[ZONES[2][0],ZONES[2][1]];
+    if(TYPES.goalpace&&TYPES.goalpace.hrZone)TYPES.goalpace.hrZone=[ZONES[2][0],ZONES[2][1]]; TYPES.interval.hrZone=[ZONES[4][0],HRMAX]; }
   SUG.easyCap=TYPES.easy.hrZone[1];
   /* 쉬운 날 심박 상한을 직접 정했거나, 편한 달리기 목표가 기준 심박을 정했으면 그걸로 — 회복은 같은 비율로 낮게 */
   const cap=easyCapOv();
   if(cap){ const k=TYPES.recovery.hrZone[1]/TYPES.easy.hrZone[1];
-    TYPES.easy.hrZone=[TYPES.easy.hrZone[0],cap]; TYPES.long.hrZone=[TYPES.long.hrZone[0],cap];
+    TYPES.easy.hrZone=[Math.min(ZONES[1][0],cap-8),cap]; TYPES.long.hrZone=[Math.min(ZONES[1][0],cap-8),cap];
     TYPES.recovery.hrZone=[0,Math.round(cap*k)]; }
 }
 recalcTypes();
@@ -10282,7 +10286,7 @@ function renderGuide(){
       fx(ZONES.kind==='hrr'?`구간 경계 = round(안정 + (최대 − 안정) × 0.60 / 0.70 / 0.80 / 0.90) · 안정심박이 있을 때 (Karvonen)`:`구간 경계 = round(최대 심박 × 0.70 / 0.80 / 0.88 / 0.92 / 0.97)`)+src('ZONES — 최대 심박이 바뀌면 다시 계산')),
     item('pace',ic('pace'),'훈련 속도 5가지','E · M · T · I · R',`T ${fp(Z.T)}`,
       kv([['E 천천히',`${pr(Z.E)} — VDOT의 59~74% 산소에 해당하는 속도`],['M 마라톤',`${fp(Z.M)} — 풀코스 예상 기록 ÷ 42.195`],
-          ['T 템포',`${fp(Z.T)} — 60분 동안 낼 수 있는 거리의 속도`],['I 인터벌',`${fp(Z.I)} — 3km 예상 기록 속도`],['R 레페티션',`${fp(Z.R)} — 1.2km 예상 기록 속도`]])+
+          ['T 역치',`${fp(Z.T)} — 60분 동안 낼 수 있는 거리의 속도 (템포런은 +8초 ${fp(sessTgt('threshold'))})`],['I 인터벌',`${fp(Z.I)} — 3km 예상 기록 속도 (일정은 +6초 ${fp(sessTgt('interval'))})`],['R 레페티션',`${fp(Z.R)} — 1.2km 예상 기록 속도`]])+
       fx(`E = 1 ÷ v(VO₂ = VDOT × 0.74 ~ 0.59)<br>T = 60분 ÷ (60분에 갈 거리)<br>I = 3000m 예상 시간 ÷ 3<br>R = 1200m 예상 시간 ÷ 1.2`)+
       note('직접 바꾼 값이 있으면 그 값이 먼저예요.')+src('Daniels Running Formula · 함수 zonesOf(VDOT)')),
     item('learn',ic('learn'),'내 몸 기준 쉬운 속도','심박으로 내 몸에 맞춰요',L.applied?'적용 중':`${L.n||0}/3`,
@@ -10336,11 +10340,11 @@ function renderGuide(){
   const types=[
     tr('easy','대화가 되는 속도',pr(PACE.easy),
       `<div class="gd-row">${rpe(3)}<span>대화 가능</span></div>`+
-      kv([['속도',`E 범위 ${pr(PACE.easy)} · 허용 ±15초`],['심박',hz('easy')+' (최대의 70~80%)'],['판정','구간의 80% 이상이 범위 안']])+
+      kv([['속도',`E 범위 ${pr(PACE.easy)} · 허용 ±15초`],['심박',hz('easy')+' (존2)'],['판정','구간의 80% 이상이 범위 안']])+
       fx(`목표 = [E 빠른 끝, E 느린 끝]<br>준비 1km = E 범위의 느린 절반, 허용 ±20초`)+src(T('easy').src)),
     tr('recovery','이지런보다 더 느리게',pr(PACE.rec),
       `<div class="gd-row">${rpe(2)}<span>콧노래 가능</span></div>`+
-      kv([['속도',`E 범위의 느린 절반 ${pr(PACE.rec)}`],['상한',`${fp(PACE.recCeil)}보다 빠르면 안 됨 (느린 건 통과)`],['심박',hz('recovery')+' (최대의 80% — 이지런과 같음)'],
+      kv([['속도',`E 범위의 느린 절반 ${pr(PACE.rec)}`],['상한',`${fp(PACE.recCeil)}보다 빠르면 안 됨 (느린 건 통과)`],['심박',hz('recovery')+' (이지런 상한보다 조금 낮게)'],
           ['판정',`상한보다 5초 넘게 빠른 시간 ≤ ${Math.round(th.ceil*100)}%`]])+
       fx(`회복 = [(E₀ + E₁) ÷ 2, E₁]`)+src(T('recovery').src)),
     tr('long','천천히 오래',`≤150분`,
@@ -10350,12 +10354,12 @@ function renderGuide(){
     tr('threshold','1시간쯤 버틸 역치 속도로 20분',fp(PACE.T),
       `<div class="gd-row">${rpe(7)}<span>짧은 문장만</span></div>`+
       kv([['속도',`T ${fp(PACE.T)} → 일정 목표 T + 8초 · 허용 ±5초`],['구성','2km·1.5km·1km × 2~4세트, 사이 2분 천천히'],['양','주간 거리의 10% 이내'],
-          ['심박',hz('threshold')+' (최대의 88~92%)'],['판정',`세트 간 속도 차이 ≤ ${th.spread}초`]])+
+          ['심박',hz('threshold')+' (존4)'],['판정',`세트 간 속도 차이 ≤ ${th.spread}초`]])+
       fx(`빠른 양 = min(주간 km × 0.10)<br>세트 수 = clamp(빠른 양 ÷ 세트 길이, 2, 4)`)+src(T('threshold').src)),
     tr('interval','숨이 턱까지, 3~5분씩',fp(PACE.I),
       `<div class="gd-row">${rpe(8)}<span>몇 단어만</span></div>`+
       kv([['속도',`I ${fp(PACE.I)} → 일정 목표 I + 6초 · 허용 ±5초`],['한 번 길이',`240초 ÷ I 속도 = ${(Math.min(1.6,Math.max(0.4,240/Z.I))).toFixed(2)}km (0.4~1.6)`],
-          ['횟수','min(10km, 주간 × 8%) ÷ 길이 → 2~6번'],['사이','0.5km 천천히 · 판정 안 함'],['심박',hz('interval')+' (최대의 90~95%)'],['판정',`회차 간 차이(최고−최저) ≤ ${th.spread}초`]])+
+          ['횟수','min(10km, 주간 × 8%) ÷ 길이 → 2~6번'],['사이','0.5km 천천히 · 판정 안 함'],['심박',hz('interval')+' (존5)'],['판정',`회차 간 차이(최고−최저) ≤ ${th.spread}초`]])+
       fx(`길이 = clamp(240 ÷ I, 0.4, 1.6) km<br>차이 = max(회차 속도) − min(회차 속도)`)+src(T('interval').src)),
     tr('rep','1~2분 아주 빠르게',fp(PACE.R),
       `<div class="gd-row">${rpe(9)}<span>아주 빠르게, 힘 빼고</span></div>`+
@@ -10425,11 +10429,11 @@ function renderGuide(){
     ['cad',ti('<path d="M8 3c1.6 0 2.2 2.2 2.2 4.3S9.1 11 7.5 11 5 9.4 5 7.3 6.4 3 8 3zM6 13.5h3.5M16.5 9c1.6 0 2.5 2.2 2.5 4.3s-1.1 3.7-2.6 3.7-2.6-1.6-2.6-3.7S15 9 16.5 9zM14.5 19.5H18"/>'),'케이던스','Cadence','1분에 발이 땅에 닿는 걸음 수 (SPM)','정답 숫자는 없어요. 키·속도마다 달라요 — 내 평소보다 5% 늘려보는 게 시작',cu?`${cu} spm`:'—'],
     ['plan',ti('<path d="M4 20L10 4h4l6 16"/><path d="M12 8v2M12 13v2M12 18v1"/>'),'마일리지','Mileage','주간·월간 누적 거리 (km)','갑자기 늘리면 다쳐요 — 이 앱은 주 5~10%씩',`주 ${kmIn(7).toFixed(0)} · 월 ${kmMon.toFixed(0)}km`],
     ['vdot',ti('<circle cx="12" cy="9" r="5"/><path d="M8.5 13l-2 8 5.5-3 5.5 3-2-8"/><path d="M12 6.8l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z"/>'),'PB / PR','Personal Best','거리별 내 역대 최고 기록','최근 기록이 실력 점수(VDOT)가 되어 모든 속도를 정해요',pb],
-    ['zone',ti('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M7.5 12h2.2l1.2-2.4 2 4.6 1.3-2.2h2.3"/>'),'심박 존 Z1~Z5','HR Zone','Z1 <70% 아주 편함 · Z2 70~80% 편함(이지런·LSD) · Z3 80~88% 보통(마라톤 페이스) · Z4 88~92% 힘듦(템포) · Z5 92~97% 아주 힘듦(인터벌) — 시계 앱의 존과는 경계가 달라요','옆 사람과 대화가 되면 Z2',`Z2 ♥${ZONES[1][0]}~${ZONES[1][1]} · Z4 ♥${ZONES[3][0]}~${ZONES[3][1]}`],
+    ['zone',ti('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M7.5 12h2.2l1.2-2.4 2 4.6 1.3-2.2h2.3"/>'),'심박 존 Z1~Z5','HR Zone',`지금 내 존: Z1 ${ZONES[0][1]} 아래 · Z2 ${ZONES[1][0]}~${ZONES[1][1]} 편함(이지런·LSD) · Z3 ${ZONES[2][0]}~${ZONES[2][1]} 보통(목표 속도) · Z4 ${ZONES[3][0]}~${ZONES[3][1]} 힘듦(템포) · Z5 ${ZONES[4][0]}~ 아주 힘듦(인터벌) — ${ZONES.kind==='hrr'?`여유심박 방식(안정 ${ZONES.rhr})`:'최대심박 % 방식'} · 시계 앱의 존과는 경계가 달라요`,'옆 사람과 대화가 되면 Z2',`Z2 ♥${ZONES[1][0]}~${ZONES[1][1]} · Z4 ♥${ZONES[3][0]}~${ZONES[3][1]}`],
     ['long',ti('<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/>'),'LSD','Long Slow Distance','천천히 오래 달리는 훈련','지구력 엔진 — 느려져도 끝까지 가면 성공',`${fp(PACE.long[0])}~`],
-    ['interval',ti('<path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>'),'인터벌','Interval','빠른 질주와 느린 조깅을 반복','심폐 능력(VO₂max) 향상 — 회차 속도를 고르게',`${fp(PACE.I)}`],
+    ['interval',ti('<path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>'),'인터벌','Interval','빠른 질주와 느린 조깅을 반복','심폐 능력(VO₂max) 향상 — 회차 속도를 고르게',`${fp(sessTgt('interval'))}`],
     [null,ti('<path d="M3 18l6-6 4 4 8-9"/><path d="M15 7h6v6"/>'),'빌드업','Build-up','천천히 시작해 갈수록 속도를 올림','후반 뒷심 · 초반 오버페이스 방지 — 자동 일정엔 아직 없음','—'],
-    ['threshold',ti('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>'),'지속주 · 템포런','Tempo Run','힘들지만 20~60분 버틸 빠르기로 유지','젖산 역치를 올려 빠른 속도를 오래 유지',`${fp(PACE.T)}`],
+    ['threshold',ti('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4"/>'),'지속주 · 템포런','Tempo Run','힘들지만 20~60분 버틸 빠르기로 유지','젖산 역치를 올려 빠른 속도를 오래 유지',`${fp(sessTgt('threshold'))}`],
     ['recovery',ti('<circle cx="14" cy="4.5" r="1.8"/><path d="M8 21l3-6 3 2v4M7 10l4-3 3 3 3 1M11 15l1-5"/>'),'회복주','Recovery Run','힘든 훈련 다음 날 아주 가볍게','몸을 푸는 날 — 빠르게 뛰는 게 유일한 실패',`${fp(PACE.rec[0])}~`],
     ['stride',ti('<path d="M4 17h4l3-8 3 8h6"/><path d="M14 5l3 3-3 3"/>'),'스트라이드','Strides','20초쯤 가볍게 빠르게 치고 나가기','쉬운 날 끝에 4~6번 — 폼을 깨워요','10~20초'],
     ['tt',ti('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),'TT','Time Trial','정해진 거리를 힘껏 뛰어 실력 측정','4주마다 — 모든 목표 속도를 다시 계산','2km']
@@ -10463,8 +10467,8 @@ function renderGuide(){
     cell('평균 페이스','Average Pace',gauge(angOf(lastRun&&lastRun.paceAvg),'AVG'),'전체 시간 ÷ 전체 거리',lastRun?`최근 ${fp(lastRun.paceAvg)}`:'',null,true)
   ])+
   band('훈련 종류','#3D63C8',[
-    ...[['easy','이지런','Easy Run','대화가 되는 속도 · 기초 체력',PACE.easy[0]],['threshold','템포런','Tempo Run','조금 힘들지만 지속 · 젖산 역치',PACE.T],
-        ['interval','인터벌','Interval','빠르게 · 천천히 반복 · 심폐',PACE.I],['long','롱런 · LSD','Long Run','평소보다 길게 천천히 · 지구력',PACE.long[1]],
+    ...[['easy','이지런','Easy Run','대화가 되는 속도 · 기초 체력',PACE.easy[0]],['threshold','템포런','Tempo Run','조금 힘들지만 지속 · 젖산 역치',sessTgt('threshold')],
+        ['interval','인터벌','Interval','빠르게 · 천천히 반복 · 심폐',sessTgt('interval')],['long','롱런 · LSD','Long Run','평소보다 길게 천천히 · 지구력',PACE.long[1]],
         ['recovery','회복런','Recovery Run','가볍게 몸을 푸는 날',PACE.rec[0]],['rep','레페티션','Repetition','짧게 아주 빠르게, 완전 휴식',PACE.R]]
       .map(x=>cell(x[1],x[2],`<span class="gc-dual">${runner(T(x[0]).col)}${guideShape(x[0],T(x[0]).col)}</span>`,x[3],fp(x[4]),x[0])),
     cell('빌드업 런','Build-up Run',bars([.25,.4,.55,.7,.85,1],'#3D63C8'),'천천히 시작해 갈수록 빠르게 · 오버페이스 방지','자동 일정엔 아직 없음'),
