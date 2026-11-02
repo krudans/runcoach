@@ -1977,11 +1977,11 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .mc-top i{display:block;font-style:normal;font-size:11px;font-weight:700;opacity:.75}.mc-top b{display:block;font-size:24px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}.mc-top em{display:block;font-style:normal;font-size:11px;opacity:.8;margin-top:1px}.mc-top .r{text-align:right}
 .mc-h{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 6px}.mc-h span{font-size:13px;font-weight:900}.mc-h small{font-size:10.5px;color:var(--ink-3);font-weight:700}
 .mc-lad{border-radius:14px;overflow:hidden;border:1px solid var(--line)}
-.mc-row{display:grid;grid-template-columns:76px 1fr auto 34px;align-items:center;gap:8px;padding:8px 12px 8px 14px;position:relative;background:var(--panel);border-top:1px solid var(--line)}.mc-row:first-child{border-top:0}
+.mc-row{display:grid;grid-template-columns:70px auto 1fr 30px;align-items:center;gap:8px;padding:8px 12px 8px 14px;position:relative;background:var(--panel);border-top:1px solid var(--line)}.mc-row:first-child{border-top:0}
 .mc-row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
 .mc-row .mc-nm{font-size:13px;font-weight:900;color:var(--c);display:flex;align-items:center;gap:4px}.mc-row .mc-nm u{text-decoration:none;font-size:9.5px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px}
 .mc-row b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.mc-row b s{text-decoration:none;color:var(--ink-3);font-weight:600;margin:0 2px}
-.mc-row .mc-hr{font-size:11.5px;color:var(--ink-2);font-weight:700;white-space:nowrap}.mc-row .mc-n{font-size:11px;color:var(--ink-3);text-align:right;font-weight:700}
+.mc-row .mc-hr{font-size:11.5px;color:var(--ink-2);font-weight:700;white-space:nowrap;text-align:right;overflow:hidden;text-overflow:ellipsis}.mc-row .mc-n{font-size:11px;color:var(--ink-3);text-align:right;font-weight:700}
 .mc-row em{position:absolute;right:46px;top:3px;font-style:normal;font-size:9px;font-weight:800;color:var(--accent)}
 .mc-row.today{background:color-mix(in srgb,var(--c) 10%,var(--panel))}
 .mc-zone{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 12px 8px}
@@ -2133,7 +2133,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.29';
+const APPVER='19.30';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2636,6 +2636,10 @@ function fixRestDist(sess){
     prev=g.to; });
   return sess;
 }
+/* 일정에 실제로 넣는 빠른 날 목표 속도 — 템포 = 역치 +8초, 인터벌 = I +6초, 각각 ±3초 (repsBuild와 같은 폭).
+   '내 훈련 기준'·공유 이미지·훈련 원리가 모두 이 값을 보여준다 — 화면마다 다른 숫자가 나오던 원인 */
+function sessTgt(k){ return k==='threshold'?Math.round(Z.T+8):k==='interval'?Math.round(Z.I+6):null; }
+function sessRange(k,gp){ const t=k==='goalpace'?Math.round(gp):sessTgt(k); return t?[t-3,t+3]:null; }
 function repsBuild(total,wu,n,len,tgt,recDist,recSec,label){
   const segs=[{to:wu,nm:tm('warm'),pace:PACE.easyIn,tol:20}]; let at=wu;
   for(let i=1;i<=n;i++){
@@ -3300,14 +3304,14 @@ function makePlan(opts){
              심장이 반응하기 전에 끝나서 힘만 든다. 양은 횟수로 맞춘다. */
           const len=Math.max(0.4,Math.min(1.6,+(240/Z.I).toFixed(1)));
           const n=fitN(Math.max(6,hardKm),2,Math.max(2,Math.min(6,Math.floor(Math.min(10,km*0.08)/len))),len,0.5);
-          const tgt=Math.round(Z.I+6);
+          const tgt=sessTgt('interval');
           s={d:ds,wk:w+1,t:`빠르게 ${kmLab(len)} × ${n}`,...interval(Math.max(6,hardKm,fitKm(2,n,len,0.5)),2,n,len,tgt,0.5,null)};
         } else {
           /* 벅차게 — 한 번에 5~15분. 주간 10% 안에서 길이와 횟수를 잡는다 */
           const cp=km*0.10;
           const len=cp>=4?2 : cp>=2.5?1.5 : 1;
           const n=fitN(Math.max(6,hardKm),2,Math.max(2,Math.min(4,Math.floor(cp/len)||2)),len,restKm(120,PACE.recJog));
-          const tgt=Math.round(Z.T+8);
+          const tgt=sessTgt('threshold');
           const tRest=Math.max(60,Math.round(len*60));   /* Daniels 크루즈 인터벌: 일:휴 5:1 → 1km마다 약 1분 */
           s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.max(6,hardKm,fitKm(2,n,len,restKm(tRest,PACE.recJog))),2,n,len,tgt,0.35,tRest)};
         }
@@ -5395,7 +5399,7 @@ $('btnSave').onclick=()=>{
   if(tr){
     alert(`테스트 기록 ${tr.km}km ${fmtClock(tr.sec)}.\n\n`+
       `이 기록으로 목표 속도를 정했습니다.\n`+
-      `천천히 ${fmtPace(Z.E[0])}~${fmtPace(Z.E[1])} · 벅차게 ${fmtPace(Math.round(Z.T+8))} · 빠르게 ${fmtPace(Math.round(Z.I+6))} (일정에 쓰는 목표 속도)\n\n`+
+      `천천히 ${fmtPace(PACE.easy[0])}~${fmtPace(PACE.easy[1])} · 벅차게 ${fmtPace(sessTgt('threshold'))} · 빠르게 ${fmtPace(sessTgt('interval'))} (일정에 쓰는 목표 속도)\n\n`+
       `남은 일정도 이 속도로 다시 만들었습니다.`);
     go('plan'); return;
   }
@@ -10504,13 +10508,13 @@ function renderGuide(){
   const autoNote=s=>`<p class="gw-src">${s}</p>`;
   const L0=LEARN||{n:0}, hsrc=coachBasis().hrmax.src;
   const ED={
-    pace:{man:!!(O.E||O.T||O.I||O.race||GW_MAN.pace), mine:`편하게 ${pr(PACE.easy)} · 템포 ${fp(PACE.T)}`,
-      auto:autoNote(`편하게 ${pr(SUG.E||PACE.easy)} · 템포 ${fp(SUG.T)} · 인터벌 ${fp(SUG.I)}<br>${L0.applied?`최근 기록 ${L0.n}번의 심박으로 맞춤`:`기준 기록 ${rcA&&rcA.sec?dlab(rcA.m)+' '+fmtClock(rcA.sec):'없음'}으로 계산`}`),
+    pace:{man:!!(O.E||O.T||O.I||O.race||GW_MAN.pace), mine:`편하게 ${pr(PACE.easy)} · 템포런 ${fp(sessTgt('threshold'))}`,
+      auto:autoNote(`편하게 ${pr(SUG.E||PACE.easy)} · 역치 ${fp(SUG.T)} · I ${fp(SUG.I)} (일정의 템포런·인터벌은 각각 +8초·+6초)<br>${L0.applied?`최근 기록 ${L0.n}번의 심박으로 맞춤`:`기준 기록 ${rcA&&rcA.sec?dlab(rcA.m)+' '+fmtClock(rcA.sec):'없음'}으로 계산`}`),
       form:fld('race','기준 기록',rcM&&rcM.sec?`${dlab(rcM.m)} ${fmtClock(rcM.sec)}`:'','','10km 45:46')+fld('E0','편하게 · 빠른 끝',mmss(PACE.easy[0]),'/km')+fld('E1','편하게 · 느린 끝',mmss(PACE.easy[1]),'/km')+fld('T','템포',mmss(PACE.T),'/km')+fld('I','인터벌',mmss(PACE.I),'/km')},
     cad:{man:!!(O.cad||GW_MAN.cad), mine:cu?`평소 ${cu}`:'평소 —', auto:autoNote(ca?`최근 10번 평균의 가운데 값 ${ca}`:'기록 3번 이상 쌓이면 자동으로 들어가요'), form:fld('cad','평소 케이던스',O.cad||ca||'','spm','175')},
     stride:{man:!!(O.stride||GW_MAN.stride), mine:myStride?`편하게 ${myStride.toFixed(2)}m`:'—', auto:autoNote('보폭 = 속도(m/분) ÷ 케이던스 · 편한 속도 기준'), form:fld('stride','평소 보폭',O.stride||myStride||'','m','1.00')+autoNote('표시용 — 코칭에는 쓰지 않아요')},
     hr:{man:!!(O.hrmax||GW_MAN.hr), mine:`최대 ${HRMAX}`, auto:autoNote(`최대 ${SUG.hrmax} · ${hsrc==='measured'?'직접 잰 값':hsrc==='observed'?'달리며 30초 넘게 유지된 최고':'나이로 추정 (±10 오차)'}`), form:fld('hrmax','최대 심박',O.hrmax||HRMAX,'bpm','185')},
-    thr:{man:!!(O.T||GW_MAN.thr), mine:`역치 ${fp(PACE.T)} · ♥${Math.round(HRMAX*0.88)}~${Math.round(HRMAX*0.92)}`,
+    thr:{man:!!(O.T||GW_MAN.thr), mine:`역치 ${fp(PACE.T)} (템포런은 +8초 ${fp(sessTgt('threshold'))}) · ♥${TYPES.threshold.hrZone[0]}~${TYPES.threshold.hrZone[1]}`,
       auto:autoNote(`역치 = 한 시간쯤 버틸 수 있는 가장 빠른 속도 — 템포런 속도이자 TSS의 기준<br>${fp(SUG.T)} · 기준 기록으로 계산 · 심박은 최대의 88~92% (Daniels, B)`), form:fld('T','역치(템포) 페이스',mmss(PACE.T),'/km')},
     zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`존2 ${ZONES[1][0]}~${ZONES[1][1]}${(()=>{ const c=easyCapOv(); return c&&c!==ZONES[1][1]?` · 이지 상한 ${c}${c>HRMAX*0.82?' ⚠':''}`:''; })()}`,
       auto:autoNote(`존2 상한 = ${ZONES.kind==='hrr'?`안정 ${ZONES.rhr} + (최대 ${HRMAX} − 안정) × 0.70`:`최대 심박 ${HRMAX} × 0.80`} = ${SUG.easyCap}${(()=>{ const c=easyCapOv(), a=aeroGoal(); return c&&c>HRMAX*0.82?`<br><b>⚠ 지금 쉬운 날 상한은 ${c}</b> (${!ovGet().easyCap&&a?'내 목표에서 정한 값':'직접 넣은 값'}) — 최대의 ${Math.round(c/HRMAX*100)}%예요(88% 넘으면 역치·템포 강도). 쉬운 날은 보통 최대의 80% 안팎(${SUG.easyCap}) (Daniels E 65~79%, B)`:''; })()}`), form:fld('easyCap','존2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
@@ -10758,8 +10762,8 @@ function peBuild(ds,wk,type,km,n,len){
   const fit=(wu,n,len,rest)=>Math.ceil((wu+n*len+(n-1)*rest+1)*2)/2;
   let s;
   if(type==='easy')s=easy(km); else if(type==='recovery')s=recovery(km); else if(type==='long')s=long(km);
-  else if(type==='threshold'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(2,n,len,r)); s=thresh(t,2,n,len,Math.round(Z.T+8),0.35,120); }
-  else if(type==='interval'){ const t=Math.max(km,fit(2,n,len,0.5)); s=interval(t,2,n,len,Math.round(Z.I+6),0.5,null); }
+  else if(type==='threshold'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(2,n,len,r)); s=thresh(t,2,n,len,sessTgt('threshold'),0.35,120); }
+  else if(type==='interval'){ const t=Math.max(km,fit(2,n,len,0.5)); s=interval(t,2,n,len,sessTgt('interval'),0.5,null); }
   else if(type==='goalpace'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(1.5,n,len,r)); s=goalPaceRun(t,len,n,peGoalPace()); }
   return termSess(Object.assign({d:ds,wk,t:peTitle(type,s.dist,n,len)},s));
 }
@@ -11078,7 +11082,7 @@ function planShareHTML(o){
     ${kv('기준 기록',r&&r.sec?`${r.m>=42000?'풀':r.m>=21000?'하프':(r.m/1000)+'km'} ${fmtClock(r.sec)}`:'측정 전',r&&r.at?`${r.at.slice(2).replace(/-/g,'.')} · 실력 점수 ${VDOT.toFixed(1)}`:`실력 점수 ${VDOT.toFixed(1)} (임시)`)}
     ${kv('뛰는 날',`주 ${days.length}회`,`${days.join('·')} · 빠른 날 주 ${hardN}회`)}
     ${kv('천천히 · LSD',`${rangeText(PACE.easy)}`,`LSD ${rangeText(PACE.long)}`)}
-    ${kv('템포 · 인터벌',`${fmtPace(Math.round(Z.T+8))} · ${fmtPace(Math.round(Z.I+6))}`,gp?`목표 속도 ${fmtPace(gp)}`:'1km 목표 속도')}
+    ${kv('템포 · 인터벌',`${fmtPace(sessTgt('threshold'))} · ${fmtPace(sessTgt('interval'))}`,gp?`목표 속도 ${fmtPace(gp)}`:'1km 목표 속도')}
     ${kv('쉬운 날 심박',`${TYPES.easy.hrZone[1]} 아래`,`최대 ${HRMAX}(${hrm})${ZONES.kind==='hrr'?` · 안정 ${ZONES.rhr} · 여유심박 방식`:' · 최대심박 % 방식'}`)}
     ${kv('주간 거리',`${Math.round(F.wk[0]||0)} → ${Math.round(F.peakW)}km`,`이번 주 → 정점 · 모두 ${Math.round(F.total)}km`)}
     ${kv('가장 긴 날',`${F.maxLong}km`,g.m>=42000?`28km 넘는 날 ${F.n28}번`:`LSD 최장`)}
@@ -11484,10 +11488,10 @@ function goalModel(){
     const rr=(fz&&g.date&&fz.reach&&fz.haveW!=null)?fz.reach(fz.haveW):null;
     const measured=!needTest();   /* 대회·TT 기록이 없으면 VDOT는 임시값 — 실력이라 말하지 않는다 */
     Object.assign(M,{ico:'🏅',title:`${gdLabel(g.m)} ${fmtClock(goalSec)}${g.kind==='race'?' 안에 들어오기':''}`,sub:measured?`지금 실력 ${fmtClock(fz?fz.nowSec:Math.round(raceTime(VDOT,g.m)*60))} → ${fmtClock(goalSec)}`:'측정 전 — TT 2km나 대회 기록을 넣으면 지금 실력이 채워져요',
-      v0:measured?Math.round(raceTime(v0,g.m)*60):null, now:measured?(fz?fz.nowSec:Math.round(raceTime(VDOT,g.m)*60)):null, vT:goalSec, fmt:fmtClock,
+      v0:measured?(h.length<=1||(h[0]&&PROF.race&&h[0].d===PROF.race.at)?(fz?fz.nowSec:Math.round(raceTime(VDOT,g.m)*60)):Math.round(raceTime(v0,g.m)*60)):null, now:measured?(fz?fz.nowSec:Math.round(raceTime(VDOT,g.m)*60)):null, vT:goalSec, fmt:fmtClock,
       how:`${M.mix.filter(x=>['interval','threshold','goalpace'].includes(x.k)).map(x=>x.nm).join('·')||'이지런'} 주 ${M.mix.filter(x=>['interval','threshold','goalpace'].includes(x.k)).reduce((a,x)=>a+x.n,0)||0}회 + 이지런·LSD`,
       measure:measured?`VDOT ${VDOT.toFixed(1)} · TT나 대회 기록으로 갱신`:`임시 VDOT ${VDOT.toFixed(1)} (측정 전)`,
-      status:!measured?'TT나 대회 기록을 넣으면 대회 날 예상이 나와요 — 측정 전 값으로 예상하지 않아요':fz?(fz.verdict==='already'?(g.m>=42000&&(()=>{ try{ return planFacts(BLOCK.concat(planFuture())).n28<2; }catch(e){ return false; } })()?'환산 기록은 목표에 닿지만, 28km 넘는 LSD가 계획에 거의 없어요 — 장거리가 채워져야 대회 날 이 기록에 가까워져요':'이미 닿는 기록 — 목표를 높여도 돼요'):fz.verdict==='ok'?'지금 흐름이면 대회 날 가능':rr?`대회 날 예상 ${fmtClock(Math.min(rr.lo,rr.hi))}~${fmtClock(Math.max(rr.lo,rr.hi))} · 최종 목표까지 약 ${fz.needWlo}~${fz.needWhi}주`:`약 ${fz.needWlo}~${fz.needWhi}주 걸려요`):''});
+      status:!measured?'TT나 대회 기록을 넣으면 대회 날 예상이 나와요 — 측정 전 값으로 예상하지 않아요':fz?(fz.verdict==='already'?(g.m>=42000&&PROF.race&&PROF.race.m<42000?`환산 기록으로는 닿아요 — 다만 ${PROF.race.m>=21000?'하프':'짧은 거리'} 기록을 옮긴 값이라, 28km 넘는 LSD${(()=>{ try{ const n=planFacts(BLOCK.concat(planFuture())).n28; return n?` ${n}번`:''; }catch(e){ return ''; } })()}을 뛴 뒤 TT로 다시 확인해요`:'이미 닿는 기록 — 목표를 높여도 돼요'):fz.verdict==='ok'?'지금 흐름이면 대회 날 가능':rr?`대회 날 예상 ${fmtClock(Math.min(rr.lo,rr.hi))}~${fmtClock(Math.max(rr.lo,rr.hi))} · 최종 목표까지 약 ${fz.needWlo}~${fz.needWhi}주`:`약 ${fz.needWlo}~${fz.needWhi}주 걸려요`):''});
     M.hist=measured?h.map(x=>({d:x.d,v:Math.round(raceTime(x.v,g.m)*60),n:1})):[];
   } else if(g.kind==='finish'&&g.m){
     const km=g.m/1000, H=finishHist();
@@ -11523,9 +11527,9 @@ function mineData(){
     {k:['recovery'],nm:'회복',col:TYPES.recovery.col,p:PACE.rec,hr:`${hz('recovery')[1]} 아래`,man:!!O.E},
     {k:['easy'],nm:'이지',col:TYPES.easy.col,p:PACE.easy,hr:`${cap} 아래`,man:!!O.E},
     {k:['long'],nm:'LSD',col:TYPES.long.col,p:PACE.long,hr:`${cap} 아래`,man:!!O.E},
-    gp?{k:['goalpace','mpace'],nm:'목표 속도',col:'#7A55B8',p:[gp-5,gp+5],hr:hz('mpace')?`${hz('mpace')[0]}~${hz('mpace')[1]}`:'',man:false}:null,
-    {k:['threshold'],nm:'템포',col:TYPES.threshold.col,p:[PACE.T-5,PACE.T+5],hr:hz('threshold')?`${hz('threshold')[0]}~${hz('threshold')[1]}`:'',man:!!O.T},
-    {k:['interval'],nm:'인터벌',col:TYPES.interval.col,p:[PACE.I-4,PACE.I+4],hr:'끝날 때쯤 '+(hz('interval')?hz('interval')[0]+'↑':'높게'),man:!!O.I},
+    gp?{k:['goalpace','mpace'],nm:'목표 속도',col:'#7A55B8',p:sessRange('goalpace',gp),hr:hz('mpace')?`${hz('mpace')[0]}~${hz('mpace')[1]}`:'',man:false}:null,
+    {k:['threshold'],nm:'템포',col:TYPES.threshold.col,p:sessRange('threshold'),hr:hz('threshold')?`${hz('threshold')[0]}~${hz('threshold')[1]}`:'',man:!!O.T},
+    {k:['interval'],nm:'인터벌',col:TYPES.interval.col,p:sessRange('interval'),hr:(hz('interval')?hz('interval')[0]+'↑ (끝날 때쯤)':'높게'),man:!!O.I},
   ].filter(Boolean).map(x=>Object.assign(x,{cnt:n(x.k),today:!!(td&&x.k.includes(td.type))}));
   const days=(PLAN&&PLAN.days)||SURVEY.days||[], hard=Math.max(0,...[...new Set(B.map(x=>weekMonday(x.d)))].map(m=>B.filter(x=>weekMonday(x.d)===m&&['threshold','interval','goalpace','rep','tt','mpace'].includes(x.type)).length));
   const ca=typeof cadAuto==='function'?cadAuto():null, cad=O.cad||ca||null, stride=O.stride||(cad?+(1000/midPace(PACE.easy)*60/cad).toFixed(2):null);
