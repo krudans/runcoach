@@ -2110,7 +2110,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.27';
+const APPVER='19.28';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11696,6 +11696,9 @@ function snapInline(src,dst){
   const sc=src.children, dc=dst.children;
   for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
 }
+/* 내용을 담은 버튼(일정 한 줄·오늘 그림·결정 기록 줄)은 지우지 않고 div로 바꿔 둔다 — 버튼을 통째로 지우던 탓에 주차 이미지에 훈련이 하나도 안 찍혔다 */
+var SNAP_KEEP='button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
+function snapKeep(root){ root.querySelectorAll(SNAP_KEEP).forEach(b=>{ const d=document.createElement('div'); d.className=b.className; d.setAttribute('style',b.getAttribute('style')||''); d.innerHTML=b.innerHTML; b.replaceWith(d); }); }
 async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
   const W=el.offsetWidth, H=el.offsetHeight, clone=el.cloneNode(true);
@@ -11703,10 +11706,10 @@ async function snapCard(el,name,title){
   const kHosts=[...el.querySelectorAll('.kmap')].map(k=>k.parentElement); const kFix=root=>[...root.querySelectorAll('.kmap')].forEach((k,i)=>{ const h=kHosts[i]; if(h&&h._svg)k.parentElement.innerHTML=h._svg; else k.remove(); });
   kFix(clone);
   const wrap=document.createElement('div'); wrap.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; wrap.appendChild(clone); document.body.appendChild(wrap);
-  clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); clone.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
+  snapKeep(clone); clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); clone.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
   clone.querySelectorAll('input,textarea').forEach(x=>{ const sp=document.createElement('span'); sp.textContent=x.value; x.replaceWith(sp); });
   /* 원본 순서가 같아야 스타일을 1:1로 복사할 수 있다 — 지운 요소는 원본에서도 건너뛴다 */
-  const src=el.cloneNode(true); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); kFix(src);
+  const src=el.cloneNode(true); snapKeep(src); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); kFix(src);
   const probe=document.createElement('div'); probe.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; probe.appendChild(src); document.body.appendChild(probe);
   src.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); src.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
   snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
