@@ -2133,7 +2133,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.31';
+const APPVER='19.32';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3420,6 +3420,11 @@ function refreshEasyPaces(sess){
   });
   if(t==='recovery') sess.ceiling=Math.round(PACE.recCeil);
   else if(t==='easy'||t==='long') sess.ceiling=Math.round(PACE.easyCeil);
+  /* 아직 안 뛴 앞날의 템포·인터벌도 지금 기준(sessTgt)으로 — 기준표는 5'23"인데 이번 주 일정은 만든 날 속도 5'26"로 남아 있었다.
+     뛴 날·지난날·받아 적은 일정(fixed)은 그대로 둔다 */
+  let tg=null, td=''; try{ tg=(t==='threshold'||t==='interval')?sessTgt(t):null; td=todayStr(); }catch(e){ const d=new Date(); td=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }   /* 부팅 중엔 todayStr가 아직 없다 */
+  if(tg&&sess.d&&sess.d.slice(0,10)>=td&&!(()=>{ try{ return RUNS.some(r=>r.planId===sess.d); }catch(e){ return false; } })()&&!sess.segs.some(g=>g.hard&&g.fixed)){
+    sess.segs.forEach(g=>{ if(g.hard)g.pace=[tg-3,tg+3]; }); sess.repTarget=tg; if(sess.repLen)sess.bout=sess.repLen*tg; }
   return sess;
 }
 const hasPlan=()=>!!(PLAN&&PLAN.sessions&&PLAN.sessions.length);
