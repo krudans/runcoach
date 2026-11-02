@@ -1934,6 +1934,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pw-tools button{border:none;background:var(--panel-2);border-radius:9px;padding:7px 12px;font:inherit;font-size:12.5px;font-weight:800;color:var(--ink-2);cursor:pointer}
 .pe-prev{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:14px;padding:12px;border-left:5px solid var(--tc)}
 .pe-prev b{display:block;font-size:16px}.pe-prev i{display:block;font-style:normal;font-size:12px;color:var(--ink-3);margin-top:2px}
+.pd-tot{display:inline;font-weight:800;color:var(--ink)}
 .pe-est{font-size:12px;color:var(--ink-3);margin:8px 2px 0;line-height:1.6}.pe-est b{color:var(--ink)}
 .pe-hm input{width:64px;height:42px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:800;background:var(--panel)}
 .pt-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 2px}
@@ -2074,7 +2075,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.24';
+const APPVER='19.25';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2443,7 +2444,12 @@ const SEGFIX={'웜업':'warm','도입':'warm','출발':'warm','쿨다운':'cool'
 function termSeg(g){ if(!g)return g; if(SEGFIX[g.nm])g.nm=tm(SEGFIX[g.nm]);
   const m=String(g.nm||'').match(/^(준비|마무리|사이 쉬기)(?: \([^)]*\))?$/); if(m)g.nm=tm({'준비':'warm','마무리':'cool','사이 쉬기':'rest'}[m[1]]);
   else g.nm=String(g.nm||'').replace(/^[가-힣 ]+? \(([^)]+)\)$/,(x,y)=>{ const k=Object.keys(GL).find(k=>GL[k].t===y); return k?GL[k].e:y; }); return g; }
-function termSess(x){ if(!x)return x; x.t=termify(x.t); (x.segs||[]).forEach(termSeg); return x; }
+function termSess(x){ if(!x)return x; x.t=totalFirst(termify(x.t),x.dist); (x.segs||[]).forEach(termSeg); return x; }
+/* 그날 전체 거리를 제목 맨 앞에 — '템포런 1.5km × 2'가 아니라 '템포런 6.5km · 1.5km × 2' (웜업·쿨다운 포함 합계). 일정이 나오는 모든 곳이 이 제목을 쓴다 */
+function totalFirst(t,km){ t=String(t||''); if(!(+km>0))return t;
+  const m=t.match(/^([^\d]*?)\s*(\d+(?:\.\d+)?)\s*(km|m)(?![a-z])/); if(!m)return t;
+  const first=m[3]==='km'?+m[2]:+m[2]/1000; if(Math.abs(first-km)<0.05&&!/^\s*[×x]/.test(t.slice(m[0].length)))return t;
+  return `${m[1].trim()} ${fmtKm1(+km)}km · ${t.slice(m[1].length).trim()}`; }
 
 const TYPES={
   recovery:{nm:tm('recovery'),desc:tmd('recovery'),chip:'c-rec',col:'#2B7BB9',
@@ -3464,7 +3470,7 @@ function sessionOf(i){
   if(!o||!base.dist||Math.abs(o-base.dist)<0.01)return base;
   /* 거리를 바꿨으면 이름도 — 제목의 첫 'N km'(세트 표기 '2km × 3'은 빼고)를 바꾼다. '+ 근력' 같은 꼬리가 있어도 */
   const t0=String(base.t||''), kmRe=/(\d+(?:\.\d+)?)km(?!\s*×)/;
-  const sx={...base,dist:o,segs:base.segs.map(g=>({...g})),t:kmRe.test(t0)&&!base.reps?t0.replace(kmRe,fmtKm1(o)+'km'):t0};
+  const sx={...base,dist:o,segs:base.segs.map(g=>({...g})),t:kmRe.test(t0)&&(!base.reps||Math.abs(+(t0.match(kmRe)||[])[1]-base.dist)<0.05)?t0.replace(kmRe,fmtKm1(o)+'km'):t0};   /* 제목 맨 앞의 전체 거리도 같이 */
   /* 늘리고 줄이는 곳은 '쉬운 구간'(빠른 구간·쉬는 구간·쿨다운이 아닌 가장 긴 구간) — 세트나 목표 속도 구간의 길이는 바꾸지 않는다 */
   const L=k=>sx.segs[k].to-(k?sx.segs[k-1].to:0), dlt=o-base.dist;
   const cand=sx.segs.map((g,k)=>k).filter(k=>{ const g=sx.segs[k]; return !g.hard&&!isCool(g)&&g.end!=='time'&&g.nm!==tm('rest')&&!(k===0&&sx.segs.length>2&&g.nm===tm('warm')); });
@@ -6790,7 +6796,7 @@ const GSTEP=[
    const first=pv.sessions.filter(s=>s.wk===1).map(s=>
      `<div class="srow${s.segs&&s.segs.some(g=>g.hard)?' hard':''}">
         <span class="r">${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)}</span>
-        <span class="nm">${s.t}</span>
+        <span class="nm">${ESC(totalFirst(termify(s.t),pk(s)))}</span>
         <span class="t">${pk(s)?fmtKm1(pk(s))+'km':''}</span></div>`).join('');
    /* 시간 한계 경고는 여기서도 — 목표 짜기 안에서 바로 시간을 바꾸고 다시 볼 수 있게 */
    const PC=planChecks(p,pv.sessions.map(x=>x.d.slice(0,10)>=t0&&!x.edited?Object.assign({},x,{_nodist:1}):x)), W=PC.W;   /* 플랜 화면과 같은 점검 — 미리 보기까지 넣어 센다 */
@@ -9744,6 +9750,8 @@ function planKms(its){
   return out;
 }
 /* 구간의 속도 표시 — 구간별·1km씩이 같은 글자를 쓴다 */
+/* 그날 전체 거리 — 제목이 '1.5km × 2'처럼 일부만 말해도 모든 일정 줄에 하루 합계를 붙인다(웜업·쿨다운 포함) */
+function dayTot(x,km){ if(x&&x.rw)return ''; const k=+km||+(x&&x.dist)||0; return k?`<span class="pd-tot">총 ${fmtKm1(k)}km</span> · `:''; }
 function pdPace(it){ return String(it.ptxt||'').replace(/\s*\/km$/,''); }
 function planDetailHTML(s,adj,mode,compact){
   const its=planItems(s,adj);
@@ -10945,7 +10953,7 @@ function planGridHTML(){
       if(!L.length)return g&&g.date&&g.date.slice(0,10)===ds?`<td><div class="pg-s" style="--tc:#C2410C"><i>${+ds.slice(8,10)}</i><b>★ 대회</b><span>${g.m?gdLabel(g.m):''}</span></div></td>`:`<td class="r${ds===t?' t':''}"><i>${+ds.slice(8,10)}</i><span>쉼</span></td>`;
       return `<td class="${ds===t?'t':''}">${L.map(x=>{ const i=BLOCK.indexOf(x), v=sessionOf(i)||x, T=TYPES[x.type]||{}, km=DIST[x.d]||x.dist, did=RUNS.some(r=>r.planId===x.d);
         const lab=PSHORT[x.type]||String(v.t||'').split(' ')[0];
-        const det=v.rw?(v.rw.totSec?Math.round(v.rw.totSec/60)+'분':''):x.reps>1&&x.repLen?`${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?`${fmtKm1(x.repLen)}km`:km?`${fmtKm1(km)}km`:'';
+        const det=v.rw?(v.rw.totSec?Math.round(v.rw.totSec/60)+'분':''):(km?`${fmtKm1(km)}km`:'')+(x.reps>1&&x.repLen?`<br>${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?`<br>${fmtKm1(x.repLen)}km 이어서`:'');   /* 그날 전체 거리를 늘 먼저 */
         return `<div class="pg-s${did?' did':''}${ds<t&&!did?' miss':''}" style="--tc:${T.col||'#5B2D86'}" data-pgo="${i}"><i>${+ds.slice(8,10)}${did?' ✓':''}</i><b>${ESC(lab)}</b><span>${det}</span></div>`; }).join('')}</td>`; }).join('');
     return `<tr><th><b>${wi+1}주</b><span>${Math.round(wkm)}km</span></th>${cells}</tr>`; }).join('');
   /* 4주 뒤 — 미리 보기(점선). 목표일까지 */
@@ -10953,7 +10961,7 @@ function planGridHTML(){
   const frows=fm.map((mon,wi)=>{ const items=F.filter(x=>weekMonday(x.d)===mon&&x.type!=='off'), wkm=items.reduce((a,x)=>a+(x.dist||0),0);
     const cells=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>x.d.slice(0,10)===ds);
       if(!L.length)return g&&g.date&&g.date.slice(0,10)===ds?`<td><div class="pg-s" style="--tc:#C2410C"><i>${+ds.slice(8,10)}</i><b>★ 대회</b><span>${g.m?gdLabel(g.m):''}</span></div></td>`:`<td class="r"><i>${+ds.slice(8,10)}</i><span>쉼</span></td>`;
-      return `<td>${L.map(x=>`<div class="pg-s fu" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b>${ESC(PSHORT[x.type]||String(x.t).split(' ')[0])}</b><span>${x.reps>1&&x.repLen?`${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?kmLab(x.repLen):x.dist?fmtKm1(x.dist)+'km':''}</span></div>`).join('')}</td>`; }).join('');
+      return `<td>${L.map(x=>`<div class="pg-s fu" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b>${ESC(PSHORT[x.type]||String(x.t).split(' ')[0])}</b><span>${x.dist?fmtKm1(x.dist)+'km':''}${x.reps>1&&x.repLen?`<br>${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?`<br>${kmLab(x.repLen)} 이어서`:''}</span></div>`).join('')}</td>`; }).join('');
     return `<tr class="fu"><th><b>${mons.length+wi+1}주</b><span>${Math.round(wkm)}km</span></th>${cells}</tr>`; }).join('');
   const futSep=frows?`<tr class="fu-sep"><td colspan="8">↓ 그 뒤 — 미리 보기 (4주마다 실제 기록으로 다시 짜요)</td></tr>`:'';
   rows+=futSep+frows;
