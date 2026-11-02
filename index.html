@@ -2074,7 +2074,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.18';
+const APPVER='19.19';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3052,7 +3052,7 @@ function makePlan(opts){
     for(let w=0;w<4;w++){ const wtr=SEA.wtrOf(w), ph=SEA.phaseOf(wtr);
       if(ph==='taper'){ const pk=Math.max(peak,base), f=SEA.D==='M'?[0.45,0.6,0.8][wtr]:[0.5,0.72][wtr];
         wkKm[w]=Math.max(6,pk*(f||0.5)); wkRole[w]='대회 전 줄이기'; tapered=true; continue; }
-      if(SEA.cutOf(wtr)&&!(w===0&&!opts.start)){ wkKm[w]=Math.max(6,(last||base)*0.72); wkRole[w]='줄이는 주'; continue; }
+      if(SEA.cutOf(wtr)&&!(w===0&&(!opts.start||(()=>{ const ws=new Date(start); return Date.now()-ws.getTime()<7*864e5&&Date.now()>=ws.getTime(); })()))){ wkKm[w]=Math.max(6,(last||base)*0.72); wkRole[w]='줄이는 주'; continue; }
       /* 정점 주간 — 거리별 상한(관행 C)과 시작 양의 +40%(급격한 증가를 막는 경험칙 C) 중 작은 쪽. 시간 한계도 넘지 않는다 */
       const top=Math.max(base,Math.min(SEA.wkTop,(opts.seasonBase||base)*1.4));
       const k=last==null?Math.min(base,Math.max(top,base)):Math.min(last*shape.grow,top,Math.max(base,cap)); wkKm[w]=k; wkRole[w]=''; last=k; peak=Math.max(peak,k); }
@@ -3181,7 +3181,7 @@ function makePlan(opts){
           const mp=Math.min(SEA.D==='M'?12:5,Math.round(longKm*(SEA.D==='M'?0.35:0.25)*2)/2), cdK=s.segs[s.segs.length-1].to-s.segs[s.segs.length-2].to;
           const mainEnd=+(longKm-cdK-mp).toFixed(2), gp=Math.round(gPaceSec);
           if(mainEnd>s.segs[0].to+2){ const seg=s.segs; seg[1].to=mainEnd; seg.splice(2,0,{to:+(mainEnd+mp).toFixed(2),nm:'목표 속도',pace:[gp-5,gp+5],tol:8,hard:true});
-            s.t=`길게 ${longKm}km (마지막 ${mp}km 목표 속도)`; s.mpFinish=mp; } }
+            s.t=`길게 ${longKm}km · 후반 ${mp}km 목표 속도`; s.mpFinish=mp; } }
         if(taper)s.role=wkRole[w];
       } else if(hardD.includes(d)){
         const mixL=seaMix||shape.mix, kind=mixL[hardD.indexOf(d)%Math.max(1,mixL.length)]||'T';
@@ -3734,9 +3734,15 @@ function renderPlan(){
       hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${g.m&&g.sec?`${gdLabel(g.m)} ${fmtClock(g.sec)}`:G?G.nm:'내 일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 이번 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 한 번 30분 안팎`:`1주차 ${(()=>{ const w1=PLAN.sessions.filter(x=>x.wk===1).reduce((a,x)=>a+(DIST[x.d]||x.dist||0),0); return w1?Math.round(w1):PLAN.base; })()}km`}</i><em>왜 ▾</em></summary>
         <ul>${PLAN.why.map(x=>`<li>${x}</li>`).join('')}</ul></details>`+
         /* 시간 한계 같은 경고는 접어 두지 않는다 — 일정이 왜 안 늘어나는지 바로 보이게 */
-        (()=>{ const gg=PLAN.goal||{}; if(!(gg.m>=42000)||PLAN.imported)return ''; const A=BLOCK.concat(planFuture()), n=A.filter(x=>x.type==='long'&&x.dist>=28).length;
-          return n<3?`<div class="note" style="margin:8px 0 0;line-height:1.65;font-size:12.5px">⚠ 대회까지 28km 넘는 긴 날이 ${n}번이에요. 풀코스는 보통 3~4번 뛰고 갑니다(관행 · C). 주말 시간이나 주간 거리가 늘면 같이 늘어요. <button type="button" class="btn sm ghost" data-plall="1" style="margin:8px 0 0">시간 바꾸기</button></div>`:''; })()+
-        PLAN.why.filter(x=>/^⚠/.test(x)).map(x=>`<div class="note" style="margin:8px 0 0;line-height:1.65;font-size:12.5px">${x} <button type="button" class="btn sm ghost" data-plall="1" style="margin:8px 0 0">시간 바꾸기</button></div>`).join('');
+        /* 경고는 한 카드로 — 원인(쓸 수 있는 시간)을 그 자리에서 바꿀 수 있게 */
+        (()=>{ const gg=PLAN.goal||{}, W=PLAN.why.filter(x=>/^⚠/.test(x)).map(x=>x.replace(/^⚠\s*/,'').replace(/ — 플랜 → 전체 고치기에서 주말 시간을 늘리면 바로 다시 짭니다\./,'.'));
+          if(gg.m>=42000&&!PLAN.imported){ const A=BLOCK.concat(planFuture()), n=A.filter(x=>x.type==='long'&&x.dist>=28).length; if(n<3)W.unshift(`대회까지 28km 넘는 긴 날이 ${n}번이에요. 풀코스는 보통 3~4번 뛰고 갑니다(관행 · C).`); }
+          if(!W.length)return '';
+          const tm=(k,opts,cur)=>`<div class="pa-tm">${'<span>'+(k==='twd'?'평일':'주말')+'</span>'}${opts.map(([v,l])=>`<button type="button" data-tmi="${k}:${v}" class="${cur===v?'on':''}">${l}</button>`).join('')}</div>`;
+          return `<div class="note plwarn" style="margin:8px 0 0;line-height:1.65;font-size:12.5px"><b>⚠ 지금 설정으로는 이만큼만 짤 수 있어요</b><ul style="margin:6px 0 0;padding-left:18px">${W.map(x=>`<li>${x}</li>`).join('')}</ul>
+            <div style="margin-top:8px;font-weight:800">한 번에 쓸 수 있는 시간 — 바꾸면 남은 일정을 바로 다시 짜요(지난 날·뛴 날은 그대로)</div>
+            ${tm('twd',[[40,'40분'],[60,'1시간'],[90,'90분'],[120,'2시간']],SURVEY.twd||40)}${tm('twe',[[90,'90분'],[120,'2시간'],[180,'3시간'],[240,'4시간+']],SURVEY.twe||90)}
+            ${gg.m>=42000?`<div style="margin-top:10px;font-weight:800">시간을 못 늘리면 — 같은 날짜에 하프로 바꾸고 풀코스는 다음 시즌으로</div><button type="button" class="btn sm ghost" data-g2half="1" style="margin:6px 0 0">하프로 목표 바꿔 보기</button>`:''}</div>`; })();
     } else {
       hd.innerHTML=`<div class="card tight" style="margin:12px 0 4px">
         <div class="meta">예시 일정 — 목표를 정하면 내 4주가 생겨요</div>
@@ -3817,7 +3823,8 @@ $('btnGear').onclick=()=>go('settings');
 $('alBack').onclick=()=>go('home');
 $('setBack').onclick=()=>go('home');
 
-const summary=s=>{ if(s&&s.rw)return s.rw.sum; const T=TYPES[s.type]||{}, z=T.hrZone&&T.hrZone[1]&&!T.noHR?` · ${s.reps?'Z'+hrZoneIx(T.hrZone[1]-1):'Z'+hrZoneIx(T.hrZone[1]-1)+'↓'}`:''; return (s.reps?`${s.reps}회 @ ${fmtPace(s.repTarget+(ADJ[s.type]||0))}`:rangeText(mainSeg(s).pace))+z; };
+const summary=s=>{ if(s&&s.rw)return s.rw.sum; const T=TYPES[s.type]||{}, z=T.hrZone&&T.hrZone[1]&&!T.noHR?` · ${s.reps?'Z'+hrZoneIx(T.hrZone[1]-1):'Z'+hrZoneIx(T.hrZone[1]-1)+'↓'}`:''; if(s.mpFinish){ const L=(s.segs||[]).find(g=>!g.hard&&!isCool(g)&&g.to>2)||mainSeg(s), M=(s.segs||[]).find(g=>g.hard); return `${rangeText(L.pace)}${z} → 후반 ${s.mpFinish}km ${M?fmtPace((M.pace[0]+M.pace[1])/2):''} 목표 속도`; }   /* 존 표시는 앞부분(LSD)에만 — 후반 목표 속도 구간은 Z2가 아니다 */
+  return (s.reps?`${s.reps}회 @ ${fmtPace(s.repTarget+(ADJ[s.type]||0))}`:rangeText(mainSeg(s).pace))+z; };
 
 /* ───────── 조정 제안 (합의) ───────── */
 function renderProps(){
@@ -10689,6 +10696,7 @@ function planListHTML(){
     const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), list=items.filter(x=>x.d.slice(0,10)===ds&&x.type!=='off');
       const dn=`<span class="pd-dt${ds===t?' t':''}"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`;
       const freeKm=ranOn(ds);
+      { const gg=(PLAN&&PLAN.goal)||GOAL; if(!list.length&&gg&&gg.date&&gg.date.slice(0,10)===ds) return `<div class="pd-row race">${dn}<span class="pd-rest" style="color:#C2410C;font-weight:900">★ 대회 — ${gg.m?gdLabel(gg.m):''}${gg.sec?' '+fmtClock(gg.sec):''}</span></div>`; }
       if(!list.length) return `<div class="pd-row rest${ds<t?' past':''}${freeKm?' did':''}">${dn}<span class="pd-rest">${freeKm?`쉬는 날 · <b>프리런 ${fmtKm1(freeKm)}km</b>`:'쉬는 날'}</span>${freeKm?'<em class="pd-st ok">✓</em>':''}${ds>=t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`;
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=sessionOf(i)||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         const did=RUNS.some(r=>r.planId===sx.d), miss=!did&&ds<t, word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
@@ -10768,7 +10776,7 @@ function futureListHTML(){
     const max=Math.max(1,...items.map(x=>x.dist||0));
     const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>x.d.slice(0,10)===ds&&x.type!=='off');
       const dn=`<span class="pd-dt"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`;
-      if(!L.length)return `<div class="pd-row rest">${dn}<span class="pd-rest">쉬는 날</span></div>`;
+      if(!L.length)return g&&g.date&&g.date.slice(0,10)===ds?`<div class="pd-row race">${dn}<span class="pd-rest" style="color:#C2410C;font-weight:900">★ 대회 — ${g.m?gdLabel(g.m):''}${g.sec?' '+fmtClock(g.sec):''}</span></div>`:`<div class="pd-row rest">${dn}<span class="pd-rest">쉬는 날</span></div>`;
       return L.map(x=>{ const col=(TYPES[x.type]||{}).col||'#5B2D86';
         return `<div class="pd-row" style="--tc:${col}">${dn}<span class="pd-main" style="cursor:default"><span class="pd-bar"><i style="height:${Math.max(18,(x.dist||0)/max*100)}%"></i></span>
           <span class="pd-tx"><b>${ESC(String(x.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${summary(x)}</i></span></span></div>`; }).join(''); }).join('');
@@ -10896,6 +10904,10 @@ function paApply(){ const T=PA.type; if(!T)return; const t=todayStr(); let n=0;
 function paScaleAll(f){ const t=todayStr(); const ws=[...new Set((peStore()||[]).filter(x=>x.d.slice(0,10)>=t).map(x=>weekMonday(x.d)))];
   ws.forEach(w=>weekScale(w,f)); paRender(); paintPlanView(); }
 document.addEventListener('click',e=>{
+  if(e.target.closest('[data-g2half]')){ goalStart(); GB.d.m=21097; GB.d.sec=null; try{ gPaint(); }catch(x){} toast('하프로 바꿔 봤어요 — 목표 기록을 넣고 확인하세요'); return; }
+  const tmi=e.target.closest('[data-tmi]'); if(tmi){ const [k,v]=tmi.dataset.tmi.split(':'); SURVEY=Object.assign({},SURVEY,{[k]:+v}); DEV.store.set('survey',SURVEY); FUT_C=null;
+    if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&!PLAN.imported){ applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true})); BLOCK=loadPlan(); }
+    renderPlan(); toast('시간을 바꾸고 남은 일정을 다시 짰어요'); return; }
   const v=e.target.closest('[data-plv]'); if(v){ PLVIEW=v.dataset.plv; paintPlanView(); return; }
   if(e.target.closest('[data-plimg]'))return planImage();
   if(e.target.closest('[data-plall]'))return openPlanAll();
