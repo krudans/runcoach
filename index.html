@@ -5494,7 +5494,7 @@ $('btnFresh').onclick=async()=>{
    영구 보관을 요청해 두고(기기 용량이 부족해도 먼저 지워지지 않는다),
    언제든 파일로 빼고 되돌릴 수 있게 한다. */
 const BK_KEYS=['lastAct','runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc','survey','onboarded','del',
-  'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','notiSeen','extraSeen','sigSeen','planPrev','fix23','seasonUp'];   /* 목표와 일정도 함께 — 폰을 바꿔도 일정이 남아야 한다 */
+  'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','notiSeen','extraSeen','sigSeen','planPrev','fix24','seasonUp'];   /* 목표와 일정도 함께 — 폰을 바꿔도 일정이 남아야 한다 */
 /* API 키는 백업에 넣지 않는다 — 파일로 새어나가면 안 되는 값이다 */
 async function paintStore(){
   const el=$('storeState'); if(!el)return;
@@ -9895,8 +9895,8 @@ function goalBadge(){
   try{ const g=PLAN&&PLAN.goal; if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&g&&g.kind==='race'&&g.date&&g.m&&PLAN.season!==2&&!PLAN.imported&&g.date.slice(0,10)>todayStr()){
     applyPlan(makePlan({goal:g,start:PLAN.start,keepDays:true})); DEV.store.set('seasonUp',APPVER); setTimeout(()=>{ try{ toast('대회까지 시기별로 남은 일정을 다시 짰어요 — 지난 날·뛴 날은 그대로'); }catch(e){} },1800); } }catch(e){ console.warn('season up',e); }
   /* v19.22 — 시즌 상한 기준이 옛 값에 묶여 평평하던 일정·옛 일정과 부딪히던 고친 날을 한 번 바로잡는다. 지난 날·뛴 날은 그대로, '되돌리기'로 돌아갈 수 있다 */
-  try{ const g=PLAN&&PLAN.goal; if(!DEV.store.get('fix23',0)&&PLAN&&PLAN.season===2&&!PLAN.starter&&!PLAN.imported&&g&&g.m>=21000&&(!g.date||g.date.slice(0,10)>todayStr())){
-    replanRest(); DEV.store.set('fix23',1); setTimeout(()=>{ try{ toast('주간 거리가 늘지 않던 문제를 고쳐 남은 일정을 다시 짰어요 — 지난 날·뛴 날은 그대로'); }catch(e){} },1800); } }catch(e){ console.warn('fix22',e); }
+  try{ const g=PLAN&&PLAN.goal; if(!DEV.store.get('fix24',0)&&PLAN&&PLAN.season===2&&!PLAN.starter&&!PLAN.imported&&g&&g.m>=21000&&(!g.date||g.date.slice(0,10)>todayStr())){
+    replanRest(); DEV.store.set('fix24',1); setTimeout(()=>{ try{ toast('주간 거리가 늘지 않던 문제를 고쳐 남은 일정을 다시 짰어요 — 지난 날·뛴 날은 그대로'); }catch(e){} },1800); } }catch(e){ console.warn('fix22',e); }
   renderHome(); paintFb();
   /* 한 번이라도 로그인한 폰에서만 미리 깨운다.
      안 그러면 로그인 안 쓰는 사람도 열 때마다 400KB를 받는다 */
