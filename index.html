@@ -1327,6 +1327,7 @@ details.noti .sigc{margin:6px 0}
     <button type="button" class="setlink" id="setGuide"><b>훈련 원리</b><i>훈련법 · 내 숫자 · 스트레칭</i><span>›</span></button>
     <button type="button" class="setlink" id="setMusic"><b>음악</b><i>내 폴더 · 플레이리스트</i><span>›</span></button>
     <button type="button" class="setlink" id="setFeedback"><b>의견 보내기</b><i>불편한 점 · 바라는 점 · 문의</i><span>›</span></button>
+    <label class="setlink" for="usageOpt" style="cursor:pointer"><b>사용 현황 보내기</b><i>앱을 쓰는 기기 수·버전·목표 종류를 관리자에게 — 기록 내용은 안 보내요</i><input type="checkbox" id="usageOpt" style="width:20px;height:20px;accent-color:var(--accent)"></label>
   </div>
 
   <details class="cset"><summary>백업 · 클라우드</summary>
@@ -2159,7 +2160,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.35';
+const APPVER='19.36';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2913,6 +2914,26 @@ function openFeedback(){ let sh=$('fbSheet'); if(!sh){ sh=document.createElement
   const e=$('fbE'); if(e){ const em=(FB.user&&FB.user.email)||(ACCT&&ACCT.email); e.parentElement.hidden=!em; e.checked=!!em; }
   sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up')); }
 document.addEventListener('click',e=>{ if(e.target.closest('#setFeedback'))openFeedback(); });
+/* ═══ 사용 현황 — 이 앱을 쓰는 기기 목록(관리자용). 로그인하지 않아도 기기마다 한 줄.
+   보내는 것: 기기 ID(무작위)·처음/마지막 사용·버전·기기 종류·앱 설치 여부·목표 종류·기록 수/거리·(로그인했으면) 이메일.
+   기록 내용(심박·경로·시각)은 보내지 않는다. 설정 › '사용 현황 보내기'로 끌 수 있다. 하루 한 번만 */
+function usageOn(){ try{ return localStorage.getItem('rc_usageOff')!=='1'; }catch(e){ return true; } }
+async function usagePing(force){ if(!usageOn())return; try{
+    const last=+localStorage.getItem('rc_usageAt')||0; if(!force&&Date.now()-last<6*3600e3)return;
+    let id=localStorage.getItem('rc_iid'); const isNew=!id; if(!id){ id=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2)).replace(/-/g,''); localStorage.setItem('rc_iid',id); }
+    const ua=navigator.userAgent, plat=/iPhone|iPad|iPod/.test(ua)?'iOS':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'기타';
+    const g=(PLAN&&PLAN.goal)||GOAL||{}, R=RUNS.filter(isRun);
+    const F={last:new Date(),ver:APPVER,plat,pwa:!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||!!navigator.standalone,
+      onb:!!DEV.store.get('onboarded',false),goal:g.kind||null,gm:g.m||null,gdate:g.date?String(g.date).slice(0,10):null,
+      runs:R.length,km:Math.round(R.reduce((a,r)=>a+(+r.km||0),0)),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null,
+      email:(FB&&FB.user&&FB.user.email)||(ACCT&&ACCT.email)||null,uid:(FB&&FB.user&&FB.user.uid)||(ACCT&&ACCT.uid)||null};
+    if(isNew||!localStorage.getItem('rc_usageFirst')){ F.first=new Date(); }
+    const fields={}; Object.entries(F).forEach(([k,v])=>fields[k]=fsEnc(v));
+    const mask=Object.keys(F).map(k=>'updateMask.fieldPaths='+k).join('&');
+    const r=await fetch(`${FSR}/installs/${id}?key=${FSKEY}&${mask}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+    if(r.ok){ localStorage.setItem('rc_usageAt',String(Date.now())); if(F.first)localStorage.setItem('rc_usageFirst','1'); }
+  }catch(e){} }
+document.addEventListener('change',e=>{ if(e.target&&e.target.id==='usageOpt'){ try{ localStorage.setItem('rc_usageOff',e.target.checked?'0':'1'); }catch(x){} if(e.target.checked)usagePing(true); toast(e.target.checked?'사용 현황을 보내요':'사용 현황을 더 보내지 않아요'); } });
 async function racesLoad(){
   try{ const r=await fetch('races.json',{cache:'no-store'}); if(r.ok){ RACES=await r.json(); try{ localStorage.setItem('rc_racesCache',JSON.stringify(RACES)); }catch(e){} await racesCatalogMerge(); return; } }catch(e){}
   try{ RACES=JSON.parse(localStorage.getItem('rc_racesCache')||'null'); if(RACES)RACES._offline=true; }catch(e){ RACES=null; } }
@@ -6063,7 +6084,7 @@ const FB={
         if(u){ ACCT={mode:'cloud',uid:u.uid,email:u.email||null};
                DEV.store.set('acct',ACCT); }
         paintFb();
-        if(u)FB.sync().catch(()=>{});
+        if(u){ FB.sync().catch(()=>{}); try{ usagePing(true); }catch(e){} }   /* 로그인하면 사용 현황에 이메일이 붙는다 */
       });
       try{ await firebase.auth().getRedirectResult(); }catch(e){}
       FB.on=true; FB.err=null;
@@ -10064,7 +10085,7 @@ function goalBadge(){
   }).catch(()=>{});
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
   splashRun();
-  setTimeout(()=>{ try{ noticeLoad(); }catch(e){} },1500);   /* 공지 — 화면이 뜬 뒤 조용히 */
+  setTimeout(()=>{ try{ noticeLoad(); }catch(e){} try{ usagePing(); }catch(e){} const u=$('usageOpt'); if(u)u.checked=usageOn(); },1500);   /* 공지·사용 현황 — 화면이 뜬 뒤 조용히 */
 })();
 /* 시작 화면 — 브랜드 한 장: 가지런 · 실시간 코칭 프로그램 · 가지런하다 */
 function splashRun(){ const sp=$('splash'); if(!sp)return;
