@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 관리자 = 이 목록의 구글 계정 (이메일 인증된 것만)
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['krudans@gmail.com'];
+    }
+    function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    // 회원 데이터 — 본인은 읽고 쓰기, 관리자는 읽기만
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid);
+      match /{sub=**} {
+        allow read: if isOwner(uid) || isAdmin();
+        allow write: if isOwner(uid);
+      }
+    }
+
+    // 정지·관리자 메모 — 관리자만 쓰기, 본인은 자기 것 읽기(정지 여부 확인용)
+    match /admin_users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 공지, 대회 추가·숨김 — 누구나 읽기, 관리자만 쓰기
+    match /notices/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /catalog/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 사용 현황 — 기기마다 한 줄(로그인 없이). 정해진 칸만 쓰기, 읽기·지우기는 관리자만
+    match /installs/{id} {
+      allow create, update: if id.size() <= 40
+        && request.resource.data.keys().hasOnly(['first','last','ver','plat','pwa','onb','goal','gm','gdate','runs','km','lastRun','email','uid']);
+      allow read, delete: if isAdmin();
+    }
+
+    // 의견 보내기 — 누구나 새 글만(2,000자까지), 읽기·처리는 관리자만
+    match /feedback/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['text','email','uid','appVer','at','kind'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

@@ -2160,7 +2160,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.36';
+const APPVER='19.38';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8270,7 +8270,7 @@ function todayResultCard(r,sess){
   const map=r.track&&r.track.length>3?routeSVG(r.track,r.segments,{w:96,h:96,pad:8,sw:4,marks:false,ends:true}):'';
   return `<section class="tres" style="--tc:${col}" aria-label="오늘 결과">
     <div class="tr-top"><span class="tr-chip">${ic('check',14)} 오늘 결과</span><span class="tr-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span></div>
-    <div class="tr-main"><div><b class="num">${(+r.km).toFixed(2)}</b><span>km</span></div>${map?`<div class="tr-map">${map}</div>`:''}</div>
+    <div class="tr-main"><div><b class="num">${(+r.km).toFixed(2)}</b><span>km</span></div>${map?`<div class="tr-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}</div>
     <div class="tr-stats"><span>${ic('clock')}<b class="num">${fmtClock(r.sec)}</b></span><span>${ic('pace')}<b class="num">${fmtPace(r.paceAvg)}</b>/km</span>${r.hrAvg?`<span>${ic('heart')}<b class="num">${r.hrAvg}</b> <small>${zLab(r.hrAvg)}</small></span>`:''}${r.cadAvg?`<span>👣<b class="num">${r.cadAvg}</b></span>`:''}</div>
     ${vd?`<div class="tr-vd ${tone}">${vd[0]}</div>`:''}
     ${loadCard(r,true)}
@@ -8765,6 +8765,31 @@ function trackCum(tr){ const c=[0]; for(let i=1;i<tr.length;i++)c.push(c[i-1]+ha
 function trimTrack(tr,m){ if(!tr||tr.length<3||!m)return tr||[];
   const c=trackCum(tr), tot=c[c.length-1]; if(tot<m*2.5)return tr;
   return tr.filter((p,i)=>c[i]>=m&&c[i]<=tot-m); }
+/* 이미지 저장용 지도 — 카카오 지도는 다른 출처라 캔버스로 옮길 수 없다. 저장할 때만 CORS가 열린 타일(CARTO·OpenStreetMap)로
+   지도 바탕을 그리고 그 위에 같은 색으로 경로를 그린다. 타일을 못 받으면(오프라인) null → 경로 그림만 */
+function staticMap(tr,segs,mono,W,H,o){ o=o||{}; return new Promise(res=>{ try{
+  if(!tr||tr.length<3)return res(null);
+  const K=2, pad=o.pad||18, TS=256, wx=(lon,z)=>(lon+180)/360*TS*Math.pow(2,z), wy=(lat,z)=>{ const r=lat*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*TS*Math.pow(2,z); };
+  const lats=tr.map(p=>p.lat), lons=tr.map(p=>p.lon), la0=Math.min(...lats), la1=Math.max(...lats), lo0=Math.min(...lons), lo1=Math.max(...lons);
+  let z=18; while(z>3&&((wx(lo1,z)-wx(lo0,z))>W-pad*2||(wy(la0,z)-wy(la1,z))>H-pad*2))z--;
+  const cx=(wx(lo0,z)+wx(lo1,z))/2, cy=(wy(la0,z)+wy(la1,z))/2, x0=cx-W/2, y0=cy-H/2;
+  const cv=document.createElement('canvas'); cv.width=W*K; cv.height=H*K; const g=cv.getContext('2d'); g.scale(K,K); g.fillStyle='#EEE9F3'; g.fillRect(0,0,W,H);
+  const tx0=Math.floor(x0/TS), tx1=Math.floor((x0+W)/TS), ty0=Math.floor(y0/TS), ty1=Math.floor((y0+H)/TS), n=Math.pow(2,z), jobs=[];
+  for(let tx=tx0;tx<=tx1;tx++)for(let ty=ty0;ty<=ty1;ty++){ if(ty<0||ty>=n)continue; const xx=((tx%n)+n)%n;
+    jobs.push(new Promise(ok=>{ const im=new Image(); im.crossOrigin='anonymous'; im.onload=()=>{ g.drawImage(im,tx*TS-x0,ty*TS-y0,TS,TS); ok(true); }; im.onerror=()=>ok(false);
+      im.src=`https://${'abcd'[(tx+ty)&3]}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${xx}/${ty}@2x.png`; })); }
+  const timer=setTimeout(()=>res(null),7000);
+  Promise.all(jobs).then(r=>{ clearTimeout(timer); if(!r.some(Boolean))return res(null);
+    const X=p=>wx(p.lon,z)-x0, Y=p=>wy(p.lat,z)-y0, pc=p=>mono?(p.over?'#CF3B36':mono):ptColor(p,segs);
+    g.lineCap='round'; g.lineJoin='round';
+    const stroke=(w,c)=>{ let cur=[tr[0]], col=c||pc(tr[0]); const fl=()=>{ if(cur.length<2)return; g.beginPath(); cur.forEach((p,i)=>i?g.lineTo(X(p),Y(p)):g.moveTo(X(p),Y(p))); g.strokeStyle=c||col; g.lineWidth=w; g.stroke(); };
+      for(let i=1;i<tr.length;i++){ const cc=c||pc(tr[i]); cur.push(tr[i]); if(cc!==col){ fl(); cur=[tr[i]]; col=cc; } } fl(); };
+    const sw=o.sw||5; stroke(sw+3,'rgba(255,255,255,.85)'); stroke(sw);
+    if(o.marks!==false){ const cm=trackCum(tr); let km=1; g.font='bold 10px system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+      for(let i=1;i<tr.length;i++) if(cm[i]/1000>=km){ g.beginPath(); g.arc(X(tr[i]),Y(tr[i]),8,0,7); g.fillStyle='#fff'; g.fill(); g.strokeStyle='#3A4A44'; g.lineWidth=1.5; g.stroke(); g.fillStyle='#16211D'; g.fillText(km,X(tr[i]),Y(tr[i])+.5); km++; } }
+    if(o.ends!==false){ [[tr[0],'#0E9B72'],[tr[tr.length-1],'#16211D']].forEach(([p,c])=>{ g.beginPath(); g.arc(X(p),Y(p),o.er||7,0,7); g.fillStyle=c; g.fill(); g.strokeStyle='#fff'; g.lineWidth=3; g.stroke(); }); }
+    if(W>=160){ g.font='9px system-ui,sans-serif'; g.textAlign='right'; g.textBaseline='bottom'; g.fillStyle='rgba(255,255,255,.8)'; const t='© OpenStreetMap © CARTO', tw=g.measureText(t).width; g.fillRect(W-tw-8,H-14,tw+8,14); g.fillStyle='#555'; g.fillText(t,W-4,H-2); }
+    try{ res(cv.toDataURL('image/png')); }catch(e){ res(null); } }); }catch(e){ res(null); } }); }
 /* 경로 그림(SVG) — 카카오가 없을 때, 그리고 목록 썸네일 */
 function routeSVG(tr,segs,o){
   o=o||{}; const W=o.w||600,H=o.h||380,PAD=o.pad||22;
@@ -8786,7 +8811,7 @@ function routeSVG(tr,segs,o){
   return `<svg viewBox="0 0 ${W} ${H}" class="${o.cls||''}" role="img" aria-label="경로">${out}</svg>`;
 }
 async function paintMap(host,tr,segs,mono){
-  if(!host)return;
+  if(!host)return; host._tr=tr; host._segs=segs; host._mono=mono;
   if(!tr||tr.length<3){ host.innerHTML='<div class="nomap">경로가 기록되지 않았습니다</div>'; return; }
   host.innerHTML=routeSVG(tr,segs,mono?{cls:'rsvg',mono}:{cls:'rsvg'}); host._svg=host.innerHTML;
   const k=await loadKakao(); if(!k||!host.isConnected)return;
@@ -11501,7 +11526,7 @@ function openDebrief(r,s){
   $('dbBody').innerHTML=`
     <div class="db-hd" style="--tc:${col}"><span class="db-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span><span class="db-date">${todayStr().slice(5).replace('-','.')} ${dowOf(todayStr())}</span></div>
     ${vd?`<div class="db-vd ${vd[1]}">${vd[1]==='ok'?'🏅':vd[1]==='mid'?'🔎':'💬'} ${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
-    <div class="db-hero">${map?`<div class="db-map">${map}</div>`:''}<div class="db-nums">
+    <div class="db-hero">${map?`<div class="db-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}<div class="db-nums">
       ${r.rw?`<div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${rwMin(r.rw.runSec||0)}</b><i>뛴 시간(계획)</i></div><div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div>`:`<div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div>
       <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>`}${r.hrAvg?`<div><b class="num">${r.hrAvg}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
     ${r.rw?'':`${debriefShape(r,s)?`<div class="db-card"><div class="db-lab">구간별 계획(띠) vs 실제(막대) · 높을수록 빠름</div>${debriefShape(r,s)}</div>`:''}
@@ -11887,7 +11912,13 @@ async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
   const W=el.offsetWidth, H=el.offsetHeight, clone=el.cloneNode(true);
   /* 카카오 지도 타일은 이미지로 옮길 수 없어(다른 출처) 깨진 그림이 찍힌다 — 저장할 땐 직접 그린 경로 그림으로 바꾼다 */
-  const kHosts=[...el.querySelectorAll('.kmap')].map(k=>k.parentElement); const kFix=root=>[...root.querySelectorAll('.kmap')].forEach((k,i)=>{ const h=kHosts[i]; if(h&&h._svg)k.parentElement.innerHTML=h._svg; else k.remove(); });
+  /* 지도: 큰 지도(.rmap)와 썸네일(data-maprid) 모두 — 저장용 지도 그림(타일+경로)으로 바꾼다. 못 그리면 경로 그림만 */
+  const MSEL='.rmap,[data-maprid]', mHosts=[...el.querySelectorAll(MSEL)];
+  const mPng=await Promise.all(mHosts.map(h=>{ const r=h.dataset.maprid?(RUNS.concat(typeof ACTS!=='undefined'?ACTS:[])).find(x=>x.rid===h.dataset.maprid):null, tr=h._tr||(r&&r.track), segs=h._tr?h._segs:(r&&r.segments), mono=h._tr?h._mono:null;
+    const small=!!h.dataset.maprid; return tr&&tr.length>3?staticMap(tr,segs,mono,Math.max(60,h.offsetWidth||300),Math.max(60,h.offsetHeight||200),small?{pad:8,sw:4,marks:false,er:5}:{}):Promise.resolve(null); }));
+  const kFix=root=>[...root.querySelectorAll(MSEL)].forEach((m,i)=>{ const h=mHosts[i]; if(!h)return;
+    if(mPng[i])m.innerHTML=`<img src="${mPng[i]}" alt="" style="width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit">`;
+    else if(m.querySelector('.kmap')){ if(h._svg)m.innerHTML=h._svg; else m.querySelector('.kmap').remove(); } });
   kFix(clone);
   const wrap=document.createElement('div'); wrap.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; wrap.appendChild(clone); document.body.appendChild(wrap);
   snapKeep(clone); clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); clone.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
@@ -11898,22 +11929,42 @@ async function snapCard(el,name,title){
   src.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); src.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
   snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
   const h2=clone.offsetHeight||H; probe.remove();
+  /* 9:16 쪽 나누기 — 글자·칸 한가운데를 자르지 않게, 잘라도 되는 높이(어느 칸에도 걸치지 않는 선)를 미리 모아 둔다 */
+  const cr=clone.getBoundingClientRect(), iv=[];
+  clone.querySelectorAll('*').forEach(e=>{ const own=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()); if(e.children.length&&!own&&!/^(IMG|svg|CANVAS|TR)$/i.test(e.tagName))return;
+    const r=e.getBoundingClientRect(); const a=r.top-cr.top, b=r.bottom-cr.top; if(b-a>0.5&&b-a<420)iv.push([a,b]); });
+  const safeY=y=>!iv.some(([a,b])=>a<y-0.5&&b>y+0.5);
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(clone)}</div></foreignObject></svg>`;
   wrap.remove();
   const img=new Image(); img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   try{ await img.decode(); }catch(e){ toast('이미지를 만들지 못했어요'); return; }
-  const k=4, pad=36, foot=84, cv=document.createElement('canvas'); cv.width=(W+pad*2)*k; cv.height=(h2+pad*2+foot)*k;   /* 4배 — 폰 카드 폭 360px면 가로 1,700px쯤 */
-  const x=cv.getContext('2d'); x.scale(k,k);
-  x.fillStyle=getComputedStyle(document.body).backgroundColor||'#F4EFF8'; x.fillRect(0,0,W+pad*2,h2+pad*2+foot);
-  x.drawImage(img,pad,pad,W,h2);
-  try{ drawBrand(x,pad,h2+pad+22,40,'#2A1638','#FDFBF6'); }catch(e){}
-  x.fillStyle='#2A1638'; x.font='800 18px "Noto Sans KR",system-ui,sans-serif'; x.fillText('가지런',pad+50,h2+pad+44);
-  x.fillStyle='#72637F'; x.font='700 11px "Outfit",system-ui,sans-serif'; x.fillText('GAJI RUN · '+(title||'')+' · '+todayStr().replace(/-/g,'.'),pad+50,h2+pad+60);
-  const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지를 만들지 못했어요'); return; }
-  /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다 */
-  const fn=`gajirun_${name}_${todayStr()}.jpg`;
-  const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  toast('JPG로 저장했어요');
+  /* 모든 저장 이미지는 9:16 쪽으로 — SNS에 차례대로 올리게 쪽마다 맨 위에 큰 쪽 번호(썸네일에서도 보이게) */
+  const k=4, pad=36, PW=W+pad*2, PH=Math.round(PW*16/9), HEAD=84, FOOT=84, CH=PH-HEAD-FOOT;
+  const cuts=[0]; let at=0; while(h2-at>CH){ let y=Math.floor(at+CH); const lo=at+CH*0.55; while(y>lo&&!safeY(y))y--; if(y<=lo)y=Math.floor(at+CH); cuts.push(y); at=y; } cuts.push(h2);
+  const N=cuts.length-1, bg=getComputedStyle(document.body).backgroundColor||'#F4EFF8', stamp=todayStr().replace(/-/g,'.'), files=[];
+  for(let i=0;i<N;i++){ const sy=cuts[i], ey=cuts[i+1], cv=document.createElement('canvas'); cv.width=PW*k; cv.height=PH*k; const x=cv.getContext('2d'); x.scale(k,k);
+    x.fillStyle=bg; x.fillRect(0,0,PW,PH);
+    /* 쪽 번호 — 크게, 둥근 보라 칸에 흰 숫자 + '/ 전체' */
+    const bx=pad, by=20, bs=56; x.fillStyle='#5B2D86'; x.beginPath(); x.roundRect?x.roundRect(bx,by,bs,bs,16):x.rect(bx,by,bs,bs); x.fill();
+    x.fillStyle='#fff'; x.font='900 34px "Outfit","Noto Sans KR",system-ui,sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(String(i+1),bx+bs/2,by+bs/2+1);
+    x.textAlign='left'; x.fillStyle='#5B2D86'; x.font='800 20px "Outfit",system-ui,sans-serif'; x.fillText('/ '+N,bx+bs+10,by+bs/2+1);
+    x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 14px "Noto Sans KR",system-ui,sans-serif'; x.fillText(title||'가지런',PW-pad,by+18);
+    x.fillStyle='#72637F'; x.font='700 11px "Outfit",system-ui,sans-serif'; x.fillText('GAJI RUN · '+stamp,PW-pad,by+38);
+    x.textAlign='left'; x.textBaseline='alphabetic';
+    /* 내용 — 위아래 이어지는 쪽이면 가장자리를 살짝 흐리게 해서 '이어짐'이 보이게 */
+    x.save(); x.beginPath(); x.rect(pad,HEAD,W,ey-sy); x.clip(); x.drawImage(img,0,sy,W,ey-sy,pad,HEAD,W,ey-sy); x.restore();
+    if(i<N-1){ x.fillStyle='#72637F'; x.font='700 11px "Noto Sans KR",system-ui,sans-serif'; x.textAlign='center'; x.fillText('다음 쪽에 이어져요 ›',PW/2,HEAD+(ey-sy)+18); x.textAlign='left'; }
+    /* 아래 — 브랜드 */
+    const fy=PH-FOOT+14; try{ drawBrand(x,pad,fy+8,40,'#2A1638','#FDFBF6'); }catch(e){}
+    x.fillStyle='#2A1638'; x.font='800 18px "Noto Sans KR",system-ui,sans-serif'; x.fillText('가지런',pad+50,fy+30);
+    x.fillStyle='#72637F'; x.font='700 11px "Outfit",system-ui,sans-serif'; x.fillText('실시간 코칭 프로그램 · '+(title||'')+' · '+stamp,pad+50,fy+46);
+    const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지를 만들지 못했어요'); return; } files.push(bl); }
+  /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다. 여러 쪽이면 차례대로(이름에 쪽 번호) */
+  for(let i=0;i<files.length;i++){ const fn=`gajirun_${name}_${todayStr()}${N>1?`_${String(i+1).padStart(2,'0')}of${N}`:''}.jpg`;
+    const a=document.createElement('a'); a.href=URL.createObjectURL(files[i]); a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),6000);
+    if(i<files.length-1)await new Promise(r=>setTimeout(r,450)); }
+  window.__snapPages=files;   /* 검사용 */
+  toast(N>1?`JPG ${N}장으로 저장했어요 — 쪽 번호 순서대로 올리면 돼요`:'JPG로 저장했어요');
 }
 function snapBtn(sel,name,title,cls){ return `<button type="button" class="snapb ${cls||''}" data-snap="${sel}" data-snapn="${name}" data-snapt="${title}" aria-label="이미지로 저장">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'} 이미지</button>`; }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-snap]'); if(!b)return; const el=b.closest(b.dataset.snap)||document.querySelector(b.dataset.snap); snapCard(el,b.dataset.snapn,b.dataset.snapt); });
