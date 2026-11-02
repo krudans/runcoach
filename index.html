@@ -1973,6 +1973,10 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .mine-strip{display:flex;align-items:center;gap:10px;width:100%;margin:10px 0 0;padding:11px 14px;border:1.5px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:16px;background:var(--panel);font:inherit;color:var(--ink);text-align:left;cursor:pointer}
 .mine-strip .ms-l{flex:none;font-size:12px;font-weight:900;color:var(--accent)}.mine-strip .ms-v{flex:1;min-width:0;display:flex;align-items:center;gap:7px;overflow:hidden;white-space:nowrap}
 .mine-strip .ms-v b{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}.mine-strip .ms-v i{width:3px;height:3px;border-radius:50%;background:var(--ink-3);flex:none}.mine-strip .ms-go{flex:none;font-size:20px;color:var(--ink-3);line-height:1}
+.mt-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--line);border-radius:12px;padding:3px;margin:0 0 10px}
+.mt-tabs button{border:0;background:none;font:inherit;font-size:13.5px;font-weight:900;color:var(--ink-2);padding:7px 0 6px;border-radius:9px;cursor:pointer;line-height:1.25}.mt-tabs button i{display:block;font-style:normal;font-size:10px;font-weight:700;color:var(--ink-3)}
+.mt-tabs button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#mineSheet .ms-card{max-height:92vh;overflow:auto}#mineSheet .gwatch.lite{margin:0}
 .mine-card{padding:2px 0 4px}.mc-top{display:flex;justify-content:space-between;gap:10px;background:linear-gradient(140deg,#3B1F5C,#5B2D86);color:#fff;border-radius:18px;padding:14px 16px}
 .mc-top i{display:block;font-style:normal;font-size:11px;font-weight:700;opacity:.75}.mc-top b{display:block;font-size:24px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}.mc-top em{display:block;font-style:normal;font-size:11px;opacity:.8;margin-top:1px}.mc-top .r{text-align:right}
 .mc-h{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 6px}.mc-h span{font-size:13px;font-weight:900}.mc-h small{font-size:10.5px;color:var(--ink-3);font-weight:700}
@@ -2153,7 +2157,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.33';
+const APPVER='19.34';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10570,6 +10574,7 @@ function renderGuide(){
       ${nMan?`<p class="gw-cap">직접 입력 ${nMan}개 — 나머지는 기록으로 자동</p>`:''}</div>`;
 $('gdBody').innerHTML=`<div class="idline lite"><span class="idl-ic">🎧</span><div><b>가지런은 내가 정한 강도·거리·시간에 맞춰 안내하는 실시간 코칭 프로그램입니다</b><i>아래 숫자들이 그 기준이 됩니다 — 자동으로 채워지고, 직접 바꿀 수 있어요.</i></div></div><div class="gd-hero"><b>내 숫자</b></div><div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>당신의 현재 기록이 자동으로 입력되며, 수동으로 변경할 수 있습니다.</b><i>각 줄의 '수정' 버튼 → 자동 / 직접 입력</i></div></div>${watch}`+sec('훈련 종류',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+`<details class="gd-all"><summary>계산 기준 전체 보기</summary>${sec('기준 숫자',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`+
     `<p class="gd-src" style="text-align:center;margin:18px 0 0">근거 등급 — A 메타분석·대규모 연구 · B 연구 있음 · C 경험칙·코치 관행 · D 내 기록만</p>`;
+  try{ mineSync(); }catch(e){}
 }
 function openGuide(focus,back){
   GUIDE_BACK=back||(document.querySelector('.view.on')||{}).id||'home';
@@ -10583,7 +10588,7 @@ function mineSave(patch){ const o=Object.assign({},PROF.ov||{},patch); Object.ke
   try{ if(typeof GB!=='undefined'&&GB&&GB.ov){ GB.ov=Object.assign({},o); GB.ovSaved=Object.assign({},o); GB.p=null; } }catch(e){}
   FUT_C=null; try{ BLOCK=loadPlan(); }catch(e){} const y=scrollY; renderGuide(); scrollTo(0,y); }
 const MINE_KEYS={pace:['E','T','I','race'],thr:['T'],cad:['cad'],stride:['stride'],hr:['hrmax'],zone:['easyCap']};
-function mineInput(el){ const k=el.dataset.mset, v=el.value.trim(), hint=t=>{ const h=$('gwHint'); if(h)h.textContent=t; };
+function mineInput(el){ const k=el.dataset.mset, v=el.value.trim(), hint=t=>{ document.querySelectorAll('#gwHint').forEach(h=>h.textContent=t); };
   const t=x=>{ const n=parseLoose(x); return isNaN(n)?null:Math.round(n); }, I=x=>{ const n=parseFloat(x); return isNaN(n)?null:n; };
   const O=ovGet();
   if(k==='E0'||k==='E1'){ const e=(O.E||[Math.round(PACE.easy[0]),Math.round(PACE.easy[1])]).slice(); e[k==='E0'?0:1]=t(v);
@@ -10599,7 +10604,7 @@ function mineInput(el){ const k=el.dataset.mset, v=el.value.trim(), hint=t=>{ co
   if(k==='hrmax'){ const n=Math.round(I(v)); if(!(n>=140&&n<=225))return hint('140~225 사이로 넣어주세요'); return mineSave({hrmax:n}); }
   if(k==='easyCap'){ const n=Math.round(I(v)); if(!(n>=100&&n<=190))return hint('100~190 사이로 넣어주세요'); return mineSave({easyCap:n}); }
 }
-document.addEventListener('change',e=>{ if(e.target.dataset&&e.target.dataset.mset&&e.target.closest('#guide'))mineInput(e.target); });
+document.addEventListener('change',e=>{ if(e.target.dataset&&e.target.dataset.mset&&e.target.closest('#guide,#mineSheet'))mineInput(e.target); });
 document.addEventListener('click',e=>{
   const mr=e.target.closest('[data-mine]'); if(mr){ GW_OPEN=GW_OPEN===mr.dataset.mine?null:mr.dataset.mine; const y=scrollY; renderGuide(); scrollTo(0,y); return; }
   const mm=e.target.closest('[data-mmode]'); if(mm){ const [k,mode]=mm.dataset.mmode.split(':');
@@ -11586,14 +11591,23 @@ function mineSheetHTML(){ const D=mineData(), r=D.r, src={measured:'실측',obse
       <div><i>뛰는 날</i><b>주 ${D.days.length}회</b><em>${D.days.join('·')} · 빠른 날 ${D.hard}회</em></div>
       <div><i>케이던스</i><b>${D.cad||'—'}<small> spm</small></b><em>${D.O.cad?'직접':'최근 기록'}</em></div>
       <div><i>보폭</i><b>${D.stride?D.stride.toFixed(2):'—'}<small> m</small></b><em>이지 속도 기준</em></div></div>
-    <div class="mc-foot">숫자는 기록이 쌓이면 자동으로 맞춰져요. 바꾸려면 아래 '고치기'.</div></div>`; }
-function openMine(){ let sh=$('mineSheet'); if(!sh){ sh=document.createElement('div'); sh.className='msheet'; sh.id='mineSheet'; sh.hidden=true;
-    sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="내 훈련 기준"><div class="ms-hd"><b>내 훈련 기준</b><button type="button" id="mineX" aria-label="닫기">✕</button></div><div id="mineBody"></div>
-      <div class="mc-btns"><button type="button" class="btn ghost sm" data-mineedit="1">고치기 (훈련 원리)</button><span id="mineSnap"></span></div></div>`; document.body.appendChild(sh);
-    sh.addEventListener('click',e=>{ if(e.target===sh||e.target.closest('#mineX')){ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
-      if(e.target.closest('[data-mineedit]')){ sh.classList.remove('up'); sh.hidden=true; GW_OPEN='pace'; openGuide(); setTimeout(()=>{ const w=document.querySelector('.gwatch'); if(w)w.scrollIntoView({block:'start'}); },80); } }); }
-  $('mineBody').innerHTML=mineSheetHTML(); $('mineSnap').innerHTML=snapBtn('.mine-card','mine','내 훈련 기준');
-  sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up')); }
+    <div class="mc-foot">숫자는 기록이 쌓이면 자동으로 맞춰져요 · 직접 바꾸려면 '✎ 숫자 고치기'</div></div>`; }
+/* 내 훈련 기준 시트 — 두 탭: '기준표'(일정의 기준) · '최근 달리기'(훈련 원리의 8가지 — 같은 화면을 그대로 옮겨 온다, 고치면 둘 다 바뀐다) */
+var MTAB='base';
+function mineSync(){ const sh=$('mineSheet'); if(!sh||sh.hidden)return; const b=$('mineBody'); if(!b)return;
+  sh.querySelectorAll('[data-mtab]').forEach(x=>x.classList.toggle('on',x.dataset.mtab===MTAB));
+  const btn=sh.querySelector('.mc-btns'); if(btn)btn.hidden=MTAB!=='base';
+  if(MTAB==='base'){ b.innerHTML=mineSheetHTML(); $('mineSnap').innerHTML=snapBtn('.mine-card','mine','내 훈련 기준'); }
+  else { const w=document.querySelector('#gdBody .gwatch'); b.innerHTML=w?w.outerHTML:'<p class="meta">기록을 불러오는 중…</p>'; } }
+function openMine(tab){ if(tab)MTAB=tab; let sh=$('mineSheet'); if(!sh){ sh=document.createElement('div'); sh.className='msheet'; sh.id='mineSheet'; sh.hidden=true;
+    sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="내 훈련 기준"><div class="ms-hd"><b>내 훈련 기준</b><button type="button" id="mineX" aria-label="닫기">✕</button></div>
+      <div class="mt-tabs" role="tablist"><button type="button" data-mtab="base">기준표 <i>일정의 기준</i></button><button type="button" data-mtab="live">최근 달리기 <i>실시간 · 수정</i></button></div>
+      <div id="mineBody"></div>
+      <div class="mc-btns"><button type="button" class="btn ghost sm" data-mineedit="1">✎ 숫자 고치기</button><span id="mineSnap"></span></div></div>`; document.body.appendChild(sh);
+    sh.addEventListener('click',e=>{ if(e.target===sh||e.target.closest('#mineX')){ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); return; }
+      const t=e.target.closest('[data-mtab]'); if(t){ MTAB=t.dataset.mtab; if(MTAB==='live')renderGuide(); mineSync(); return; }
+      if(e.target.closest('[data-mineedit]')){ MTAB='live'; renderGuide(); mineSync(); } }); }
+  sh.hidden=false; if(MTAB==='live')renderGuide(); mineSync(); requestAnimationFrame(()=>sh.classList.add('up')); }
 document.addEventListener('click',e=>{ if(e.target.closest('[data-mineopen]'))openMine(); });
 /* ═══ 목표까지 가는 길 — 홈·목표 카드의 그림 ═══
    예전 그림(목표선 + 점 하나 + 점선)은 기록이 한두 개뿐이라 아무것도 알려주지 않았다.
