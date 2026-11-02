@@ -1326,6 +1326,7 @@ details.noti .sigc{margin:6px 0}
   <div class="setrow">
     <button type="button" class="setlink" id="setGuide"><b>훈련 원리</b><i>훈련법 · 내 숫자 · 스트레칭</i><span>›</span></button>
     <button type="button" class="setlink" id="setMusic"><b>음악</b><i>내 폴더 · 플레이리스트</i><span>›</span></button>
+    <button type="button" class="setlink" id="setFeedback"><b>의견 보내기</b><i>불편한 점 · 바라는 점 · 문의</i><span>›</span></button>
   </div>
 
   <details class="cset"><summary>백업 · 클라우드</summary>
@@ -2017,6 +2018,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .gwatch.lite .gw-cap{margin-top:8px}
 .gw-live{display:inline-flex;align-items:center;gap:4px;vertical-align:2px;margin-left:6px;font-size:10.5px;font-weight:900;color:#0E9B72;background:#E3F5EE;border-radius:999px;padding:2px 8px}.gw-live i{width:6px;height:6px;border-radius:50%;background:#0E9B72;display:inline-block}
 .gw-key{display:flex;flex-direction:column;gap:3px;margin:0 2px 10px;font-size:11.5px;color:var(--ink-2);line-height:1.45}.gw-key b{font-weight:900;color:var(--ink);margin-right:3px}.gw-key u{text-decoration:none;font-weight:900;color:var(--accent)}
+.notice1{display:flex;gap:10px;align-items:flex-start;background:#FFF4E8;border:1.5px solid #F6C27A;border-radius:16px;padding:12px 14px;margin:0 0 10px}.notice1>div{flex:1;min-width:0}.notice1 b{font-size:14px;font-weight:900}.notice1 p{margin:4px 0 0;font-size:13px;line-height:1.55;white-space:pre-wrap;color:var(--ink-2)}.notice1 a{display:inline-block;margin-top:4px;font-size:12.5px;font-weight:800;color:var(--accent)}.notice1 button{border:0;background:none;font-size:16px;color:var(--ink-3);cursor:pointer;padding:0 2px}
 .pe-est{font-size:12px;color:var(--ink-3);margin:8px 2px 0;line-height:1.6}.pe-est b{color:var(--ink)}
 .pe-hm input{width:64px;height:42px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:800;background:var(--panel)}
 .pt-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 2px}
@@ -2157,7 +2159,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.34';
+const APPVER='19.35';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2877,8 +2879,42 @@ function timeCapKm(days, twd, twe){
    '실시간'이 아니라 하루 한 번이라는 걸 화면에 밝힌다. 원본 링크를 항상 단다. */
 let RACES=null, RCF={c:'',a:'',open:false,q:'',n:40,x:null};
 const RC_DIST={'풀':42195,'하프':21097,'10km':10000,'5km':5000};
+/* ═══ 관리자 콘텐츠(공지·대회 추가/숨김)와 의견 보내기 — 로그인 없이 Firestore REST로 ═══ */
+const FSR=`https://firestore.googleapis.com/v1/projects/runcoach-120ff/databases/(default)/documents`, FSKEY='AIzaSyDlSwvduhTI3Locdls_wYFn70OtTkPoK8g';
+function fsDec(v){ if(!v)return null; if('stringValue' in v)return v.stringValue; if('integerValue' in v)return +v.integerValue; if('doubleValue' in v)return v.doubleValue; if('booleanValue' in v)return v.booleanValue;
+  if('timestampValue' in v)return v.timestampValue; if('nullValue' in v)return null; if('arrayValue' in v)return (v.arrayValue.values||[]).map(fsDec);
+  if('mapValue' in v){ const o={}; Object.entries(v.mapValue.fields||{}).forEach(([k,x])=>o[k]=fsDec(x)); return o; } return null; }
+function fsEnc(x){ if(x==null)return {nullValue:null}; if(typeof x==='boolean')return {booleanValue:x}; if(typeof x==='number')return Number.isInteger(x)?{integerValue:String(x)}:{doubleValue:x};
+  if(x instanceof Date)return {timestampValue:x.toISOString()}; return {stringValue:String(x)}; }
+async function fsGet(path){ const r=await fetch(`${FSR}/${path}?key=${FSKEY}&pageSize=50`,{cache:'no-store'}); if(!r.ok)throw new Error('fs '+r.status); return r.json(); }
+var NOTICE=null;
+async function noticeLoad(){ try{ const j=await fsGet('notices'); const t=todayStr(), seen=JSON.parse(localStorage.getItem('rc_noticeSeen')||'[]');
+    const L=(j.documents||[]).map(d=>Object.assign({id:d.name.split('/').pop()},fsDec({mapValue:{fields:d.fields}}))).filter(n=>n.active&&(!n.until||n.until>=t)&&!seen.includes(n.id)).sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
+    const was=NOTICE&&NOTICE.id; NOTICE=L[0]||null; if((NOTICE&&NOTICE.id)!==was&&document.querySelector('#home.on'))renderHome(); }catch(e){} }
+function noticeHTML(){ const n=NOTICE; if(!n)return '';
+  return `<div class="notice1"><div><b>📢 ${ESC(n.title||'')}</b><p>${ESC(n.body||'')}</p>${n.link&&/^https?:\/\//.test(n.link)?`<a href="${ESC(n.link)}" target="_blank" rel="noopener">자세히 ›</a>`:''}</div><button type="button" data-ntc="${ESC(n.id)}" aria-label="공지 닫기">✕</button></div>`; }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-ntc]'); if(!b)return; try{ const s=JSON.parse(localStorage.getItem('rc_noticeSeen')||'[]'); s.push(b.dataset.ntc); localStorage.setItem('rc_noticeSeen',JSON.stringify(s.slice(-50))); }catch(x){} NOTICE=null; renderHome(); });
+async function racesCatalogMerge(){ if(!RACES||!RACES.races||RACES._merged)return; try{ const d=await fsGet('catalog/races'); const c=fsDec({mapValue:{fields:d.fields||{}}})||{};
+    const hide=new Set(c.hide||[]), add=(c.add||[]).filter(r=>r&&r.date&&r.name).map(r=>Object.assign({courses:[],place:'',host:'',area:r.area||''},r));
+    RACES.races=RACES.races.filter(r=>!hide.has(r.id)).concat(add).sort((a,b)=>a.date.localeCompare(b.date)); RACES._merged=true; }catch(e){} }
+function openFeedback(){ let sh=$('fbSheet'); if(!sh){ sh=document.createElement('div'); sh.className='msheet'; sh.id='fbSheet'; sh.hidden=true;
+    sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="의견 보내기"><div class="ms-hd"><b>의견 보내기</b><button type="button" id="fbX" aria-label="닫기">✕</button></div>
+      <p class="meta" style="margin:0 0 8px;line-height:1.6">불편한 점, 바라는 점, 틀린 숫자 무엇이든 적어 주세요. 관리자에게 바로 전달돼요.</p>
+      <textarea id="fbT" rows="6" maxlength="2000" style="width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;padding:10px;font:inherit;background:var(--panel);color:var(--ink)" placeholder="예: 템포런 속도가 화면마다 달라요"></textarea>
+      <label style="display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-2);margin:8px 0 0"><input type="checkbox" id="fbE" checked> 답을 받을 수 있게 내 이메일도 같이 보내기</label>
+      <button type="button" class="btn" id="fbGo" style="margin-top:12px">보내기</button></div>`; document.body.appendChild(sh);
+    sh.addEventListener('click',async e=>{ if(e.target===sh||e.target.closest('#fbX')){ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); return; }
+      if(e.target.closest('#fbGo')){ const t=$('fbT').value.trim(); if(!t)return toast('내용을 적어 주세요');
+        const em=$('fbE').checked?((FB.user&&FB.user.email)||(ACCT&&ACCT.email)||null):null;
+        const body={fields:{text:fsEnc(t),email:fsEnc(em),uid:fsEnc($('fbE').checked&&FB.user?FB.user.uid:null),appVer:fsEnc(APPVER),at:fsEnc(new Date()),kind:fsEnc('app')}};
+        try{ const r=await fetch(`${FSR}/feedback?key=${FSKEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok)throw new Error(r.status);
+          $('fbT').value=''; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); toast('보냈어요 — 고마워요'); }
+        catch(err){ toast('보내지 못했어요 — 인터넷 연결을 확인하고 다시 눌러 주세요'); } } }); }
+  const e=$('fbE'); if(e){ const em=(FB.user&&FB.user.email)||(ACCT&&ACCT.email); e.parentElement.hidden=!em; e.checked=!!em; }
+  sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up')); }
+document.addEventListener('click',e=>{ if(e.target.closest('#setFeedback'))openFeedback(); });
 async function racesLoad(){
-  try{ const r=await fetch('races.json',{cache:'no-store'}); if(r.ok){ RACES=await r.json(); try{ localStorage.setItem('rc_racesCache',JSON.stringify(RACES)); }catch(e){} return; } }catch(e){}
+  try{ const r=await fetch('races.json',{cache:'no-store'}); if(r.ok){ RACES=await r.json(); try{ localStorage.setItem('rc_racesCache',JSON.stringify(RACES)); }catch(e){} await racesCatalogMerge(); return; } }catch(e){}
   try{ RACES=JSON.parse(localStorage.getItem('rc_racesCache')||'null'); if(RACES)RACES._offline=true; }catch(e){ RACES=null; } }
 async function renderRaces(){
   const el=$('planRaces'); if(!el)return;
@@ -6122,6 +6158,9 @@ const FB={
     FB.SETK.forEach(k=>{ const v=DEV.store.get(k,null); if(v!==null)o[k]=v; });
     o.modk=DEV.store.get('modk',{})||{};
     o.email=(FB.user&&FB.user.email)||null;
+    /* 관리자 통계용 요약 — 기록 전체를 읽지 않아도 회원별 기록 수·거리를 볼 수 있게 */
+    try{ const t7=addDays(todayStr(),-6), R=RUNS.filter(isRun); o.appVer=APPVER;
+      o.stat={runs:R.length,km:+R.reduce((a,r)=>a+(+r.km||0),0).toFixed(1),km7:+R.filter(r=>ldate(r.date).slice(0,10)>=t7).reduce((a,r)=>a+(+r.km||0),0).toFixed(1),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null}; }catch(e){}
     await r.set(o,{merge:true});
     DEV.store.set('upd',o.updatedAt);
     const db=firebase.firestore();
@@ -6162,7 +6201,11 @@ const FB={
     if(FB._p)return FB._p;
     FB.busy=true; paintFb();
     FB._p=(async()=>{
-      try{ const got=await FB.pull(); await FB.push();
+      try{
+        /* 관리자가 정지한 계정이면 동기화하지 않는다 — 폰 안의 기록은 그대로. 규칙이 아직 없어 못 읽으면(권한 없음) 그냥 진행 */
+        try{ const a=await firebase.firestore().collection('admin_users').doc(FB.user.uid).get(); FB.susp=!!(a.exists&&a.data().suspended); }catch(e){ FB.susp=false; }
+        if(FB.susp){ FB.err='관리자가 이 계정의 클라우드 동기화를 멈췄어요. 폰 안의 기록은 그대로예요 — 설정 › 의견 보내기로 문의해 주세요.'; return 0; }
+        const got=await FB.pull(); await FB.push();
         FB.err=null; FB.last=Date.now();
         if(got){ afterRunsChanged(); }
         return got;
@@ -8110,7 +8153,7 @@ function renderHome(){
 
   /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
   try{ glogCheck(); }catch(e){}
-  let h=goalCard(true)+mineStripHTML()+weekStrip();
+  let h=noticeHTML()+goalCard(true)+mineStripHTML()+weekStrip();
   /* 몸 신호 · 못 한 날 · 물어볼 것 — 결정 카드로 */
   const sig=homeSignals();
   /* 알림 — 종의 숫자와 알림 페이지는 같은 목록(homeSignals)을 쓴다 */
@@ -10021,6 +10064,7 @@ function goalBadge(){
   }).catch(()=>{});
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
   splashRun();
+  setTimeout(()=>{ try{ noticeLoad(); }catch(e){} },1500);   /* 공지 — 화면이 뜬 뒤 조용히 */
 })();
 /* 시작 화면 — 브랜드 한 장: 가지런 · 실시간 코칭 프로그램 · 가지런하다 */
 function splashRun(){ const sp=$('splash'); if(!sp)return;
