@@ -2110,7 +2110,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.26';
+const APPVER='19.27';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3202,6 +3202,9 @@ function makePlan(opts){
     /* 한 번 거리 안전선 — 최근 30일 최장 +10%를 주마다 한 단계씩(Frandsen 2025 · B). 기록이 없으면 적용 안 함 */
     const capW = (()=>{ const c=opts.capFrom||sessionCap(); return c?Math.round(c*Math.pow(1.1,opts.capFrom?w+1:w)*2)/2:999; })();   /* capFrom = 미리 보기에서 앞 덩어리의 가장 긴 날(그만큼 뛰었다고 본다) */
     let longKm = Math.min(longCap, capW, Math.max(4, Math.round(km*shape.longPct*2)/2));
+    /* 긴 날을 실제로 묶은 항 — 경고·설명이 '어느 항 때문인지'를 추측하지 않고 이 값을 읽는다 */
+    const byOf=T=>{ const m=Math.min(...Object.values(T)); return ['manual','time','ladder','weekly','phase'].find(k=>T[k]!=null&&T[k]<=m+0.25)||'weekly'; };
+    let longBy=byOf({manual:ovGet().longMax||999, time:Math.floor(Math.min(150,twe)*60/midPace(PACE.long)*2)/2, ladder:capW, weekly:Math.max(4, Math.round(km*shape.longPct*2)/2)});
     if(SEA){ /* 시즌 긴 날 — 최장까지 사다리, 줄이는 주는 앞 주의 72%, 최장에 닿으면 다음 긴 날은 2/3로 쉬어 간다 */
       const pl=w===0?(opts.prevLong||longest30()||0):(seaPrevLong||0);
       let tgt=phase==='peak'?SEA.Lmax:phase==='build'?Math.round(SEA.Lmax*0.9*2)/2:Math.round(SEA.Lmax*0.75*2)/2;   /* 기초기는 최장의 75%까지 — 긴 시즌에 28km+를 너무 자주 뛰지 않게 (관행 3~4번, C) */   /* 최장 거리는 실전기에만 — 그 전엔 90%까지 (28km 넘는 날 3~4번이 관행, C) */
@@ -3213,6 +3216,8 @@ function makePlan(opts){
       if(!seaHist.length)seaHist.push(opts.capFrom||longest30()||0);
       const lad=Math.max(...seaHist.slice(-4)); const capL=lad?Math.round(lad*1.1*2)/2:999;
       longKm=Math.max(4,Math.round(Math.min(tgt,capL,lcS,Math.max(km*SEA.share,8))*2)/2); seaHist.push(longKm);
+      longBy=(phase==='taper'||wkRole[w]==='줄이는 주'||tgt<SEA.Lmax*0.9)&&tgt<=Math.min(capL,lcS,Math.max(km*SEA.share,8))+0.25?'phase'
+        :byOf({manual:ovGet().longMax||999, time:Math.floor(Math.min(SEA.longT,twe)*60/midPace(PACE.long)*2)/2, ladder:capL, weekly:Math.max(km*SEA.share,8), phase:tgt});
       if(km<longKm/SEA.share)km=Math.min(Math.max(km,longKm/SEA.share),Math.max(km,cap));   /* 긴 날이 주간의 상한 비율을 넘지 않게 주간을 맞춘다(시간 한계 안) */
       seaPrevLong=longKm; if(phase!=='taper')seaPeakLong=Math.max(seaPeakLong,longKm); }
     if(capW<999&&Math.round(km*shape.longPct*2)/2>capW&&!why.some(x=>/30일 가장/.test(x))) why.push(`긴 날은 최근 30일 가장 길게 뛴 거리(${fmtKm1(opts.capFrom||longest30()||0)}km)의 +10%를 넘지 않게, 주마다 한 단계씩만 늘렸습니다(Frandsen 2025).`);
@@ -3245,7 +3250,7 @@ function makePlan(opts){
       if(d===testD){
         s={d:ds,wk:w+1,t:'TT 2km',...testRun()};
       } else if(d===longD){
-        s={d:ds,wk:w+1,t:`길게 ${longKm}km`,...long(longKm)};
+        s={d:ds,wk:w+1,t:`길게 ${longKm}km`,...long(longKm)}; s.longBy=longBy;
         /* 실전기 긴 날 후반을 목표 속도로 (Pfitzinger 'MP long run', C) — 풀 최대 12km·하프 최대 5km, 줄이는 주·테이퍼 제외 */
         if(SEA&&phase==='peak'&&!taper&&wtr%2&&gPaceSec&&(SEA.D==='M'||SEA.D==='H')&&longKm>=12){
           const mp=Math.min(SEA.D==='M'?12:5,Math.round(longKm*(SEA.D==='M'?0.35:0.25)*2)/2), cdK=s.segs[s.segs.length-1].to-s.segs[s.segs.length-2].to;
@@ -10914,9 +10919,17 @@ function planChecks(P,blk){
   if(R&&['race','finish'].includes(g.kind)&&!P.imported&&P.season){
     const lp=midPace(PACE.long), lc=Math.floor(Math.min(R.lt,twe)*60/lp*2)/2;
     if(F.maxLong<R.L*0.9){
-      if(F.maxLong>=lc-0.5&&twe>=R.lt) W.push(`${R.nm}의 긴 날은 ${fmtHM(R.lt*60)} 안쪽으로 둡니다(관행 · C) — 지금 긴 날 속도(1km ${fmtPace(lp)})로는 ${lc}km까지예요. 주말 시간을 늘려도 이 선은 그대로이고, 긴 날 속도가 빨라지면 같은 시간에 더 길게 뜁니다.`);
-      else if(F.maxLong>=lc-0.5) W.push(`주말에 쓸 수 있는 시간을 ${fmtHM(twe*60)}으로 정해 두셔서, 지금 긴 날 속도(1km ${fmtPace(lp)})로는 긴 날이 ${lc}km에서 막힙니다(이 일정의 가장 긴 날 ${F.maxLong}km). ${R.nm}는 최장 ${R.L}km(약 ${fmtHM(R.L*lp)})가 보통이에요.`);
-      else W.push(`가장 긴 날이 ${F.maxLong}km예요 — 주말 시간(${lc}km까지 가능) 때문이 아니라 주간 거리 때문입니다. 긴 날은 주간 거리의 ${D==='M'?'절반':'40%'} 안쪽, 주간은 주마다 8%씩·4주마다 한 번 줄이며 늘려서 정점 주간이 ${Math.round(F.peakW)}km예요. 실제로 더 뛰면 4주마다 다시 짤 때 출발점이 올라갑니다.`); }
+      /* 가장 긴 날들을 실제로 묶은 항(엔진이 남긴 longBy) — 없으면(예전 일정) 예전처럼 시간으로 추정 */
+      const tops=A.filter(x=>x.type==='long'&&Math.abs(sKm(x)-F.maxLong)<0.6), edited=tops.some(x=>DIST[x.d]!=null||x.edited);
+      const cnt={}; tops.forEach(x=>{ if(x.longBy)cnt[x.longBy]=(cnt[x.longBy]||0)+1; });
+      const by=edited?'edit':(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||(F.maxLong>=lc-0.5?'time':'weekly')), lm=ovGet().longMax;
+      if(by==='manual'&&lm) W.push(`'플랜 → 전체 고치기 → 속도 · 심박 기준 → 롱런 최대 거리'를 ${lm}km로 정해 두셔서, 긴 날이 ${lm}km에서 멈춥니다. 비우면 주말 시간·주간 거리로 자동으로 잡아 ${R.nm} 최장 ${R.L}km까지 늘립니다.`);
+      else if(by==='edit') W.push(`가장 긴 날(${F.maxLong}km)은 직접 고친 거리예요. ${R.nm}는 최장 ${R.L}km가 보통입니다.`);
+      else if(by==='ladder') W.push(`긴 날은 최근 4주 가장 긴 날의 +10%까지만, 주마다 한 단계씩 늘립니다(Frandsen 2025 · B). 그래서 지금은 ${F.maxLong}km까지예요. 실제로 그만큼 뛰면 다음 4주에 다시 올라갑니다.`);
+      else if(by==='time'&&twe>=R.lt) W.push(`${R.nm}의 긴 날은 ${fmtHM(R.lt*60)} 안쪽으로 둡니다(관행 · C) — 지금 긴 날 속도(1km ${fmtPace(lp)})로는 ${lc}km까지예요. 긴 날 속도가 빨라지면 같은 시간에 더 길게 뜁니다.`);
+      else if(by==='time') W.push(`주말에 쓸 수 있는 시간을 ${fmtHM(twe*60)}으로 정해 두셔서, 지금 긴 날 속도(1km ${fmtPace(lp)})로는 긴 날이 ${lc}km에서 막힙니다(이 일정의 가장 긴 날 ${F.maxLong}km). ${R.nm}는 최장 ${R.L}km(약 ${fmtHM(R.L*lp)})가 보통이에요.`);
+      else W.push(`가장 긴 날이 ${F.maxLong}km예요 — 긴 날은 그 주 거리의 ${D==='M'?'절반':'40%'} 안쪽이라, 그 주들의 주간 거리로는 여기까지예요. 실제로 더 뛰면 4주마다 다시 짤 때 출발점이 올라갑니다.`);
+      W.longBy=by; }
     else if(F.maxLong<R.L-0.4){ const sh={M:50,H:42,T10:38,T5:35}[D]; W.push(`가장 긴 날이 ${F.maxLong}km로 최장 목표 ${R.L}km에 조금 못 미쳐요 — 시간 때문이 아니라 주간 거리 때문입니다. 긴 날은 주간의 ${sh}%까지라 정점 주간 ${Math.round(F.peakW)}km에서는 여기까지예요. 주간은 주마다 8%씩${D==='M'?', 4주마다 한 번 줄이며':', 시즌 정점은 시작 양의 +40%까지만'} 늘립니다(관행 · C). 실제로 더 뛰면 4주마다 다시 짤 때 올라갑니다.`); }
     if(D==='M'&&F.n28<3) W.unshift(`대회까지 28km 넘는 긴 날이 ${F.n28}번이에요. 풀코스는 보통 3~4번 뛰고 갑니다(관행 · C).`);
     const cap=timeCapKm((P.days||SURVEY.days||[]),twd,twe);
@@ -11177,6 +11190,9 @@ document.addEventListener('click',e=>{
     renderPlan(); try{ if(document.querySelector('#home .mygoal,.mygoal'))renderHome(); }catch(x){} toast(rp?'시간을 바꾸고 남은 일정을 다시 짰어요':'시간을 저장했어요 — 받아 적은 일정은 그대로 둡니다'); return; }
   const v=e.target.closest('[data-plv]'); if(v){ PLVIEW=v.dataset.plv; paintPlanView(); return; }
   if(e.target.closest('[data-plimg]'))return openPlanShare();
+  if(e.target.closest('[data-clrlong]')){ const ov=Object.assign({},(PROF&&PROF.ov)||{}); delete ov.longMax; PROF=Object.assign({},PROF,{ov}); GB.ov=ov; DEV.store.set('prof',PROF);
+    recalcProfile(); recalcTypes(); FUT_C=null; const rp=PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&!PLAN.imported; if(rp)replanRest();
+    renderPlan(); try{ renderHome(); }catch(x){} toast('롱런 최대 거리를 비우고 남은 일정을 다시 짰어요 — 뛴 날은 그대로예요'); return; }
   if(e.target.closest('[data-plall]'))return openPlanAll();
   if(!e.target.closest('#paSheet'))return;
   if(e.target.id==='paSheet'||e.target.closest('#paClose'))return paClose();
@@ -11448,7 +11464,7 @@ function goalModel(){
       v0:measured?Math.round(raceTime(v0,g.m)*60):null, now:measured?(fz?fz.nowSec:Math.round(raceTime(VDOT,g.m)*60)):null, vT:goalSec, fmt:fmtClock,
       how:`${M.mix.filter(x=>['interval','threshold','goalpace'].includes(x.k)).map(x=>x.nm).join('·')||'이지런'} 주 ${M.mix.filter(x=>['interval','threshold','goalpace'].includes(x.k)).reduce((a,x)=>a+x.n,0)||0}회 + 이지런·LSD`,
       measure:measured?`VDOT ${VDOT.toFixed(1)} · TT나 대회 기록으로 갱신`:`임시 VDOT ${VDOT.toFixed(1)} (측정 전)`,
-      status:!measured?'TT나 대회 기록을 넣으면 대회 날 예상이 나와요 — 측정 전 값으로 예상하지 않아요':fz?(fz.verdict==='already'?'이미 닿는 기록 — 목표를 높여도 돼요':fz.verdict==='ok'?'지금 흐름이면 대회 날 가능':rr?`대회 날 예상 ${fmtClock(Math.min(rr.lo,rr.hi))}~${fmtClock(Math.max(rr.lo,rr.hi))} · 최종 목표까지 약 ${fz.needWlo}~${fz.needWhi}주`:`약 ${fz.needWlo}~${fz.needWhi}주 걸려요`):''});
+      status:!measured?'TT나 대회 기록을 넣으면 대회 날 예상이 나와요 — 측정 전 값으로 예상하지 않아요':fz?(fz.verdict==='already'?(g.m>=42000&&(()=>{ try{ return planFacts(BLOCK.concat(planFuture())).n28<2; }catch(e){ return false; } })()?'환산 기록은 목표에 닿지만, 28km 넘는 LSD가 계획에 거의 없어요 — 장거리가 채워져야 대회 날 이 기록에 가까워져요':'이미 닿는 기록 — 목표를 높여도 돼요'):fz.verdict==='ok'?'지금 흐름이면 대회 날 가능':rr?`대회 날 예상 ${fmtClock(Math.min(rr.lo,rr.hi))}~${fmtClock(Math.max(rr.lo,rr.hi))} · 최종 목표까지 약 ${fz.needWlo}~${fz.needWhi}주`:`약 ${fz.needWlo}~${fz.needWhi}주 걸려요`):''});
     M.hist=measured?h.map(x=>({d:x.d,v:Math.round(raceTime(x.v,g.m)*60),n:1})):[];
   } else if(g.kind==='finish'&&g.m){
     const km=g.m/1000, H=finishHist();
@@ -11496,15 +11512,15 @@ function goalRoad(M,big){
     st=`<div class="gr-st">
       <div><i>지금 기록으로 환산</i><b>${nowS!=null?fmtClock(nowS):'측정 전'}</b><em>${src?`근거 ${src}`:'TT를 한 번 뛰면 채워져요'}</em></div>
       <div><i>목표</i><b>${fmtClock(goalSec)}</b><em>${d==null?'':d>=0?`환산 기록이 ${fmtClock(d)} 빠름`:`${fmtClock(-d)} 줄여야 함`}</em></div></div>`;
-    if(measured&&r&&g.m>=42000&&r.m<21000) st+=`<div class="gr-warn">짧은 거리 기록을 풀코스로 옮긴 값은 실제보다 빠르게 나오는 편이에요. 28km 넘는 LSD를 몇 번 뛰어야 이 숫자에 가까워집니다(Vickers 2016 · B). 아래 굵은 숫자가 그 날들이에요.</div>`;
+    if(measured&&r&&g.m>=42000&&r.m<42000) st+=`<div class="gr-warn">${r.m>=21000?'하프':'짧은 거리'} 기록을 풀코스로 옮긴 값은 실제보다 빠르게 나오는 편이에요. 28km 넘는 LSD를 몇 번 뛰어야 이 숫자에 가까워집니다(Vickers 2016 · B). 그래프의 굵은 숫자가 그 날들이에요.</div>`;
   } else {
     const lg=Math.max(0,...RUNS.filter(x=>isRun(x)&&Date.parse(ldate(x.date))>Date.now()-30*864e5).map(x=>+x.km||0));
     st=`<div class="gr-st"><div><i>최근 30일 가장 긴 날</i><b>${lg?fmtKm1(lg)+'km':'기록 없음'}</b><em>완주 목표는 긴 날로 준비해요</em></div><div><i>목표</i><b>${gdLabel(g.m)} 완주</b><em>계획 최장 ${F.maxLong}km</em></div></div>`;
   }
   /* 긴 날이 대회에 비해 짧으면 그 이유(일정 화면의 경고와 같은 문장)를 여기에도 — 숨은 설정 때문에 LSD가 멈춰 있는 걸 모르면 안 된다 */
-  { const WL=(PLAN?planWarnings(PLAN,BLOCK):[]).filter(x=>/긴 날/.test(x)&&/km/.test(x)), lw=WL.filter(x=>/막힙니다|안쪽으로 둡니다|때문/.test(x)).concat(WL.filter(x=>!/막힙니다|안쪽으로 둡니다|때문/.test(x))).join(' ');
+  { const CW=PLAN?planChecks(PLAN,BLOCK).W:[], by=CW.longBy, WL=CW.filter(x=>/긴 날/.test(x)&&/km/.test(x)), lw=WL.filter(x=>!/넘는 긴 날이 \d+번/.test(x)).concat(WL.filter(x=>/넘는 긴 날이 \d+번/.test(x))).join(' ');
     if(lw){ const lp=midPace(PACE.long), need=Math.min(240,Math.ceil((g.m>=42000?32:g.m>=21000?22:18)*lp/60/30)*30), cur=SURVEY.twe||90;
-      const chips=/주말에 쓸 수 있는 시간/.test(lw)&&need>cur?`<div class="gr-ch">${[...new Set([need,240])].filter(v=>v>cur).map(v=>`<button type="button" class="tch" data-tmi="twe:${v}">주말 ${fmtHM(v*60)}으로 늘리기</button>`).join('')}</div>`:'';
+      const chips=by==='manual'?`<div class="gr-ch"><button type="button" class="tch" data-clrlong="1">롱런 최대 거리 비우기 (자동으로)</button></div>`:by==='time'&&/주말에 쓸 수 있는 시간/.test(lw)&&need>cur?`<div class="gr-ch">${[...new Set([need,240])].filter(v=>v>cur).map(v=>`<button type="button" class="tch" data-tmi="twe:${v}">주말 ${fmtHM(v*60)}으로 늘리기</button>`).join('')}</div>`:'';
       st+=`<div class="gr-warn"><b>LSD가 ${F.maxLong}km에서 멈춰 있어요.</b> ${lw}${chips}</div>`; } }
   /* ── 가운데: 대회까지 주별 그림 ── */
   const n=F.mons.length, W=340, PL=4, PR=4, TOP=30, BH=big?96:78, PHH=16, Hh=TOP+BH+PHH+20, cw=(W-PL-PR)/n, bw=Math.max(3,Math.min(18,cw*0.62));
