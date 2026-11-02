@@ -1970,6 +1970,29 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .gr-leg i.dm{background:#2EAD7A;transform:rotate(45deg);width:7px;height:7px}.gr-leg b{color:var(--ink);font-weight:900;margin-right:2px}
 .gr-warn b{font-weight:900}.gr-ch{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.gr-ch .tch{border:1.5px solid #C2410C;background:#fff;color:#C2410C;border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 .gr-nx{list-style:none;margin:8px 0 0;padding:0;font-size:12.5px;line-height:1.5}.gr-nx li{padding:5px 0;border-top:1px solid var(--line)}.gr-nx li b{font-weight:900}
+.mine-strip{display:flex;align-items:center;gap:10px;width:100%;margin:10px 0 0;padding:11px 14px;border:1.5px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:16px;background:var(--panel);font:inherit;color:var(--ink);text-align:left;cursor:pointer}
+.mine-strip .ms-l{flex:none;font-size:12px;font-weight:900;color:var(--accent)}.mine-strip .ms-v{flex:1;min-width:0;display:flex;align-items:center;gap:7px;overflow:hidden;white-space:nowrap}
+.mine-strip .ms-v b{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}.mine-strip .ms-v i{width:3px;height:3px;border-radius:50%;background:var(--ink-3);flex:none}.mine-strip .ms-go{flex:none;font-size:20px;color:var(--ink-3);line-height:1}
+.mine-card{padding:2px 0 4px}.mc-top{display:flex;justify-content:space-between;gap:10px;background:linear-gradient(140deg,#3B1F5C,#5B2D86);color:#fff;border-radius:18px;padding:14px 16px}
+.mc-top i{display:block;font-style:normal;font-size:11px;font-weight:700;opacity:.75}.mc-top b{display:block;font-size:24px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}.mc-top em{display:block;font-style:normal;font-size:11px;opacity:.8;margin-top:1px}.mc-top .r{text-align:right}
+.mc-h{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 6px}.mc-h span{font-size:13px;font-weight:900}.mc-h small{font-size:10.5px;color:var(--ink-3);font-weight:700}
+.mc-lad{border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.mc-row{display:grid;grid-template-columns:76px 1fr auto 34px;align-items:center;gap:8px;padding:8px 12px 8px 14px;position:relative;background:var(--panel);border-top:1px solid var(--line)}.mc-row:first-child{border-top:0}
+.mc-row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+.mc-row .mc-nm{font-size:13px;font-weight:900;color:var(--c);display:flex;align-items:center;gap:4px}.mc-row .mc-nm u{text-decoration:none;font-size:9.5px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px}
+.mc-row b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.mc-row b s{text-decoration:none;color:var(--ink-3);font-weight:600;margin:0 2px}
+.mc-row .mc-hr{font-size:11.5px;color:var(--ink-2);font-weight:700;white-space:nowrap}.mc-row .mc-n{font-size:11px;color:var(--ink-3);text-align:right;font-weight:700}
+.mc-row em{position:absolute;right:46px;top:3px;font-style:normal;font-size:9px;font-weight:800;color:var(--accent)}
+.mc-row.today{background:color-mix(in srgb,var(--c) 10%,var(--panel))}
+.mc-zone{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 12px 8px}
+.mc-zb{position:relative;height:22px;border-radius:7px;overflow:visible;background:var(--line)}.mc-zb i{position:absolute;top:0;bottom:0}.mc-zb i:first-child{border-radius:7px 0 0 7px}.mc-zb i:nth-child(5){border-radius:0 7px 7px 0}
+.mc-zb i em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-weight:900;color:#fff}
+.mc-zb b{position:absolute;top:-5px;bottom:-5px;width:3px;margin-left:-1.5px;background:var(--ink);border-radius:2px}
+.mc-zl{position:relative;display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);font-weight:700;margin-top:6px;height:16px}.mc-zl .cap{position:absolute;transform:translateX(-50%);color:var(--ink);font-weight:900;white-space:nowrap}
+.mc-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:6px;margin-top:10px}.mc-grid>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.mc-grid i{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700}.mc-grid b{display:block;font-size:16px;font-weight:900;margin-top:1px}.mc-grid b small{font-size:10.5px;color:var(--ink-3)}.mc-grid em{display:block;font-style:normal;font-size:10px;color:var(--ink-3);margin-top:1px}
+.mc-btns .snapb{white-space:nowrap;flex:none}.mc-btns .btn{flex:1}
+.mc-foot{font-size:10.5px;color:var(--ink-3);margin-top:8px;text-align:center}.mc-btns{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
 .pe-est{font-size:12px;color:var(--ink-3);margin:8px 2px 0;line-height:1.6}.pe-est b{color:var(--ink)}
 .pe-hm input{width:64px;height:42px;border:1.5px solid var(--line);border-radius:10px;text-align:center;font-size:18px;font-weight:800;background:var(--panel)}
 .pt-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 2px}
@@ -2110,7 +2133,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.28';
+const APPVER='19.29';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8050,7 +8073,7 @@ function renderHome(){
 
   /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
   try{ glogCheck(); }catch(e){}
-  let h=goalCard(true)+weekStrip();
+  let h=goalCard(true)+mineStripHTML()+weekStrip();
   /* 몸 신호 · 못 한 날 · 물어볼 것 — 결정 카드로 */
   const sig=homeSignals();
   /* 알림 — 종의 숫자와 알림 페이지는 같은 목록(homeSignals)을 쓴다 */
@@ -11022,7 +11045,7 @@ function planGridHTML(){
     <div class="pg-leg">${['easy','recovery','long','threshold','interval','goalpace'].filter(k=>BLOCK.some(x=>x.type===k)).map(k=>`<span><i style="background:${(TYPES[k]||{}).col}"></i>${PSHORT[k]}</span>`).join('')}<span>✓ 뛴 날</span></div></div>`;
 }
 function planToolsHTML(){
-  return `<div class="pt-bar"><div class="pt-seg"><button type="button" data-plv="list" class="${PLVIEW==='list'?'on':''}">주별 목록</button><button type="button" data-plv="grid" class="${PLVIEW==='grid'?'on':''}">전체 한눈에</button></div>
+  return mineStripHTML()+`<div class="pt-bar"><div class="pt-seg"><button type="button" data-plv="list" class="${PLVIEW==='list'?'on':''}">주별 목록</button><button type="button" data-plv="grid" class="${PLVIEW==='grid'?'on':''}">전체 한눈에</button></div>
     <button type="button" class="pt-b" data-plimg="1">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>'} 전체 이미지</button>
     <button type="button" class="pt-b main" data-plall="1">✎ 전체 고치기</button></div>`;
 }
@@ -11490,6 +11513,53 @@ function goalSetChips(M){ const g=M.g, a=g.aero, days=(PLAN&&PLAN.days)||SURVEY.
   if(M.dateLab)c.push(['언제까지',M.dateLab]);
   if(days.length)c.push(['훈련 요일',`주 ${days.length}일 · ${days.join('')}`]);
   return c.length?`<div class="gc-set"><span class="gc-setl">내가 정한 목표</span>${c.map(x=>`<span class="gc-chip"><i>${x[0]}</i><b>${x[1]}</b></span>`).join('')}</div>`:''; }
+/* ═══ 내 훈련 기준 — 일정·안내·판정이 모두 이 숫자로 정해진다. 한 장에서 보고, 어디서든 연다 ═══
+   훈련 원리의 시계 화면은 '최근 달리기 값'을 크게 보여 주지만, 여기는 기준값만. 값은 화면 다른 곳과 같은 변수(PACE·TYPES·ZONES·HRMAX)에서 */
+function mineData(){
+  const O=ovGet(), g=(PLAN&&PLAN.goal)||GOAL||{}, r=PROF.race, gp=g.m&&(g.final||g.sec)?(g.final||g.sec)/(g.m/1000):null;
+  const B=BLOCK.filter(x=>x.type!=='off'), n=k=>B.filter(x=>k.includes(x.type)).length, td=B.find(x=>x.d.slice(0,10)===todayStr());
+  const hz=k=>(TYPES[k]&&TYPES[k].hrZone)||null, cap=TYPES.easy.hrZone[1];
+  const L=[
+    {k:['recovery'],nm:'회복',col:TYPES.recovery.col,p:PACE.rec,hr:`${hz('recovery')[1]} 아래`,man:!!O.E},
+    {k:['easy'],nm:'이지',col:TYPES.easy.col,p:PACE.easy,hr:`${cap} 아래`,man:!!O.E},
+    {k:['long'],nm:'LSD',col:TYPES.long.col,p:PACE.long,hr:`${cap} 아래`,man:!!O.E},
+    gp?{k:['goalpace','mpace'],nm:'목표 속도',col:'#7A55B8',p:[gp-5,gp+5],hr:hz('mpace')?`${hz('mpace')[0]}~${hz('mpace')[1]}`:'',man:false}:null,
+    {k:['threshold'],nm:'템포',col:TYPES.threshold.col,p:[PACE.T-5,PACE.T+5],hr:hz('threshold')?`${hz('threshold')[0]}~${hz('threshold')[1]}`:'',man:!!O.T},
+    {k:['interval'],nm:'인터벌',col:TYPES.interval.col,p:[PACE.I-4,PACE.I+4],hr:'끝날 때쯤 '+(hz('interval')?hz('interval')[0]+'↑':'높게'),man:!!O.I},
+  ].filter(Boolean).map(x=>Object.assign(x,{cnt:n(x.k),today:!!(td&&x.k.includes(td.type))}));
+  const days=(PLAN&&PLAN.days)||SURVEY.days||[], hard=Math.max(0,...[...new Set(B.map(x=>weekMonday(x.d)))].map(m=>B.filter(x=>weekMonday(x.d)===m&&['threshold','interval','goalpace','rep','tt','mpace'].includes(x.type)).length));
+  const ca=typeof cadAuto==='function'?cadAuto():null, cad=O.cad||ca||null, stride=O.stride||(cad?+(1000/midPace(PACE.easy)*60/cad).toFixed(2):null);
+  const hs=coachBasis().hrmax.src;
+  return {O,g,r,gp,L,days,hard,cad,stride,cap,hs,measured:!needTest()};
+}
+function mineStripHTML(){ try{ const D=mineData(), e=D.L.find(x=>x.nm==='이지');
+  return `<button type="button" class="mine-strip" data-mineopen="1"><span class="ms-l">내 훈련 기준</span><span class="ms-v">
+    <b>${D.measured&&D.r?`${D.r.m>=42000?'풀':D.r.m>=21000?'하프':(D.r.m/1000)+'km'} ${fmtClock(D.r.sec)}`:'기록 측정 전'}</b><i></i><b>이지 ${fmtPace(e.p[0])}~${fmtPace(e.p[1])}</b><i></i><b>♥${D.cap}↓</b></span><span class="ms-go">›</span></button>`; }catch(e){ return ''; } }
+function mineSheetHTML(){ const D=mineData(), r=D.r, src={measured:'실측',observed:'기록에서',estimated:'추정',manual:'직접'}[D.hs]||'추정';
+  const zc=['var(--z1)','var(--z2)','var(--z3)','var(--z4)','var(--z5)'], lo=Math.max(60,ZONES[1][0]-(ZONES[1][1]-ZONES[1][0])), hi=HRMAX, X=v=>((Math.min(hi,Math.max(lo,v))-lo)/(hi-lo)*100).toFixed(1);
+  const zb=ZONES.slice(0,5).map((z,i)=>`<i style="left:${X(Math.max(lo,z[0]))}%;width:${(X(Math.min(hi,z[1]))-X(Math.max(lo,z[0]))).toFixed(1)}%;background:${zc[i]}"><em>Z${i+1}</em></i>`).join('');
+  return `<div class="mine-card">
+    <div class="mc-top"><div><i>기준 기록${r&&r.at?` · ${r.at.slice(2,10).replace(/-/g,'.')}`:''}</i><b>${D.measured&&r?`${r.m>=42000?'풀':r.m>=21000?'하프':(r.m/1000)+'km'} ${fmtClock(r.sec)}`:'측정 전'}</b><em>실력 점수 ${VDOT.toFixed(1)}${D.measured?'':' (임시)'}</em></div>
+      ${D.gp?`<div class="r"><i>목표 속도</i><b>${fmtPace(D.gp)}</b><em>${gdLabel(D.g.m)} ${fmtClock(D.g.final||D.g.sec)}</em></div>`:''}</div>
+    <div class="mc-h"><span>강도별 속도·심박</span><small>1km 속도 · 심박 · 이번 4주</small></div>
+    <div class="mc-lad">${D.L.map(x=>`<div class="mc-row${x.today?' today':''}" style="--c:${x.col}"><span class="mc-nm">${x.nm}${x.today?'<u>오늘</u>':''}</span>
+      <b>${fmtPace(x.p[0])}<s>~</s>${fmtPace(x.p[1])}</b><span class="mc-hr">♥ ${x.hr}</span><span class="mc-n">${x.cnt?x.cnt+'번':'—'}</span>${x.man?'<em>직접</em>':''}</div>`).join('')}</div>
+    <div class="mc-h"><span>심박 존</span><small>${ZONES.kind==='hrr'?'여유심박 방식':'최대심박 % 방식'}</small></div>
+    <div class="mc-zone"><div class="mc-zb">${zb}<b style="left:${X(D.cap)}%"></b></div>
+      <div class="mc-zl"><span>${ZONES.kind==='hrr'?`안정 ${ZONES.rhr}`:''}</span><span class="cap" style="left:${X(D.cap)}%">쉬운 날 상한 ${D.cap}</span><span>최대 ${HRMAX} <small>${src}</small></span></div></div>
+    <div class="mc-grid">
+      <div><i>뛰는 날</i><b>주 ${D.days.length}회</b><em>${D.days.join('·')} · 빠른 날 ${D.hard}회</em></div>
+      <div><i>케이던스</i><b>${D.cad||'—'}<small> spm</small></b><em>${D.O.cad?'직접':'최근 기록'}</em></div>
+      <div><i>보폭</i><b>${D.stride?D.stride.toFixed(2):'—'}<small> m</small></b><em>이지 속도 기준</em></div></div>
+    <div class="mc-foot">숫자는 기록이 쌓이면 자동으로 맞춰져요. 바꾸려면 아래 '고치기'.</div></div>`; }
+function openMine(){ let sh=$('mineSheet'); if(!sh){ sh=document.createElement('div'); sh.className='msheet'; sh.id='mineSheet'; sh.hidden=true;
+    sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="내 훈련 기준"><div class="ms-hd"><b>내 훈련 기준</b><button type="button" id="mineX" aria-label="닫기">✕</button></div><div id="mineBody"></div>
+      <div class="mc-btns"><button type="button" class="btn ghost sm" data-mineedit="1">고치기 (훈련 원리)</button><span id="mineSnap"></span></div></div>`; document.body.appendChild(sh);
+    sh.addEventListener('click',e=>{ if(e.target===sh||e.target.closest('#mineX')){ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
+      if(e.target.closest('[data-mineedit]')){ sh.classList.remove('up'); sh.hidden=true; GW_OPEN='pace'; openGuide(); setTimeout(()=>{ const w=document.querySelector('.gwatch'); if(w)w.scrollIntoView({block:'start'}); },80); } }); }
+  $('mineBody').innerHTML=mineSheetHTML(); $('mineSnap').innerHTML=snapBtn('.mine-card','mine','내 훈련 기준');
+  sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up')); }
+document.addEventListener('click',e=>{ if(e.target.closest('[data-mineopen]'))openMine(); });
 /* ═══ 목표까지 가는 길 — 홈·목표 카드의 그림 ═══
    예전 그림(목표선 + 점 하나 + 점선)은 기록이 한두 개뿐이라 아무것도 알려주지 않았다.
    대회 목표는 '이 계획이 대회까지 어떻게 가는가'를 그린다:
