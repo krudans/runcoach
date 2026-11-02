@@ -2074,7 +2074,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.20';
+const APPVER='19.21';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3137,7 +3137,7 @@ function makePlan(opts){
       const pl=w===0?(opts.prevLong||longest30()||0):(seaPrevLong||0);
       let tgt=phase==='peak'?SEA.Lmax:phase==='build'?Math.round(SEA.Lmax*0.9*2)/2:Math.round(SEA.Lmax*0.75*2)/2;   /* 기초기는 최장의 75%까지 — 긴 시즌에 28km+를 너무 자주 뛰지 않게 (관행 3~4번, C) */   /* 최장 거리는 실전기에만 — 그 전엔 90%까지 (28km 넘는 날 3~4번이 관행, C) */
       if(phase==='taper'){ const pk=Math.max(seaPeakLong,pl,8); tgt=SEA.D==='M'?pk*[0.3,0.5,0.75][wtr]:pk*[0.35,0.6][wtr]; }
-      else if(SEA.cutOf(wtr)) tgt=Math.max(6,pl*0.72);
+      else if(wkRole[w]==='줄이는 주') tgt=Math.max(6,pl*0.72);   /* 주간 거리와 같은 판정 — 첫 주는 줄이는 주가 아니다 */
       else if(pl>=tgt*0.95) tgt=SEA.Lmax*0.66;
       const lcS=Math.min(ovGet().longMax||999, Math.floor(Math.min(SEA.longT,twe)*60/midPace(PACE.long)*2)/2);
       /* +10% 안전선은 '최근 4주(30일) 가장 긴 날' 기준 — 줄인 주 다음에 한꺼번에 뛰어오르지 않게 (Frandsen 2025 · B) */
@@ -6719,7 +6719,13 @@ const GSTEP=[
         <span class="r">${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)}</span>
         <span class="nm">${s.t}</span>
         <span class="t">${s.dist?s.dist+'km':''}</span></div>`).join('');
-   return autoBanner()+head+gAdjBox(p,fz)+gOvBox()+
+   /* 시간 한계 경고는 여기서도 — 목표 짜기 안에서 바로 시간을 바꾸고 다시 볼 수 있게 */
+   const W=(p.why||[]).filter(x=>/^⚠/.test(x)).map(x=>x.replace(/^⚠\s*/,'').replace(/ — 플랜 → 전체 고치기에서 주말 시간을 늘리면 바로 다시 짭니다\./,'.'));
+   const tmw=(k,opts,cur)=>`<div class="pa-tm"><span>${k==='twd'?'평일':'주말'}</span>${opts.map(([v,l])=>`<button type="button" data-gtm="${k}:${v}" class="${cur===v?'on':''}">${l}</button>`).join('')}</div>`;
+   const showT=W.length||((GB.d.m||0)>=21000&&['race','finish'].includes(GB.d.kind));
+   const warnBox=showT?`<div class="note${W.length?'':' green'}" style="margin:0 0 12px;line-height:1.65;font-size:12.5px">${W.length?`<b>⚠ 지금 시간 설정으로는 이만큼만 짤 수 있어요</b><ul style="margin:6px 0 0;padding-left:18px">${W.map(x=>`<li>${x}</li>`).join('')}</ul>`:'<b>시간 한계에 걸리지 않고 짰어요</b>'}
+     <div style="margin-top:8px;font-weight:800">한 번에 쓸 수 있는 시간 — 누르면 바로 다시 짜요</div>${tmw('twd',[[40,'40분'],[60,'1시간'],[90,'90분'],[120,'2시간']],SURVEY.twd||40)}${tmw('twe',[[90,'90분'],[120,'2시간'],[180,'3시간'],[240,'4시간+']],SURVEY.twe||90)}</div>`:'';
+   return autoBanner()+warnBox+head+gAdjBox(p,fz)+gOvBox()+
      `<div class="card tight" style="margin-top:12px"><div class="meta" style="margin-bottom:6px">주마다 뛸 거리 (km)</div>
         <div style="display:flex;align-items:flex-end">${wkRow}</div></div>
       <div class="lbl" style="margin:16px 0 8px">첫 주는 이렇습니다</div>
@@ -10905,6 +10911,7 @@ function paScaleAll(f){ const t=todayStr(); const ws=[...new Set((peStore()||[])
   ws.forEach(w=>weekScale(w,f)); paRender(); paintPlanView(); }
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-g2half]')){ goalStart(); GB.d.m=21097; GB.d.sec=null; try{ gPaint(); }catch(x){} toast('하프로 바꿔 봤어요 — 목표 기록을 넣고 확인하세요'); return; }
+  const gtm=e.target.closest('[data-gtm]'); if(gtm){ const [k,v]=gtm.dataset.gtm.split(':'); SURVEY=Object.assign({},SURVEY,{[k]:+v}); DEV.store.set('survey',SURVEY); GB.p=null; try{ gPaint(); }catch(x){} return; }
   const tmi=e.target.closest('[data-tmi]'); if(tmi){ const [k,v]=tmi.dataset.tmi.split(':'); SURVEY=Object.assign({},SURVEY,{[k]:+v}); DEV.store.set('survey',SURVEY); FUT_C=null;
     if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&!PLAN.imported){ applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true})); BLOCK=loadPlan(); }
     renderPlan(); toast('시간을 바꾸고 남은 일정을 다시 짰어요'); return; }
