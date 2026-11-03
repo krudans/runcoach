@@ -2172,7 +2172,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.45';
+const APPVER='19.46';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10231,12 +10231,13 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     try{ a.volume=0.5; this.canVol=Math.abs(a.volume-0.5)<0.01; a.volume=this.st.vol; }catch(e){ this.canVol=false; }
     a.addEventListener('ended',()=>{ if(this.st.rep==='one'){ a.currentTime=0; a.play().catch(()=>{}); } else this.next(true); });
     ['play','pause'].forEach(ev=>a.addEventListener(ev,()=>this.paint()));
-    a.addEventListener('timeupdate',()=>this.paintPos());
+    a.addEventListener('timeupdate',()=>{ this.paintPos(); const n=Date.now(); if(!this.posT||n-this.posT>3000){ this.posT=n; this.savePos(); } });
+    a.addEventListener('pause',()=>this.savePos());
     a.addEventListener('error',()=>{ if(this.cur){ this.toast('재생 불가 — 다음 곡'); setTimeout(()=>this.next(true),400); } });
     this.media(); return a; },
   /* ── 라이브러리 ── */
   async init(){ try{ const fs=await MDB.all('files'); this.files={}; fs.forEach(f=>{ this.files[f.id]={id:f.id,name:f.name,path:f.path,size:f.size,title:f.title}; });
-      const m3u=(await MDB.get('kv','m3u'))||[]; this.build(m3u); }catch(e){ this.lists=[]; }
+      const m3u=(await MDB.get('kv','m3u'))||[]; this.build(m3u); this.restorePos(); }catch(e){ this.lists=[]; }
     this.ready=true; this.paint(); },
   title(f){ return (f&&(f.title||String(f.name).replace(/\.[^.]+$/,'').replace(/_/g,' ')))||''; },
   build(m3u){ const fs=Object.values(this.files).sort((a,b)=>String(a.path).localeCompare(String(b.path),'ko'));
@@ -10270,23 +10271,30 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     try{ await MDB.put('kv',m3u,'m3u'); }catch(e){}
     this.build(m3u); if(!this.st.sel&&this.lists.length){ this.st.sel=this.lists[0].id; this.save(); }
     this.busy(null); this.toast(`${n}곡${pl.length?` · 목록 ${pl.length}개`:''} 추가`); this.paint(); },
-  async wipe(){ this.stop(); await MDB.clear().catch(()=>{}); this.files={}; this.lists=[]; this.st.sel=null; this.save(); this.paint(); },
+  async wipe(){ this.stop(); await MDB.clear().catch(()=>{}); this.pend=null; try{ DEV.store.set('musPos',null); }catch(e){} this.files={}; this.lists=[]; this.st.sel=null; this.save(); this.paint(); },
   list(id){ return this.lists.find(x=>x.id===(id||this.st.sel)); },
+  /* ── 듣던 곳 기억 — 앱을 다시 열어도 듣던 곡·위치부터 ── */
+  savePos(){ if(!this.cur||!this.q.length)return; try{ DEV.store.set('musPos',{sel:this.st.sel,q:this.q,i:this.i,cur:this.cur,t:Math.floor((this.a&&this.a.currentTime)||0)}); }catch(e){} },
+  restorePos(){ try{ const p=DEV.store.get('musPos',null); if(!p||!p.cur||!this.files[p.cur]||p.sel!==this.st.sel||!this.list(p.sel))return;
+      const q=(p.q||[]).filter(id=>this.files[id]); const i=q.indexOf(p.cur); if(i<0)return;
+      this.q=q; this.i=i; this.pend={i,t:p.t||0}; }catch(e){} },
+  resume(){ const p=this.pend; this.pend=null; if(!p||!this.q.length)return this.play(); this.userPaused=false; this.dockOn=true; this.load(p.i,true,p.t); },
   /* ── 재생 ── */
   queue(id,startId){ const L=this.list(id); if(!L)return false; this.st.sel=L.id; this.save();
     let q=L.ids.slice(); if(this.st.shuf){ for(let i=q.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [q[i],q[j]]=[q[j],q[i]]; } }
     if(startId){ q=q.filter(x=>x!==startId); q.unshift(startId); }
     this.q=q; this.i=0; return true; },
-  async load(i,autoplay=true){ if(!this.q.length)return; this.i=(i+this.q.length)%this.q.length;
+  async load(i,autoplay=true,seek=0){ if(!this.q.length)return; this.i=(i+this.q.length)%this.q.length; this.pend=null;
     const id=this.q[this.i], a=this.el(); let rec=null; try{ rec=await MDB.get('files',id); }catch(e){}
     if(!rec||!rec.blob){ this.toast('파일 없음'); return; }
     if(this.url)URL.revokeObjectURL(this.url); this.url=URL.createObjectURL(rec.blob); this.cur=id;
     a.src=this.url; this.applyVol();
+    if(seek>0){ await new Promise(r=>{ const f=()=>{ a.removeEventListener('loadedmetadata',f); try{ if(!a.duration||seek<a.duration-2)a.currentTime=seek; }catch(e){} r(); }; a.addEventListener('loadedmetadata',f); setTimeout(f,3000); }); }
     if(autoplay){ try{ await a.play(); }catch(e){} }
     this.meta(); this.paint(); },
-  play(id,startId){ if(!this.queue(id,startId))return this.open(); this.userPaused=false; this.dockOn=true; this.load(0); },
-  toggle(){ const a=this.el(); if(!this.cur){ return this.play(); } this.dockOn=true; if(a.paused){ this.userPaused=false; a.play().catch(()=>{}); } else { this.userPaused=true; a.pause(); } },
-  halt(){ const a=this.a; this.userPaused=true; if(a){ a.pause(); try{ a.currentTime=0; }catch(e){} } this.dockOn=false; this.paint(); },
+  play(id,startId){ if(this.pend&&!startId&&(!id||id===this.st.sel))return this.resume(); if(!this.queue(id,startId))return this.open(); this.userPaused=false; this.dockOn=true; this.load(0); },
+  toggle(){ const a=this.el(); if(!this.cur){ return this.pend?this.resume():this.play(); } this.dockOn=true; if(a.paused){ this.userPaused=false; a.play().catch(()=>{}); } else { this.userPaused=true; a.pause(); } },
+  halt(){ const a=this.a; this.userPaused=true; if(a){ a.pause(); this.savePos(); } this.dockOn=false; this.paint(); },
   next(auto){ if(!this.q.length)return; if(this.i>=this.q.length-1){ if(auto&&this.st.rep==='off'){ this.a.pause(); this.paint(); return; }
       if(this.st.shuf){ const last=this.q[this.i]; this.queue(this.st.sel); if(this.q[0]===last&&this.q.length>1)this.q.push(this.q.shift()); return this.load(0); } }
     this.load(this.i+1); },
@@ -10317,7 +10325,7 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     try{ navigator.mediaSession.metadata=new MediaMetadata({title:this.title(f),artist:'가지런',album:L?L.nm:'',
       artwork:[{src:'gaji-icon-192.png',sizes:'192x192',type:'image/png'},{src:'gaji-icon-512.png',sizes:'512x512',type:'image/png'}]}); }catch(e){} },
   /* ── 달리기와 연결 ── */
-  onRunStart(){ if(this.st.auto&&this.st.sel&&this.list()&&(!this.a||this.a.paused)){ if(this.cur&&this.q.length)this.a.play().catch(()=>{}); else this.play(this.st.sel); } },
+  onRunStart(){ if(this.st.auto&&this.st.sel&&this.list()&&(!this.a||this.a.paused)){ if(this.cur&&this.q.length)this.a.play().catch(()=>{}); else if(this.pend)this.resume(); else this.play(this.st.sel); } },
   onRunEnd(){ this.stop(true); },
   /* ── 화면 ── */
   toast(t){ try{ if(typeof toast==='function')return toast(t); }catch(e){} const d=$('musToast'); if(!d)return; d.textContent=t; d.hidden=false; clearTimeout(this.tt); this.tt=setTimeout(()=>d.hidden=true,2200); },
@@ -10327,7 +10335,7 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
   paintPos(){ const a=this.a; if(!a)return; const p=a.duration?a.currentTime/a.duration:0;
     document.querySelectorAll('.mus-pos').forEach(r=>{ if(!r.matches(':active'))r.value=Math.round(p*1000); r.style.setProperty('--p',(p*100).toFixed(1)+'%'); });
     const t=$('musT'); if(t)t.textContent=`${this.fmt(a.currentTime)} / ${this.fmt(a.duration)}`; },
-  paint(){ const a=this.a, on=!!(a&&!a.paused), f=this.files[this.cur], L=this.list(), has=this.lists.length>0;
+  paint(){ const a=this.a, on=!!(a&&!a.paused), f=this.files[this.cur||(this.pend&&this.q[this.pend.i])], L=this.list(), has=this.lists.length>0;
     const ttl=f?this.title(f):(L?L.nm:'음악');
     const bar=$('mBar'); if(bar){ bar.hidden=!has; bar.classList.toggle('on',on);
       bar.querySelector('.mb-t').textContent=ttl; bar.querySelector('[data-m=toggle]').innerHTML=MIC[on?'pause':'play']; }
