@@ -915,6 +915,22 @@ details.noti .sigc{margin:6px 0}
 .kmk{background:#fff;border:1.5px solid #3A4A44;border-radius:50%;width:20px;height:20px;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .kst{background:#0E9B72;color:#fff;font-size:11px;font-weight:800;border-radius:8px;padding:2px 7px}
 .rleg{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--ink-3);margin-top:6px}.rleg i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:4px;vertical-align:2px}
+/* 결과 화면 — 판정·그래프 */
+.rv-verd{border-radius:16px;padding:12px 14px;background:color-mix(in srgb,var(--vc) 12%,var(--panel));border-left:5px solid var(--vc)}
+.rv-verd>b{display:block;font-size:17px;font-weight:900;color:color-mix(in srgb,var(--vc) 75%,var(--ink))}
+.rv-rows{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}.rv-rows li{display:flex;gap:7px;align-items:baseline;font-size:12px;color:var(--ink-2);line-height:1.4}
+.rv-rows li i{flex:none;width:16px;height:16px;border-radius:50%;background:var(--panel-2);color:var(--ink-3);font-size:10px;font-weight:900;font-style:normal;display:inline-flex;align-items:center;justify-content:center;transform:translateY(2px)}
+.rv-rows li.ok i{background:#DDF3EA;color:#0E6E55}.rv-rows li.bad i{background:#F9DEDA;color:#9A2A1F}.rv-rows li span{flex:1;min-width:0}.rv-rows li b{font-weight:800;color:var(--ink);text-align:right;flex:none;max-width:55%}
+.rv-pts{margin-top:10px;background:var(--panel);border-radius:14px;padding:10px 12px}
+.rvch-w{padding:8px 4px 6px}.rvch{display:block;width:100%;height:190px}.rvch-lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--ink-3);font-weight:700;margin:4px 8px 0}.rvch-lg i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px}
+.rvb{background:var(--panel);border-radius:16px;padding:12px 14px}.rvb-r{display:grid;grid-template-columns:34px 1fr 78px;gap:8px;align-items:center;padding:6px 0}
+.rvb-n{font-size:12px;font-weight:800;color:var(--ink-3)}.rvb-t{position:relative;height:16px;background:var(--panel-2);border-radius:8px}
+.rvb-t i{position:absolute;top:0;bottom:0;background:color-mix(in srgb,#E35A32 28%,transparent);border-radius:8px}.rvb-t b{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#5B2D86;border:2.5px solid var(--panel);transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.rvb-r.bad .rvb-t b{background:#D9412B}.rvb-v{text-align:right;font-family:var(--num)}.rvb-v b{display:block;font-size:14px;font-weight:900}.rvb-v em{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700}.rvb-r.bad .rvb-v em{color:#9A2A1F}
+.rvb-ax{display:flex;justify-content:space-between;margin:4px 0 0 42px;font-size:9.5px;color:var(--ink-3);font-weight:700}
+.rv-tbl{margin-top:8px}.rv-tbl>summary{list-style:none;font-size:12.5px;font-weight:800;color:var(--accent);padding:8px 4px;cursor:pointer}.rv-tbl>summary::-webkit-details-marker{display:none}.rv-tbl>summary::after{content:' ▾'}.rv-tbl[open]>summary::after{content:' ▴'}.rv-tbl .rcard{margin-top:0}
+.rv-zw{display:flex;gap:10px;align-items:flex-start;background:var(--panel);border-radius:16px;padding:10px 12px}.rv-don{width:84px;height:84px;flex:none}.rv-zr{flex:1;min-width:0}.rv-zr .zrow{grid-template-columns:78px 1fr 60px;gap:6px;padding:3px 0}.rv-zr .zn{font-size:11.5px}.rv-zr .zn .zr{font-size:9.5px}.rv-zr .zv{font-size:11px}
+.sec .mapsw{margin:0 0 6px}
 .rbig{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
 .rbig div{background:var(--panel);border-radius:14px;padding:10px 8px;text-align:center}.rbig b{display:block;font-size:24px;font-weight:900}.rbig i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .rsm{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}
@@ -2204,7 +2220,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.50';
+const APPVER='19.51';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8977,7 +8993,61 @@ function promiseRows(r,s){
 const VERD={rwkept:['완주 — 가지런했습니다','ok'],rwshort:['중도 종료 — 다음 반영','mid'],rwpain:['통증 → 다음 단계↓','mid'],short0:['짧아 판정 없음','mid'],kept:['가지런했습니다 — 약속대로','ok'],softfast:['세트 가지런 · 빠름','mid'],fast:['거리 지킴 · 속도 초과','bad'],spread:['뒤 회차 늦어짐','bad'],
   slow:['회차 목표 미달','mid'],off:['구간 속도 미달','mid'],short:['거리 미달','mid'],hr:['심박 초과','mid'],easyreps:['고르고 가볍게 끝남','ok']};
 
-/* ───────── 결과 화면 ───────── */
+/* ───────── 결과 화면 ─────────
+   순서: 판정(한 줄 + 약속↔결과) → 큰 숫자 → 지도 → 페이스·심박 그래프 → 회차(목표 대비) → 심박 존 → 부하
+   그래프의 숫자는 모두 기록(r)에서 — 화면의 표와 같은 값 */
+function rvPaceHR(r){   /* 거리에 따른 페이스·심박 선그래프. 트랙(t·hr) 없으면 1km 막대 */
+  const W=360,H=190,L=38,R=34,T=14,B=26, iw=W-L-R, ih=H-T-B;
+  const tr=(r.track||[]).filter(p=>isFinite(p.lat)&&isFinite(p.lon));
+  const segs=r.segments||[];
+  const hasT=tr.length>20&&tr.every(p=>isFinite(p.t));
+  let pts=[];   /* {d(km),p(초/km),hr} */
+  if(hasT){ const c=trackCum(tr); let j=0;
+    for(let i=0;i<tr.length;i++){ while(j<tr.length-1&&c[j]-c[i]<120)j++; if(j<=i||c[j]-c[i]<60)continue; const dt=tr[j].t-tr[i].t, dd=c[j]-c[i]; if(dt<=0)continue; const pc=dt/dd*1000; if(pc<150||pc>1200)continue; pts.push({d:c[i]/1000,p:pc,hr:tr[i].hr||null,seg:tr[i].seg}); }
+    /* 5점 이동 평균 — GPS 떨림 제거 */
+    const sm=pts.map((x,i)=>{ const a=pts.slice(Math.max(0,i-2),i+3); return Object.assign({},x,{p:a.reduce((s,y)=>s+y.p,0)/a.length}); }); pts=sm; }
+  else if((r.splits||[]).length>=2){ let d=0; r.splits.forEach(x=>{ const len=x.part||1; pts.push({d:d,p:x.pace,hr:x.hr||null,bar:len}); d+=len; }); }
+  if(pts.length<2)return '';
+  const totKm=hasT?Math.max(r.km,pts[pts.length-1].d):pts.reduce((a,x)=>a+(x.bar||1),0);
+  const X=d=>L+d/totKm*iw;
+  /* 세로 눈금은 5~95% 구간으로 — 멈춤 한 번에 전체가 납작해지지 않게. 범위 밖은 끝에 붙인다 */
+  const ps=pts.map(x=>x.p).slice().sort((a,b)=>a-b); let plo=ps[Math.floor(ps.length*.05)], phi=ps[Math.min(ps.length-1,Math.floor(ps.length*.95))];
+  segs.forEach(g=>{ if(g.hard&&g.plan){ plo=Math.min(plo,g.plan[0]); phi=Math.max(phi,g.plan[1]); } });   /* 목표 띠는 늘 보이게 */
+  const pad=Math.max(10,(phi-plo)*.2); const yLo=plo-pad, yHi=phi+pad;   /* 빠를수록 위 */
+  const Yp=p=>T+(Math.min(yHi,Math.max(yLo,p))-yLo)/(yHi-yLo)*ih;
+  const hrs=pts.map(x=>x.hr).filter(Boolean); const hLo=hrs.length?Math.min(...hrs)-8:0, hHi=hrs.length?Math.max(...hrs)+8:1;
+  const Yh=h=>T+ih-(h-hLo)/(hHi-hLo)*ih;
+  /* 구간 띠 — 본 구간 주황, 쉬기 파랑 */
+  let bands='';
+  if(hasT&&segs.length){ const c=trackCum(tr); let cur=null,start=0;
+    const flush=(si,d0,d1)=>{ const g=segs[si]; if(!g)return; const k=g.hard?'rgba(227,90,50,.13)':/쉬기|회복|레스트|걷/.test(g.nm||'')?'rgba(143,184,216,.22)':null; if(k)bands+=`<rect x="${X(d0).toFixed(1)}" y="${T}" width="${Math.max(0,X(d1)-X(d0)).toFixed(1)}" height="${ih}" fill="${k}"/>`;
+      if(g.hard&&g.plan){ const y0=Yp(g.plan[0]),y1=Yp(g.plan[1]); bands+=`<rect x="${X(d0).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${Math.max(0,X(d1)-X(d0)).toFixed(1)}" height="${Math.abs(y1-y0).toFixed(1)}" fill="none" stroke="#E35A32" stroke-dasharray="3 3" stroke-width="1.2"/>`; } };
+    tr.forEach((p,i)=>{ if(p.seg!==cur){ if(cur!=null)flush(cur,start,c[i]/1000); cur=p.seg; start=c[i]/1000; } }); if(cur!=null)flush(cur,start,c[c.length-1]/1000); }
+  else if(!hasT){ let d=0; pts.forEach(x=>{ const w=X(d+(x.bar||1))-X(d); bands+=`<rect x="${X(d).toFixed(1)}" y="${Yp(x.p).toFixed(1)}" width="${(w-2).toFixed(1)}" height="${(T+ih-Yp(x.p)).toFixed(1)}" rx="3" fill="#5B2D86" opacity=".55"/>`; d+=(x.bar||1); }); }
+  const line=hasT?`<path d="${pts.map((x,i)=>(i?'L':'M')+X(x.d).toFixed(1)+' '+Yp(x.p).toFixed(1)).join('')}" fill="none" stroke="#5B2D86" stroke-width="2.2" stroke-linejoin="round"/>`:'';
+  const hrl=hrs.length>=2?`<path d="${pts.filter(x=>x.hr).map((x,i)=>(i?'L':'M')+(hasT?X(x.d):X(x.d+(x.bar||1)/2)).toFixed(1)+' '+Yh(x.hr).toFixed(1)).join('')}" fill="none" stroke="#D9412B" stroke-width="1.8" stroke-dasharray="${hasT?'':'4 3'}" stroke-linejoin="round"/>`:'';
+  /* 눈금 */
+  const ty=[yLo+pad*.5,(yLo+yHi)/2,yHi-pad*.5].map(v=>`<text x="${L-5}" y="${(Yp(v)+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="#6E5A80">${fmtPace(v)}</text><line x1="${L}" x2="${W-R}" y1="${Yp(v).toFixed(1)}" y2="${Yp(v).toFixed(1)}" stroke="#E6DFF0" stroke-width="1"/>`).join('');
+  const th=hrs.length?[hLo+8,hHi-8].map(v=>`<text x="${W-R+5}" y="${(Yh(v)+3.5).toFixed(1)}" font-size="9" fill="#D9412B">♥${Math.round(v)}</text>`).join(''):'';
+  const step=totKm>12?2:1, tx=[];
+  if(hasT){ for(let k=step;k<totKm;k+=step)tx.push(`<text x="${X(k).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9" fill="#6E5A80">${k}km</text>`); }
+  else { let d=0; pts.forEach((x,i)=>{ const w=x.bar||1; if(i%step===0)tx.push(`<text x="${X(d+w/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9" fill="#6E5A80">${i+1}</text>`); d+=w; }); }
+  return `<svg class="rvch" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="페이스·심박 그래프">${bands}${ty}${th}${tx.join('')}${line}${hrl}</svg>
+    <div class="rvch-lg"><span><i style="background:#5B2D86"></i>페이스 (위 = 빠름)</span>${hrs.length?'<span><i style="background:#D9412B"></i>심박</span>':''}${segs.some(g=>g.hard&&g.plan)?'<span><i style="border:1.2px dashed #E35A32;background:none"></i>목표 범위</span>':''}</div>`;
+}
+function rvBullets(reps,tgt){   /* 회차마다 목표 범위(띠)와 실제(점) — 한눈에 몇 초 차이인지 */
+  if(!reps.length)return '';
+  const ctr=tgt||Math.round(reps.reduce((a,g)=>a+g.pace,0)/reps.length), lo=ctr-30, hi=ctr+30, P=p=>Math.max(2,Math.min(98,(p-lo)/(hi-lo)*100));
+  return `<div class="rvb">${reps.map((g,i)=>{ const d=g.plan?Math.round(g.pace-midPace(g.plan)):tgt?Math.round(g.pace-tgt):null, bad=g.pass===false;
+    return `<div class="rvb-r${bad?' bad':''}"><span class="rvb-n">${i+1}회</span><span class="rvb-t">${g.plan?`<i style="left:${P(g.plan[0]).toFixed(1)}%;width:${(P(g.plan[1])-P(g.plan[0])).toFixed(1)}%"></i>`:tgt?`<i style="left:${P(tgt-3).toFixed(1)}%;width:${(P(tgt+3)-P(tgt-3)).toFixed(1)}%"></i>`:''}<b style="left:${P(g.pace).toFixed(1)}%"></b></span><span class="rvb-v"><b>${fmtPace(g.pace)}</b>${d!=null?`<em>${d>0?'+':''}${d}초${bad?' ✗':g.pass?' ✓':''}</em>`:''}</span></div>`; }).join('')}
+    <div class="rvb-ax"><span>빠름 ${fmtPace(lo)}</span><span>${tgt?'목표 '+fmtPace(tgt):''}</span><span>${fmtPace(hi)} 느림</span></div></div>`;
+}
+function rvDonut(zs){ const tot=(zs||[]).reduce((a,b)=>a+b,0); if(!tot||tot<60)return '';
+  const r=30,c=2*Math.PI*r; let off=0;
+  const arcs=zs.map((v,i)=>{ const f=v/tot, o=off; off+=f; return v?`<circle r="${r}" cx="40" cy="40" fill="none" stroke="${ZCOL[i]}" stroke-width="14" stroke-dasharray="${(f*c).toFixed(2)} ${c.toFixed(2)}" stroke-dashoffset="${(-o*c).toFixed(2)}" transform="rotate(-90 40 40)"/>`:''; }).join('');
+  const top=zs.indexOf(Math.max(...zs));
+  return `<svg viewBox="0 0 80 80" class="rv-don" aria-hidden="true">${arcs}<text x="40" y="38" text-anchor="middle" font-size="13" font-weight="900" fill="${ZCOL[top]}">Z${top+1}</text><text x="40" y="51" text-anchor="middle" font-size="8.5" fill="#6E5A80">${Math.round(zs[top]/tot*100)}%</text></svg>`;
+}
 function renderResult(host,r,s,opt){
   const T=TYPES[r.type]||{}, pr=promiseRows(r,s||{dist:0});
   const vd=pr.kind?VERD[pr.kind]:null;
@@ -8985,14 +9055,6 @@ function renderResult(host,r,s,opt){
   const tgt=repTargetOf(r,s);
   const cu=cadUsual();
   const dt=new Date(r.date);
-  let repsH='';
-  if(reps.length>=2){
-    const ps=reps.map(g=>g.pace), lo=Math.min(...ps,tgt||1e9)-8, hi=Math.max(...ps,tgt||0)+8, span=hi-lo||1;
-    const Y=p=>((p-lo)/span*100);
-    repsH=`<div class="rh"><b>회차별 속도</b><span></span></div>
-      <div class="repbars">${tgt?`<i class="band" style="bottom:${(100-Y(tgt+3)).toFixed(1)}%;height:${(6/span*100).toFixed(1)}%"></i>`:''}
-      ${reps.map((g,i)=>`<div class="rb"><em>${fmtPace(g.pace)}</em><span class="${g.pass===false?'bad':''}" style="height:${Math.max(8,100-Y(g.pace)).toFixed(1)}%"></span><i>${i+1}회</i></div>`).join('')}</div>`;
-  }
   const SG=r.segments||[];
   const sgKind=g=>g.hard?'main':/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm||'')?'rest':/웜업|준비|도입|쿨다운|마무리|출발/.test(g.nm||'')?'wc':'main';
   let segs=SG.map(g=>{ const d=g.pace&&g.plan?Math.round(g.pace-midPace(g.plan)):null;
@@ -9002,31 +9064,41 @@ function renderResult(host,r,s,opt){
   const sgf=SG.length>=5&&new Set(SG.map(sgKind)).size>1?`<div class="sgf"><button type="button" class="on" data-sgf="all">모두</button>${SG.some(g=>sgKind(g)==='wc')?'<button type="button" data-sgf="wc">웜업·쿨다운</button>':''}<button type="button" data-sgf="main">본 구간</button>${SG.some(g=>sgKind(g)==='rest')?'<button type="button" data-sgf="rest">쉬기</button>':''}</div>`:'';
   const sp=(r.splits||[]); const spMin=sp.length?Math.min(...sp.map(x=>x.pace)):0, spMax=sp.length?Math.max(...sp.map(x=>x.pace)):1;
   const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i></div>`).join('');
+  /* 판정 — 색: 지킴 초록 · 애매 호박 · 벗어남 빨강 */
+  const vc=vd?(vd[1]==='ok'?'#1E9B5C':vd[1]==='bad'?'#D9412B':'#C98A00'):'#7A55B8';
+  const rows=(pr.rows||[]).map(x=>`<li class="${x[2]||''}"><i>${x[2]==='ok'?'✓':x[2]==='bad'?'✗':'·'}</i><span>${x[0]}</span><b>${x[1]}</b></li>`).join('');
+  let P={good:[],bad:[]}; if(!(opt&&opt.noPoints)){ try{ P=debriefPoints(r,s||{dist:0}); }catch(e){} }
+  const prow=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
+  /* 잘한 점은 위 약속↔결과 줄과 겹치므로 주의할 점만 */
+  const pts=P.bad.length?`<ul class="db-pts rv-pts">${P.bad.map(x=>prow(x,'bad')).join('')}</ul>`:(rows?'':(P.good.length?`<ul class="db-pts rv-pts">${P.good.map(x=>prow(x,'ok')).join('')}</ul>`:''));
+  const hero=`${vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':'약속 ↔ 결과'}</b>${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:''}
+    <div class="rbig"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
+    <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>${pts}`;
+  const chart=rvPaceHR(r), mv=moveStripHTML(moveSplit(r.track));
+  const hasMap=r.track&&r.track.length>3;
+  const bullets=rvBullets(reps,tgt);
+  const segSec=(bullets||segs||splits)?SEC('goal',reps.length>=2?'회차 · 목표 대비':'구간',reps.length>=2&&r.spread!=null?`회차 차이 ${r.spread}초`:'',
+      bullets+(segs||splits?`<details class="rv-tbl"${bullets?'':' open'}><summary>표로 보기</summary><div class="rcard rtabs"><div class="rtb">${segs?'<button type="button" class="on" data-rt="seg">구간</button>':''}${splits?`<button type="button"${segs?'':' class="on"'} data-rt="km">1km</button>`:''}</div>${segs?`<div data-rtp="seg">${sgf}<div class="sgh"><span>구간</span><span>km</span><span>시간</span><span>페이스</span><span>심박</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div></details>`:'')):'';
   host.innerHTML=`
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(r.title||T.nm||'')}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
-    ${vd?`<div class="dverd ${vd[1]==='ok'?'':vd[1]}">${vd[0]}</div>`:r.type==='free'?'<div class="dverd mid">그냥 뛰기 — 판정 없음</div>':''}
-    <div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div>
-    <div class="rmap"></div>
-    <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div>
-    <div class="rbig"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
-    <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>
-    ${(opt&&opt.noPoints)?'':(()=>{ let P={good:[],bad:[]}; try{ P=debriefPoints(r,s||{dist:0}); }catch(e){}
-      const row=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
-      return (P.good.length||P.bad.length)?`<div class="rcard"><ul class="db-pts">${P.good.map(x=>row(x,'ok')).join('')}${P.bad.map(x=>row(x,'bad')).join('')}</ul></div>`:''; })()}
+    ${SEC(vc,'오늘 결과','',hero)}
+    ${hasMap?SEC('train','경로','',`<div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div><div class="rmap"></div>
+      <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div>`):'<div class="rmap" hidden></div>'}
+    ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
     ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 존</summary>':''}
-    ${repsH?`<div class="rcard">${repsH}</div>`:''}
-    ${segs||splits?`<div class="rcard rtabs"><div class="rtb">${segs?'<button type="button" class="on" data-rt="seg">구간</button>':''}${splits?`<button type="button"${segs?'':' class="on"'} data-rt="km">1km</button>`:''}</div>${segs?`<div data-rtp="seg">${sgf}<div class="sgh"><span>구간</span><span>km</span><span>시간</span><span>페이스</span><span>심박</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div>`:''}
-    ${moveStripHTML(moveSplit(r.track))}
-    ${loadCard(r)}
+    ${segSec}
+    <div class="rsZones"></div>
+    ${loadCard(r)?SEC('rec','훈련 부하','',loadCard(r)):''}
     ${r.breath&&r.breath.length?`<div class="rcard"><div class="rh"><b>호흡 실험 · 구간별</b><span>1 힘듦~5 편함</span></div>
       ${r.breath.map((b,i)=>`<div class="bcomf"><b class="num">${b.ratio}</b><span style="font-size:11.5px;color:var(--ink-2)">${b.pace?fmtPace(b.pace):'—'} · ${b.hr?'♥'+b.hr:'심박 없음'}</span>
         <span><span class="cs">${[1,2,3,4,5].map(n=>`<button data-bc="${i}:${n}" class="${b.comfort===n?'on':''}">${n}</button>`).join('')}</span>
         <label><input type="checkbox" data-bs="${i}"${b.stitch?' checked':''}>결림</label></span></div>`).join('')}</div>`:''}
-    <div class="rsZones"></div>${r.rw?'</details>':''}
+    ${r.rw?'</details>':''}
         <div class="rs-snap">${snapBtn('#'+host.id,'result','훈련 결과','wide')}<button class="btn ghost" data-rs="share">꾸며서 공유</button></div>`;
-  paintZones(host.querySelector('.rsZones'),r.zones,T,r.zoneB);
+  { const zh=host.querySelector('.rsZones'); const tmp=document.createElement('div'); paintZones(tmp,r.zones,T,r.zoneB);
+    if(!tmp.hidden&&tmp.innerHTML){ const card=tmp.querySelector('.card'); zh.innerHTML=SEC('body','심박 존','',`<div class="rv-zw">${rvDonut(r.zones)}<div class="rv-zr">${card?card.innerHTML:tmp.innerHTML}</div></div>`); } else zh.hidden=true; }
   /* 지도 — 구간 색 / 페이스 색 */
   { const mh=host.querySelector('.rmap'), pcd=paceColored(r.track,r.splits), lg=host.querySelector('.rleg'), sw=host.querySelector('.mapsw');
     const setMode=m=>{ try{ localStorage.setItem('mapMode',m); }catch(e){}
