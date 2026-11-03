@@ -1229,7 +1229,6 @@ details.noti .sigc{margin:6px 0}
       <div class="row" style="margin:14px 0 4px">
         <button class="btn sm ghost" id="plRemake" style="margin:0">목표 · 일정 재설정</button>
         <button class="btn sm ghost" id="plPaste" style="margin:0">훈련 받아적기</button>
-        <button class="btn sm ghost" data-guide="" style="margin:0">훈련 원리</button>
       </div>
       <button class="btn sm ghost" id="plUndo" style="margin:8px 0 0" hidden>직전 일정 복원</button>
     </div>
@@ -1749,6 +1748,7 @@ details.noti .sigc{margin:6px 0}
 .tc-hd em{flex:none;font-style:normal;font-family:var(--num);font-size:12px;font-weight:700;color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);padding:4px 9px;border-radius:999px;max-width:120px;text-align:center}
 .tc-scn{display:block;width:100%;height:auto;aspect-ratio:320/100}
 .tc-key{padding:10px 14px 0}.tc-key span,.tc-chk span{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:var(--tc);padding:3px 9px;border-radius:999px}
+.tc-aim{display:flex;gap:8px;align-items:baseline;margin:0 14px 10px;font-size:12.5px;font-weight:700;color:var(--ink-2);line-height:1.5}.tc-aim b{flex:none;font-size:11px;font-weight:900;color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);border-radius:6px;padding:2px 7px}
 .tc-key b{display:block;font-size:15px;margin:0}.tc-key p{margin:0;font-size:12.5px;line-height:1.65;color:var(--ink-2)}
 .tc-chk{margin:8px 14px 10px;padding:0;background:none!important;border-radius:14px;background:color-mix(in srgb,var(--tc) 8%,transparent);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
 .tc-chk span{background:none;color:var(--tc);padding:0;width:100%;font-size:12px}
@@ -2180,6 +2180,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
   <button data-t="plan"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2zm12 7v10H5V9zM7.5 11v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2zm-8 4v2h2v-2zm4 0v2h2v-2z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2zm12 7v10H5V9zM7.5 11v2h2v-2zm4 0v2h2v-2zm4 0v2h2v-2zm-8 4v2h2v-2zm4 0v2h2v-2z\'/></svg>') center/contain no-repeat"></i>플랜</button>
   <button data-t="home" class="on"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M12 3 3 10.5V21h6v-6h6v6h6V10.5z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M12 3 3 10.5V21h6v-6h6v6h6V10.5z\'/></svg>') center/contain no-repeat"></i>홈</button>
   <button data-t="log"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M5 3h11l4 4v14a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zm2 7v2h10v-2zm0 4v2h10v-2zm0 4v2h6v-2z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M5 3h11l4 4v14a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zm2 7v2h10v-2zm0 4v2h10v-2zm0 4v2h6v-2z\'/></svg>') center/contain no-repeat"></i>러닝일지</button>
+  <button data-t="guide"><i style="mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M4 4h7a2 2 0 012 2v14a1 1 0 00-1-1H4zM20 4h-7a2 2 0 00-2 2v14a1 1 0 011-1h8z\'/></svg>') center/contain no-repeat;-webkit-mask:url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M4 4h7a2 2 0 012 2v14a1 1 0 00-1-1H4zM20 4h-7a2 2 0 00-2 2v14a1 1 0 011-1h8z\'/></svg>') center/contain no-repeat"></i>훈련 원리</button>
 </div>
 
 <script>
@@ -2188,7 +2189,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.48';
+const APPVER='19.49';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3803,7 +3804,7 @@ function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.togg
   const t=TABOF[id]||id;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   window.scrollTo(0,0);}
-const RENDER={home:()=>renderHome(),runtab:()=>renderRunTab(),plan:()=>renderPlan(),
+const RENDER={guide:()=>{ GUIDE_BACK='home'; renderGuide(); },home:()=>renderHome(),runtab:()=>renderRunTab(),plan:()=>renderPlan(),
   log:()=>renderLog(),settings:()=>renderTools(),alerts:()=>renderAlerts(),
   review:()=>renderReview()};
 function go(id){ (RENDER[id]||(()=>{}))(); show(id); }
@@ -10534,16 +10535,16 @@ function renderGuide(){
     threshold:'<path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/>',rep:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',stride:'<path d="M4 17h4l3-8 3 8h6"/><path d="M15 5l3 3-3 3"/>',
     tt:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',goalpace:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',buildup:'<path d="M3 18l6-6 4 4 8-9"/><path d="M15 7h6v6"/>'};
   const TM={
-    easy:['EASY RUN','이지런','#1E9B5C','편안한 러닝','대화 가능한 강도',['편하게','대화 가능','오래 지속']],
-    long:['LSD','롱런 · 엘에스디','#2F6FD0','긴 거리를 천천히','느리게 오래 → 지구력',['길게','천천히','지구력 향상']],
-    recovery:['RECOVERY RUN','회복런','#4A8FC9','힘든 다음 날, 가볍게','회복용 느린 조깅',['이지런보다 느리게','몸 풀기','빠르면 실패']],
-    interval:['INTERVAL','인터벌','#EE7A1E','빠르게 ↔ 회복 반복','빠름·회복 반복 → 속도·심폐↑',['빠르게','회복(천천히)','반복','회차 속도 고르게']],
-    threshold:['TEMPO RUN','템포런','#7A4CC2','힘들지만 유지 가능','이지런~전력 사이 속도',['이지런보다 빠르게','1시간 갈 속도','1회 20분']],
-    rep:['REPETITION','레페티션','#D9572B','짧게 아주 빠르게','1~2분 질주·휴식 반복 → 지구력↑',['아주 빠르게','힘 빼고','완전 휴식']],
-    stride:['STRIDES','스트라이드','#2C8FC0','20초 가속','쉬운 날 끝 짧은 가속',['20초','가볍게 빠르게','걸으며 회복']],
-    tt:['TIME TRIAL','TT','#CF3B36','실력 측정일','2km 힘껏 → 속도 재계산',['앞뒤는 천천히','가운데만 힘껏','4주마다']],
-    goalpace:['GOAL PACE','목표 속도로','#6E4BB0','대회 속도 익히기','목표 속도 구간 반복',['목표 속도','고르게','대회 느낌']],
-    buildup:['BUILD-UP RUN','빌드업 런','#1E8E7E','천천히 시작 → 점점 빠르게','천천히 → 점점 빠르게 · 뒷심↑ · 과속 방지',['천천히 시작','점점 빠르게','후반 가속']]
+    easy:['EASY RUN','이지런','#1E9B5C','편안한 러닝','대화 가능한 강도',['편하게','대화 가능','오래 지속'],'유산소 기초 · 모세혈관·미토콘드리아 · 회복력'],
+    long:['LSD','롱런 · 엘에스디','#2F6FD0','긴 거리를 천천히','느리게 오래 → 지구력',['길게','천천히','지구력 향상'],'지구력 · 지방 연료 사용 · 다리 내구성'],
+    recovery:['RECOVERY RUN','회복런','#4A8FC9','힘든 다음 날, 가볍게','회복용 느린 조깅',['이지런보다 느리게','몸 풀기','빠르면 실패'],'피로 회복 · 혈류 촉진 · 다음 훈련 준비'],
+    interval:['INTERVAL','인터벌','#EE7A1E','빠르게 ↔ 회복 반복','빠름·회복 반복 → 속도·심폐↑',['빠르게','회복(천천히)','반복','회차 속도 고르게'],'최대 산소 섭취(VO₂max) · 심폐 · 속도'],
+    threshold:['TEMPO RUN','템포런','#7A4CC2','힘들지만 유지 가능','이지런~전력 사이 속도',['이지런보다 빠르게','1시간 갈 속도','1회 20분'],'젖산 역치 · 빠른 속도 지속력'],
+    rep:['REPETITION','레페티션','#D9572B','짧게 아주 빠르게','1~2분 질주·휴식 반복 → 지구력↑',['아주 빠르게','힘 빼고','완전 휴식'],'러닝 이코노미 · 스피드 · 다리 반응'],
+    stride:['STRIDES','스트라이드','#2C8FC0','20초 가속','쉬운 날 끝 짧은 가속',['20초','가볍게 빠르게','걸으며 회복'],'폼·케이던스 · 신경 자극'],
+    tt:['TIME TRIAL','TT','#CF3B36','실력 측정일','2km 힘껏 → 속도 재계산',['앞뒤는 천천히','가운데만 힘껏','4주마다'],'현재 실력 확인 · 훈련 속도 재계산'],
+    goalpace:['GOAL PACE','목표 속도로','#6E4BB0','대회 속도 익히기','목표 속도 구간 반복',['목표 속도','고르게','대회 느낌'],'대회 속도 감각 · 페이스 유지력'],
+    buildup:['BUILD-UP RUN','빌드업 런','#1E8E7E','천천히 시작 → 점점 빠르게','천천히 → 점점 빠르게 · 뒷심↑ · 과속 방지',['천천히 시작','점점 빠르게','후반 가속'],'뒷심 · 페이스 조절 감각']
   };
   const tcard=(k,mine,body)=>{ const m=TM[k]; if(!m)return ''; const c=m[2];
     return `<article class="tc" id="gd-${k}" style="--tc:${c}">
@@ -10552,6 +10553,7 @@ function renderGuide(){
       <svg class="tc-scn" viewBox="0 0 320 130" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${SCN[k](c)}</svg>
       <div class="tc-key"><b>${m[3]}</b></div>
       <div class="tc-chk">${m[5].map(x=>`<i>${x}</i>`).join('')}</div>
+      ${m[6]?`<div class="tc-aim"><b>키우는 것</b><span>${m[6]}</span></div>`:''}
       ${body?`<details class="tc-more"><summary>계산 기준</summary><div class="gd-bd">${body}</div></details>`:''}</article>`; };
   const tr=(k,one,mine,body)=>tcard(k,mine,body);
   const types=[
