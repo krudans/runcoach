@@ -133,6 +133,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .bar h1{margin:0;font-size:15px;font-weight:600;flex:1 1 auto}
 .bar .sub{font-size:12px;color:var(--ink-3)}
 .pad{padding:18px;padding-bottom:40px}
+/* ═══ 영역(섹션) — 화면마다 같은 규칙: 색 막대 + 큰 제목 + 옅은 색 바탕. 목표=보라 · 훈련=초록 · 기록=금색 · 몸=파랑 · 분석=주황 */
+.sec{--sc:var(--accent);margin:14px 12px 0;padding:10px 6px 8px;border-radius:26px;background:color-mix(in srgb,var(--sc) 8%,var(--panel));border:1.5px solid color-mix(in srgb,var(--sc) 20%,transparent)}
+.pad .sec,#planSched .sec,#planGoals .sec{margin-left:0;margin-right:0}
+.sec-hd{display:flex;align-items:center;gap:9px;padding:2px 8px 6px;min-height:28px}.sec-hd::before{content:'';width:5px;height:19px;border-radius:3px;background:var(--sc);flex:none}
+.sec-hd b{font-size:17px;font-weight:900;color:color-mix(in srgb,var(--sc) 70%,var(--ink));letter-spacing:-.2px;white-space:nowrap}.sec-hd i{font-style:normal;font-size:11.5px;color:var(--ink-3);font-weight:700;margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec-hd .sec-act{margin-left:auto;border:0;background:var(--panel);color:var(--sc);font:inherit;font-size:12px;font-weight:800;border-radius:999px;padding:5px 11px;cursor:pointer}
+.sec>:not(.sec-hd){margin-left:0!important;margin-right:0!important}.sec>button.btn{width:100%!important}
+.sec>:not(.sec-hd)+:not(.sec-hd){margin-top:8px!important}
+.sec>.sec-hd+*{margin-top:0!important}
+.sec .rlog,.sec .wstrip,.sec .qrow,.sec .mygoal,.sec .tres{box-shadow:none}
+.sec .rlog{border-color:transparent}
 .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;
   background:rgba(255,255,255,.93);backdrop-filter:blur(12px);border-top:1px solid var(--line);
@@ -1221,11 +1232,11 @@ details.noti .sigc{margin:6px 0}
       <button data-p="races">대회 찾기</button>
     </div>
     <div id="planSched">
-      <div id="planHead"></div>
-      <div id="planTools"></div>
+      <section class="sec" style="--sc:#5B2D86"><div class="sec-hd"><b>목표</b></div><div id="planHead"></div></section>
+      <section class="sec" style="--sc:#1E9B5C"><div class="sec-hd"><b>일정</b></div><div id="planTools"></div>
       <div id="planGrid" hidden></div>
       <div id="dayList"></div>
-      <div id="planFoot"></div>
+      <div id="planFoot"></div></section>
       <div class="row" style="margin:14px 0 4px">
         <button class="btn sm ghost" id="plRemake" style="margin:0">목표 · 일정 재설정</button>
         <button class="btn sm ghost" id="plPaste" style="margin:0">훈련 받아적기</button>
@@ -1849,6 +1860,10 @@ details.noti .sigc{margin:6px 0}
 .gc-how{display:flex;gap:8px;align-items:baseline;margin-top:10px;font-size:12.5px}.gc-how span{flex:none;color:var(--ink-3);font-weight:700}.gc-how b{font-weight:700;color:var(--ink)}
 .gc-more{display:block;width:100%;margin-top:8px;border:none;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:800;padding:6px;cursor:pointer;text-align:center}
 .gc-lab{font-size:11.5px;font-weight:800;color:var(--ink-3);margin:16px 0 8px}
+.gsec{background:var(--panel);border-radius:20px;padding:14px 14px 16px;margin:18px 0 0;border:1.5px solid transparent}.gsec.rec{background:color-mix(in srgb,#F4B400 7%,var(--panel));border-color:color-mix(in srgb,#F4B400 35%,transparent)}
+.gsec-hd{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}.gsec-hd b{font-size:16px;font-weight:900}.gsec-hd i{font-style:normal;font-size:11.5px;color:var(--ink-3);font-weight:700}
+.gsec .gc-lab{margin:14px 0 8px}.gsec .gc-lab:first-of-type{margin-top:10px}.gl-empty{background:var(--panel-2);border-radius:12px;padding:14px;text-align:center;font-size:12.5px;color:var(--ink-3);font-weight:700;margin-top:8px}
+.sec .rl-hd b{font-size:0}.sec .rl-hd b::after{content:'거리별 최고';font-size:12.5px;color:#8A5A00}.sec .rl-add{color:#8A5A00}.gsec.rec .rl-hd b{color:#8A5A00}.gsec.rec .rl-add{color:#8A5A00}
 .gc-wk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end}.gc-wk>div{display:flex;flex-direction:column;align-items:center;gap:3px}.gw-bar{position:relative;display:block;width:100%;max-width:40px;height:64px}.gw-bar i{position:absolute;left:0;right:0;bottom:0;border-radius:7px 7px 0 0}.gw-bar i.pl,.gw-leg i.pl{background:color-mix(in srgb,var(--accent) 22%,transparent)}.gw-bar i.rn,.gw-leg i.rn{background:var(--accent)}.gw-bar i.rn{left:7px;right:7px}.gc-wk b small{font-size:10.5px;color:var(--ink-3);font-weight:600}.gw-leg{display:flex;gap:12px;justify-content:flex-end;font-size:10.5px;color:var(--ink-3);margin-top:6px}.gw-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}.gc-wk b{font-size:13px}.gc-wk span{font-size:10.5px;color:var(--ink-3)}
 .gc-mix{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.gc-mix span{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;background:var(--panel-2);padding:5px 9px;border-radius:999px}.gc-mix i{width:8px;height:8px;border-radius:50%;background:var(--c)}
 .gc-hist{width:100%;height:auto;display:block}.gc-hl{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-3);padding:0 8px}
@@ -2189,7 +2204,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.49';
+const APPVER='19.50';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3804,7 +3819,7 @@ function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.togg
   const t=TABOF[id]||id;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   window.scrollTo(0,0);}
-const RENDER={guide:()=>{ GUIDE_BACK='home'; renderGuide(); },home:()=>renderHome(),runtab:()=>renderRunTab(),plan:()=>renderPlan(),
+const RENDER={guide:()=>{ GUIDE_BACK='home'; renderGuide(); const b=$('gdBack'); if(b)b.style.visibility='hidden'; },home:()=>renderHome(),runtab:()=>renderRunTab(),plan:()=>renderPlan(),
   log:()=>renderLog(),settings:()=>renderTools(),alerts:()=>renderAlerts(),
   review:()=>renderReview()};
 function go(id){ (RENDER[id]||(()=>{}))(); show(id); }
@@ -8182,6 +8197,8 @@ function homeSignals(){
   }catch(e){ console.warn('homeSignals',e); }
   return sig; }
 function pendingCount(){ return homeSignals().length; }
+const SC={goal:'#5B2D86',train:'#1E9B5C',rec:'#C98A00',body:'#3B82C4',ana:'#D9731A'};
+function SEC(c,t,sub,inner,act){ if(!inner||!String(inner).trim())return ''; return `<section class="sec" style="--sc:${SC[c]||c}"><div class="sec-hd"><b>${t}</b>${act||''}${sub?`<i>${sub}</i>`:''}</div>${inner}</section>`; }
 function renderHome(){
   const today=todayStr(), d=new Date();
   $('tlDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${dowOf(today)}요일`;
@@ -8204,7 +8221,8 @@ function renderHome(){
 
   /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
   try{ glogCheck(); }catch(e){}
-  let h=noticeHTML()+goalCard(true)+mineStripHTML()+weekStrip();
+  let h=noticeHTML()+SEC('goal','목표','',goalCard(true)+mineStripHTML());
+  let hw=weekStrip();
   /* 몸 신호 · 못 한 날 · 물어볼 것 — 결정 카드로 */
   const sig=homeSignals();
   /* 알림 — 종의 숫자와 알림 페이지는 같은 목록(homeSignals)을 쓴다 */
@@ -8217,18 +8235,19 @@ function renderHome(){
 
   /* 오늘 카드 */
   const tR=todayRuns()[0], tDone=sess&&RUNS.some(x=>x.planId===sess.d);
-  if(tR&&(tDone||!sess||tR.planId)) h+=todayResultCard(RUNS.find(x=>sess&&x.planId===sess.d)||tR,sess);
-  else if(tR&&sess) h+=todayResultCard(tR,sess)+todayCard(sess,idx);
-  else if(sess) h+=todayCard(sess,idx);
-  else if(inP) h+=restCard(today);
-  else h+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
+  if(tR&&(tDone||!sess||tR.planId)) hw+=todayResultCard(RUNS.find(x=>sess&&x.planId===sess.d)||tR,sess);
+  else if(tR&&sess) hw+=todayResultCard(tR,sess)+todayCard(sess,idx);
+  else if(sess) hw+=todayCard(sess,idx);
+  else if(inP) hw+=restCard(today);
+  else hw+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
       <span class="tchip">일정 없음</span><div class="ttl">목표 설정 →<br>4주 일정 생성</div>
       <button class="tgo" id="hGoal">목표 설정</button></div></div>`;
 
   /* 계획 있는 날은 얇게, 계획 없는 사람은 크게. 쉬는 날은 쉬는 날 카드의 '그래도 뛰고 싶어요'가 맡는다 */
   /* 프리런 줄은 쉬는 날에도 늘 보인다 — 계획 없이 움직이는 것도 이 앱의 핵심이다 */
-  if(sess||inP) h+=quickGo(true); else h+=quickGo(false);
-  h+=rlogCard();   /* 대회 기록 — 오늘 훈련 아래 */
+  if(sess||inP) hw+=quickGo(true); else hw+=quickGo(false);
+  h+=SEC('train','이번 주 · 오늘',cur?`${cur.wk}주차`:'',hw);
+  h+=SEC('rec','내 기록','',rlogCard());   /* 대회 기록 — 오늘 훈련 아래 */
   /* 맨 아래 링크 줄은 뺐다 — 목표·일정 다시 짜기와 훈련 원리는 플랜 화면에 있다 */
   h+=`<div id="alertBox" hidden></div><div id="propBox" hidden></div>`;
   $('hMain').innerHTML=h;
@@ -9572,13 +9591,12 @@ function logSum(){
   const pkm=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=pa&&ldate(r.date).slice(0,10)<=pb).reduce((s,r)=>s+r.km,0);
   const easyKm=R.filter(r=>!isHardT(r.type)).reduce((s,r)=>s+r.km,0);
   return `<div class="per">${[['week','이번 주'],['month','이번 달'],['3m','3달'],['all','전체']].map(p=>`<button class="${LOGPER===p[0]?'on':''}" data-per="${p[0]}">${p[1]}</button>`).join('')}</div>
-    ${bodyLight()}
-    <div class="nums3"><div><i>달린 거리</i><b class="num">${km.toFixed(0)}<small>km</small></b><em>${LOGPER!=='all'&&pkm>0?`${pLab} ${km>=pkm?'+':''}${Math.round((km-pkm)/pkm*100)}%`:''}</em></div>
+    ${SEC('body','몸 상태','',bodyLight())}
+    ${SEC('train','달린 양',(perRange()[2]||''),`<div class="nums3"><div><i>달린 거리</i><b class="num">${km.toFixed(0)}<small>km</small></b><em>${LOGPER!=='all'&&pkm>0?`${pLab} ${km>=pkm?'+':''}${Math.round((km-pkm)/pkm*100)}%`:''}</em></div>
       <div><i>약속 지킴</i><b class="num">${kept}<small>/${tot}</small></b><em>쉬는 날 포함</em></div>
-      <div><i>달린 시간</i><b class="num">${Math.floor(sec/3600)}:${pad(Math.floor(sec%3600/60))}</b><em style="color:var(--ink-3)">시간:분</em></div></div>
-    ${calCard()}
-    ${weekBars()}
-    ${R.length?`<div class="small">천천히 ${km?Math.round(easyKm/km*100):0}% — 쉬운 날 80% 원칙 ${GRB('B')}</div>`:''}`;
+      <div><i>달린 시간</i><b class="num">${Math.floor(sec/3600)}:${pad(Math.floor(sec%3600/60))}</b><em style="color:var(--ink-3)">시간:분</em></div></div>`)}
+    ${SEC('goal','달력','',calCard())}
+    ${SEC('ana','훈련 구성','',weekBars()+(R.length?`<div class="small">천천히 ${km?Math.round(easyKm/km*100):0}% — 쉬운 날 80% 원칙 ${GRB('B')}</div>`:''))}`;
 }
 function calCard(){
   const t=todayStr(), t0=new Date(+t.slice(0,4),+t.slice(5,7)-1+CALOFF,1), y=t0.getFullYear(), m=t0.getMonth(), first=new Date(y,m,1), n=new Date(y,m+1,0).getDate();
@@ -10535,7 +10553,7 @@ function renderGuide(){
     threshold:'<path d="M4 16a8 8 0 1 1 16 0"/><path d="M12 16l4-5"/>',rep:'<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',stride:'<path d="M4 17h4l3-8 3 8h6"/><path d="M15 5l3 3-3 3"/>',
     tt:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',goalpace:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',buildup:'<path d="M3 18l6-6 4 4 8-9"/><path d="M15 7h6v6"/>'};
   const TM={
-    easy:['EASY RUN','이지런','#1E9B5C','편안한 러닝','대화 가능한 강도',['편하게','대화 가능','오래 지속'],'유산소 기초 · 모세혈관·미토콘드리아 · 회복력'],
+    easy:['EASY RUN','이지런','#1E9B5C','편안한 러닝','대화 가능한 강도',['편하게','대화 가능','오래 지속'],'유산소 기초 · 모세혈관 · 회복력'],
     long:['LSD','롱런 · 엘에스디','#2F6FD0','긴 거리를 천천히','느리게 오래 → 지구력',['길게','천천히','지구력 향상'],'지구력 · 지방 연료 사용 · 다리 내구성'],
     recovery:['RECOVERY RUN','회복런','#4A8FC9','힘든 다음 날, 가볍게','회복용 느린 조깅',['이지런보다 느리게','몸 풀기','빠르면 실패'],'피로 회복 · 혈류 촉진 · 다음 훈련 준비'],
     interval:['INTERVAL','인터벌','#EE7A1E','빠르게 ↔ 회복 반복','빠름·회복 반복 → 속도·심폐↑',['빠르게','회복(천천히)','반복','회차 속도 고르게'],'최대 산소 섭취(VO₂max) · 심폐 · 속도'],
@@ -10762,13 +10780,17 @@ function renderGuide(){
       <em class="gw-q">${e?`${tag(e.man)} 내 기준 ${e.mine}`:(r[5]||'수치 불가 · 기분 좋은 느낌')}</em>${e?`<span class="gw-edit">${open?'닫기':'✎ 수정'}</span>`:''}</${e?'button':'div'}>
       ${e&&open?`<div class="gw-ed" data-ed="${r[0]}">${seg(r[0],e.man)}${e.man?`<div class="gw-form">${e.form}<p class="gw-hint" id="gwHint"></p></div>`:e.auto}</div>`:''}</div>`; }).join('')}</div><div class="gw-band"></div>
       ${nMan?`<p class="gw-cap">직접 ${nMan}개 · 나머지 자동</p>`:''}</div>`;
-$('gdBody').innerHTML=`<div class="idline lite"><span class="idl-ic">🎧</span><div><b>가지런 · 내 기준 실시간 코칭</b><i>아래 = 기준</i></div></div><div class="gd-hero"><b>내 숫자</b></div><div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>기록 자동 입력 · 수정 가능</b><i>'수정' → 자동/직접</i></div></div>${watch}`+sec('훈련 종류',types)+`<div class="gd-sec"><h3>스트레칭</h3>${stretchCard('dyn')}${stretchCard('stat')}</div>`+`<details class="gd-all"><summary>계산 기준 전체</summary>${sec('기준 숫자',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`+
+$('gdBody').innerHTML=`<div class="idline lite"><span class="idl-ic">🎧</span><div><b>가지런 · 내 기준 실시간 코칭</b><i>아래 = 기준</i></div></div>`
+    +SEC('goal','내 숫자','기록 자동 · 수정 가능',`<div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>기록 자동 입력 · 수정 가능</b><i>'수정' → 자동/직접</i></div></div>${watch}`)
+    +SEC('train','훈련 종류','',`<div class="gd-sec" style="margin-top:0">${types.join('')}</div>`)
+    +SEC('body','스트레칭','',`<div class="gd-sec" style="margin-top:0">${stretchCard('dyn')}${stretchCard('stat')}</div>`)
+    +SEC('ana','계산 기준 전체','',`<details class="gd-all"><summary>펼쳐 보기</summary>${sec('기준 숫자',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`)+
     `<p class="gd-src" style="text-align:center;margin:18px 0 0">A 메타 · B 연구 · C 관행 · D 내 기록</p>`;
   try{ mineSync(); }catch(e){}
 }
 function openGuide(focus,back){
   GUIDE_BACK=back||(document.querySelector('.view.on')||{}).id||'home';
-  renderGuide(); show('guide');
+  renderGuide(); show('guide'); { const b=$('gdBack'); if(b)b.style.visibility=''; }
   const el=focus&&$('gd-'+focus);
   if(el){ el.open=true; setTimeout(()=>el.scrollIntoView({block:'start'}),50); } else window.scrollTo(0,0);
 }
@@ -12206,12 +12228,12 @@ function renderGoalsTab(){
     return `<div class="gc-lab">${lab} <small>${arr.length}개</small></div><ul class="gl-list">${show.map(item).join('')}</ul>${nav}`; };
   const L=GLOG.slice().reverse();
   let top=''; try{ top=goalModel()?goalCard(false):''; }catch(e){}
-  el.innerHTML=top+`<div class="gc-lab" style="margin-top:18px">목표 목록</div><div class="meta" style="margin:4px 0 12px;line-height:1.7">새 목표 → 기존 목표 <b>잠시 멈춤</b> · '이어가기' → 재개</div>
-    ${GLOG.length?'':'<div class="card tight meta">목표 없음</div>'}
+  el.innerHTML=top+`<section class="sec" style="--sc:#5B2D86"><div class="sec-hd"><b>목표 목록</b><i>새 목표 → 기존 목표 잠시 멈춤</i></div>
+    ${GLOG.length?'':'<div class="gl-empty">목표 없음</div>'}
     ${grp('진행 중',L.filter(x=>x.status==='active'),'act')}${grp('잠시 멈춤',L.filter(x=>x.status==='paused'),'pau')}${grp('끝난 목표',L.filter(x=>['done','missed','ended'].includes(x.status)),'end')}
-    <div style="margin-top:14px">${rlogCard()}</div>
-    <button type="button" class="btn ghost" id="glNew" style="margin-top:14px">새 목표 설정</button>
-    ${GLOG.length>5?`<div class="gl-pgset"><span>페이지당</span>${[5,10,20].map(n=>`<button type="button" class="${n===PG?'on':''}" data-glpgs="${n}">${n}개</button>`).join('')}</div>`:''}`;
+    ${GLOG.length>5?`<div class="gl-pgset"><span>페이지당</span>${[5,10,20].map(n=>`<button type="button" class="${n===PG?'on':''}" data-glpgs="${n}">${n}개</button>`).join('')}</div>`:''}
+    <button type="button" class="btn" id="glNew" style="margin-top:12px">＋ 새 목표 설정</button></section>
+    <section class="sec" style="--sc:#C98A00"><div class="sec-hd"><b>내 기록</b><i>대회·측정 — 목표와 별개</i></div>${rlogCard()}</section>`;
   const nb=$('glNew'); if(nb)nb.onclick=()=>goalStart();
 }
 document.addEventListener('click',e=>{
