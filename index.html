@@ -1228,6 +1228,8 @@ details.noti .sigc{margin:6px 0}
 .rc-meta{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin:4px 2px 10px}
 .rc-f{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.rc-f button{border:1px solid var(--line);background:var(--panel,#fff);border-radius:999px;padding:6px 11px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2)}.rc-f button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .rc-st button em{font-style:normal;font-size:11px;opacity:.6;margin-left:4px}.rc-st button.on em{opacity:.8}
+.ex-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}.ex-tabs button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}.ex-tabs button em{font-style:normal;font-size:11px;opacity:.6;margin-left:4px}.ex-tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.ex-tabs button.on em{opacity:.8}
+.ex-note{font-size:12.5px;color:var(--ink-3);line-height:1.5;margin:0 2px 10px}
 .rc-f+.rc-f{margin-top:-2px}
 .rc-f2{display:flex;gap:6px;margin-bottom:10px}.rc-f2 select,.rc-f2 input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;background:#fff}
 .rc-m{font-size:12px;font-weight:800;color:var(--ink-3);margin:14px 2px 6px}
@@ -2266,7 +2268,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.72';
+const APPVER='19.73';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8423,23 +8425,36 @@ function homeTiles(sess){ try{
     ['goal','목표',g?(dday!=null?(dday>=0?`D-${dday}`:'지남'):'설정됨'):'—',gl,'#5B2D86'],
     ['week','이번 주',W.pct!=null?`${W.pct}%`:(wkRuns.length?`${wkRuns.length}회`:'0회'),W.n?`훈련 ${W.done}/${W.n} · ${wkKm.toFixed(0)}km`:`${wkKm.toFixed(1)}km`,'#1E9B5C'],
     ['rec','내 기록',best?fmtClock(best.sec):'—',best?rlLab(best.m)+(best.date?' · '+best.date.slice(2).replace(/-/g,'.'):''):'대회·측정 기록','#C98A00'],
-    ['body','몸 상태',body[0],body[1],body[2]?'#C2410C':'#3B82C4'],
     ['basis','훈련 기준',`♥${D.cap}↓`,e?`이지 ${fmtPace(e.p[0])}~${fmtPace(e.p[1])}`:'','#D9731A'],
+    ['body','몸 상태',body[0],body[1],body[2]?'#C2410C':'#3B82C4'],
     ['mile','마일리지',fmtMile(M.total),`올해 ${fmtMile(M.year)}`,'#7A4CC2'],
-    ['warm','준비운동','3분','동적 6가지','#2F8F83'],
+    ['warm','운동법',(()=>{ try{ return `${['dyn','stat','str','core'].reduce((a,k)=>a+((STR[k]&&STR[k].moves.length)||0),0)}동작`; }catch(e){ return '22동작'; } })(),'준비 · 마무리 · 근력 · 코어','#2F8F83'],
     ['race','대회 찾기',nRace?`${nRace}개`:'›','다가오는 대회','#C2410C']];
   return `<div class="htiles">${tiles.map(x=>`<button type="button" class="htile" data-tile="${x[0]}" style="--tc:${x[4]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_IC[x[0]]}</svg><b>${x[1]}</b><strong class="num">${x[2]}</strong><i>${x[3]}</i></button>`).join('')}</div>`;
 }catch(e){ console.warn('tiles',e); return ''; } }
+/* 운동법 시트 — 몸으로 하는 운동만 한곳에: 준비(동적) · 마무리(정적) · 근력 · 코어. 처음 여는 탭은 오늘 상황대로 */
+var EX_TAB=null;
+function exerciseSheet(tab){
+  const t=todayStr();
+  if(!tab){ let ran=false, planned=false; try{ ran=dayKm(t)>0; planned=!!BLOCK.find(x=>x.d.slice(0,10)===t&&x.type!=='off'); }catch(e){}
+    tab=EX_TAB||(ran?'stat':planned?'dyn':'str'); }
+  EX_TAB=tab;
+  const TABS=[['dyn','준비운동'],['stat','마무리'],['str','근력'],['core','코어']];
+  return `<div class="ex-tabs">${TABS.map(([k,l])=>`<button type="button" data-extab="${k}" class="${tab===k?'on':''}">${l}<em>${STR[k].moves.length}</em></button>`).join('')}</div>
+    <div class="ex-note">${{dyn:'달리기 전 3분 — 멈추지 않고 움직이며 몸을 깨웁니다.',stat:'달리고 나서 — 한 자세를 천천히 버티며 풀어줍니다.',str:'쉬는 날이나 이지런 뒤 — 플랜의 근력 항목과 같은 구성입니다.',core:'짧게 자주 — 몸통을 잡아 주는 네 가지.'}[tab]}</div>
+    ${stretchCard(tab,{compact:false,id:'tileStr'})}`;
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-extab]'); if(!b)return; $('tileBody').innerHTML=exerciseSheet(b.dataset.extab); try{ wireHome(null,-1); }catch(err){} });
 function tileOpen(k){
   if(k==='basis')return openMine();
-  const title={goal:'목표',week:'이번 주 · 오늘',rec:'내 기록',body:'몸 상태',mile:'마일리지',warm:'준비운동',race:'대회 찾기'}[k]||'';
+  const title={goal:'목표',week:'이번 주 · 오늘',rec:'내 기록',body:'몸 상태',mile:'마일리지',warm:'운동법',race:'대회 찾기'}[k]||'';
   let body='';
   if(k==='body') body=logBody()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="log" data-logtab="body">기록에서 자세히</button></div>`;
   else if(k==='goal') body=goalCard(true)+mineStripHTML()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="plan">플랜 전체 보기</button><button type="button" class="btn ghost" data-mygoal="1">목표 고치기</button></div>`;
   else if(k==='week') body=weekStrip();
   else if(k==='rec') body=rlogCard();
   else if(k==='mile') body=mileCard();
-  else if(k==='warm') body=stretchCard('dyn',{compact:false,id:'tileStr'});
+  else if(k==='warm') body=exerciseSheet();
   else if(k==='race') body=`<div id="tileRaces" class="rc-host"></div>`;
   $('tileTitle').textContent=title; $('tileBody').innerHTML=body;
   const sh=$('tileSheet'); sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
