@@ -2160,6 +2160,10 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pe-days button:disabled{opacity:.35}
 .pe-other{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12px;color:var(--ink-3);margin-top:8px;white-space:nowrap}.pe-other input{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:9px;padding:5px 8px;background:var(--panel)}
 .pe-warn{font-size:12.5px;font-weight:700;color:#C2410C;margin:10px 2px 0}
+.obreq{font-size:10px;font-weight:800;color:#fff;background:var(--accent);border-radius:999px;padding:1px 6px;margin-left:4px;vertical-align:middle}
+#obNick,#obBy{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:12px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel)}
+.obconsent{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--ink-2)}.obconsent summary{font-weight:800;color:var(--ink);cursor:pointer}.obconsent p{margin:8px 0 0}.obconsent p b{color:var(--ink);margin-right:4px}
+.obchk.big{display:flex;align-items:flex-start;gap:10px;margin-top:12px;font-size:14px;font-weight:700;color:var(--ink);line-height:1.5}.obchk.big input{width:22px;height:22px;flex:none;margin-top:1px}
 .mh-why{font-size:13px;color:var(--ink-2);line-height:1.6;background:var(--panel);border-radius:12px;padding:10px 12px}.mh-why b{color:var(--accent)}
 .mh-prev{margin-top:12px;background:var(--panel);border-radius:12px;padding:11px 12px;font-size:14px;line-height:1.7;color:var(--ink)}.mh-prev span{font-size:12.5px;color:var(--ink-3)}.mh-prev i{font-style:normal;font-size:12px;color:#C2410C}.mh-prev.dim{color:var(--ink-3);font-size:12.5px}
 #mhBody .btn[disabled]{opacity:.4}
@@ -2266,7 +2270,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.83';
+const APPVER='19.84';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3036,7 +3040,8 @@ async function usagePing(force){ if(!usageOn())return; try{
     const F={last:new Date(),ver:APPVER,plat,pwa:!!(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||!!navigator.standalone,
       onb:!!DEV.store.get('onboarded',false),goal:g.kind||null,gm:g.m||null,gdate:g.date?String(g.date).slice(0,10):null,
       runs:R.length,km:Math.round(R.reduce((a,r)=>a+(+r.km||0),0)),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null,
-      email:(FB&&FB.user&&FB.user.email)||(ACCT&&ACCT.email)||null,uid:(FB&&FB.user&&FB.user.uid)||(ACCT&&ACCT.uid)||null};
+      email:(FB&&FB.user&&FB.user.email)||(ACCT&&ACCT.email)||null,uid:(FB&&FB.user&&FB.user.uid)||(ACCT&&ACCT.uid)||null,
+      nick:PROF.nick||null,by:PROF.by||null,sex:PROF.sex||null,consent:(()=>{ const c=DEV.store.get('consent',null); return c&&c.at?new Date(c.at):null; })()};
     if(isNew||!localStorage.getItem('rc_usageFirst')){ F.first=new Date(); }
     const fields={}; Object.entries(F).forEach(([k,v])=>fields[k]=fsEnc(v));
     const mask=Object.keys(F).map(k=>'updateMask.fieldPaths='+k).join('&');
@@ -6497,6 +6502,7 @@ function obStart(again){
   /* 처음 쓰는 사람에게는 비어 있어야 한다 — 남의 기록이 기본값으로 들어가면 안 된다 */
   const had=DEV.store.get('prof',null), r=(had&&had.race)||null;
   OB={i:0,d:Object.assign({
+    nick: had?(PROF.nick||''):'', by: had?(PROF.by||(PROF.birth?+String(PROF.birth).slice(0,4):null)):null, agree: !!DEV.store.get('consent',null),
     birth: had?PROF.birth:null, sex: had?PROF.sex:null, age: had?PROF.age:null, w: had?PROF.w:null, rhr: had?PROF.rhr:null,
     rd: r?r.m:0, rt: r?r.sec:null, rk: r?(r.kind||'race'):'race'
   },SURVEY)};
@@ -6513,7 +6519,70 @@ function obTags(key,multi){
     `<button type="button" class="obopt${OB.d[key]===x.v?' on':''}" data-v="${x.v}">${x.l}</button>`
   ).join('')+`</div>`;
 }
+const CONSENT_VER='2026-11-05';
+const nickKey=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,'');
+/* 별명 중복 확인 — 서버의 nicks/{별명} 문서. 내 기기(iid)나 내 계정(uid)이 가진 별명이면 통과. 인터넷이 없으면 확인 못 함(그대로 진행) */
+async function nickCheck(){ const d=OB.d, nick=String(d.nick||'').trim(), key=nickKey(nick), note=$('obNickNote');
+  if(!key||key.length<2)return '별명은 2~12자';
+  if(d.nickOk===key)return true;
+  const iid=localStorage.getItem('rc_iid')||'', uid=(FB&&FB.user&&FB.user.uid)||'';
+  if(note){ note.textContent='확인 중…'; note.style.color=''; }
+  try{ const r=await fetch(`${FSR}/nicks/${encodeURIComponent(key)}?key=${FSKEY}`,{cache:'no-store'});
+    if(r.status===404){ d.nickOk=key; if(note){ note.textContent='쓸 수 있는 별명이에요 ✓'; note.style.color='var(--ok,#1E9B5C)'; } return true; }
+    if(r.ok){ const j=await r.json(), f=j.fields||{}, oi=f.iid&&f.iid.stringValue, ou=f.uid&&f.uid.stringValue;
+      if((oi&&oi===iid)||(ou&&uid&&ou===uid)){ d.nickOk=key; if(note){ note.textContent='내 별명이에요 ✓'; note.style.color='var(--ok,#1E9B5C)'; } return true; }
+      if(note){ note.textContent='이미 다른 사람이 쓰는 별명이에요'; note.style.color='var(--alarm)'; } return '이미 쓰는 별명이에요 — 다른 별명을 골라 주세요'; }
+  }catch(e){}
+  d.nickOk=key; if(note){ note.textContent='지금은 중복 확인을 못 했어요(인터넷) — 나중에 다시 확인'; note.style.color=''; } return true; }
+/* 별명 예약 — 처음 만들 때만 성공(이미 있으면 규칙이 막음). 실패해도 앱은 진행 */
+async function nickReserve(nick){ try{ const key=nickKey(nick); if(!key)return; const iid=localStorage.getItem('rc_iid')||'', uid=(FB&&FB.user&&FB.user.uid)||null;
+    const fields={iid:fsEnc(iid),at:fsEnc(new Date())}; if(uid)fields.uid=fsEnc(uid);
+    await fetch(`${FSR}/nicks?documentId=${encodeURIComponent(key)}&key=${FSKEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})}); }catch(e){} }
+function saveBasics(d){ PROF=Object.assign({},PROF,{nick:String(d.nick||'').trim(),by:d.by||PROF.by||null,sex:d.sex||PROF.sex||null});
+  if(PROF.by&&!PROF.birth)PROF.birth=`${PROF.by}-07-01`;
+  if(PROF.birth){ const a=ageOf(PROF.birth); if(a)PROF.age=a; }
+  DEV.store.set('prof',PROF);
+  if(d.agree&&!DEV.store.get('consent',null))DEV.store.set('consent',{at:new Date().toISOString(),ver:CONSENT_VER});
+  nickReserve(PROF.nick); try{ usagePing(true); }catch(e){} }
 const OBSTEP=[
+ /* 0 ─ 기본 정보 · 개인정보 동의 */
+ {q:'먼저 기본 정보를<br>알려주세요',
+  s:'별명 · 태어난 해 · 성별 — 코칭 기준과 기록에 쓰여요',
+  body(){ const d=OB.d, Y=+todayStr().slice(0,4);
+    return `<div class="oblab">별명 <span class="obreq">필수</span></div>
+      <input type="text" id="obNick" maxlength="12" placeholder="2~12자 · 다른 사람과 겹치면 안 돼요" value="${ESC(d.nick||'')}" autocomplete="nickname">
+      <div class="meta" id="obNickNote" style="margin-top:6px;min-height:18px"></div>
+      <div class="oblab">태어난 해 <span class="obreq">필수</span></div>
+      <select id="obBy"><option value="">선택</option>${Array.from({length:Y-10-1939},(_,i)=>Y-10-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}</select>
+      <div class="meta" style="margin-top:6px">최대심박 추정(208 − 0.7 × 나이)에 씁니다</div>
+      <div class="oblab">성별 <span class="obreq">필수</span></div>
+      <div class="tagrow" id="obSex0" style="margin:0">
+        <button type="button" class="tag${d.sex==='m'?' on':''}" data-v="m">남</button>
+        <button type="button" class="tag${d.sex==='f'?' on':''}" data-v="f">여</button>
+        <button type="button" class="tag${d.sex==='x'?' on':''}" data-v="x">선택 안 함</button></div>
+      <div class="oblab" style="margin-top:18px">개인정보 수집·이용 동의 <span class="obreq">필수</span></div>
+      <details class="obconsent"><summary>어떤 정보를, 왜, 어디에 두는지</summary>
+        <p><b>수집 항목</b> 별명 · 태어난 해 · 성별 · 체중/안정 심박(입력 시) · 달리기 기록(거리·시간·페이스·심박·경로) · 기기 종류·앱 버전 · 구글 로그인 시 이메일</p>
+        <p><b>이용 목적</b> 훈련 기준(심박·페이스) 계산, 기록 보관과 통계, 앱 사용 현황 파악과 공지</p>
+        <p><b>보관 위치·기간</b> 기본은 이 폰 안에만 저장. 구글 계정으로 로그인하면 Firebase(구글 클라우드)에 동기화. 삭제를 요청하거나 설정 › 내 정보에서 지우면 즉시 삭제</p>
+        <p><b>제공</b> 제3자에게 제공하지 않음. 별명은 중복 확인을 위해 서버에 저장</p>
+        <p><b>동의 철회</b> 설정 › 내 정보 › 데이터 지우기. 철회하면 앱의 코칭 기능을 쓸 수 없음</p>
+        <p class="meta">고지 버전 ${CONSENT_VER}</p></details>
+      <label class="obchk big"><input type="checkbox" id="obAgree"${d.agree?' checked':''}> <span>위 내용을 읽었고 개인정보 수집·이용에 동의합니다</span></label>`; },
+  wire(){ const n=$('obNick'); n.oninput=()=>{ OB.d.nick=n.value; OB.d.nickOk=null; $('obNickNote').textContent=''; };
+    n.onchange=()=>nickCheck();
+    $('obBy').onchange=e=>{ OB.d.by=+e.target.value||null; };
+    $('obSex0').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return; OB.d.sex=b.dataset.v; $('obSex0').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); };
+    $('obAgree').onchange=e=>{ OB.d.agree=e.target.checked; }; },
+  read(){ const n=$('obNick'); if(n)OB.d.nick=n.value; const b=$('obBy'); if(b)OB.d.by=+b.value||null; const a=$('obAgree'); if(a)OB.d.agree=a.checked; },
+  async ok(){ const d=OB.d, nick=String(d.nick||'').trim();
+    if(nick.length<2||nick.length>12)return {m:'별명은 2~12자',f:'obNick'};
+    if(!/^[가-힣A-Za-z0-9_\-. ]+$/.test(nick))return {m:'별명은 한글·영문·숫자만',f:'obNick'};
+    if(!d.by)return {m:'태어난 해를 골라 주세요',f:'obBy'};
+    if(!d.sex)return {m:'성별을 골라 주세요',f:'obSex0'};
+    if(!d.agree)return {m:'개인정보 동의가 필요해요',f:'obAgree'};
+    const r=await nickCheck(); if(r!==true)return {m:r,f:'obNick'};
+    return true; }},
  /* 1 ─ 설문 */
  {q:'요즘 얼마나<br>달리나요?',
   s:'실력 아닌 <b>달리는 양</b>',
@@ -6537,16 +6606,8 @@ const OBSTEP=[
   body(){ const d=OB.d;
     return `<div class="oblab">몸</div>
       <div class="row">
-        <div style="flex:1.4"><div class="meta">생년월일</div><input type="date" id="obBirth" value="${d.birth||''}" max="${todayStr()}"></div>
-        <div><div class="meta">체중 kg</div><input type="number" id="obW" inputmode="decimal" value="${d.w||''}"></div>
-      </div>
-      <div class="row" style="margin-top:8px">
+        <div><div class="meta">체중 kg <span style="opacity:.7">(선택)</span></div><input type="number" id="obW" inputmode="decimal" value="${d.w||''}"></div>
         <div><div class="meta">안정 심박 <span style="opacity:.7">(모르면 비움)</span></div><input type="number" id="obRHR" inputmode="numeric" value="${d.rhr||''}"></div>
-        <div><div class="meta">성별 <span style="opacity:.7">(선택)</span></div>
-          <div class="tagrow" id="obSex" style="margin:0">
-            <button type="button" class="tag${d.sex==='m'?' on':''}" data-v="m">남</button>
-            <button type="button" class="tag${d.sex==='f'?' on':''}" data-v="f">여</button>
-            <button type="button" class="tag${d.sex==='x'?' on':''}" data-v="x">무응답</button></div></div>
       </div>
       <div class="meta" style="margin-top:6px;line-height:1.6" id="obHrNote"></div>
       <div class="oblab">최근 기록</div>${obTags('rd')}
@@ -6582,8 +6643,6 @@ const OBSTEP=[
   wire(){
     ['obW','obRHR'].forEach(id=>{ const el=$(id); if(!el)return;
       el.oninput=()=>{ const k={obW:'w',obRHR:'rhr'}[id]; OB.d[k]=+el.value||null; }; });
-    $('obSex').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return;
-      OB.d.sex=b.dataset.v; $('obSex').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); paintHr(); };
     const paintRT=()=>{ const o=$('obRTout'); if(!o)return;
       const hh=+($('obRTh')||{}).value||0, m=+($('obRTm')||{}).value||0, sx=+($('obRTs')||{}).value||0;
       const t=hh*3600+m*60+sx;
@@ -6594,11 +6653,11 @@ const OBSTEP=[
     ['obRTh','obRTm','obRTs'].forEach(id=>{ const el=$(id); if(el)el.oninput=()=>{
       OB.d.rt=null; paintRT(); }; });
     paintRT();
-    function paintHr(){ const b=$('obBirth').value; OB.d.birth=b||null; const a=ageOf(b);
+    function paintHr(){ if(!OB.d.birth&&OB.d.by)OB.d.birth=`${OB.d.by}-07-01`; const a=ageOf(OB.d.birth);
       $('obHrNote').innerHTML=a?`만 ${a}세 · 최대심박 <b>${estHrMax(a)}</b> (208 − 0.7 × 나이). `+
         `오차 ±10 · 실측이 높으면 대체`+
         (OB.d.sex==='f'?`<br>여성은 더 낮음(${Math.round(206-0.88*a)}) · 실측 최선`:''):''; }
-    $('obBirth').oninput=paintHr; paintHr();
+    paintHr();
     $('obRK').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return;
       OB.d.rk=b.dataset.v; $('obRK').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); };
     $('obBody').querySelectorAll('[data-f]').forEach(c=>c.onchange=()=>{
@@ -6668,6 +6727,7 @@ function obPaint(){
   $('obBody').innerHTML=st.body();
   $('obNext').textContent=st.next||'다음';
   $('obBack').hidden=OB.i===0;
+  { const sk=$('obSkip'); if(sk)sk.hidden=(OB.i===0); }
   $('obHint').hidden=true;
   { const nv=$('obNovice'); if(nv)nv.onclick=()=>{ OB.d.novice=!OB.d.novice; if(OB.d.novice)Object.assign(OB.d,{freq:0.5,per:2.5,long:4}); obPaint(); }; }
   $('obBody').querySelectorAll('.obgrid[data-k]').forEach(g=>{
@@ -6729,17 +6789,19 @@ async function afterLogin(){
   }
 }
 $('obSkip').onclick=()=>{
+  if(OB.i===0||!DEV.store.get('consent',null)){ obHint('기본 정보와 개인정보 동의는 건너뛸 수 없어요','obAgree'); return; }
   DEV.store.set('onboarded',true);
   renderHome(); go('home');
   setTimeout(()=>alert('설문 없이 시작\n\n입력하면 정확'),80);
 };
 $('obBack').onclick=()=>{ const st=OBSTEP[OB.i]; if(st.read)try{st.read();}catch(e){}
   if(OB.i>0){ OB.i--; obPaint(); } };
-$('obNext').onclick=()=>{
-  const st=OBSTEP[OB.i];
+$('obNext').onclick=async()=>{
+  const st=OBSTEP[OB.i], btn=$('obNext');
   if(st.read)try{ st.read(); }catch(e){}
-  const v=st.ok?st.ok():true;
+  btn.disabled=true; let v=true; try{ v=st.ok?await st.ok():true; }finally{ btn.disabled=false; }
   if(v!==true)return obHint(v.m||v, v.f);
+  if(OB.i===0){ saveBasics(OB.d); if(OB.only){ OB.only=false; renderHome(); go('home'); toast('기본 정보 저장'); return; } }
   if(OB.i<OBSTEP.length-1){ OB.i++; obPaint(); return; }
   obFinish();
 };
@@ -6750,7 +6812,7 @@ function obFinish(){
     days:(d.days||[]).slice(),twd:d.twd,twe:d.twe,f:d.f||{},
     gpxN:d.gpxN||0,at:todayStr()};
   DEV.store.set('survey',SURVEY);
-  PROF=Object.assign({},PROF,{ birth:d.birth||null, sex:d.sex||null, age:ageOf(d.birth)||d.age, w:d.w, rhr:d.rhr||null,
+  PROF=Object.assign({},PROF,{ nick:String(d.nick||PROF.nick||'').trim(), by:d.by||PROF.by||null, birth:d.birth||(d.by?`${d.by}-07-01`:null), sex:d.sex||null, age:ageOf(d.birth||(d.by?`${d.by}-07-01`:null))||d.age, w:d.w, rhr:d.rhr||null,
     hrmaxSrc: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? 'measured' : 'estimated',
     hrmax: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? PROF.hrmax : estHrMax(d.age),
     race: d.rd&&d.rt ? {m:d.rd,sec:d.rt,kind:d.rk||'race',at:(PROF.race&&PROF.race.m===d.rd&&PROF.race.sec===d.rt&&d.rw==null)?(PROF.race.at||todayStr()):addDays(todayStr(),-7*(+d.rw||0))} : PROF.race });   /* '언제'(주 단위)를 기록 날짜에 반영 — 오늘로 적으면 옛 기록이 지금 실력이 된다 */
@@ -10669,6 +10731,7 @@ function goalBadge(){
     else { const er=$('introErr'); if(er){ er.textContent='로그인 실패 · 재시도'; er.style.display='block'; } }
   }).catch(()=>{});
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
+  else if(!DEV.store.get('consent',null)){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 기본 정보·동의 한 번 */
   splashRun();
   setTimeout(()=>{ try{ noticeLoad(); }catch(e){} try{ usagePing(); }catch(e){} const u=$('usageOpt'); if(u)u.checked=usageOn(); },1500);   /* 공지·사용 현황 — 화면이 뜬 뒤 조용히 */
 })();
