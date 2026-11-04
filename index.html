@@ -832,6 +832,9 @@ details.noti .sigc{margin:6px 0}
 .hero-links button{background:none;border:none;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2);padding:6px 2px;cursor:pointer}
 .hero .tdist{background:var(--bg)}.hero .tdist button{background:var(--panel);color:var(--ink)}.hero .tdist button.ok{background:var(--accent);color:#fff}
 /* 그냥 뛰기 줄 */
+.htiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 16px 0}.htile{background:var(--panel);border:1.5px solid var(--line);border-radius:18px;padding:12px 4px 10px;text-align:center;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}.htile svg{width:26px;height:26px;color:var(--tc)}.htile b{font-size:12.5px;font-weight:800;margin-top:3px}.htile strong{font-size:15px;font-weight:900;color:var(--tc);white-space:nowrap}.htile i{font-style:normal;font-size:10px;color:var(--ink-3);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nxrow{width:calc(100% - 32px);text-align:left;font:inherit;color:var(--ink);cursor:pointer;border:1.5px solid var(--line)}.nxrow .nx-go{margin-left:auto;color:var(--ink-3);font-size:18px}
+#tileBody .sec{margin:0}#tileBody .tcard,#tileBody .hc{margin-left:0;margin-right:0}
 .qrow{display:flex;align-items:center;gap:6px;margin:12px 16px 0;padding:10px 12px;background:var(--panel);border-radius:18px;border:1.5px solid color-mix(in srgb,var(--accent) 35%,transparent)}
 .qrow>span{font-size:13.5px;font-weight:800;color:var(--accent);flex:none;margin-right:4px}
 .qr-a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;color:var(--accent);font:inherit;cursor:pointer;min-height:48px;padding:4px 0;border-radius:12px}
@@ -1452,6 +1455,8 @@ details.noti .sigc{margin:6px 0}
   <button type="button" data-m="prev" aria-label="이전 곡"></button><button type="button" data-m="toggle" class="md-p" aria-label="재생/일시정지"></button><button type="button" data-m="next" aria-label="다음 곡"></button>
   <button type="button" data-mhalt="1" class="md-x" aria-label="음악 끄기">✕</button></div>
 <div class="msheet dbs" id="dbSheet" hidden><div class="ms-card db-card0" role="dialog" aria-label="오늘 훈련 디브리핑"><div class="ms-hd"><b>훈련 돌아보기</b></div><div id="dbBody"></div></div></div>
+<div class="msheet" id="tileSheet" hidden><div class="ms-card" role="dialog" aria-label="홈 항목">
+  <div class="ms-hd"><b id="tileTitle"></b><button type="button" id="tileClose" aria-label="닫기">✕</button></div><div id="tileBody"></div></div></div>
 <div class="msheet" id="peSheet" hidden><div class="ms-card" role="dialog" aria-label="훈련 고치기">
   <div class="ms-hd"><b>훈련 수정</b><button type="button" id="peClose" aria-label="닫기">✕</button></div><div id="peBody"></div></div></div>
 <div class="msheet" id="paSheet" hidden><div class="ms-card" role="dialog" aria-label="플랜 전체 고치기">
@@ -2247,7 +2252,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.67';
+const APPVER='19.68';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8344,40 +8349,81 @@ function renderHome(){
   /* 연속 배지는 위 날짜 줄로 — 로고 줄이 흔들리지 않게 */
   try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}`:''; } }catch(e){}
 
-  /* 순서: 목표(한 줄 + 레인) → 이번 주(막대 띠) → 오늘(큰 카드) */
+  /* 홈 v2 — 순서: 알림 → 프리런 줄(늘 맨 위) → 오늘 카드 → 다음 훈련 한 줄 → 아이콘 타일(나머지는 전부 타일 → 시트) */
   try{ glogCheck(); }catch(e){}
-  let h=noticeHTML()+SEC('goal','목표','',goalCard(true)+mineStripHTML());
-  let hw=weekStrip();
-  /* 몸 신호 · 못 한 날 · 물어볼 것 — 결정 카드로 */
+  let h=noticeHTML();
   const sig=homeSignals();
-  /* 알림 — 종의 숫자와 알림 페이지는 같은 목록(homeSignals)을 쓴다 */
   paintBell(sig.length);
   if(sig.length===1) h=`<button type="button" class="noti1" data-sig="${sig[0][0]}"><span class="noti-dot" aria-hidden="true"></span><b>${ESC(sig[0][1])}</b><span class="sig-go">결정</span></button>`+h;
   else if(sig.length) h=`<details class="noti"><summary aria-label="새 알림 ${sig.length}개"><span class="noti-dot" aria-hidden="true"></span><b>알림 ${sig.length}</b><span class="noti-first">${ESC(sig[0][1])}</span><span class="noti-chev" aria-hidden="true">›</span></summary>
     ${('Notification' in window)&&Notification.permission==='default'?`<button type="button" class="noti-perm" id="notiPerm">휴대폰 알림 받기</button>`:''}
-    ${sig.map(s=>`<button class="sigc" data-sig="${s[0]}"><i class="sig-ic" aria-hidden="true">!</i><span class="sig-t"><b>${ESC(s[1])}</b></span><span class="sig-go">결정</span></button>`).join('')}</details>`+h;   /* 알림은 목표보다 위 — 맨 먼저 보이게 */
+    ${sig.map(s=>`<button class="sigc" data-sig="${s[0]}"><i class="sig-ic" aria-hidden="true">!</i><span class="sig-t"><b>${ESC(s[1])}</b></span><span class="sig-go">결정</span></button>`).join('')}</details>`+h;
   sysNotify(sig);
-
-  /* 오늘 카드 */
+  /* 1. 프리런 줄 — 계획이 있든 없든 맨 위, 같은 모양 */
+  h+=quickGo(true);
+  /* 2. 오늘 카드 */
+  let hw='';
   const tR=todayRuns()[0], tDone=sess&&RUNS.some(x=>x.planId===sess.d);
   if(tR&&(tDone||!sess||tR.planId)) hw+=todayResultCard(RUNS.find(x=>sess&&x.planId===sess.d)||tR,sess);
   else if(tR&&sess) hw+=todayResultCard(tR,sess)+todayCard(sess,idx);
   else if(sess) hw+=todayCard(sess,idx);
   else if(inP) hw+=restCard(today);
   else hw+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
-      <span class="tchip">일정 없음</span><div class="ttl">목표 설정 →<br>4주 일정 생성</div>
-      <button class="tgo" id="hGoal">목표 설정</button></div></div>`;
-
-  /* 계획 있는 날은 얇게, 계획 없는 사람은 크게. 쉬는 날은 쉬는 날 카드의 '그래도 뛰고 싶어요'가 맡는다 */
-  /* 프리런 줄은 쉬는 날에도 늘 보인다 — 계획 없이 움직이는 것도 이 앱의 핵심이다 */
-  if(sess||inP) hw+=quickGo(true); else hw+=quickGo(false);
-  h+=SEC('train','이번 주 · 오늘',cur?`${cur.wk}주차`:'',hw);
-  h+=SEC('rec','내 기록','',rlogCard());   /* 대회 기록 — 오늘 훈련 아래 */
-  /* 맨 아래 링크 줄은 뺐다 — 목표·일정 다시 짜기와 훈련 원리는 플랜 화면에 있다 */
+      <span class="tchip">아직 계획 없음</span><div class="ttl">그냥 뛰어도<br>됩니다</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">기록이 3번 쌓이면 내 페이스·심박으로 목표를 제안해요</div>
+      <button class="tgo" id="hGoal">목표 세우기</button></div></div>`;
+  /* 3. 다음 훈련 한 줄 (훈련 날·계획 없는 날 — 쉬는 날 카드는 자체에 있음) */
+  if(sess||!inP){ const nx=BLOCK.find(x=>x.d.slice(0,10)>today&&x.type!=='off'); if(nx) hw+=`<button type="button" class="hc slim nxrow" data-nx="${nx.d}"><span class="nxic" style="background:${(LOOK[nx.type]||LOOK.free).bg}"></span><div><b>${dowOf(nx.d)}요일 · ${ESC(nx.t)}</b></div><span class="nx-go">›</span></button>`; }
+  h+=hw;
+  /* 4. 아이콘 타일 — 목표 · 이번 주 · 내 기록 · 몸 상태 · 훈련 기준 · 마일리지 · 준비운동 · 대회 찾기 */
+  h+=homeTiles(sess);
   h+=`<div id="alertBox" hidden></div><div id="propBox" hidden></div>`;
   $('hMain').innerHTML=h;
   wireHome(sess,idx);
 }
+/* 홈 타일 — 숫자 하나씩. 누르면 예전 홈 카드가 시트로 열린다 */
+const TILE_IC={goal:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',week:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',rec:'<path d="M4 20v-9M10 20V5M16 20v-7M21 20H3"/>',body:'<path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/>',basis:'<path d="M3 12h4l2-6 4 12 2-6h6"/>',mile:'<circle cx="12" cy="15" r="5"/><path d="M8.5 3l3.5 7M15.5 3L12 10"/>',warm:'<circle cx="12" cy="4" r="1.6"/><path d="M12 7v6M12 13l-3 7M12 13l3 7M12 9l-4 1M12 9l4 1"/>',race:'<path d="M5 21V4h11l-2 4 2 4H5"/>'};
+function homeTiles(sess){ try{
+  const g=(PLAN&&PLAN.goal)||GOAL, t=todayStr();
+  const dday=g&&g.date?Math.round((Date.parse(g.date.slice(0,10)+'T00:00:00')-Date.parse(t+'T00:00:00'))/864e5):null;
+  const gl=g?(g.kind==='aero'?'편한 달리기':g.kind==='custom'?'직접 세운 목표':g.m?`${gdLabel(g.m)}${g.sec?' '+fmtClock(g.sec):''}`:'목표'):'목표 없음';
+  weekStrip();   /* WEEK_PCT 갱신 */
+  const W=WEEK_PCT, wkRuns=RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===weekMonday(t)), wkKm=wkRuns.reduce((a,r)=>a+(+r.km||0),0);
+  const pb=rlogPB(), best=pb[5000]||pb[10000]||pb[21097]||pb[42195], bestLab=best?`${rlLab(best.m)} ${fmtClock(best.sec)}`:'기록 없음';
+  const D=mineData(), e=D.L.find(x=>x.nm==='이지');
+  const body=(()=>{ const n=(!sigSeen('jump',7)&&jumpAlert()?1:0)+(!sigSeen('rhr',1)&&rhrAlert()?1:0)+(!sigSeen('drift',7)&&driftAlert()?1:0); return n?['점검 '+n,'눌러 확인','warn']:['좋음',(rhrBase()?'아침 심박 ':'')+'정상','']; })();
+  const M=mileage();
+  const nRace=(()=>{ try{ return (RACES&&RACES.races||[]).filter(x=>x.date&&x.date.slice(0,10)>=t).length; }catch(e){ return 0; } })();
+  const tiles=[
+    ['goal','목표',g?(dday!=null?(dday>=0?`D-${dday}`:'지남'):'설정됨'):'—',gl,'#5B2D86'],
+    ['week','이번 주',W.pct!=null?`${W.pct}%`:(wkRuns.length?`${wkRuns.length}회`:'0회'),W.n?`훈련 ${W.done}/${W.n} · ${wkKm.toFixed(0)}km`:`${wkKm.toFixed(1)}km`,'#1E9B5C'],
+    ['rec','내 기록',best?fmtClock(best.sec):'—',best?rlLab(best.m)+(best.date?' · '+best.date.slice(2).replace(/-/g,'.'):''):'대회·측정 기록','#C98A00'],
+    ['body','몸 상태',body[0],body[1],body[2]?'#C2410C':'#3B82C4'],
+    ['basis','훈련 기준',`♥${D.cap}↓`,e?`이지 ${fmtPace(e.p[0])}~${fmtPace(e.p[1])}`:'','#D9731A'],
+    ['mile','마일리지',fmtMile(M.total),`올해 ${fmtMile(M.year)}`,'#7A4CC2'],
+    ['warm','준비운동','3분','동적 6가지','#2F8F83'],
+    ['race','대회 찾기',nRace?`${nRace}개`:'›','다가오는 대회','#C2410C']];
+  return `<div class="htiles">${tiles.map(x=>`<button type="button" class="htile" data-tile="${x[0]}" style="--tc:${x[4]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_IC[x[0]]}</svg><b>${x[1]}</b><strong class="num">${x[2]}</strong><i>${x[3]}</i></button>`).join('')}</div>`;
+}catch(e){ console.warn('tiles',e); return ''; } }
+function tileOpen(k){
+  if(k==='basis')return openMine();
+  if(k==='race'){ go('plan'); setTimeout(()=>{ const b=document.querySelector('#planTabs [data-p="races"]'); if(b)b.click(); },50); return; }
+  if(k==='body'){ LOGTAB='body'; go('log'); return; }
+  const title={goal:'목표',week:'이번 주 · 오늘',rec:'내 기록',mile:'마일리지',warm:'준비운동'}[k]||'';
+  let body='';
+  if(k==='goal') body=goalCard(true)+mineStripHTML()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="plan">플랜 전체 보기</button><button type="button" class="btn ghost" data-mygoal="1">목표 고치기</button></div>`;
+  else if(k==='week') body=weekStrip();
+  else if(k==='rec') body=rlogCard();
+  else if(k==='mile') body=mileCard();
+  else if(k==='warm') body=stretchCard('dyn',{compact:false,id:'tileStr'});
+  $('tileTitle').textContent=title; $('tileBody').innerHTML=body;
+  const sh=$('tileSheet'); sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
+  try{ wireHome(null,-1); }catch(e){}
+}
+function tileClose(){ const sh=$('tileSheet'); if(!sh)return; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
+document.addEventListener('click',e=>{ const t=e.target.closest('[data-tile]'); if(t)return tileOpen(t.dataset.tile);
+  if(e.target.closest('#tileClose')||(e.target.id==='tileSheet'))return tileClose();
+  const g=e.target.closest('[data-tilego]'); if(g){ tileClose(); go(g.dataset.tilego); return; }
+  const nx=e.target.closest('[data-nx]'); if(nx){ const i=BLOCK.findIndex(x=>x.d===nx.dataset.nx); if(i>=0)openTodayPlan(i); } });
 function wireHome(sess,idx){
   const m=$('hMain');
   m.querySelectorAll('[data-sig]').forEach(b=>b.onclick=()=>{
@@ -8511,7 +8557,7 @@ function restCard(t){
       closed?`<div class="rst-ft"><span class="mis-done">기록됨 · 약속 연속 유지</span><button type="button" class="mclose re" id="restReopen">다시 열기</button></div>`:`<div class="rst-ft"><span class="mis-hint">플랜 밖 쉬는 날 — 기록만</span><button type="button" class="mclose" id="restClose">마감</button></div>`}
   </div></div>
   ${nx?`<div class="hc slim"><span class="nxic" style="background:${(LOOK[nx.type]||LOOK.free).bg}"></span><div><b>${dowOf(nx.d)}요일 · ${ESC(nx.t)}</b></div></div>`:''}
-  <button class="btn ghost dashed" id="wantRun" style="margin:10px 16px 0;width:calc(100% - 32px)">그래도 뛰기</button>`;
+  `;   /* '그래도 뛰기'는 맨 위 프리런 줄이 맡는다 */
 }
 
 /* ───────── 홈 맨 위 — 나의 목표 · 지금 어디까지 ─────────
@@ -8714,7 +8760,7 @@ function weekStrip0(){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람)
   /* 주 달성률 = 이번 주 계획한 훈련의 점수 합 ÷ (계획 횟수 × 100). 아직 안 온 날·놓친 날은 0 → 주가 갈수록 100%에 다가간다 */
   /* 계획 훈련 + 과정 휴식(회복·준비·근력·대회 주)이 분모. 그냥 쉬는 날(플랜 밖)은 뺀다 */
   const planned=days.filter(x=>x.s||(x.rk&&x.rk.k!=='plain')), nP=planned.length, got=planned.reduce((a,x)=>a+(x.sc||0),0), doneN=planned.filter(x=>x.s&&x.sc!=null).length, nRun=planned.filter(x=>x.s).length;
-  const wkPct=nP?Math.round(got/(nP*100)*100):null;
+  const wkPct=nP?Math.round(got/(nP*100)*100):null; WEEK_PCT={pct:wkPct,done:doneN,n:nRun};
   const todaySc=days[dIx]&&days[dIx].sc;
   const cmp=prevL?`부하 ${sumL} · 지난주 ${Math.round(prevL)}${diff!=null?` (같은 요일까지 ${diff>0?'+':''}${diff}%)`:''}`:`부하 ${sumL}`;
   return `<section class="wstrip" aria-label="이번 주 훈련">
@@ -11570,7 +11616,7 @@ function planWarnings(P,blk){ return planChecks(P,blk).W; }
 /* ═════════════════════ 플랜 전체 보기 · 이미지 · 전체 고치기 ═════════════════════
    전체 보기 = 4주를 한 장의 표(주 × 요일)로. 이미지는 그 표를 JPG로.
    전체 고치기 = ① 목표·기록·날짜·요일 다시 정하기(지난 날·뛴 날은 그대로) ② 같은 종류를 한꺼번에 ③ 남은 일정 거리 전체 ±10% */
-var PLVIEW='list';
+var PLVIEW='list'; var WEEK_PCT={pct:null,done:0,n:0};
 /* ── 4주 뒤 일정 — 미리 보기 ──
    앱은 4주씩 짜고, 4주가 끝나면 실제로 뛴 양으로 다음 4주를 다시 짠다(결산). 그래도 목표일까지 어떻게 이어지는지는 보여야 한다.
    그래서 '지금 4주를 다 지켰다'고 보고 같은 규칙(makePlan)으로 목표일까지 이어 짜 본다 — 저장하지 않고 화면에만. 최대 24주 */
