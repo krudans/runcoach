@@ -742,7 +742,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #gHead .happ{width:34px;height:34px;border-radius:10px;box-shadow:none}
 #gHead .hname b{font-size:21px;letter-spacing:-.5px}
 .hname{display:flex;flex-direction:column;gap:1px;min-width:0}.ichip{display:inline-block;font-size:12px;font-weight:800;color:#2A1638;background:#8DB89A;border-radius:999px;padding:4px 11px;margin-bottom:8px;letter-spacing:.02em}
-#gHead .hbrand{align-items:center;gap:10px}#gHead .hname b{font-size:20px;letter-spacing:-.5px;white-space:nowrap}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}html{scroll-padding-top:100px}
+#gHead .hbrand{align-items:center;gap:10px}#gHead .hname b{font-size:20px;letter-spacing:-.5px;white-space:nowrap}#gHead .hname{gap:0}.hname i.hver{display:block;font-style:normal;font-family:var(--num);font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:.02em;line-height:1;margin-top:1px}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}html{scroll-padding-top:100px}
 #gHead{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line),0 6px 16px rgba(42,22,56,.06);padding-bottom:4px}body.nohead #gHead{display:none}
 #gHead .topline{padding-top:12px}.view:not(#home)>.topline{padding-top:10px}
 .odo{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;border:0;background:none;padding:0;font:inherit;color:var(--ink);text-align:right;cursor:pointer;flex:none}.odo-t{display:flex;align-items:center;gap:5px}.odo-d{display:flex;gap:2px}.odo-d i{display:inline-block;width:18px;height:25px;line-height:25px;text-align:center;background:#2A1638;color:#F4F0EA;font-style:normal;font-weight:900;font-size:16px;border-radius:4px;font-family:var(--num);font-variant-numeric:tabular-nums}.odo-d i.z{opacity:.32}.odo-t b{font-size:11px;font-weight:900}.odo>i{font-style:normal;font-size:11px;color:var(--ink-2);font-weight:800;white-space:nowrap;letter-spacing:.01em;text-align:right;width:100%}.odo>i b{font-weight:900;color:var(--ink)}
@@ -1288,7 +1288,7 @@ details.noti .sigc{margin:6px 0}
       <button class="btn sm ghost" id="plUndo" style="margin:8px 0 0" hidden>직전 일정 복원</button>
     </div>
     <div id="planGoals" hidden></div>
-    <div id="planRaces" hidden></div>
+    <div id="planRaces" class="rc-host" hidden></div>
     <div id="planZone" hidden>
       <div id="zoneOut"></div>
       <div class="lbl" style="margin:18px 0 9px">기록 → 속도 (저장 안 함)</div>
@@ -1458,6 +1458,8 @@ details.noti .sigc{margin:6px 0}
 <div class="msheet dbs" id="dbSheet" hidden><div class="ms-card db-card0" role="dialog" aria-label="오늘 훈련 디브리핑"><div class="ms-hd"><b>훈련 돌아보기</b></div><div id="dbBody"></div></div></div>
 <div class="msheet" id="tileSheet" hidden><div class="ms-card" role="dialog" aria-label="홈 항목">
   <div class="ms-hd"><b id="tileTitle"></b><button type="button" id="tileClose" aria-label="닫기">✕</button></div><div id="tileBody"></div></div></div>
+<div class="msheet" id="mhSheet" hidden><div class="ms-card" role="dialog" aria-label="이전 마일리지">
+  <div class="ms-hd"><b id="mhTitle">이전 마일리지 넣기</b><button type="button" id="mhClose" aria-label="닫기">✕</button></div><div id="mhBody"></div></div></div>
 <div class="msheet" id="peSheet" hidden><div class="ms-card" role="dialog" aria-label="훈련 고치기">
   <div class="ms-hd"><b>훈련 수정</b><button type="button" id="peClose" aria-label="닫기">✕</button></div><div id="peBody"></div></div></div>
 <div class="msheet" id="paSheet" hidden><div class="ms-card" role="dialog" aria-label="플랜 전체 고치기">
@@ -2150,6 +2152,9 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pe-days button:disabled{opacity:.35}
 .pe-other{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12px;color:var(--ink-3);margin-top:8px;white-space:nowrap}.pe-other input{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:9px;padding:5px 8px;background:var(--panel)}
 .pe-warn{font-size:12.5px;font-weight:700;color:#C2410C;margin:10px 2px 0}
+.mh-why{font-size:13px;color:var(--ink-2);line-height:1.6;background:var(--panel);border-radius:12px;padding:10px 12px}.mh-why b{color:var(--accent)}
+.mh-prev{margin-top:12px;background:var(--panel);border-radius:12px;padding:11px 12px;font-size:14px;line-height:1.7;color:var(--ink)}.mh-prev span{font-size:12.5px;color:var(--ink-3)}.mh-prev i{font-style:normal;font-size:12px;color:#C2410C}.mh-prev.dim{color:var(--ink-3);font-size:12.5px}
+#mhBody .btn[disabled]{opacity:.4}
 .pe-row2{display:flex;justify-content:center;gap:18px;margin-top:6px}.pe-row2 button{border:none;background:none;font:inherit;font-size:13px;color:var(--ink-3);text-decoration:underline;padding:8px;cursor:pointer}
 .gwatch{display:flex;flex-direction:column;align-items:center;margin:0 0 18px}
 .gw-band{width:46%;height:26px;background:#2b2b31;border-radius:10px 10px 0 0;background-image:radial-gradient(circle,#18181c 4px,transparent 5px);background-size:22px 13px}
@@ -2253,7 +2258,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.70';
+const APPVER='19.71';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2973,6 +2978,7 @@ function timeCapKm(days, twd, twe){
 /* ══════════ 대회 찾기 — 국내 마라톤 대회 일정 ══════════
    출처: 마라톤온라인(roadrun.co.kr · marathon.pe.kr). 깃허브 액션이 매일 새벽 4시쯤 races.json으로 받아 둔다(앱이 남의 사이트를 직접 읽을 수 없어서).
    '실시간'이 아니라 하루 한 번이라는 걸 화면에 밝힌다. 원본 링크를 항상 단다. */
+let RC_HOST=null;
 let RACES=null, RCF={c:'',a:'',open:false,q:'',n:40,x:null};
 const RC_DIST={'풀':42195,'하프':21097,'10km':10000,'5km':5000};
 /* ═══ 관리자 콘텐츠(공지·대회 추가/숨김)와 의견 보내기 — 로그인 없이 Firestore REST로 ═══ */
@@ -3032,8 +3038,8 @@ document.addEventListener('change',e=>{ if(e.target&&e.target.id==='usageOpt'){ 
 async function racesLoad(){
   try{ const r=await fetch('races.json',{cache:'no-store'}); if(r.ok){ RACES=await r.json(); try{ localStorage.setItem('rc_racesCache',JSON.stringify(RACES)); }catch(e){} await racesCatalogMerge(); return; } }catch(e){}
   try{ RACES=JSON.parse(localStorage.getItem('rc_racesCache')||'null'); if(RACES)RACES._offline=true; }catch(e){ RACES=null; } }
-async function renderRaces(){
-  const el=$('planRaces'); if(!el)return;
+async function renderRaces(host){
+  const el=host||RC_HOST||$('planRaces'); if(!el)return; RC_HOST=el;
   if(!RACES){ el.innerHTML='<div class="rc-meta">대회 목록 불러오는 중…</div>'; await racesLoad(); }
   if(!RACES||!RACES.races){ el.innerHTML=`<div class="card tight" style="line-height:1.8">대회 목록 없음<br>매일 새벽 4시 자동 갱신</div>`; return; }
   const t=todayStr(), up=RACES.updated?new Date(RACES.updated):null, stale=up&&(Date.now()-up.getTime())>3*864e5;
@@ -3059,15 +3065,15 @@ async function renderRaces(){
         ${r.courses.filter(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).map(c=>`<button type="button" class="go" data-rcg="${ESC(r.id)}" data-rcm="${RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]}">${c==='풀'?'풀코스':ESC(c)}로 목표 설정</button>`).join('')}</div></div>`:''}</div>`; });
   if(L.length>RCF.n) h+=`<button type="button" class="btn sm ghost" data-rcmore="1" style="margin:6px 0 0">더 보기 (${L.length-RCF.n}개)</button>`;
   el.innerHTML=h;
-  const ar=$('rcArea'); if(ar)ar.onchange=()=>{ RCF.a=ar.value; RCF.n=40; renderRaces(); };
-  const qi=$('rcQ'); if(qi)qi.onchange=()=>{ RCF.q=qi.value; RCF.n=40; renderRaces(); };
+  const ar=el.querySelector('#rcArea'); if(ar)ar.onchange=()=>{ RCF.a=ar.value; RCF.n=40; renderRaces(); };
+  const qi=el.querySelector('#rcQ'); if(qi)qi.onchange=()=>{ RCF.q=qi.value; RCF.n=40; renderRaces(); };
 }
-document.addEventListener('click',e=>{ if(!e.target.closest('#planRaces'))return;
+document.addEventListener('click',e=>{ const rh=e.target.closest('.rc-host'); if(!rh)return; RC_HOST=rh;
   const c=e.target.closest('[data-rcc]'); if(c){ RCF.c=c.dataset.rcc; RCF.n=40; return renderRaces(); }
   if(e.target.closest('[data-rco]')){ RCF.open=!RCF.open; RCF.n=40; return renderRaces(); }
   if(e.target.closest('[data-rcmore]')){ RCF.n+=40; return renderRaces(); }
   const g=e.target.closest('[data-rcg]'); if(g){ const r=RACES.races.find(x=>x.id===g.dataset.rcg); if(!r)return;
-    goalStart(); try{ Object.assign(GB.d,{kind:'race',m:+g.dataset.rcm,date:r.date,raceName:r.name,sec:null}); GB.i=1; gPaint(); }catch(err){} return; }
+    try{ tileClose(); }catch(err){} goalStart(); try{ Object.assign(GB.d,{kind:'race',m:+g.dataset.rcm,date:r.date,raceName:r.name,sec:null}); GB.i=1; gPaint(); }catch(err){} return; }
   if(e.target.closest('a'))return;
   const x=e.target.closest('[data-rcx]'); if(x){ RCF.x=RCF.x===x.dataset.rcx?null:x.dataset.rcx; renderRaces(); } });
 
@@ -4122,7 +4128,7 @@ if($('planTabs'))$('planTabs').onclick=e=>{const b=e.target.closest('button');if
   ['sched','zone','goals','races'].forEach(k=>{
     const el=$('plan'+k[0].toUpperCase()+k.slice(1)); if(el)el.hidden=(k!==b.dataset.p); });
   if(b.dataset.p==='goals')renderGoalsTab();
-  if(b.dataset.p==='races')renderRaces();
+  if(b.dataset.p==='races')renderRaces($('planRaces'));
 };
 if($('plRemake'))$('plRemake').onclick=()=>goalStart();
 function paintUndo(){ const b=$('plUndo'); if(!b)return; const pv=DEV.store.get('planPrev',null);
@@ -8346,7 +8352,7 @@ function renderHome(){
 
   /* 오늘 무엇을 하는지는 바로 아래 카드에 있다 — 여기는 앱 이름과 로고 자리 */
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
-      <div class="hname"><b>가지런<span class="hada">하다</span></b></div>${odoHTML()}</div>`;
+      <div class="hname"><b>가지런<span class="hada">하다</span></b><i class="hver">v${APPVER}</i></div>${odoHTML()}</div>`;
   /* 연속 배지는 위 날짜 줄로 — 로고 줄이 흔들리지 않게 */
   try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}`:''; } }catch(e){}
 
@@ -8407,23 +8413,25 @@ function homeTiles(sess){ try{
 }catch(e){ console.warn('tiles',e); return ''; } }
 function tileOpen(k){
   if(k==='basis')return openMine();
-  if(k==='race'){ go('plan'); setTimeout(()=>{ const b=document.querySelector('#planTabs [data-p="races"]'); if(b)b.click(); },50); return; }
-  if(k==='body'){ LOGTAB='body'; go('log'); return; }
-  const title={goal:'목표',week:'이번 주 · 오늘',rec:'내 기록',mile:'마일리지',warm:'준비운동'}[k]||'';
+  const title={goal:'목표',week:'이번 주 · 오늘',rec:'내 기록',body:'몸 상태',mile:'마일리지',warm:'준비운동',race:'대회 찾기'}[k]||'';
   let body='';
-  if(k==='goal') body=goalCard(true)+mineStripHTML()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="plan">플랜 전체 보기</button><button type="button" class="btn ghost" data-mygoal="1">목표 고치기</button></div>`;
+  if(k==='body') body=logBody()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="log" data-logtab="body">기록에서 자세히</button></div>`;
+  else if(k==='goal') body=goalCard(true)+mineStripHTML()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="plan">플랜 전체 보기</button><button type="button" class="btn ghost" data-mygoal="1">목표 고치기</button></div>`;
   else if(k==='week') body=weekStrip();
   else if(k==='rec') body=rlogCard();
   else if(k==='mile') body=mileCard();
   else if(k==='warm') body=stretchCard('dyn',{compact:false,id:'tileStr'});
+  else if(k==='race') body=`<div id="tileRaces" class="rc-host"></div>`;
   $('tileTitle').textContent=title; $('tileBody').innerHTML=body;
   const sh=$('tileSheet'); sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
   try{ wireHome(null,-1); }catch(e){}
+  if(k==='body'){ try{ wireLog($('tileBody')); }catch(e){} }
+  if(k==='race'){ try{ renderRaces($('tileRaces')); }catch(e){} }
 }
 function tileClose(){ const sh=$('tileSheet'); if(!sh)return; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-tile]'); if(t)return tileOpen(t.dataset.tile);
   if(e.target.closest('#tileClose')||(e.target.id==='tileSheet'))return tileClose();
-  const g=e.target.closest('[data-tilego]'); if(g){ tileClose(); go(g.dataset.tilego); return; }
+  const g=e.target.closest('[data-tilego]'); if(g){ tileClose(); if(g.dataset.logtab)LOGTAB=g.dataset.logtab; go(g.dataset.tilego); return; }
   const nx=e.target.closest('[data-nx]'); if(nx){ const i=BLOCK.findIndex(x=>x.d===nx.dataset.nx); if(i>=0)openTodayPlan(i); } });
 function wireHome(sess,idx){
   const m=$('hMain');
@@ -9892,13 +9900,52 @@ function mileage(){
 function mileHist(){ let h=Array.isArray(PROF.mileHist)?PROF.mileHist.filter(x=>x&&+x.km>0):[];
   if(!h.length&&PROF.mileBase){ const mb=typeof PROF.mileBase==='object'?PROF.mileBase:{km:+PROF.mileBase||0}; if(mb.km>0){ h=[{y:null,km:Math.round(mb.km*10)/10}]; PROF=Object.assign({},PROF,{mileHist:h,mileBase:null}); try{ DEV.store.set('prof',PROF); }catch(e){} } }
   return h.sort((a,b)=>(a.y||9999)-(b.y||9999)); }
-function mileHistSave(h){ PROF=Object.assign({},PROF,{mileHist:h.filter(x=>x&&+x.km>0),mileBase:null}); DEV.store.set('prof',PROF); try{ renderLog(); paintOdo(); }catch(e){} }
-function mileHistAsk(ix){ const h=mileHist().slice(), cur=ix!=null?h[ix]:null;
-  const yv=prompt('어느 해 거리인가요? (예: 2024) — 모르면 비워 두세요 → "연도 모름"으로 들어갑니다', cur?(cur.y||''):'');
-  if(yv==null)return; const ys=String(yv).trim(); let yy=null; if(ys){ yy=parseInt(ys,10); if(!(yy>=1990&&yy<=+todayStr().slice(0,4))){ alert('연도는 1990~올해'); return; } }
-  const kv=prompt(`${yy?yy+'년':'연도 모름'} — 이 앱에 기록되지 않은 거리(km)만 넣으세요`, cur?cur.km:'');
-  if(kv==null)return; const km=parseFloat(String(kv).replace(/,/g,'')); if(!(isFinite(km)&&km>0)){ if(cur){ h.splice(ix,1); mileHistSave(h); } return; }
-  const row={y:yy,km:Math.round(km*10)/10}; if(cur)h[ix]=row; else { const j=h.findIndex(x=>(x.y||null)===yy); if(j>=0)h[j]=row; else h.push(row); } mileHistSave(h); }
+function mileHistSave(h){ PROF=Object.assign({},PROF,{mileHist:h.filter(x=>x&&+x.km>0),mileBase:null}); DEV.store.set('prof',PROF);
+  try{ paintOdo(); }catch(e){}
+  try{ if($('logBody'))renderLog(); }catch(e){}
+  /* 홈 타일 시트(마일리지)가 열려 있으면 그 안도 다시 그린다 */
+  try{ const sh=$('tileSheet'); if(sh&&!sh.hidden&&$('tileTitle').textContent==='마일리지'){ $('tileBody').innerHTML=mileCard(); } }catch(e){}
+  try{ const h2=$('hMain'); if(h2&&!$('tileSheet').classList.contains('up'))renderHome(); }catch(e){} }
+/* 이전 마일리지 입력 시트 — 연도 칩 + 거리 + 미리보기. prompt() 대신 */
+function mileHistAsk(ix,opt){ opt=opt||{}; const h=mileHist().slice(), cur=ix!=null?h[ix]:null, M=mileage();
+  const thisY=+todayStr().slice(0,4), ys=[]; for(let y=thisY;y>=thisY-5;y--)ys.push(y);
+  const st={y:cur?(cur.y||null):(opt.unknown?null:thisY-1), km:cur?cur.km:'', other:cur&&cur.y&&!ys.includes(cur.y)?cur.y:''};
+  if(st.other)st.y=st.other;
+  const appY=y=>{ const b=M.byYear[y]; return b?(b.km-(b.prev||0)):0; };
+  const draw=()=>{
+    const sel=st.y, others=h.filter((x,i)=>i!==ix);
+    const dup=others.find(x=>(x.y||null)===(sel||null));
+    const km=parseFloat(String(st.km).replace(/,/g,'')), ok=isFinite(km)&&km>0;
+    const cutHint=sel&&appY(sel)>0?`<div class="pe-est">${sel}년은 이 앱에 이미 <b>${fmtMile(appY(sel))} km</b>가 있어요. 다른 앱 합계에서 그만큼은 빼고 넣으세요.</div>`:'';
+    const prev=ok?`<div class="mh-prev"><b>${sel?sel+'년':'연도 모름'}</b>에 <b class="num">${fmtMile(km)} km</b>${dup?` <i>(지금 ${fmtMile(dup.km)} km → 바꿈)</i>`:''}<br><span>저장하면 러닝 마일리지 <b class="num">${fmtMile(M.total-(cur?cur.km:0)-(dup?dup.km:0)+km)} km</b></span></div>`:`<div class="mh-prev dim">거리를 넣으면 여기서 미리 보여줘요</div>`;
+    $('mhTitle').textContent=cur?'이전 마일리지 고치기':'이전 마일리지 넣기';
+    $('mhBody').innerHTML=`<div class="mh-why">이 앱을 쓰기 <b>전에</b> 다른 앱(스트라바·가민·나이키 등)이나 수첩에 쌓아 둔 거리예요. 넣으면 위 숫자판과 연도표에 합쳐집니다.</div>
+      <div class="pe-lab">1. 어느 해 거리인가요?</div>
+      <div class="pe-chips" id="mhYears"><button type="button" data-y="" class="${sel==null?'on':''}">연도 모름</button>${ys.map(y=>`<button type="button" data-y="${y}" class="${sel===y?'on':''}">${y}</button>`).join('')}<button type="button" data-y="other" class="${st.other?'on':''}">${st.other?st.other:'그 전'}</button></div>
+      ${st.otherEdit?`<div class="pe-step" style="margin-top:8px"><input type="number" inputmode="numeric" id="mhOther" placeholder="예: 2019" min="1990" max="${thisY}" value="${st.other||''}"><span class="pe-u">년</span></div>`:''}
+      <div class="pe-est">${sel==null?'몇 해 치인지 모르면 "연도 모름"으로 한 번에 넣어도 됩니다. 연도표에는 "모름" 줄로 따로 보여요.':'여러 해를 나눠 넣으려면 저장 뒤 다시 "+ 연도별 넣기"를 누르세요.'}</div>
+      <div class="pe-lab">2. 거리는 얼마인가요?</div>
+      <div class="pe-step"><button type="button" data-d="-50">−50</button><input type="number" inputmode="decimal" id="mhKm" placeholder="0" step="0.1" min="0" value="${st.km}"><span class="pe-u">km</span><button type="button" data-d="50">+50</button></div>
+      ${cutHint}
+      ${prev}
+      <div class="mile-act" style="margin-top:14px">${cur?`<button type="button" class="btn ghost" id="mhDel" style="color:#C2410C">지우기</button>`:''}<button type="button" class="btn ghost" id="mhCancel">취소</button><button type="button" class="btn" id="mhSave" ${ok?'':'disabled'}>저장</button></div>`;
+    const B=$('mhBody');
+    B.querySelectorAll('#mhYears button').forEach(b=>b.onclick=()=>{ const v=b.dataset.y; if(v==='other'){ st.otherEdit=true; st.other=st.other||''; st.y=st.other?+st.other:null; } else { st.otherEdit=false; st.other=''; st.y=v===''?null:+v; } draw(); if(v==='other'){ const o=$('mhOther'); if(o)o.focus(); } });
+    const o=$('mhOther'); if(o)o.oninput=()=>{ const v=parseInt(o.value,10); if(v>=1990&&v<=thisY){ st.other=v; st.y=v; } else { st.other=o.value; st.y=null; } };
+    if(o)o.onchange=()=>{ const v=parseInt(o.value,10); if(v>=1990&&v<=thisY){ st.other=v; st.y=v; st.otherEdit=false; } draw(); };
+    const k=$('mhKm'); k.oninput=()=>{ st.km=k.value; const sv=$('mhSave'); const n=parseFloat(k.value); sv.disabled=!(isFinite(n)&&n>0); }; k.onchange=()=>{ st.km=k.value; draw(); };
+    B.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{ const n=Math.max(0,(parseFloat(st.km)||0)+(+b.dataset.d)); st.km=n?n:''; draw(); });
+    $('mhCancel').onclick=mhClose; const d=$('mhDel'); if(d)d.onclick=()=>{ h.splice(ix,1); mileHistSave(h); mhClose(); toast('지웠어요'); };
+    $('mhSave').onclick=()=>{ const n=parseFloat(String(st.km).replace(/,/g,'')); if(!(isFinite(n)&&n>0))return;
+      if(st.otherEdit&&!(st.y>=1990)){ toast('연도를 넣어 주세요'); return; }
+      const row={y:st.y||null,km:Math.round(n*10)/10}; if(cur)h[ix]=row; const j=h.findIndex((x,i)=>i!==ix&&(x.y||null)===row.y); if(j>=0){ h.splice(j,1); if(!cur)h.push(row); } else if(!cur)h.push(row);
+      mileHistSave(h); mhClose(); toast(`${row.y?row.y+'년':'연도 모름'} ${fmtMile(row.km)} km 저장`); };
+  };
+  const sh=$('mhSheet'); draw(); sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
+  setTimeout(()=>{ const k=$('mhKm'); if(k&&!cur)k.focus(); },250);
+}
+function mhClose(){ const sh=$('mhSheet'); if(!sh)return; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
+document.addEventListener('click',e=>{ if(e.target.closest('#mhClose')||e.target.id==='mhSheet')mhClose(); });
 const fmtMile=v=>{ const n=Math.round(v*10)/10; return n>=1000?Math.round(n).toLocaleString('en-US'):n.toFixed(n<100?1:0); };
 /* 롤러 주행거리계 띠 — 모든 탭 위 고정 머리에. 앞자리 0은 흐리게, 누르면 마일리지 카드 */
 function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.floor(M.total)), str=String(n).padStart(6,'0'); let lead=true;
@@ -9915,7 +9962,7 @@ function mileCard(){
     <div class="mile-badges">${MILE_STEPS.slice(0,7).map(v=>`<span class="${v<=M.total?'on':''}">${v.toLocaleString('en-US')}</span>`).join('')}</div>
     ${years.length||M.unknown?`<div class="mile-years">${years.map(yy=>`<div><b>${yy}</b><span class="num">${fmtMile(M.byYear[yy].km)} km</span><i>${M.byYear[yy].n?`${M.byYear[yy].n}회`:''}${M.byYear[yy].race?` · 대회 ${M.byYear[yy].race}`:''}${M.byYear[yy].prev?` · 이전 ${fmtMile(M.byYear[yy].prev)}`:''}</i></div>`).join('')}${M.unknown?`<div><b>모름</b><span class="num">${fmtMile(M.unknown)} km</span><i>연도 모름 · 이전 마일리지</i></div>`:''}</div>`:''}
     <div class="mile-prev"><div class="mile-ph"><b>이전 마일리지</b><i>다른 앱·수첩에 있던 거리 — 이 앱에 없는 것만</i></div>${M.hist.length?M.hist.map((x,i)=>`<button type="button" class="mile-pr" data-mhist="${i}"><b>${x.y?x.y+'년':'연도 모름'}</b><span class="num">${fmtMile(x.km)} km</span><i>✎</i></button>`).join(''):'<div class="small">아직 없음</div>'}
-      <div class="mile-act"><button type="button" class="btn ghost" data-mhist="new">+ 연도별 넣기</button><button type="button" class="btn ghost" data-mhist="unk">+ 잘 모르겠음(합계만)</button></div></div>
+      <div class="mile-act"><button type="button" class="btn ghost" data-mhist="new">+ 연도별 넣기</button><button type="button" class="btn ghost" data-mhist="unk">+ 연도 모름으로 넣기</button></div></div>
     ${M.bestMonth?`<div class="small">가장 많이 달린 달 ${M.bestMonth[0].replace('-','.')} · ${fmtMile(M.bestMonth[1])} km</div>`:''}
     <div class="mile-act"><button type="button" class="btn ghost" data-share="mile">이미지</button></div>
   </div>`;
@@ -9933,7 +9980,7 @@ function mileBaseAsk(){
 document.addEventListener('click',e=>{ if(e.target.closest('#hOdo')){ LOGTAB='sum'; go('log'); setTimeout(()=>{ try{ const c=$('mileCard'); if(c)c.scrollIntoView({behavior:'smooth',block:'start'}); }catch(err){} },80); return; }
   const b=e.target.closest('[data-mhist]'); if(!b)return; const k=b.dataset.mhist;
   if(k==='new')return mileHistAsk(null);
-  if(k==='unk'){ const h=mileHist().slice(), j=h.findIndex(x=>!x.y); const kv=prompt('연도를 모르는 이전 거리(km) — 이 앱에 없는 것만', j>=0?h[j].km:''); if(kv==null)return; const km=parseFloat(String(kv).replace(/,/g,'')); if(j>=0)h.splice(j,1); if(isFinite(km)&&km>0)h.push({y:null,km:Math.round(km*10)/10}); mileHistSave(h); return; }
+  if(k==='unk'){ const j=mileHist().findIndex(x=>!x.y); return j>=0?mileHistAsk(j):mileHistAsk(null,{unknown:true}); }
   mileHistAsk(+k); });
 function logSum(){
   const [a,b,lab]=perRange();
