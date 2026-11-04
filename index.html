@@ -182,7 +182,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 
 /* ── 오늘 히어로 ── */
 .topline{display:flex;align-items:center;gap:8px;padding:14px 16px 0;color:var(--ink-3);
-  font-size:12.5px;white-space:nowrap;min-width:0}#gHead .topline b{color:var(--ink);font-size:15px;font-weight:800}#gHead #tlWk{font-family:inherit;font-size:11px;font-weight:800;background:var(--panel-2);color:var(--ink-2);border-radius:999px;padding:2px 8px}#gHead #tlWk:empty{display:none}#gHead .tlver{display:none}#gHead #tlBlock{display:none}
+  font-size:12.5px;white-space:nowrap;min-width:0}#gHead .topline{gap:0;padding:11px 18px 0;font-size:12.5px;font-weight:700;color:var(--ink-3)}#gHead .topline b{color:var(--ink-3);font-size:12.5px;font-weight:700}#gHead #tlWk{font-family:inherit;font-size:12.5px;font-weight:700;color:var(--ink-3);background:none;padding:0}#gHead #tlWk:not(:empty)::before{content:'\00a0\00b7\00a0'}#gHead #tlWk:empty{display:none}#gHead .tl-ic .icbtn{color:var(--ink-2)}#gHead .tlver{display:none}#gHead #tlBlock{display:none}
 .topline b,#tlWk{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .tl-ic{margin-left:auto;display:flex;align-items:center;gap:16px;flex:none}.tl-ic .icbtn svg{display:block}
 .tl-ic .icbtn{flex:none;padding:4px;margin:-4px}
@@ -738,13 +738,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .ack{display:flex;gap:9px;align-items:flex-start;margin:10px 2px 4px;font-size:12.5px;line-height:1.6;color:var(--ink);cursor:pointer}
 .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
 /* ═════ 홈 — 러닝 앱처럼: 목표 레인 · 이번 주 막대 · 오늘 큰 카드 ═════ */
-#gHead .hbrand{padding:2px 18px 0;gap:10px}
-#gHead .happ{width:34px;height:34px;border-radius:10px;box-shadow:none}
+#gHead .hbrand{padding:13px 18px 0;gap:12px}
+#gHead .happ{width:44px;height:44px;border-radius:13px;box-shadow:none}
 #gHead .hname b{font-size:21px;letter-spacing:-.5px}
 .hname{display:flex;flex-direction:column;gap:1px;min-width:0}.ichip{display:inline-block;font-size:12px;font-weight:800;color:#2A1638;background:#8DB89A;border-radius:999px;padding:4px 11px;margin-bottom:8px;letter-spacing:.02em}
-#gHead .hbrand{align-items:center;gap:10px}#gHead .hname b{font-size:20px;letter-spacing:-.5px;white-space:nowrap}#gHead .hname{gap:0}.hname i.hver{display:block;font-style:normal;font-family:var(--num);font-size:10px;font-weight:600;color:var(--ink-3);letter-spacing:.02em;line-height:1;margin-top:1px}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}html{scroll-padding-top:100px}
-#gHead{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line),0 6px 16px rgba(42,22,56,.06);padding-bottom:4px}body.nohead #gHead{display:none}
-#gHead .topline{padding-top:12px}.view:not(#home)>.topline{padding-top:10px}
+#gHead .hbrand{align-items:center;gap:12px}#gHead .hname b{font-size:21px;letter-spacing:-.5px;white-space:nowrap}#gHead .hname{gap:1px}.hname i.hver{display:block;font-style:normal;font-family:var(--num);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.02em;line-height:1;margin-top:2px}#gHead .odo{gap:4px}#gHead .odo>i{font-size:10.5px;color:var(--ink-3)}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}html{scroll-padding-top:120px}
+#gHead{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line),0 6px 16px rgba(42,22,56,.06);padding-bottom:10px}body.nohead #gHead{display:none}
+#gHead .topline{padding-top:11px}.view:not(#home)>.topline{padding-top:10px}
 .odo{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;border:0;background:none;padding:0;font:inherit;color:var(--ink);text-align:right;cursor:pointer;flex:none}.odo-t{display:flex;align-items:center;gap:5px}.odo-d{display:flex;gap:2px}.odo-d i{display:inline-block;width:18px;height:25px;line-height:25px;text-align:center;background:#2A1638;color:#F4F0EA;font-style:normal;font-weight:900;font-size:16px;border-radius:4px;font-family:var(--num);font-variant-numeric:tabular-nums}.odo-d i.z{opacity:.32}.odo-t b{font-size:11px;font-weight:900}.odo>i{font-style:normal;font-size:11px;color:var(--ink-2);font-weight:800;white-space:nowrap;letter-spacing:.01em;text-align:right;width:100%}.odo>i b{font-weight:900;color:var(--ink)}
 .mile{padding:14px 16px}.mile-odo{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.mile-odo>b{font-size:42px;font-weight:900;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}.mile-odo i b{color:var(--ink);font-weight:800}.mile-odo span{font-size:15px;font-weight:800;color:var(--ink-3)}.mile-odo i{flex-basis:100%;font-style:normal;font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px}
 .mile-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}.mile-row span{background:var(--panel-2);border-radius:12px;padding:8px 10px;min-width:0}.mile-row i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700}.mile-row b{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}.mile-row em{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2263,7 +2263,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.76';
+const APPVER='19.77';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7823,6 +7823,7 @@ function applyReview(act,v){
 $('rvBack').onclick=()=>go('home');
 /* 결산을 보여줄 때 — 지난주에 일정이 있었고, 아직 그 주를 안 봤을 때 */
 function reviewDue(){
+  if(!hasPlan()&&!RUNS.some(isRun))return null;   /* 예시 일정·기록 없음 → 결산할 게 없다 */
   const mon=lastWeekMon();
   if(DEV.store.get('rvSeen',null)===mon)return null;
   const v=reviewData(mon);
@@ -7946,8 +7947,8 @@ const symSVG=t=>`<svg class="sym" viewBox="0 0 100 100" aria-hidden="true">${(LO
 
 /* ───────── 하루 상태 — 약속을 지켰나 ─────────
    달린 날은 판정으로, 쉬는 날은 '안 뛰었나'로 센다. 쉬는 날을 지킨 것도 약속이다. */
-function planOn(ds){ return BLOCK.find(x=>x.d.slice(0,10)===ds&&x.type!=='off')||null; }
-function inPlan(ds){ if(!BLOCK.length)return false; const b0=BLOCK[0].d.slice(0,10), st=(PLAN&&PLAN.sessions&&PLAN.start&&PLAN.start<b0)?PLAN.start:b0;
+function planOn(ds){ if(!hasPlan())return null; return BLOCK.find(x=>x.d.slice(0,10)===ds&&x.type!=='off')||null; }
+function inPlan(ds){ if(!hasPlan()||!BLOCK.length)return false; const b0=BLOCK[0].d.slice(0,10), st=(PLAN&&PLAN.sessions&&PLAN.start&&PLAN.start<b0)?PLAN.start:b0;
   return ds>=st&&ds<=addDays(BLOCK[BLOCK.length-1].d.slice(0,10),1); }
 function dayStatus(ds){
   const today=todayStr();
@@ -8353,7 +8354,7 @@ function renderHome(){
   const today=todayStr(), d=new Date();
   $('tlDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${dowOf(today)}요일`;
   const cur=BLOCK.find(x=>x.d.slice(0,10)===today);
-  $('tlWk').textContent=cur?`${cur.wk}주차`:'';
+  $('tlWk').textContent=cur&&hasPlan()?`${cur.wk}주차`:'';
 
   const idx=hasPlan()?BLOCK.findIndex(x=>x.d.slice(0,10)===today&&x.type!=='off'):-1;   /* 예시 일정은 오늘 할 일이 아니다 */
   const sess=idx>=0?sessionOf(idx):null;
@@ -8393,7 +8394,7 @@ function renderHome(){
       <button class="tgo" id="hGoal">목표 세우기</button></div></div>`;
   /* 3. 다음 훈련 한 줄 (훈련 날·계획 없는 날 — 쉬는 날 카드는 자체에 있음) */
   /* 다음 3일 — 날짜·모양·제목·거리. 줄을 누르면 그날 훈련, 머리 글자를 누르면 플랜 전체 */
-  { const N3=BLOCK.filter(x=>x.d.slice(0,10)>today).slice(0,3);
+  { const N3=hasPlan()?BLOCK.filter(x=>x.d.slice(0,10)>today).slice(0,3):[];
     if(N3.length) hw+=`<div class="hc nx3"><div class="nx3-hd"><b>다음 훈련</b><button type="button" data-tilego="plan">전체 일정 ›</button></div>${N3.map(x=>{ const off=x.type==='off', ds=x.d.slice(0,10), lk=LOOK[x.type]||LOOK.free;
       return `<button type="button" class="nx3-r${off?' off':''}" data-nx="${x.d}"><span class="nxic" style="background:${lk.bg}">${symSVG(x.type)}</span><div class="nx3-t"><i>${dowOf(ds)} ${+ds.slice(5,7)}.${+ds.slice(8,10)}</i><b>${ESC(x.t)}</b></div>${!off&&x.dist?`<em class="num">${+(+x.dist).toFixed(1)}<small>km</small></em>`:''}</button>`; }).join('')}</div>`; }
   h+=hw;
@@ -8418,7 +8419,7 @@ function homeTiles(sess){ try{
   const nRace=(()=>{ try{ return (RACES&&RACES.races||[]).filter(x=>x.date&&x.date.slice(0,10)>=t).length; }catch(e){ return 0; } })();
   const tiles=[
     ['goal','목표',g?(dday!=null?(dday>=0?`D-${dday}`:'지남'):'설정됨'):'—',gl,'#5B2D86'],
-    ['week','이번 주',W.pct!=null?`${W.pct}%`:(wkRuns.length?`${wkRuns.length}회`:'0회'),W.n?`훈련 ${W.done}/${W.n} · ${wkKm.toFixed(0)}km`:`${wkKm.toFixed(1)}km`,'#1E9B5C'],
+    ['week','이번 주',W.pct!=null&&hasPlan()?`${W.pct}%`:(wkRuns.length?`${wkRuns.length}회`:'0회'),W.n&&hasPlan()?`훈련 ${W.done}/${W.n} · ${wkKm.toFixed(0)}km`:`${wkKm.toFixed(1)}km`,'#1E9B5C'],
     ['rec','내 기록',best?fmtClock(best.sec):'—',best?rlLab(best.m)+(best.date?' · '+best.date.slice(2).replace(/-/g,'.'):''):'대회·측정 기록','#C98A00'],
     ['basis','훈련 기준',`♥${D.cap}↓`,e?`이지 ${fmtPace(e.p[0])}~${fmtPace(e.p[1])}`:'','#D9731A'],
     ['body','몸 상태',body[0],body[1],body[2]?'#C2410C':'#3B82C4'],
