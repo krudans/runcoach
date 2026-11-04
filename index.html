@@ -2230,7 +2230,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.55';
+const APPVER='19.56';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11968,23 +11968,27 @@ document.addEventListener('click',e=>{ if(e.target.closest('[data-mineopen]'))op
    주간 거리(계획·실제) · 시기(기초→강화→실전→줄이기) · TT(실력 확인) · 가장 긴 날 · 대회.
    숫자는 모두 일정 화면과 같은 함수(planFacts·sKm·wkKmOf·psPhase)에서. */
 function isRoadGoal(M){ const g=M&&M.g; return !!(g&&g.m&&(g.kind==='race'||g.kind==='finish'||g.sec||g.final)&&BLOCK.length); }
-function roadOrTrend(M,big){ if(isRoadGoal(M)){ try{ return goalRoad(M,big); }catch(e){ console.warn('road',e); } } return goalTrend(M,big); }
+function roadOrTrend(M,big,split){ if(isRoadGoal(M)){ try{ return goalRoad(M,big,split); }catch(e){ console.warn('road',e); } } const t=goalTrend(M,big); return split?{main:t,extra:''}:t; }
 function mdw(ds){ return `${+ds.slice(5,7)}.${+ds.slice(8,10)}(${dowOf(ds)})`; }
-function goalRoad(M,big){
+function goalRoad(M,big,split){
   const g=M.g, A=BLOCK.concat(planFuture()).filter(x=>x.type!=='off'), F=planFacts(A); if(!F.mons.length) return goalTrend(M,big);
   const t=todayStr(), tW=weekMonday(t), goalSec=g.final||g.sec, raceD=g.date?g.date.slice(0,10):(PLAN&&PLAN.seaDate)||null;
+  /* 플랜 시작 전 지난 주도 남긴다 — 뛴 기록이 있는 주를 최대 4주 (계획 막대 없이 뛴 거리만) */
+  { const ranOf=m=>RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===m).reduce((a,r)=>a+(+r.km||0),0);
+    const prev=[]; for(let i=1;i<=4;i++){ const m=addDays(F.mons[0],-7*i); if(m>tW)continue; if(ranOf(m)>0)prev.unshift(m); else break; }
+    if(prev.length){ F.mons=prev.concat(F.mons); F.wk=prev.map(()=>0).concat(F.wk); F.prevN=prev.length; } }
   const ran=F.mons.map(m=>m<=tW?RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===m).reduce((a,r)=>a+(+r.km||0),0):null);
-  const PH={기초:'#C9B8DE',강화:'#9C7BC4',실전:'#5B2D86',줄이기:'#F6A07A'};
+  const PH={기초:'#C9B8DE',강화:'#9C7BC4',실전:'#5B2D86',줄이기:'#F6A07A',지난:'#DDD6E6'};
   /* ── 위: 지금 어디쯤인가 ── */
   const r=PROF.race, measured=!needTest();
-  let st='';
+  let st='', warn='';
   if(goalSec){
     const nowS=M.now, d=nowS!=null?goalSec-nowS:null;
     const src=measured&&r?`${r.at?mdw(r.at.slice(0,10))+' ':''}${r.kind==='tt'||r.kind==='TT'?'TT ':''}${r.m>=42000?'풀':r.m>=21000?'하프':(r.m/1000)+'km'} ${fmtClock(r.sec)}`:'';
     st=`<div class="gr-st">
       <div><i>환산 기록</i><b>${nowS!=null?fmtClock(nowS):'측정 전'}</b><em>${src?`근거 ${src}`:'TT 후 표시'}</em></div>
       <div><i>목표</i><b>${fmtClock(goalSec)}</b><em>${d==null?'':d>=0?`환산 ${fmtClock(d)} 빠름`:`${fmtClock(-d)} 줄여야 함`}</em></div></div>`;
-    if(measured&&r&&g.m>=42000&&r.m<42000) st+=`<div class="gr-warn">${r.m>=21000?'하프':'짧은 거리'}→풀코스 환산은 낙관적 · 28km↑ LSD 수회 필요(Vickers 2016 · B) · 굵게 = 그 날</div>`;
+    if(measured&&r&&g.m>=42000&&r.m<42000) warn+=`<div class="gr-warn">${r.m>=21000?'하프':'짧은 거리'}→풀코스 환산은 낙관적 · 28km↑ LSD 수회 필요(Vickers 2016 · B) · 굵게 = 그 날</div>`;
   } else {
     const lg=Math.max(0,...RUNS.filter(x=>isRun(x)&&Date.parse(ldate(x.date))>Date.now()-30*864e5).map(x=>+x.km||0));
     st=`<div class="gr-st"><div><i>30일 최장 거리</i><b>${lg?fmtKm1(lg)+'km':'기록 없음'}</b><em>완주는 긴 날로 준비</em></div><div><i>목표</i><b>${gdLabel(g.m)} 완주</b><em>계획 ${F.maxLong}km</em></div></div>`;
@@ -11993,16 +11997,19 @@ function goalRoad(M,big){
   { const CW=PLAN?planChecks(PLAN,BLOCK).W:[], by=CW.longBy, WL=CW.filter(x=>/긴 날/.test(x)&&/km/.test(x)), lw=WL.filter(x=>!/넘는 긴 날이 \d+번/.test(x)).concat(WL.filter(x=>/넘는 긴 날이 \d+번/.test(x))).join(' ');
     if(lw){ const lp=midPace(PACE.long), need=Math.min(240,Math.ceil((g.m>=42000?32:g.m>=21000?22:18)*lp/60/30)*30), cur=SURVEY.twe||90;
       const chips=by==='manual'?`<div class="gr-ch"><button type="button" class="tch" data-clrlong="1">롱런 최대 거리 자동</button></div>`:by==='time'&&/주말에 쓸 수 있는 시간/.test(lw)&&need>cur?`<div class="gr-ch">${[...new Set([need,240])].filter(v=>v>cur).map(v=>`<button type="button" class="tch" data-tmi="twe:${v}">주말 ${fmtHM(v*60)}으로 늘리기</button>`).join('')}</div>`:'';
-      st+=`<div class="gr-warn"><b>LSD ${F.maxLong}km에서 정체.</b> ${lw}${chips}</div>`; } }
+      warn+=`<div class="gr-warn"><b>LSD ${F.maxLong}km에서 정체.</b> ${lw}${chips}</div>`; } }
   /* ── 가운데: 대회까지 주별 그림 ── */
   const n=F.mons.length, W=340, PL=4, PR=4, TOP=30, BH=big?96:78, PHH=16, Hh=TOP+BH+PHH+20, cw=(W-PL-PR)/n, bw=Math.max(3,Math.min(18,cw*0.62));
   const mx=Math.max(1,...F.wk,...ran.filter(x=>x!=null)), Y=v=>TOP+BH-v/mx*BH;
   const longOf=m=>Math.max(0,...A.filter(x=>weekMonday(x.d)===m&&x.type==='long').map(sKm));
   const bigL=g.m>=42000?28:Math.round(F.maxLong*0.9);
   let svg='';
-  F.mons.forEach((m,i)=>{ const cx=PL+cw*(i+.5), x=cx-bw/2, k=F.wk[i], ph=psPhase(g,m), cur=m===tW, past=m<tW;
-    svg+=`<rect x="${x.toFixed(1)}" y="${Y(k).toFixed(1)}" width="${bw.toFixed(1)}" height="${(TOP+BH-Y(k)).toFixed(1)}" rx="2" fill="${PH[ph]||'#C9B8DE'}" opacity="${past||cur?.35:.9}"/>`;
-    if(ran[i]!=null&&(past||cur)) svg+=`<rect x="${x.toFixed(1)}" y="${Y(ran[i]).toFixed(1)}" width="${bw.toFixed(1)}" height="${(TOP+BH-Y(ran[i])).toFixed(1)}" rx="2" fill="var(--accent)"/>`;
+  const phaseOf=(m,i)=>i<(F.prevN||0)?'지난':psPhase(g,m);
+  F.mons.forEach((m,i)=>{ const cx=PL+cw*(i+.5), x=cx-bw/2, k=F.wk[i], ph=phaseOf(m,i), cur=m===tW, past=m<tW;
+    /* 이번 주 — 세로 띠 배경으로 한눈에 */
+    if(cur) svg+=`<rect x="${(cx-cw/2).toFixed(1)}" y="${TOP-14}" width="${cw.toFixed(1)}" height="${BH+PHH+36}" rx="5" fill="var(--accent)" opacity=".13"/>`;
+    if(k>0) svg+=`<rect x="${x.toFixed(1)}" y="${Y(k).toFixed(1)}" width="${bw.toFixed(1)}" height="${(TOP+BH-Y(k)).toFixed(1)}" rx="2" fill="${PH[ph]||'#C9B8DE'}" opacity="${past||cur?.35:.9}"/>`;
+    if(ran[i]!=null&&(past||cur)&&ran[i]>0) svg+=`<rect x="${x.toFixed(1)}" y="${Y(ran[i]).toFixed(1)}" width="${bw.toFixed(1)}" height="${(TOP+BH-Y(ran[i])).toFixed(1)}" rx="2" fill="${cur?'var(--accent)':ph==='지난'?'#8E7AA6':'var(--accent)'}" opacity="${ph==='지난'?.75:1}"/>`;
     if(cur) svg+=`<rect x="${(x-2).toFixed(1)}" y="${TOP-2}" width="${(bw+4).toFixed(1)}" height="${BH+4}" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="${cx.toFixed(1)}" y="${TOP+BH+PHH+16}" text-anchor="middle" font-size="9.5" font-weight="900" fill="var(--accent)">이번 주</text>`;
     const L=longOf(m), tt=A.find(x=>weekMonday(x.d)===m&&x.type==='tt');
     if(L>=bigL&&!tt) svg+=`<text x="${cx.toFixed(1)}" y="${(Y(k)-4).toFixed(1)}" text-anchor="middle" font-size="${cw<16?8:9.5}" font-weight="900" fill="var(--ink)">${Math.round(L)}</text>`;
@@ -12011,7 +12018,7 @@ function goalRoad(M,big){
   if(raceD){ const ri=F.mons.indexOf(weekMonday(raceD)); const cx=ri>=0?PL+cw*(ri+.5):W-PR-6;
     svg+=`<text x="${cx.toFixed(1)}" y="${(TOP-8).toFixed(1)}" text-anchor="${cx>W-30?'end':'middle'}" font-size="12" fill="#C2410C">★</text>`; }
   /* 시기 띠 */
-  let i0=0; for(let i=1;i<=n;i++){ const a=psPhase(g,F.mons[i0]), b=i<n?psPhase(g,F.mons[i]):null;
+  let i0=0; for(let i=1;i<=n;i++){ const a=phaseOf(F.mons[i0],i0), b=i<n?phaseOf(F.mons[i],i):null;
     if(b!==a){ const x0=PL+cw*i0, x1=PL+cw*i; svg+=`<rect x="${(x0+.5).toFixed(1)}" y="${TOP+BH+3}" width="${(x1-x0-1).toFixed(1)}" height="${PHH-3}" rx="3" fill="${PH[a]||'#EDE5F6'}"/>${x1-x0>22?`<text x="${((x0+x1)/2).toFixed(1)}" y="${TOP+BH+PHH-3}" text-anchor="middle" font-size="9" font-weight="800" fill="${a==='실전'||a==='강화'?'#fff':'#2A1638'}">${a||''}</text>`:''}`; i0=i; } }
   const ends=`${F.mons[0]===tW?'':`<text x="${PL}" y="${TOP+BH+PHH+16}" font-size="9.5" fill="var(--ink-3)">${+F.mons[0].slice(5,7)}.${+F.mons[0].slice(8,10)}</text>`}${raceD?`<text x="${W-PR}" y="${TOP+BH+PHH+16}" text-anchor="end" font-size="9.5" font-weight="800" fill="#C2410C">대회 ${+raceD.slice(5,7)}.${+raceD.slice(8,10)}</text>`:''}`;
   const top=`<text x="${PL}" y="11" font-size="9.5" fill="var(--ink-3)">주간 거리 · 정점 ${Math.round(F.peakW)}km</text>`;
@@ -12026,7 +12033,9 @@ function goalRoad(M,big){
   const lg=up.filter(x=>x.type==='long'&&sKm(x)>=bigL)[0]; if(lg) nx.push(`<li><b>${mdw(lg.d.slice(0,10))}</b> 다음 ${bigL}km 넘는 긴 날 ${fmtKm1(sKm(lg))}km${g.m>=42000?` · 남은 ${up.filter(x=>x.type==='long'&&sKm(x)>=28).length}번`:''}</li>`);
   const tp=F.mons.find(m=>m>=tW&&psPhase(g,m)==='줄이기'); if(tp&&tp>tW) nx.push(`<li><b>${mdw(tp)}</b>부터 대회 전 줄이기 (${g.m>=42000?3:2}주)</li>`);
   const next=nx.length?`<ul class="gr-nx">${nx.join('')}</ul>`:'';
-  return `<div class="groad">${st}${pic}${next}</div>`;
+  /* 홈(간단)에서는 숫자·그림만 보이고, 경고·다음 확인은 '더 보기' 안으로 */
+  if(split) return {main:`<div class="groad">${st}${pic}</div>`,extra:warn+next};
+  return `<div class="groad">${st}${warn}${pic}${next}</div>`;
 }
 /* 시작→목표 추이 — x: 시작일~목표일(주 간격), y: 목표 지표. 목표선 · 지금 · 측정점 · 필요한 흐름(점선) */
 /* 이번 주 측정 진행 — 조건에 맞는 1km 구간이 몇 개 쌓였나 (3개면 그 주의 점이 찍힌다) */
@@ -12082,12 +12091,11 @@ function goalCard(compact){
       <div><b class="num">${M.thisWk.done}<small>/${M.thisWk.n}</small></b><i>이번 주 훈련</i></div>
       ${p?`<div><b class="num">${p.day}<small>/${p.total}일</small></b><i>4주 일정</i></div>`:''}</div>`;
   const how=`<div class="gc-how"><span>이번 4주</span><b>${M.how}</b></div>`;
-  if(compact) return `<section class="mygoal" aria-label="달리기 목표">
-      <div class="gc-ttl">달리기 목표</div>
+  if(compact){ const R=roadOrTrend(M,false,true); return `<section class="mygoal" aria-label="달리기 목표">
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b></div></div>
-      ${roadOrTrend(M)}
-      <details class="gc-dd"><summary>더 보기</summary>${goalGauge(M)}${M.sub?`<div class="gc-sub">${M.sub}</div>`:''}${goalSetChips(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
-      <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">상세 ›</button>${snapBtn('.mygoal','goal','달리기 목표')}</div></details></section>`;
+      ${R.main}
+      <details class="gc-dd"><summary>더 보기</summary>${R.extra}${goalGauge(M)}${M.sub?`<div class="gc-sub">${M.sub}</div>`:''}${goalSetChips(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
+      <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">상세 ›</button>${snapBtn('.mygoal','goal','달리기 목표')}</div></details></section>`; }
   /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
   const mx=Math.max(1,...M.wkKm);
   /* 주간 막대 — 계획(옅은 막대)과 실제로 뛴 거리(진한 막대)를 같이. 예전엔 계획만 그려서 며칠을 뛰어도 막대가 그대로였다 */
