@@ -835,6 +835,12 @@ details.noti .sigc{margin:6px 0}
 /* 그냥 뛰기 줄 */
 .htiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 16px 0}.htile{background:var(--panel);border:1.5px solid var(--line);border-radius:18px;padding:12px 4px 10px;text-align:center;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}.htile svg{width:26px;height:26px;color:var(--tc)}.htile b{font-size:12.5px;font-weight:800;margin-top:3px}.htile strong{font-size:15px;font-weight:900;color:var(--tc);white-space:nowrap}.htile i{font-style:normal;font-size:10px;color:var(--ink-3);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nxrow{width:calc(100% - 32px);text-align:left;font:inherit;color:var(--ink);cursor:pointer;border:1.5px solid var(--line)}.nxrow .nx-go{margin-left:auto;color:var(--ink-3);font-size:18px}
+.nx3{padding:2px 6px 4px}.nx3-hd{display:flex;align-items:center;justify-content:space-between;padding:7px 10px 2px}.nx3-hd b{font-size:12.5px;color:var(--ink-3)}.nx3-hd button{border:none;background:none;font:inherit;font-size:12px;font-weight:700;color:var(--accent);padding:2px;cursor:pointer}
+.nx3-r{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:none;font:inherit;color:var(--ink);padding:6px 10px;border-radius:10px;cursor:pointer}.nx3-r:active{background:var(--panel-2)}
+.nx3-r .nxic{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px}.nx3-r .nxic svg{width:16px;height:16px}
+.nx3-t{display:flex;align-items:baseline;gap:7px;min-width:0;flex:1}.nx3-t i{font-style:normal;font-size:12px;font-weight:700;color:var(--ink-3);flex:none}.nx3-t b{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nx3-r em{font-style:normal;font-size:14px;font-weight:800;color:var(--ink-2);flex:none}.nx3-r em small{font-size:10.5px;font-weight:700;color:var(--ink-3);margin-left:1px}
+.nx3-r.off .nxic{opacity:.75}.nx3-r.off .nx3-t b{color:var(--ink-3);font-weight:600}
 #tileBody .sec{margin:0}#tileBody .tcard,#tileBody .hc{margin-left:0;margin-right:0}
 .qrow{display:flex;align-items:center;gap:6px;margin:12px 16px 0;padding:10px 12px;background:var(--panel);border-radius:18px;border:1.5px solid color-mix(in srgb,var(--accent) 35%,transparent)}
 .qrow>span{font-size:13.5px;font-weight:800;color:var(--accent);flex:none;margin-right:4px}
@@ -1221,6 +1227,8 @@ details.noti .sigc{margin:6px 0}
 /* 대회 찾기 */
 .rc-meta{font-size:11.5px;color:var(--ink-3);line-height:1.6;margin:4px 2px 10px}
 .rc-f{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.rc-f button{border:1px solid var(--line);background:var(--panel,#fff);border-radius:999px;padding:6px 11px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2)}.rc-f button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rc-st button em{font-style:normal;font-size:11px;opacity:.6;margin-left:4px}.rc-st button.on em{opacity:.8}
+.rc-f+.rc-f{margin-top:-2px}
 .rc-f2{display:flex;gap:6px;margin-bottom:10px}.rc-f2 select,.rc-f2 input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;background:#fff}
 .rc-m{font-size:12px;font-weight:800;color:var(--ink-3);margin:14px 2px 6px}
 .rc-it{background:#fff;border-radius:14px;padding:11px 13px;margin-bottom:7px;display:grid;grid-template-columns:56px 1fr;gap:10px;cursor:pointer}
@@ -2258,7 +2266,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.71';
+const APPVER='19.72';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2979,7 +2987,8 @@ function timeCapKm(days, twd, twe){
    출처: 마라톤온라인(roadrun.co.kr · marathon.pe.kr). 깃허브 액션이 매일 새벽 4시쯤 races.json으로 받아 둔다(앱이 남의 사이트를 직접 읽을 수 없어서).
    '실시간'이 아니라 하루 한 번이라는 걸 화면에 밝힌다. 원본 링크를 항상 단다. */
 let RC_HOST=null;
-let RACES=null, RCF={c:'',a:'',open:false,q:'',n:40,x:null};
+let RACES=null, RCF={c:'',a:'',open:false,st:'',y:'',reg:'',q:'',n:40,x:null};
+const RC_CAP=['서울','경기','인천'];
 const RC_DIST={'풀':42195,'하프':21097,'10km':10000,'5km':5000};
 /* ═══ 관리자 콘텐츠(공지·대회 추가/숨김)와 의견 보내기 — 로그인 없이 Firestore REST로 ═══ */
 const FSR=`https://firestore.googleapis.com/v1/projects/runcoach-120ff/databases/(default)/documents`, FSKEY='AIzaSyDlSwvduhTI3Locdls_wYFn70OtTkPoK8g';
@@ -3046,13 +3055,18 @@ async function renderRaces(host){
   const all=RACES.races.filter(r=>r.date>=t);
   const cOk=r=>!RCF.c||r.courses.some(c=>c===RCF.c||(RCF.c==='풀'&&/^풀/.test(c))||(RCF.c==='하프'&&/^하프/.test(c)));
   const qq=RCF.q.trim();
-  const L=all.filter(r=>cOk(r)&&(!RCF.a||r.area===RCF.a)&&(!RCF.open||r.open)&&(!qq||(r.name+' '+r.place+' '+(r.host||'')).includes(qq)));
+  const regOk=r=>!RCF.reg||(RCF.reg==='cap'?RC_CAP.includes(r.area):!RC_CAP.includes(r.area));
+  const stOk=r=>!RCF.st||(RCF.st==='open'?!!r.open:!r.open);
+  const L=all.filter(r=>cOk(r)&&(!RCF.y||r.date.slice(0,4)===RCF.y)&&regOk(r)&&(!RCF.a||r.area===RCF.a)&&stOk(r)&&(!qq||(r.name+' '+r.place+' '+(r.host||'')).includes(qq)));
+  const years=[...new Set(all.map(r=>r.date.slice(0,4)))].sort();
   const goalD=((PLAN&&PLAN.goal)||GOAL||{}).date;
-  const areas=[...new Set(all.map(r=>r.area).filter(Boolean))];
+  const areas=[...new Set(all.filter(regOk).map(r=>r.area).filter(Boolean))]; if(RCF.a&&!areas.includes(RCF.a))RCF.a='';
   const AORD=['서울','경기','인천','강원','충북','충남','대전','세종','전북','전남','광주','경북','대구','경남','부산','울산','제주','해외','기타']; areas.sort((a,b)=>AORD.indexOf(a)-AORD.indexOf(b));
   let h=`<div class="rc-meta">대회 ${all.length}개 · 갱신 ${up?`${up.getMonth()+1}.${up.getDate()} ${pad(up.getHours())}:${pad(up.getMinutes())}`:'—'}${RACES._offline?' (오프라인 — 저장된 목록)':''}${stale?' · <b style="color:var(--alarm)">3일↑ 미갱신</b>':''}<br>출처 <a href="${ESC(RACES.sourceUrl||'http://www.marathon.pe.kr/')}" target="_blank" rel="noopener">마라톤온라인</a></div>
-    <div class="rc-f">${[['','전체'],['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']].map(([k,l])=>`<button type="button" data-rcc="${k}" class="${RCF.c===k?'on':''}">${l}</button>`).join('')}<button type="button" data-rco="1" class="${RCF.open?'on':''}">접수중만</button></div>
-    <div class="rc-f2"><select id="rcArea"><option value="">전국</option>${areas.map(a=>`<option${RCF.a===a?' selected':''}>${a}</option>`).join('')}</select><input id="rcQ" type="search" placeholder="대회 이름 · 장소" value="${ESC(RCF.q)}"></div>`;
+    <div class="rc-f rc-st">${[['','전체'],['open','접수중'],['closed','접수 마감']].map(([k,l])=>`<button type="button" data-rcs="${k}" class="${RCF.st===k?'on':''}">${l}<em>${k===''?all.length:all.filter(r=>k==='open'?r.open:!r.open).length}</em></button>`).join('')}</div>
+    <div class="rc-f">${[['','전체'],['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']].map(([k,l])=>`<button type="button" data-rcc="${k}" class="${RCF.c===k?'on':''}">${l}</button>`).join('')}</div>
+    <div class="rc-f">${years.length>1?years.map(y=>`<button type="button" data-rcy="${y}" class="${RCF.y===y?'on':''}">${y}년</button>`).join(''):''}${[['','전국'],['cap','수도권'],['oth','지방']].map(([k,l])=>`<button type="button" data-rcr="${k}" class="${RCF.reg===k?'on':''}">${l}</button>`).join('')}</div>
+    <div class="rc-f2"><select id="rcArea"><option value="">${RCF.reg==='cap'?'수도권 전체':RCF.reg==='oth'?'지방 전체':'모든 지역'}</option>${areas.map(a=>`<option${RCF.a===a?' selected':''}>${a}</option>`).join('')}</select><input id="rcQ" type="search" placeholder="대회 이름 · 장소" value="${ESC(RCF.q)}"></div>`;
   if(!L.length) h+='<div class="rc-meta" style="padding:14px 2px">해당 대회 없음</div>';
   let lastM='';
   L.slice(0,RCF.n).forEach(r=>{ const m=r.date.slice(0,7); if(m!==lastM){ lastM=m; h+=`<div class="rc-m">${+m.slice(0,4)}년 ${+m.slice(5)}월</div>`; }
@@ -3070,7 +3084,9 @@ async function renderRaces(host){
 }
 document.addEventListener('click',e=>{ const rh=e.target.closest('.rc-host'); if(!rh)return; RC_HOST=rh;
   const c=e.target.closest('[data-rcc]'); if(c){ RCF.c=c.dataset.rcc; RCF.n=40; return renderRaces(); }
-  if(e.target.closest('[data-rco]')){ RCF.open=!RCF.open; RCF.n=40; return renderRaces(); }
+  const st=e.target.closest('[data-rcs]'); if(st){ RCF.st=st.dataset.rcs; RCF.n=40; return renderRaces(); }
+  const yb=e.target.closest('[data-rcy]'); if(yb){ RCF.y=RCF.y===yb.dataset.rcy?'':yb.dataset.rcy; RCF.n=40; return renderRaces(); }
+  const rg=e.target.closest('[data-rcr]'); if(rg){ RCF.reg=rg.dataset.rcr; RCF.n=40; return renderRaces(); }
   if(e.target.closest('[data-rcmore]')){ RCF.n+=40; return renderRaces(); }
   const g=e.target.closest('[data-rcg]'); if(g){ const r=RACES.races.find(x=>x.id===g.dataset.rcg); if(!r)return;
     try{ tileClose(); }catch(err){} goalStart(); try{ Object.assign(GB.d,{kind:'race',m:+g.dataset.rcm,date:r.date,raceName:r.name,sec:null}); GB.i=1; gPaint(); }catch(err){} return; }
@@ -8379,7 +8395,10 @@ function renderHome(){
       <span class="tchip">아직 계획 없음</span><div class="ttl">그냥 뛰어도<br>됩니다</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">기록이 3번 쌓이면 내 페이스·심박으로 목표를 제안해요</div>
       <button class="tgo" id="hGoal">목표 세우기</button></div></div>`;
   /* 3. 다음 훈련 한 줄 (훈련 날·계획 없는 날 — 쉬는 날 카드는 자체에 있음) */
-  if(sess||!inP){ const nx=BLOCK.find(x=>x.d.slice(0,10)>today&&x.type!=='off'); if(nx) hw+=`<button type="button" class="hc slim nxrow" data-nx="${nx.d}"><span class="nxic" style="background:${(LOOK[nx.type]||LOOK.free).bg}"></span><div><b>${dowOf(nx.d)}요일 · ${ESC(nx.t)}</b></div><span class="nx-go">›</span></button>`; }
+  /* 다음 3일 — 날짜·모양·제목·거리. 줄을 누르면 그날 훈련, 머리 글자를 누르면 플랜 전체 */
+  { const N3=BLOCK.filter(x=>x.d.slice(0,10)>today).slice(0,3);
+    if(N3.length) hw+=`<div class="hc nx3"><div class="nx3-hd"><b>다음 훈련</b><button type="button" data-tilego="plan">전체 일정 ›</button></div>${N3.map(x=>{ const off=x.type==='off', ds=x.d.slice(0,10), lk=LOOK[x.type]||LOOK.free;
+      return `<button type="button" class="nx3-r${off?' off':''}" data-nx="${x.d}"><span class="nxic" style="background:${lk.bg}">${symSVG(x.type)}</span><div class="nx3-t"><i>${dowOf(ds)} ${+ds.slice(5,7)}.${+ds.slice(8,10)}</i><b>${ESC(x.t)}</b></div>${!off&&x.dist?`<em class="num">${+(+x.dist).toFixed(1)}<small>km</small></em>`:''}</button>`; }).join('')}</div>`; }
   h+=hw;
   /* 4. 아이콘 타일 — 목표 · 이번 주 · 내 기록 · 몸 상태 · 훈련 기준 · 마일리지 · 준비운동 · 대회 찾기 */
   h+=homeTiles(sess);
@@ -8565,8 +8584,7 @@ function restCard(t){
     ${scored?`<div class="rst-ft"><i class="rst-bar"><em style="width:${R.score}%"></em></i><span class="rst-sc"><b class="num">${R.score}</b><small>/100</small></span>${closed?`<button type="button" class="mclose re" id="restReopen">다시 열기</button>`:`<button type="button" class="mclose" id="restClose">오늘 마감</button>`}</div>`:
       closed?`<div class="rst-ft"><span class="mis-done">기록됨 · 약속 연속 유지</span><button type="button" class="mclose re" id="restReopen">다시 열기</button></div>`:`<div class="rst-ft"><span class="mis-hint">플랜 밖 쉬는 날 — 기록만</span><button type="button" class="mclose" id="restClose">마감</button></div>`}
   </div></div>
-  ${nx?`<div class="hc slim"><span class="nxic" style="background:${(LOOK[nx.type]||LOOK.free).bg}"></span><div><b>${dowOf(nx.d)}요일 · ${ESC(nx.t)}</b></div></div>`:''}
-  `;   /* '그래도 뛰기'는 맨 위 프리런 줄이 맡는다 */
+  `;   /* 다음 훈련은 홈의 '다음 훈련' 카드가 맡는다 · '그래도 뛰기'는 맨 위 프리런 줄 */
 }
 
 /* ───────── 홈 맨 위 — 나의 목표 · 지금 어디까지 ─────────
@@ -9948,7 +9966,7 @@ function mhClose(){ const sh=$('mhSheet'); if(!sh)return; sh.classList.remove('u
 document.addEventListener('click',e=>{ if(e.target.closest('#mhClose')||e.target.id==='mhSheet')mhClose(); });
 const fmtMile=v=>{ const n=Math.round(v*10)/10; return n>=1000?Math.round(n).toLocaleString('en-US'):n.toFixed(n<100?1:0); };
 /* 롤러 주행거리계 띠 — 모든 탭 위 고정 머리에. 앞자리 0은 흐리게, 누르면 마일리지 카드 */
-function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.floor(M.total)), str=String(n).padStart(6,'0'); let lead=true;
+function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.round(M.total)), str=String(n).padStart(6,'0'); let lead=true;
   const cells=[...str].map((d,i)=>{ const z=lead&&d==='0'&&i<str.length-1; if(d!=='0')lead=false; return `<i class="${z?'z':''}">${d}</i>`; }).join('');
   return `<button type="button" class="odo" id="hOdo" aria-label="누적 ${fmtMile(M.total)}km · 다음 ${fmtMile(M.next)}km까지 ${fmtMile(M.next-M.total)}km"><i>러닝 마일리지 <b>km</b></i><span class="odo-d">${cells}</span></button>`; }catch(e){ return ''; } }
 function paintOdo(){ try{ const o=$('hOdo'); if(o)o.outerHTML=odoHTML(); }catch(e){} }
