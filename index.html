@@ -2235,7 +2235,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.62';
+const APPVER='19.63';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2380,6 +2380,7 @@ function ageOf(birth){
   if(t.getMonth()+1<m||(t.getMonth()+1===m&&t.getDate()<(d||1)))a--;
   return a;
 }
+const THR_AT={};   /* 날짜별 역치 페이스 캐시(thrAt) */
 let PROF=Object.assign({},DEFAULT_PROF,DEV.store.get('prof',{}));
 
 let HRMAX, VDOT, Z, PACE, ZONES;
@@ -2506,7 +2507,7 @@ function recalcProfile(){
     if(!last||Math.abs(last.v-VDOT)>0.01){
       PROF.vhist=h.filter(x=>x.d!==PROF.race.at);
       PROF.vhist.push({d:PROF.race.at,v:+VDOT.toFixed(2),src:PROF.race.kind});
-      PROF.vhist.sort((a,b)=>a.d<b.d?-1:1); } }
+      PROF.vhist.sort((a,b)=>a.d<b.d?-1:1); try{ for(const k in THR_AT)delete THR_AT[k]; }catch(e){} } }
   Z     = zonesOf(VDOT);
   /* 쉬운 날은 전부 Daniels E 범위 안에서 — 근거 대장 #18.
      예전에는 E의 느린 끝보다도 20~45초 더 느리게 시켰다(출처 없음). */
@@ -2843,6 +2844,7 @@ function vTrend(){
   return {rate:Math.max(0,(b.v-a.v)/wk), n:h.length, wk:+wk.toFixed(1)};
 }
 function vhistAdd(v,src){
+  for(const k in THR_AT)delete THR_AT[k];
   PROF.vhist=(PROF.vhist||[]).filter(x=>x.d!==todayStr());
   PROF.vhist.push({d:todayStr(),v:+v.toFixed(2),src:src||'tt'});
   if(PROF.vhist.length>40)PROF.vhist=PROF.vhist.slice(-40);
@@ -11738,14 +11740,26 @@ document.addEventListener('change',e=>{
    · 주간 단조도·긴장 — Foster 1998: 단조도 = 7일 평균 ÷ 표준편차, 긴장 = 주간 합 × 단조도 */
 function restHr(){ const l=(RHR||[]).slice(-7).map(x=>x&&(x.bpm||x.v||x)).filter(x=>x>30&&x<120); if(l.length)return Math.round(l.reduce((a,b)=>a+b,0)/l.length); return PROF.rhr||60; }
 function restHrSrc(){ return ((RHR||[]).slice(-7).some(x=>x&&(x.bpm||x.v||x)>30))?'측정':(PROF.rhr?'설정':'기본 60'); }
+/* 그날의 역치 페이스 — rTSS는 '뛴 날에 유효했던 역치'로 채점한다(TrainingPeaks 방식).
+   실력 기록(vhist)에서 그 날짜보다 앞선 마지막 값을 쓴다. 기준을 갱신한 바로 그 기록(같은 날)은 갱신 전 기준으로 —
+   새 기준으로 다시 채점하면 전력 TT가 IF 1.0 '보통'으로 떨어지기 때문. 역치를 손으로 정했으면 그 값. 과거 점수는 기준이 바뀌어도 변하지 않는다 */
+function thrAt(ds){ try{
+  if(ovGet().T) return Z.T;
+  if(THR_AT[ds]!=null) return THR_AT[ds];
+  const h=(PROF.vhist||[]).filter(x=>x&&x.v&&x.d).sort((a,b)=>a.d<b.d?-1:1);
+  let v=null; for(const x of h){ if(x.d<ds) v=x.v; else break; }
+  if(v==null&&h.length) v=h[0].v;   /* 첫 측정 전 기록은 첫 측정값으로 */
+  const T=v!=null?zonesOf(v).T:Z.T; THR_AT[ds]=T; return T;
+}catch(e){ return Z&&Z.T; } }
 function loadOf(r){
   if(!r||!isRun(r)||!r.sec)return null;
   const min=r.sec/60, out={};
-  /* rTSS — 구간이 있으면 구간마다, 없으면 평균 페이스로 */
-  if(Z&&Z.T){ const segs=(r.segments||[]).filter(g=>g.sec>0&&g.pace>0);
-    const tss=(sec,pace)=>{ const IF=Z.T/pace; return sec*IF*IF/3600*100; };
+  /* rTSS — 구간이 있으면 구간마다, 없으면 평균 페이스로. 역치는 그날 기준(thrAt) */
+  const T=Z&&Z.T?thrAt(ldate(r.date).slice(0,10)):null;
+  if(T){ const segs=(r.segments||[]).filter(g=>g.sec>0&&g.pace>0);
+    const tss=(sec,pace)=>{ const IF=T/pace; return sec*IF*IF/3600*100; };
     let v=segs.length?segs.reduce((a,g)=>a+tss(g.sec,g.pace),0):(r.paceAvg?tss(r.sec,r.paceAvg):null);
-    if(v!=null){ out.tss=Math.round(v); out.if=+(segs.length?Math.sqrt(v/100*3600/r.sec):Z.T/r.paceAvg).toFixed(2); } }
+    if(v!=null){ out.tss=Math.round(v); out.if=+(segs.length?Math.sqrt(v/100*3600/r.sec):T/r.paceAvg).toFixed(2); out.thr=Math.round(T); } }
   /* Banister TRIMP */
   if(r.hrAvg&&HRMAX){ const rhr=restHr(), x=Math.max(0,Math.min(1,(r.hrAvg-rhr)/Math.max(20,HRMAX-rhr)));
     const k=PROF.sex==='f'?0.86*Math.exp(1.67*x):0.64*Math.exp(1.92*x); out.trimp=Math.round(min*x*k); out.dhr=+x.toFixed(2); }
@@ -11772,7 +11786,7 @@ function weekLoad(endDs,cur){ const end=endDs||todayStr(), days=[], pool=cur&&!R
 function loadCard(r,compact){
   const L=loadOf(r); if(!L)return '';
   const m=L.main, band=loadBand(m.k,m.v), pct=Math.min(100,m.v/(m.k==='tss'?450:m.k==='trimp'?200:600)*100);
-  const rows=[L.tss!=null?['rTSS',`${L.tss}`,`IF ${L.if} · 역치 페이스 ${fmtPace(Z.T)} 기준`]:null,
+  const rows=[L.tss!=null?['rTSS',`${L.tss}`,`IF ${L.if} · 역치 ${fmtPace(L.thr)} 기준${Math.abs(L.thr-Z.T)>=2?' (그날 기준 · 지금은 '+fmtPace(Z.T)+')':''}`]:null,
     L.trimp!=null?['TRIMP (Banister)',`${L.trimp}`,`평균 심박 ${r.hrAvg} · 안정 ${restHr()}(${restHrSrc()}) · 최대 ${HRMAX}`]:null,
     L.edw!=null?['존 TRIMP (Edwards)',`${L.edw}`,'존별 분 × 1~5']:null,
     L.srpe!=null?['sRPE (Foster)',`${L.srpe}`,`RPE ${r.rpe} × ${Math.round(r.sec/60)}분`]:null].filter(Boolean);
