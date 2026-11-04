@@ -738,11 +738,21 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .ack{display:flex;gap:9px;align-items:flex-start;margin:10px 2px 4px;font-size:12.5px;line-height:1.6;color:var(--ink);cursor:pointer}
 .ack input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
 /* ═════ 홈 — 러닝 앱처럼: 목표 레인 · 이번 주 막대 · 오늘 큰 카드 ═════ */
-#home .hbrand{padding:2px 18px 0;gap:10px}
-#home .happ{width:34px;height:34px;border-radius:10px;box-shadow:none}
-#home .hname b{font-size:21px;letter-spacing:-.5px}
+#gHead .hbrand{padding:2px 18px 0;gap:10px}
+#gHead .happ{width:34px;height:34px;border-radius:10px;box-shadow:none}
+#gHead .hname b{font-size:21px;letter-spacing:-.5px}
 .hname{display:flex;flex-direction:column;gap:1px;min-width:0}.ichip{display:inline-block;font-size:12px;font-weight:800;color:#2A1638;background:#8DB89A;border-radius:999px;padding:4px 11px;margin-bottom:8px;letter-spacing:.02em}
-#home .hbrand{align-items:center;gap:10px}#home .hname b{font-size:20px;letter-spacing:-.5px;white-space:nowrap}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}.tlstreak{display:inline-flex;align-items:center;gap:3px;background:#FFF0E3;color:#C8471D;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800}
+#gHead .hbrand{align-items:center;gap:10px}#gHead .hname b{font-size:20px;letter-spacing:-.5px;white-space:nowrap}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}html{scroll-padding-top:124px}
+#gHead{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line),0 6px 16px rgba(42,22,56,.06);padding-bottom:6px}body.nohead #gHead{display:none}
+#gHead .topline{padding-top:12px}.view:not(#home)>.topline{padding-top:10px}
+.odo{display:flex;align-items:center;gap:8px;width:calc(100% - 32px);margin:4px 16px 0;border:0;background:none;padding:0;font:inherit;color:var(--ink);text-align:left;cursor:pointer}.odo-d{display:flex;gap:3px}.odo-d i{display:inline-block;width:21px;height:28px;line-height:28px;text-align:center;background:#2A1638;color:#F4F0EA;font-style:normal;font-weight:900;font-size:18px;border-radius:5px;font-family:var(--num);font-variant-numeric:tabular-nums}.odo-d i.z{opacity:.32}.odo>b{font-size:12px;font-weight:900}.odo-r{flex:1;min-width:0;text-align:right;line-height:1.25}.odo-r i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.odo-r em{display:block;font-style:normal;font-size:11.5px;color:var(--accent);font-weight:900;white-space:nowrap}
+.mile{padding:14px 16px}.mile-odo{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.mile-odo b{font-size:42px;font-weight:900;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}.mile-odo span{font-size:15px;font-weight:800;color:var(--ink-3)}.mile-odo i{flex-basis:100%;font-style:normal;font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px}
+.mile-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}.mile-row span{background:var(--panel-2);border-radius:12px;padding:8px 10px;min-width:0}.mile-row i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700}.mile-row b{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}.mile-row em{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mile-next{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12px;color:var(--ink-2)}.mile-next span{flex:none;white-space:nowrap}.mile-bar{flex:1;height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}.mile-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.mile-badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.mile-badges span{font-size:10.5px;font-weight:800;border-radius:999px;padding:3px 9px;background:var(--panel-2);color:var(--ink-3)}.mile-badges span.on{background:#F4E6C8;color:#8A5A00}
+.mile-years{display:flex;flex-direction:column;gap:4px;margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.mile-years div{display:flex;align-items:baseline;gap:10px;font-size:12.5px}.mile-years b{width:42px}.mile-years span{font-weight:800}.mile-years i{font-style:normal;color:var(--ink-3);font-size:11px}
+.mile-act{display:flex;gap:8px;margin-top:12px}.mile-act .btn{flex:1;padding:9px 0;font-size:12.5px}
+.tlstreak{display:inline-flex;align-items:center;gap:3px;background:#FFF0E3;color:#C8471D;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800}
 #home .streak{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-family:var(--num);font-weight:800;font-size:13px;color:#B04416;background:#FFEFE6;border-radius:999px;padding:5px 10px}
 /* 알림 */
 details.noti{margin:12px 16px 0;padding:0;border:none;box-shadow:none;background:none}
@@ -1225,14 +1235,16 @@ details.noti .sigc{margin:6px 0}
 </div>
 <script>/* 같은 탭에서 다시 그릴 때(복귀·새로고침)는 띄우지 않는다 */try{ if(sessionStorage.getItem('rc_splashed')||!localStorage.getItem('rc_onboarded')||location.hash||/[?&](run|from)=/.test(location.search)){ document.getElementById('splash').remove(); } }catch(e){ var _sp=document.getElementById('splash'); if(_sp)_sp.remove(); }</script>
 
-<div class="view on" id="home">
+<div id="gHead">
   <div class="topline"><b id="tlDate">—</b><span id="tlBlock" style="font-family:var(--num);font-size:11px"></span>
     <span id="tlWk" style="font-family:var(--mono)">—</span><span class="tlver" id="tlVer"></span><span class="tlstreak" id="tlStreak" hidden></span>
     <span class="tl-ic"><button id="btnMusic" class="icbtn mus-hb" aria-label="음악"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
     <button id="bellWrap" class="icbtn" aria-label="알림">🔔</button>
     <button id="btnGear" class="icbtn" aria-label="설정">⚙</button>
     <button id="btnPower" class="icbtn" style="color:var(--alarm)" aria-label="앱 끄기"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg></button></span></div>
-  <div id="hHead"></div>
+  <div id="hHead"></div></div>
+
+<div class="view on" id="home">
   <div id="hMain"></div>
   <div class="navpad"></div>
 </div>
@@ -2235,7 +2247,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.65';
+const APPVER='19.66';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3869,6 +3881,8 @@ function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.togg
   try{ if(typeof MUS!=='undefined')setTimeout(()=>MUS.paint(),0); }catch(e){}
   CURVIEW=id;
   document.body.classList.toggle('nonav',id==='onb'||id==='intro'||id==='goal');
+  document.body.classList.toggle('nohead',['onb','intro','goal','run','sum','runview','selftest'].includes(id));
+  try{ if(!document.body.classList.contains('nohead')&&!$('hOdo')&&$('hHead')&&!$('hHead').innerHTML)renderHome(); }catch(e){}
   const t=TABOF[id]||id;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   window.scrollTo(0,0);}
@@ -8323,7 +8337,7 @@ function renderHome(){
 
   /* 오늘 무엇을 하는지는 바로 아래 카드에 있다 — 여기는 앱 이름과 로고 자리 */
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
-      <div class="hname"><b>가지런<span class="hada">하다</span></b></div><span class="hvb" aria-hidden="true"></span><span class="hid"><b>실시간 코칭 프로그램</b><i>정한 강도·거리·시간대로</i></span></div>`;
+      <div class="hname"><b>가지런<span class="hada">하다</span></b></div><span class="hvb" aria-hidden="true"></span><span class="hid"><b>실시간 코칭 프로그램</b><i>정한 강도·거리·시간대로</i></span></div>${odoHTML()}`;
   /* 연속 배지는 위 날짜 줄로 — 로고 줄이 흔들리지 않게 */
   try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}`:''; } }catch(e){}
 
@@ -9800,6 +9814,50 @@ function bodyLight(){
   const msg=sig.length?`확인 ${sig.length} · 눌러 결정`:(jumpInfo&&jumpInfo()&&sigSeen('jump',7)?`확인 0 · 2주 +${jumpInfo().pct}% 결정`:`확인 0 · ${rb?'아침 심박 · ':''}심박·거리 정상`);
   return `<div class="light ${sig.length?'warn':''}"${sig.length?` data-sig2="${sig[0]}"`:''}><div class="dot">${sig.length?'!':'✓'}</div><div><b>몸 상태: ${sig.length?'점검 필요':'좋음'}</b><p>${msg}</p></div></div>`;
 }
+/* ───────── 마일리지 — 평생 누적 km (마라토너의 주행거리계) ─────────
+   달리기 = 러닝 기록 전부(웜업·쿨다운 포함 · 걷기·자전거·등산 제외) + 앱 쓰기 전 누적(시작 누적, 손으로 한 번).
+   대회 = 대회 기록(🏅)의 거리 — 같은 날 러닝 기록이 있으면 그 러닝에 이미 들어 있으므로 더하지 않는다(중복 없음).
+   저장값이 아니라 기록에서 매번 합산 — 삭제·수정하면 바로 바뀐다 */
+const MILE_STEPS=[100,300,500,1000,1500,2000,3000,5000,10000];
+function mileage(){
+  const R=RUNS.filter(isRun), t=todayStr(), y=t.slice(0,4), m=t.slice(0,7), mon=weekMonday(t);
+  const runKm=R.reduce((a,r)=>a+(+r.km||0),0), runSec=R.reduce((a,r)=>a+(+r.sec||0),0);
+  const runDays=new Set(R.map(r=>ldate(r.date).slice(0,10)));
+  const races=(RLOG||[]).filter(x=>x&&x.kind!=='solo'&&x.m), raceKm=races.reduce((a,x)=>a+x.m/1000,0);
+  const raceExtra=races.filter(x=>!runDays.has(x.date)).reduce((a,x)=>a+x.m/1000,0);   /* 러닝 기록 없는 대회만 더한다 */
+  const base=+(PROF.mileBase||0)||0;
+  const total=base+runKm+raceExtra;
+  const sumIf=f=>R.filter(f).reduce((a,r)=>a+(+r.km||0),0);
+  const byYear={}; R.forEach(r=>{ const yy=ldate(r.date).slice(0,4); const o=byYear[yy]=byYear[yy]||{km:0,n:0,sec:0,race:0}; o.km+=+r.km||0; o.n++; o.sec+=+r.sec||0; });
+  races.forEach(x=>{ const yy=String(x.date).slice(0,4); const o=byYear[yy]=byYear[yy]||{km:0,n:0,sec:0,race:0}; o.race++; if(!runDays.has(x.date))o.km+=x.m/1000; });
+  const byMonth={}; R.forEach(r=>{ const k=ldate(r.date).slice(0,7); byMonth[k]=(byMonth[k]||0)+(+r.km||0); });
+  const bestMonth=Object.entries(byMonth).sort((a,b)=>b[1]-a[1])[0]||null;
+  const next=MILE_STEPS.find(v=>v>total)||Math.ceil(total/5000)*5000+5000, prev=[0].concat(MILE_STEPS).filter(v=>v<=total).pop()||0;
+  return {total,base,runKm,runSec,n:R.length,race:{n:races.length,km:raceKm},year:sumIf(r=>ldate(r.date).slice(0,4)===y),month:sumIf(r=>ldate(r.date).slice(0,7)===m),week:sumIf(r=>weekMonday(ldate(r.date).slice(0,10))===mon),byYear,bestMonth,next,prev,badges:MILE_STEPS.filter(v=>v<=total)};
+}
+const fmtMile=v=>{ const n=Math.round(v*10)/10; return n>=1000?Math.round(n).toLocaleString('en-US'):n.toFixed(n<100?1:0); };
+/* 롤러 주행거리계 띠 — 모든 탭 위 고정 머리에. 앞자리 0은 흐리게, 누르면 마일리지 카드 */
+function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.floor(M.total)), str=String(n).padStart(6,'0'); let lead=true;
+  const cells=[...str].map((d,i)=>{ const z=lead&&d==='0'&&i<str.length-1; if(d!=='0')lead=false; return `<i class="${z?'z':''}">${d}</i>`; }).join('');
+  return `<button type="button" class="odo" id="hOdo" aria-label="누적 ${fmtMile(M.total)}km · 다음 ${fmtMile(M.next)}km까지 ${fmtMile(M.next-M.total)}km"><span class="odo-d">${cells}</span><b>km</b><span class="odo-r"><i>${M.year>0?`올해 ${fmtMile(M.year)}`:'누적 거리'}${M.race.n?` · 대회 ${M.race.n}회`:''}</i><em>${fmtMile(M.next)}까지 ${fmtMile(M.next-M.total)}</em></span></button>`; }catch(e){ return ''; } }
+function paintOdo(){ try{ const o=$('hOdo'); if(o)o.outerHTML=odoHTML(); }catch(e){} }
+function mileCard(){
+  const M=mileage(), pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
+  const years=Object.keys(M.byYear).sort().reverse();
+  return `<div class="lcard mile" id="mileCard">
+    <div class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span><i>평생 누적${M.base?` · 시작 누적 ${fmtMile(M.base)} 포함`:''}</i></div>
+    <div class="mile-row"><span><i>달리기</i><b class="num">${fmtMile(M.runKm)}</b><em>${M.n}회 · ${fmtHM(M.runSec)}</em></span><span><i>대회</i><b class="num">${fmtMile(M.race.km)}</b><em>${M.race.n}회</em></span><span><i>올해</i><b class="num">${fmtMile(M.year)}</b><em>이달 ${fmtMile(M.month)} · 이번 주 ${fmtMile(M.week)}</em></span></div>
+    <div class="mile-next"><div class="mile-bar"><i style="width:${pct.toFixed(1)}%"></i></div><span><b>${fmtMile(M.next)} km</b>까지 <b>${fmtMile(M.next-M.total)} km</b></span></div>
+    <div class="mile-badges">${MILE_STEPS.slice(0,7).map(v=>`<span class="${v<=M.total?'on':''}">${v.toLocaleString('en-US')}</span>`).join('')}</div>
+    ${years.length?`<div class="mile-years">${years.map(yy=>`<div><b>${yy}</b><span class="num">${fmtMile(M.byYear[yy].km)} km</span><i>${M.byYear[yy].n}회${M.byYear[yy].race?` · 대회 ${M.byYear[yy].race}`:''}</i></div>`).join('')}</div>`:''}
+    ${M.bestMonth?`<div class="small">가장 많이 달린 달 ${M.bestMonth[0].replace('-','.')} · ${fmtMile(M.bestMonth[1])} km</div>`:''}
+    <div class="mile-act"><button type="button" class="btn ghost" id="mileBase">앱 쓰기 전 누적 ${M.base?'고치기':'넣기'}</button><button type="button" class="btn ghost" data-share="mile">이미지</button></div>
+  </div>`;
+}
+document.addEventListener('click',e=>{ if(e.target.closest('#hOdo')){ LOGTAB='sum'; go('log'); setTimeout(()=>{ try{ const c=$('mileCard'); if(c)c.scrollIntoView({behavior:'smooth',block:'start'}); }catch(err){} },80); return; }
+  const b=e.target.closest('#mileBase'); if(!b)return;
+  const v=prompt('앱을 쓰기 전까지 달린 누적 거리(km) — 스트라바·가민 등에서 본 평생 거리. 비우면 0', PROF.mileBase||'');
+  if(v==null)return; const n=parseFloat(String(v).replace(/,/g,'')); PROF=Object.assign({},PROF,{mileBase:isFinite(n)&&n>0?Math.round(n*10)/10:0}); DEV.store.set('prof',PROF); try{ renderLog(); paintOdo(); }catch(err){} });
 function logSum(){
   const [a,b,lab]=perRange();
   const R=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=a&&ldate(r.date).slice(0,10)<=b);
@@ -9813,7 +9871,8 @@ function logSum(){
   const pb=(LOGPER==='week'||LOGPER==='month')?addDays(pa,nd):addDays(a,-1), pLab=LOGPER==='week'?'지난주 같은 요일까지':LOGPER==='month'?'지난달 같은 날까지':'직전 같은 기간';
   const pkm=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=pa&&ldate(r.date).slice(0,10)<=pb).reduce((s,r)=>s+r.km,0);
   const easyKm=R.filter(r=>!isHardT(r.type)).reduce((s,r)=>s+r.km,0);
-  return `<div class="per">${[['week','이번 주'],['month','이번 달'],['3m','3달'],['all','전체']].map(p=>`<button class="${LOGPER===p[0]?'on':''}" data-per="${p[0]}">${p[1]}</button>`).join('')}</div>
+  return `${SEC('rec','마일리지','평생 누적',mileCard())}
+    <div class="per">${[['week','이번 주'],['month','이번 달'],['3m','3달'],['all','전체']].map(p=>`<button class="${LOGPER===p[0]?'on':''}" data-per="${p[0]}">${p[1]}</button>`).join('')}</div>
     ${SEC('body','몸 상태','',bodyLight())}
     ${SEC('train','달린 양',(perRange()[2]||''),`<div class="nums3"><div><i>달린 거리</i><b class="num">${km.toFixed(0)}<small>km</small></b><em>${LOGPER!=='all'&&pkm>0?`${pLab} ${km>=pkm?'+':''}${Math.round((km-pkm)/pkm*100)}%`:''}</em></div>
       <div><i>약속 지킴</i><b class="num">${kept}<small>/${tot}</small></b><em>쉬는 날 포함</em></div>
