@@ -1343,19 +1343,21 @@ details.noti .sigc{margin:6px 0}
   <div class="bar"><button class="sub" id="setBack">← 홈</button><h1 style="text-align:center">설정</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad" style="padding-bottom:80px">
 
-  <!-- 설정 순서: 내 정보 → 안정시 심박 → 등산 기록 → 심박 기기 → 훈련 원리·음악 → 백업 → 고급 -->
+  <!-- 설정 순서: 내 정보 → 속도·심박 근거 → 안정시 심박 → 등산 기록 → 심박 기기 → 훈련 원리·음악 → 백업 → 고급 -->
+  <section class="myinfo" id="myInfo">
+    <div class="mi-hd"><b>내 정보</b><i>별명 말고는 언제든 고칠 수 있어요</i></div>
+    <div class="card tight" style="margin:0 0 14px">
+      <div class="mi-row"><label>별명</label><div class="mi-v"><b id="pNick">—</b><span class="mi-lock">바꿀 수 없음</span><button type="button" class="btn sm ghost" id="pNickSet" hidden>별명 정하기</button></div></div>
+      <div class="mi-row"><label for="pBy">태어난 해</label><div class="mi-v"><select id="pBy"></select><span class="meta" id="pAgeNow"></span></div></div>
+      <div class="mi-row"><label>성별</label><div class="mi-v"><div class="tagrow" id="pSex" style="margin:0"><button class="tag" data-v="m">남</button><button class="tag" data-v="f">여</button><button class="tag" data-v="x">선택 안 함</button></div></div></div>
+      <div class="mi-row"><label for="pW">체중</label><div class="mi-v"><input type="number" id="pW" inputmode="decimal" placeholder="선택"><span class="meta">kg</span></div></div>
+      <div class="mi-row"><label for="pRHR">안정 심박</label><div class="mi-v"><input type="number" id="pRHR" inputmode="numeric" placeholder="모르면 비움"><span class="meta">bpm</span></div></div>
+      <div class="mi-row"><label>개인정보 동의</label><div class="mi-v"><span id="pConsent" class="meta"></span></div></div>
+      <button class="btn sm" id="pInfoSave" style="margin:12px 0 0;width:100%">내 정보 저장</button>
+    </div>
+  </section>
   <details class="cset"><summary>속도·심박 구간 근거</summary>
   <div class="card tight" style="margin:0 0 12px">
-    <div class="row" style="margin-bottom:10px"><div style="flex:1"><div style="font-size:11px;color:var(--ink-3)">별명 · 바꿀 수 없음</div><input type="text" id="pNick" readonly style="background:var(--panel-2)"></div></div>
-    <div class="row" style="margin-bottom:10px">
-      <div style="flex:1.4"><div style="font-size:11px;color:var(--ink-3)">생년월일 <span id="pAgeNow"></span></div><input type="date" id="pBirth"></div>
-      <div><div style="font-size:11px;color:var(--ink-3)">체중 kg</div><input type="number" id="pW" inputmode="decimal"></div>
-      <div><div style="font-size:11px;color:var(--ink-3)">안정시 심박</div><input type="number" id="pRHR" inputmode="numeric"></div>
-    </div>
-    <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">성별 <span style="opacity:.7">(선택)</span></div>
-    <div class="tagrow" id="pSex" style="margin-bottom:12px">
-      <button class="tag" data-v="m">남</button><button class="tag" data-v="f">여</button><button class="tag" data-v="x">안 밝힘</button>
-    </div>
     <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">최대심박</div>
     <div class="tagrow" id="pHRSrc" style="margin-bottom:8px">
       <button class="tag" data-v="measured">측정함</button>
@@ -2165,6 +2167,8 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pe-other{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12px;color:var(--ink-3);margin-top:8px;white-space:nowrap}.pe-other input{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:9px;padding:5px 8px;background:var(--panel)}
 .pe-warn{font-size:12.5px;font-weight:700;color:#C2410C;margin:10px 2px 0}
 .ask-body{font-size:14px;line-height:1.7;color:var(--ink)}.ask-body .meta{display:inline-block;margin-top:6px}.btn.danger{background:#C2410C}
+.myinfo .mi-hd{display:flex;align-items:baseline;gap:8px;margin:4px 2px 8px}.myinfo .mi-hd b{font-size:16px}.myinfo .mi-hd i{font-style:normal;font-size:12px;color:var(--ink-3)}
+.mi-row{display:flex;align-items:center;gap:12px;min-height:46px;border-bottom:1px solid var(--line);padding:6px 0}.mi-row:last-of-type{border-bottom:none}.mi-row>label{flex:0 0 88px;font-size:13px;font-weight:700;color:var(--ink-2)}.mi-v{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mi-v b{font-size:15px}.mi-lock{font-size:11px;color:var(--ink-3);background:var(--panel-2);border-radius:999px;padding:2px 8px}.mi-v select,.mi-v input{flex:1;min-width:0;max-width:200px;font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel)}.mi-v .meta{line-height:1.5}
 .obreq{font-size:10px;font-weight:800;color:#fff;background:var(--accent);border-radius:999px;padding:1px 6px;margin-left:4px;vertical-align:middle}
 #obNick,#obBy{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:12px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel)}
 .obconsent{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--ink-2)}.obconsent summary{font-weight:800;color:var(--ink);cursor:pointer}.obconsent p{margin:8px 0 0}.obconsent p b{color:var(--ink);margin-right:4px}
@@ -2275,7 +2279,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.86';
+const APPVER='19.87';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3055,7 +3059,7 @@ async function usagePing(force){ if(!usageOn())return; try{
       onb:!!DEV.store.get('onboarded',false),goal:g.kind||null,gm:g.m||null,gdate:g.date?String(g.date).slice(0,10):null,
       runs:R.length,km:Math.round(R.reduce((a,r)=>a+(+r.km||0),0)),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null,
       email:(FB&&FB.user&&FB.user.email)||(ACCT&&ACCT.email)||null,uid:(FB&&FB.user&&FB.user.uid)||(ACCT&&ACCT.uid)||null,
-      nick:PROF.nick||null,by:PROF.by||null,sex:PROF.sex||null,consent:(()=>{ const c=DEV.store.get('consent',null); return c&&c.at?new Date(c.at):null; })()};
+      nick:PROF.nick||null,by:PROF.by||null,sex:PROF.sex||null,mile:(()=>{ try{ return Math.round(mileage().total); }catch(e){ return null; } })(),consent:(()=>{ const c=DEV.store.get('consent',null); return c&&c.at?new Date(c.at):null; })()};
     if(isNew||!localStorage.getItem('rc_usageFirst')){ F.first=new Date(); }
     const fields={}; Object.entries(F).forEach(([k,v])=>fields[k]=fsEnc(v));
     const mask=Object.keys(F).map(k=>'updateMask.fieldPaths='+k).join('&');
@@ -6168,10 +6172,13 @@ $('vCalc').onclick=()=>{
 /* 프로필이 바뀌면 존·페이스·블록을 전부 다시 만든다 */
 let pRaceD=10000, pRaceK='race', pHRSrc='measured';
 function paintProf(){
-  { const n=$('pNick'); if(n)n.value=PROF.nick||'—'; }
-  $('pBirth').value=PROF.birth||''; $('pW').value=PROF.w||''; $('pRHR').value=PROF.rhr||'';
-  const ag=ageOf($('pBirth').value)||PROF.age;
-  $('pAgeNow').textContent = ag ? `· 만 ${ag}세` : (PROF.age?`· 나이 ${PROF.age} — 생년월일 입력`:'');
+  { const n=$('pNick'), ns=$('pNickSet'); if(n)n.textContent=PROF.nick||'아직 없음'; if(ns)ns.hidden=!!PROF.nick; }
+  { const y=$('pBy'); if(y){ const Y=+todayStr().slice(0,4); if(!y.options.length)y.innerHTML='<option value="">선택</option>'+Array.from({length:Y-10-1939},(_,i)=>Y-10-i).map(v=>`<option value="${v}">${v}년</option>`).join('');
+      y.value=String(PROF.by||(PROF.birth?String(PROF.birth).slice(0,4):'')); } }
+  if(document.activeElement!==$('pW'))$('pW').value=PROF.w||''; if(document.activeElement!==$('pRHR'))$('pRHR').value=PROF.rhr||'';
+  const ag=ageOf(PROF.birth)||PROF.age;
+  $('pAgeNow').textContent = ag ? `만 ${ag}세` : '';
+  { const c=DEV.store.get('consent',null), el=$('pConsent'); if(el)el.innerHTML=c&&c.at?`${String(c.at).slice(0,10).replace(/-/g,'.')} 동의 · 고지 ${ESC(c.ver||'')}<br>철회하려면 고급 › 계정 초기화`:'아직 동의 안 함 — 다음에 앱을 열면 물어봐요'; }
   document.querySelectorAll('#pSex .tag').forEach(b=>b.classList.toggle('on',b.dataset.v===PROF.sex));
   pHRSrc=PROF.hrmaxSrc||'estimated';
   $('pHR').value = pHRSrc==='measured' ? (PROF.hrmax||'') : Math.max(estHrMax(ag),PROF.hrmaxObs||0);
@@ -6203,13 +6210,25 @@ $('pRaceD').onclick=e=>{const b=e.target.closest('.tag');if(!b)return;
   pRaceD=+b.dataset.v; document.querySelectorAll('#pRaceD .tag').forEach(x=>x.classList.toggle('on',x===b));};
 $('pRaceK').onclick=e=>{const b=e.target.closest('.tag');if(!b)return;
   pRaceK=b.dataset.v; document.querySelectorAll('#pRaceK .tag').forEach(x=>x.classList.toggle('on',x===b));};
-$('pBirth').oninput=()=>{ const v=$('pBirth').value; if(v){ PROF.birth=v; PROF.age=ageOf(v); } paintProf(); };
+$('pBy').onchange=()=>{ const v=+$('pBy').value||null; PROF.by=v; if(v){ if(!PROF.birth||String(PROF.birth).slice(0,4)!==String(v))PROF.birth=`${v}-07-01`; PROF.age=ageOf(PROF.birth); } paintProf(); };
+$('pW').oninput=()=>{ PROF.w=+$('pW').value||null; }; $('pRHR').oninput=()=>{ PROF.rhr=+$('pRHR').value||null; };
+$('pNickSet').onclick=()=>{ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} };
+$('pInfoSave').onclick=()=>{
+  if(!PROF.by&&!PROF.birth)return toast('태어난 해를 골라 주세요');
+  if(!PROF.sex)return toast('성별을 골라 주세요');
+  PROF=Object.assign({},PROF,{w:+$('pW').value||null,rhr:+$('pRHR').value||null});
+  if(!PROF.by&&PROF.birth)PROF.by=+String(PROF.birth).slice(0,4);
+  if(!(PROF.hrmaxSrc==='measured'&&PROF.hrmax))PROF.hrmax=null;
+  DEV.store.set('prof',PROF);
+  try{ recalcProfile(); recalcTypes(); BLOCK=loadPlan(); }catch(e){}
+  try{ usagePing(true); }catch(e){} try{ if(FB.user)FB.sync().catch(()=>{}); }catch(e){}
+  paintProf(); renderHome(); toast('내 정보 저장'); };
 $('pSex').onclick=e=>{const b=e.target.closest('.tag');if(!b)return; PROF.sex=b.dataset.v; paintProf();};
 $('pSave').onclick=()=>{
   const sec=parseLoose($('pRaceT').value);
   if($('pRaceT').value.trim()&&!(sec>60)) return alert('기록 예: 45:46 또는 4546');
-  const bth=$('pBirth').value||PROF.birth||null, ag=ageOf(bth)||PROF.age;
-  if(!ag)return alert('생년월일 입력');
+  const bth=PROF.birth||null, ag=ageOf(bth)||PROF.age;
+  if(!ag)return alert('위 내 정보에서 태어난 해를 골라 주세요');
   PROF=Object.assign({},PROF,{ birth:bth, age:ag, sex:PROF.sex||null, w:+$('pW').value||PROF.w,
     hrmaxSrc: (pHRSrc==='measured'&&+$('pHR').value>0) ? 'measured' : 'estimated',   /* 실측을 골랐어도 값이 비면 추정으로 — 추정을 실측이라 적지 않는다 */
     hrmax: (pHRSrc==='measured'&&+$('pHR').value>0) ? +$('pHR').value : null,
