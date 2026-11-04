@@ -668,16 +668,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .tdist button{border:none;border-radius:9px;background:rgba(255,255,255,.25);color:#fff;font:inherit;font-weight:800;min-width:34px;height:34px}
 .tdist button.ok{background:#fff;color:#C2411F;padding:0 12px;margin-left:auto}
 .tdist input{width:66px;border:none;border-radius:9px;padding:7px;font:inherit;font-weight:800;text-align:center}
-.tcard.rest .ttl{font-size:25px}
-.mis{background:rgba(255,255,255,.08);border-radius:14px;margin-top:12px;padding:2px 10px}
-.mrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.tcard.rest .ttl{font-size:18px;margin:0}.rst-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:9px}.rst-sc{flex:none;font-size:13px;font-weight:800;opacity:.95;margin:0 2px}.rst-sc b{font-size:19px;color:#3FD7A4}.rst-sc small{font-size:11px;opacity:.75}
+.rst-ft{display:flex;align-items:center;gap:10px;margin-top:10px}.rst-bar{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}.rst-bar em{display:block;height:100%;background:#3FD7A4}
+.mis{background:rgba(255,255,255,.08);border-radius:14px;margin-top:10px;padding:0 10px}
+.mrow{display:flex;gap:9px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1)}
 .mrow:last-child{border-bottom:none}
-.mrow input{width:20px;height:20px;margin-top:2px;accent-color:#3FD7A4;flex:none}
+.mrow input{width:18px;height:18px;margin:0;accent-color:#3FD7A4;flex:none}
 .mrow b{display:inline;font-size:13px}.mrow>span{flex:1;min-width:0}.mrow i{font-style:normal;font-size:11px;opacity:.7}
 .mrow .gr{background:rgba(255,255,255,.85)}
-.mprog{display:flex;align-items:center;gap:9px;margin-top:11px;font-size:11.5px;font-weight:800}.mis-hint,.mis-done{font-size:12px;font-weight:700;opacity:.85;margin:-2px 0 12px;max-width:62%;line-height:1.45;position:relative;z-index:1}.mis-done{opacity:1;color:#3FD7A4}.tcard.rest .ttl small{font-size:18px;color:#3FD7A4;font-weight:900}
-.mrow{flex-wrap:wrap;align-items:flex-start}.mpts{font-style:normal;font-size:11px;font-weight:900;color:#3FD7A4;margin-left:6px;white-space:nowrap}.mex{display:block;font-size:10.5px;opacity:.7;margin-top:3px;line-height:1.4}.mgo{flex:none;margin-left:30px;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:5px 11px;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer}
-.mclose{width:100%;margin-top:12px;border:0;border-radius:14px;padding:13px;background:#3FD7A4;color:#1E0F2A;font:inherit;font-size:14px;font-weight:900;cursor:pointer}.mclose.re{background:rgba(255,255,255,.14);color:#fff}.tcard.rest.closed .mis{opacity:.7}
+.mprog{display:flex;align-items:center;gap:9px;margin-top:11px;font-size:11.5px;font-weight:800}.mis-hint,.mis-done{flex:1;font-size:12px;font-weight:700;opacity:.85;line-height:1.4;position:relative;z-index:1}.mis-done{opacity:1;color:#3FD7A4}.tcard.rest .ttl small{font-size:18px;color:#3FD7A4;font-weight:900}
+.mpts{flex:none;font-style:normal;font-size:11px;font-weight:900;color:#3FD7A4;white-space:nowrap}.mex{display:block;font-size:10.5px;opacity:.7;margin-top:1px;line-height:1.3}.mgo{flex:none;width:30px;height:30px;border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.14);color:#fff;border-radius:50%;padding:0;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.mclose{flex:none;border:0;border-radius:999px;padding:8px 14px;background:#3FD7A4;color:#1E0F2A;font:inherit;font-size:12.5px;font-weight:900;cursor:pointer}.mclose.re{background:rgba(255,255,255,.14);color:#fff}.tcard.rest.closed .mis{opacity:.7}
 .mprog i{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}.mprog em{display:block;height:100%;background:#3FD7A4}
 .hc{margin:12px 16px 0;background:var(--panel);border-radius:20px;padding:14px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
 .hc.slim{display:flex;gap:12px;align-items:center;padding:12px 14px}.hc.slim b{display:block;font-size:13.5px}.hc.slim i{font-style:normal;font-size:11.5px;color:var(--ink-3)}
@@ -1774,6 +1775,7 @@ details.noti .sigc{margin:6px 0}
 .st-top{display:flex;justify-content:space-between;font-size:13px;font-weight:800;color:var(--tc)}.st-top i{font-style:normal;color:var(--ink-3)}
 .st-dots{display:flex;gap:4px;margin:8px 0}.st-dots i{flex:1;height:5px;border-radius:3px;background:var(--line)}.st-dots i.d{background:color-mix(in srgb,var(--tc) 45%,transparent)}.st-dots i.on{background:var(--tc)}
 .st-stage{display:flex;justify-content:center;background:var(--panel);border-radius:20px;margin:6px 0 10px}
+.st-how{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:6px 10px 0;font-size:13px;font-weight:600;color:var(--ink);line-height:1.4}.st-how span b{font-weight:900;margin-right:3px}.st-how em{flex-basis:100%;font-style:normal;font-size:12px;color:var(--ink-2);font-weight:600}
 .st-nm b{display:block;font-size:22px;font-weight:900}.st-nm small{font-size:15px}.st-nm i{display:block;font-style:normal;font-size:13px;color:var(--ink-2);margin-top:3px}
 .st-ring{position:relative;width:120px;height:120px;margin:12px auto 6px}.st-ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--num);font-size:38px;font-weight:800}
 .st-ctl{display:flex;gap:10px;justify-content:center;margin:6px 0 10px}.st-ctl button{border:none;background:var(--panel-2);border-radius:12px;padding:12px 22px;font:inherit;font-weight:800;color:var(--ink);cursor:pointer}
@@ -2232,7 +2234,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.58';
+const APPVER='19.59';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8058,6 +8060,7 @@ function restKind(ds){
   if(rd&&addDays(ds,1)===rd)return {k:'prep',lab:'준비 휴식',why:'내일 대회'};
   return {k:'str',lab:'근력 쉬는 날',why:'근력 30분'};
 }
+const STR_EX_SHORT={str:['스쿼트','런지','데드리프트','종아리','브릿지','플랭크'],core:['플랭크','사이드 플랭크','버드독','고관절']};
 const STR_EX={str:['스쿼트 10','런지 8/다리','루마니안 데드리프트 8','종아리 15','힙 브릿지 12','플랭크 30초'],core:['플랭크','사이드 플랭크','버드독','고관절 열기']};
 function restMissions(k){
   const norun={k:'norun',t:'뛰지 않기',g:'C'}, rhr={k:'rhr',t:'아침 안정 심박 측정',g:'D'}, sleep={k:'sleep',t:'수면 7시간 이상',g:'B'}, walk={k:'walk',t:'가볍게 걷기 20분 (선택)',g:'C',pts:0};
@@ -8434,14 +8437,13 @@ function restCard(t){
   const nx=BLOCK.find(x=>x.d.slice(0,10)>t&&x.type!=='off');
   const scored=K.k!=='plain';
   const rows=M.map(x=>`<label class="mrow${x.go?' has-go':''}"><input type="checkbox" data-mis="${x.k}"${m[x.k]?' checked':''}${closed?' disabled':''}>
-      <span><b>${x.t}</b>${x.pts?`<em class="mpts">+${x.pts}</em>`:''}${x.ex?`<small class="mex">${x.ex.join(' · ')}</small>`:''}</span>${x.go?`<button type="button" class="mgo" data-stgo="${x.go}">▶ 따라하기</button>`:''}</label>`).join('');
+      <span><b>${x.t}</b>${x.ex?`<small class="mex">${(STR_EX_SHORT[x.go]||[]).join(' · ')}</small>`:''}</span>${x.pts?`<em class="mpts">+${x.pts}</em>`:''}${x.go?`<button type="button" class="mgo" data-stgo="${x.go}">▶</button>`:''}</label>`).join('');
   return `<div class="tcard rest${closed?' closed':''}" style="background:${LOOK.off.bg}">${symSVG('off')}<div class="tin">
     <div class="ttop"><span class="tchip">${dowOf(t)}요일 · ${K.lab}${K.why?` — ${K.why}`:''}</span></div>
-    <div class="ttl">${closed?`휴식 완료 ✓${scored?`<small> ${R.score}점</small>`:''}`:scored?'휴식도<br>= 훈련':'쉬는 날'}</div>
-    ${closed?`<div class="mis-done">${scored?'주 달성률에 포함 · ':''}약속 연속 유지</div>`:scored?`<div class="mis-hint">체크 = 바로 저장 → <b>휴식 마감</b></div>`:`<div class="mis-hint">플랜 밖 쉬는 날 — 기록만</div>`}
+    <div class="rst-hd"><b class="ttl">${closed?'휴식 완료 ✓':scored?'쉬는 날도 훈련':'쉬는 날'}</b></div>
     <div class="mis">${rows}</div>
-    ${scored?`<div class="mprog"><span>오늘 휴식</span><i><em style="width:${R.score}%"></em></i><b>${R.score}<small>/100</small></b></div>`:''}
-    ${closed?`<button type="button" class="mclose re" id="restReopen">다시 열기</button>`:`<button type="button" class="mclose" id="restClose">오늘 휴식 마감${scored?` · ${R.score}점`:''}</button>`}
+    ${scored?`<div class="rst-ft"><i class="rst-bar"><em style="width:${R.score}%"></em></i><span class="rst-sc"><b class="num">${R.score}</b><small>/100</small></span>${closed?`<button type="button" class="mclose re" id="restReopen">다시 열기</button>`:`<button type="button" class="mclose" id="restClose">오늘 마감</button>`}</div>`:
+      closed?`<div class="rst-ft"><span class="mis-done">기록됨 · 약속 연속 유지</span><button type="button" class="mclose re" id="restReopen">다시 열기</button></div>`:`<div class="rst-ft"><span class="mis-hint">플랜 밖 쉬는 날 — 기록만</span><button type="button" class="mclose" id="restClose">마감</button></div>`}
   </div></div>
   ${nx?`<div class="hc slim"><span class="nxic" style="background:${(LOOK[nx.type]||LOOK.free).bg}"></span><div><b>${dowOf(nx.d)}요일 · ${ESC(nx.t)}</b></div></div>`:''}
   <button class="btn ghost dashed" id="wantRun" style="margin:10px 16px 0;width:calc(100% - 32px)">그래도 뛰기</button>`;
@@ -11019,8 +11021,8 @@ const FS=(o)=>{ const n=o.n||[50,24], p=o.p||[50,52], h=o.h||[n[0],n[1]-11];
   return Object.assign({front:1,h,n,p,la:leg(H1,o.L),lb:leg(H2,o.R),aa:arm(S1,o.A),ab:arm(S2,o.B)},o.x||{}); };
 /* 옆모습: 다리는 골반에서, 팔은 목 아래 어깨에서 */
 const SS=(o)=>{ const n=o.n||[50,24], p=o.p||[50,52], h=o.h||[n[0]+2,n[1]-11], S=[n[0],n[1]+2.5];
-  const leg=d=>d?(d.ik?IK(p,d.ik,TH,SH_,d.bend):LIMB(p,d[0],TH,d[1],SH_)):LIMB(p,0,TH,0,SH_);
-  const arm=d=>d?(d.ik?IK(S,d.ik,UA,FA,d.bend):LIMB(S,d[0],UA,d[1],FA)):LIMB(S,0,UA,0,FA);
+  const leg=d=>d?(d.pts?d.pts:d.ik?IK(p,d.ik,TH,SH_,d.bend):LIMB(p,d[0],TH,d[1],SH_)):LIMB(p,0,TH,0,SH_);
+  const arm=d=>d?(d.pts?d.pts:d.ik?IK(S,d.ik,UA,FA,d.bend):LIMB(S,d[0],UA,d[1],FA)):LIMB(S,0,UA,0,FA);
   return Object.assign({front:0,face:o.face||1,h,n,p,la:leg(o.L),lb:leg(o.R),aa:arm(o.A),ab:arm(o.B)},o.x||{}); };
 const HIPS={A:[-35,55],B:[35,-55]};   /* 손 허리에 */
 const POSE={
@@ -11054,19 +11056,24 @@ const POSE={
   glute:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[118,0],A:{ik:[66,44],bend:1},B:{ik:[64,46],bend:1},x:{arr:AR('M80 56l-8-10m8 2l0-8-8 1')}}),
   hip:SS({h:[47,27],n:[46,38],p:[46,66],L:[75,0],R:[-40,-60],A:[-30,50],B:[30,-50],x:{arr:AR('M30 66l10 0m-4-4l4 4-4 4')}}),
   side:FS({h:[60,13],n:[55,25],p:[50,52],A:[168,168],B:[10,10],L:[-4,0],R:[4,0],x:{arr:AR('M78 24a26 26 0 0 1-8 20m0-7l0 7 7-1')}}),
-  /* ── 근력 (옆모습) ── */
-  squatA:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[0,0],A:[-85,-85],B:[-85,-85]}),
-  squatB:SS({h:[60,30],n:[56,41],p:[42,62],L:{ik:[58,94],bend:-1},R:{ik:[60,94],bend:-1},A:[-90,-90],B:[-90,-90],x:{arr:AR('M26 48v14m-4-4l4 4 4-4')}}),
-  rdlA:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[0,0],A:[8,8],B:[8,8]}),
-  rdlB:SS({h:[80,50],n:[70,54],p:[44,62],L:{ik:[50,94],bend:-1},R:{ik:[52,94],bend:-1},A:{ik:[66,86]},B:{ik:[64,86]},x:{arr:AR('M28 70l-8-4m4 7l-4-7 7 0')}}),
-  calfA:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[0,0],A:{ik:[78,52],bend:1},B:{ik:[78,52],bend:1},x:{wall:1}}),
-  calfB:SS({h:[52,7],n:[50,18],p:[50,46],L:[0,4],R:[0,4],A:{ik:[78,46],bend:1},B:{ik:[78,46],bend:1},x:{wall:1,arr:AR('M26 70v-12m-4 4l4-4 4 4')}}),
-  bridgeA:SS({h:[12,84],n:[23,82],p:[50,86],L:{ik:[72,94],bend:-1},R:{ik:[74,94],bend:-1},A:{ik:[40,94]},B:{ik:[42,94]}}),
-  bridgeB:SS({h:[12,84],n:[23,80],p:[50,64],L:{ik:[72,94],bend:-1},R:{ik:[74,94],bend:-1},A:{ik:[40,94]},B:{ik:[42,94]},x:{arr:AR('M58 54v-12m-4 4l4-4 4 4')}}),
-  plank:SS({h:[88,56],n:[78,61],p:[50,70],L:{ik:[18,92]},R:{ik:[20,92]},A:{ik:[78,92],bend:1},B:{ik:[80,92],bend:1}}),
-  sideplank:SS({h:[86,52],n:[76,58],p:[50,72],L:{ik:[16,92]},R:{ik:[18,92]},A:{ik:[78,92],bend:1},B:[-100,-100]}),
-  birddogA:SS({h:[80,56],n:[70,60],p:[44,62],L:{ik:[46,92],bend:-1},R:{ik:[48,92],bend:-1},A:{ik:[72,92]},B:{ik:[74,92]}}),
-  birddogB:SS({h:[80,54],n:[70,58],p:[44,60],L:[-90,-90],R:{ik:[46,92],bend:-1},A:[92,92],B:{ik:[72,92]},x:{arr:AR('M14 58h10m-4-4l4 4-4 4')+AR('M90 50h8m-4-4l4 4-4 4')}}),
+  /* ── 근력 (옆모습, 오른쪽을 본다: 팔·무릎은 +방향이 앞) ── */
+  squatA:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[0,0],A:[88,88],B:[88,88]}),
+  squatB:SS({h:[60,30],n:[56,41],p:[42,62],L:{ik:[58,94],bend:-1},R:{ik:[60,94],bend:-1},A:[90,90],B:[90,90],x:{arr:AR('M26 48v14m-4-4l4 4 4-4')}}),
+  /* 루마니안 데드리프트: 선 자세(손에 바) → 무릎 살짝만, 엉덩이 뒤로 빼며 등 편 채 숙이기, 팔은 늘어뜨려 바가 정강이 앞 */
+  rdlA:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[0,0],A:[10,10],B:[10,10],x:{arr:'<path d="M48.5 51.5h11" stroke="#444" stroke-width="3.2" stroke-linecap="round"/>'}}),
+  rdlB:SS({h:[77,45],n:[67,49],p:[40,56],L:{ik:[50,94],bend:-1},R:{ik:[52,94],bend:-1},A:{ik:[58,76]},B:{ik:[56,76]},x:{arr:'<path d="M51.5 76h11" stroke="#444" stroke-width="3.2" stroke-linecap="round"/>'+AR('M30 56h-10m4-4l-4 4 4 4')}}),
+  /* 종아리 들기: 벽 짚고 선 자세 → 뒤꿈치 들어 발끝으로 */
+  calfraiseA:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[0,0],A:{ik:[85,50],bend:1},B:{ik:[85,50],bend:1},x:{wall:1}}),
+  calfraiseB:SS({h:[52,7],n:[50,18],p:[50,46],L:[0,0],R:[0,0],A:{ik:[85,44],bend:1},B:{ik:[85,44],bend:1},x:{wall:1,toes:1,arr:AR('M30 78v-12m-4 4l4-4 4 4')}}),
+  /* 힙 브릿지: 등 대고 누워 무릎 세움(정강이 수직) → 골반 올려 어깨-골반-무릎 일직선 */
+  bridgeA:SS({h:[11,88],n:[22,87],p:[50,86],L:{pts:[[66,75],[66,94]]},R:{pts:[[68,75],[68,94]]},A:{pts:[[33,91],[45,93]]},B:{pts:[[35,91],[47,93]]}}),
+  bridgeB:SS({h:[11,88],n:[22,85],p:[48.5,78],L:{pts:[[68,73],[68,94]]},R:{pts:[[70,73],[70,94]]},A:{pts:[[33,91],[45,93]]},B:{pts:[[35,91],[47,93]]},x:{arr:AR('M50 70v-12m-4 4l4-4 4 4')}}),
+  /* 플랭크: 팔꿈치 바닥(어깨 바로 아래) · 어깨-골반-발목 일직선 · 발끝 */
+  plank:SS({h:[86,72],n:[76,77],p:[48,85],L:{pts:[[32,88.5],[16,92]]},R:{pts:[[34,88],[18,91.5]]},A:{pts:[[76,92],[88,92]]},B:{pts:[[78,92],[90,92]]},x:{toes:1}}),
+  sideplank:SS({h:[86,72],n:[76,77],p:[48,85],L:{pts:[[32,88.5],[16,92]]},R:{pts:[[33,87],[17,90.5]]},A:{pts:[[76,92],[88,92]]},B:[180,180],x:{toes:1}}),
+  /* 버드독: 네발 — 손은 어깨 아래, 무릎은 골반 아래, 정강이는 바닥에 */
+  birddogA:SS({h:[80,60],n:[70,64.5],p:[44,72],L:{pts:[[44,90],[24,90]]},R:{pts:[[46,90],[26,90]]},A:{pts:[[70,79.5],[70,92]]},B:{pts:[[72,79.5],[72,92]]}}),
+  birddogB:SS({h:[80,60],n:[70,64.5],p:[44,72],L:{pts:[[44,90],[24,90]]},R:[-90,-90],A:[92,92],B:{pts:[[72,79.5],[72,92]]},x:{arr:AR('M24 66h-10m4-4l-4 4 4 4')+AR('M84 74h10m-4-4l4 4-4 4')}}),
 };
 /* 사람 그림 — 앞모습(front: 어깨·골반 두 점) / 옆모습 */
 function figSVG(P,col){
@@ -11075,7 +11082,8 @@ function figSVG(P,col){
   const seg=(a,b,w,o)=>`<path d="M${f1(a[0])} ${f1(a[1])}L${f1(b[0])} ${f1(b[1])}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"${o?` opacity="${o}"`:''}/>`;
   const limb=(o,j,op)=>seg(o,j[0],W,op)+seg(j[0],j[1],W,op);
   const dot=(q,op)=>`<circle cx="${f1(q[0])}" cy="${f1(q[1])}" r="2" fill="#fff" stroke="${col}" stroke-width="1.6"${op?` opacity="${op}"`:''}/>`;
-  const foot=(j,op)=>{ const k=j[0], f=j[1]; const dx=f[0]-k[0], dy=f[1]-k[1], L=Math.hypot(dx,dy)||1; const d=(P.face||1), t=[f[0]+dy/L*5.5*d, f[1]-dx/L*5.5*d];   /* 발끝은 정강이에 직각, 보는 방향 쪽으로 */
+  const foot=(j,op)=>{ const k=j[0], f=j[1]; const dx=f[0]-k[0], dy=f[1]-k[1], L=Math.hypot(dx,dy)||1; const d=(P.face||1); let t=[f[0]+dy/L*5.5*d, f[1]-dx/L*5.5*d];   /* 발끝은 정강이에 직각, 보는 방향 쪽으로 */
+      if(P.toes) t=[f[0]+4.5*d, 94];   /* 뒤꿈치 들고 발끝으로 바닥 */
       return P.front?seg([f[0]-3,f[1]+1.5],[f[0]+3,f[1]+1.5],W,op):seg(f,t,W,op); };
   let S1,S2,H1,H2;
   if(P.front){ S1=[P.n[0]-9.5,P.n[1]+2]; S2=[P.n[0]+9.5,P.n[1]+2]; H1=[P.p[0]-6,P.p[1]]; H2=[P.p[0]+6,P.p[1]]; }
@@ -11106,7 +11114,14 @@ const STEPS={
   ham:[['한 발 앞 · 발끝 들기','엉덩이 뒤로 빼기','등 편 채 상체 숙여 30초'],'등을 둥글게 말지 않기'],
   glute:[['한 무릎 들기','두 손으로 무릎 아래 감싸기','가슴 쪽으로 당겨 30초'],'다리 곧게 · 벽 짚기'],
   hip:[['크게 한 걸음 · 런지 자세','뒷꿈치 들고 손 허리','골반을 앞으로 밀며 30초'],'허리 젖히지 않기'],
-  side:[['한 팔을 머리 위로 뻗기','반대쪽으로 천천히 기울이기','옆구리 당김 느끼며 30초'],'앞으로 숙이지 않기']
+  side:[['한 팔을 머리 위로 뻗기','반대쪽으로 천천히 기울이기','옆구리 당김 느끼며 30초'],'앞으로 숙이지 않기'],
+  squat:[['발 어깨너비 · 팔 앞으로','엉덩이 뒤로 빼며 앉기','허벅지 수평까지 → 일어서기'],'무릎은 발끝 방향 · 뒤꿈치 바닥'],
+  rdl:[['선 자세 · 무릎 살짝만','엉덩이 뒤로 빼며 상체 숙이기','등 편 채 손이 정강이까지 → 일어서기'],'등 둥글게 말지 않기'],
+  calfraise:[['벽 짚고 발 골반너비','뒤꿈치 천천히 올리기','맨 위 1초 → 천천히 내리기'],'발목 바깥으로 꺾지 않기'],
+  bridge:[['누워 무릎 세우기 · 발 골반너비','골반 올리기','어깨-골반-무릎 일직선 1초 → 내리기'],'허리 젖히지 않기'],
+  plank:[['팔꿈치 어깨 아래 · 발끝','몸 일직선','배·엉덩이 힘 · 버티기'],'엉덩이 올리거나 떨어뜨리지 않기'],
+  sideplank:[['옆으로 · 팔꿈치 어깨 아래','골반 들기','몸 일직선 · 버티기 → 반대쪽'],'골반 처지지 않기'],
+  birddog:[['네발 · 손 어깨 아래 · 무릎 골반 아래','반대 팔·다리 뻗기','2초 → 바꾸기'],'허리 흔들리지 않게']
 };
 /* 동작: [자세, 이름, 효과 한 줄, 하는 법, 양쪽?] */
 const STR={
@@ -11131,8 +11146,8 @@ STR.str={en:'STRENGTH',ko:'근력 운동 — 쉬는 날',when:'근력 가능한 
     chk:['6동작 × 3세트','동작마다 50초','세트 사이 숨 고르기'],tips:['처음엔 맨몸 · 4주마다 횟수 +2 또는 무게 추가','힘든 날 다음 날은 코어만'],
     moves:[['squat','스쿼트','허벅지·엉덩이','발 어깨너비 · 무릎 발끝 방향 · 10회',false],
            ['lunge','런지','한 다리 힘 · 균형','큰 걸음 · 뒷무릎 바닥 가까이 · 8회씩',true],
-           ['rdl','루마니안 데드리프트','햄스트링·엉덩이','무릎 살짝 · 엉덩이 뒤로 · 등 곧게 · 8회',false],
-           ['calf','종아리 들기','종아리·아킬레스','벽 짚고 천천히 올라갔다 내려오기 · 15회',false],
+           ['rdl','루마니안 데드리프트','햄스트링·엉덩이','무릎은 살짝만 · 엉덩이 뒤로 빼며 등 편 채 숙이기 · 손은 정강이 앞 · 8회',false],
+           ['calfraise','종아리 들기','종아리·아킬레스','벽 짚고 천천히 올라갔다 내려오기 · 15회',false],
            ['bridge','힙 브릿지','엉덩이·허리','누워 무릎 세우고 골반 올리기 · 12회',false],
            ['plank','플랭크','코어','팔꿈치 · 몸 일직선 · 30초',false]]};
 STR.core={en:'CORE · MOBILITY',ko:'코어·가동성 — 회복 휴식',when:'힘든 날 다음 날',sec:40,rounds:2,key:'가볍게 · 숨 편하게',
@@ -11178,6 +11193,7 @@ function stPaint(){ const S=STR[ST.kind], m=S.moves[ST.i], c=STR_COL[ST.kind], n
     <div class="st-dots">${S.moves.map((_,k)=>`<i class="${k<ST.i?'d':k===ST.i?'on':''}" style="--tc:${c}"></i>`).join('')}</div>
     <div class="st-stage">${moveSVG(ST.kind,m[0],c,true)}</div>
     <div class="st-nm"><b>${m[1]}${m[4]?`<small style="color:${c}"> · ${ST.side?'반대쪽':'한쪽'}</small>`:''}</b><i>${m[2]}</i></div>
+    <div class="st-how">${(STEPS[m[0]]?STEPS[m[0]][0].map((t,k)=>`<span><b style="color:${c}">${k+1}</b>${t}</span>`).join(''):`<span>${m[3]}</span>`)}${STEPS[m[0]]?`<em>⚠ ${STEPS[m[0]][1]}</em>`:''}</div>
     <div class="st-ring"><svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--line)" stroke-width="9"/>
       <circle cx="60" cy="60" r="${R}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" transform="rotate(-90 60 60)"/></svg><b class="num">${ST.t}</b></div>
     <div class="st-ctl"><button type="button" data-stp="1">${ST.paused?'▶ 계속':'❚❚ 멈춤'}</button><button type="button" data-stn="1">다음 ›</button></div>
