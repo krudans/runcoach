@@ -1064,7 +1064,7 @@ details.noti .sigc{margin:6px 0}
 .li .map{width:52px;height:52px;border-radius:12px;background:#EEF2EE;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .li .map.rest{background:#F1EDFC;color:#6A55B8;font-size:20px}.li .map svg{width:100%;height:100%}
 .li .m{flex:1;min-width:0}.li .m b{font-size:12.8px}.li .s{font-size:10.5px;color:var(--ink-3);font-weight:700}
-.li .tg{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}.li .sp{width:62px;flex:none}.li .sp .spk{width:62px;height:30px}
+.li .tg{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}.li .sp{width:66px;flex:none}.li .sp .spk{width:62px;height:30px}.li .sp .pbar{width:66px;height:36px;background:#F1EDF6;border-radius:8px;display:block}
 .tchip3{font-size:9.5px;font-weight:900;border-radius:6px;padding:1px 6px;color:#fff}
 .minib{display:flex;gap:3px;align-items:flex-end;height:30px}.minib i{flex:1;background:#E35A32;border-radius:2px;opacity:.8}
 .lcard .meta{font-size:11.5px}.minibars{margin-top:20px}
@@ -2234,7 +2234,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.60';
+const APPVER='19.61';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8690,6 +8690,22 @@ function sameHrTrend(){
   const av=a=>a.reduce((s,r)=>s+r.paceAvg,0)/a.length;
   return {ref, a:av(A), b:av(B), n:near.length, pts:near.map(r=>r.paceAvg)};
 }
+/* 목록 미니 그래프 — 기준선 대비 1km(또는 회차) 막대. 눈금은 모든 기록에서 ±12%로 고정(비교 가능).
+   기준선: 회차 훈련 = 목표 회차 페이스 · 상한 있는 편한 훈련 = 상한(빠르면 빨강, 느린 건 괜찮음) · 자유 = 그날 평균.
+   초록 = 기준 ±5% 안(상한형은 상한보다 느림) · 주황 = 느림 · 빨강 = 빠름. 막대 2개 이하면 그리지 않는다. */
+function paceBars(r){ try{
+  const reps=(r.segments||[]).filter(g=>g.hard&&g.pace).map(g=>g.pace);
+  let vals, ref, mode;
+  if(reps.length>=2){ vals=reps; ref=repTargetOf(r); mode='tgt'; if(!ref) ref=vals.reduce((a,b)=>a+b,0)/vals.length; }
+  else { vals=(r.splits||[]).filter(x=>x&&!x.part).map(x=>x.pace).filter(p=>isFinite(p)&&p>0); if(vals.length<3)return '';
+    if(r.ceiling&&r.type!=='free'){ ref=r.ceiling; mode='ceil'; } else { ref=vals.reduce((a,b)=>a+b,0)/vals.length; mode='avg'; } }
+  const W=66,H=36,mid=H/2,R=0.10,band=(mid-3)*(0.05/R),n=vals.length,bw=Math.max(3,(W-4)/n-2);
+  const col=p=>{ const d=(p-ref)/ref; if(mode==='ceil') return d<-0.02?'#E0453B':'#1FA266'; return Math.abs(d)<=0.05?'#1FA266':d>0?'#F08A24':'#E0453B'; };
+  const bars=vals.map((p,i)=>{ const d=Math.max(-R,Math.min(R,(p-ref)/ref)), h=Math.abs(d)/R*(mid-3), y=d<0?mid-h:mid;
+    return `<rect x="${(2+i*(bw+2)).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h,2).toFixed(1)}" rx="1.5" fill="${col(p)}"/>`; }).join('');
+  const bandRect=mode==='ceil'?`<rect x="0" y="${mid}" width="${W}" height="${mid}" fill="#1FA266" opacity=".1"/>`:`<rect x="0" y="${(mid-band).toFixed(1)}" width="${W}" height="${(band*2).toFixed(1)}" fill="#1FA266" opacity=".13"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="pbar" aria-label="구간 페이스 — 기준선 ${fmtPace(ref)}">${bandRect}<line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="#4A3A66" stroke-width="1.5"/>${bars}</svg>`;
+}catch(e){ return ''; } }
 function spark(pts,w,h,inv,col){
   if(!pts||pts.length<2)return '';
   const mn=Math.min(...pts), mx=Math.max(...pts), r=mx-mn||1;
@@ -9957,9 +9973,7 @@ function logList(){
         <div class="s">${fmtClock(r.sec)} · ${k==='hike'?'오르막 +'+(r.asc||0)+'m':r.km.toFixed(1)+'km'}</div></div></div>`; }
     const T=TYPES[r.type]||{}, v=runPass(r), pr=promiseRows(r,{dist:r.planKm||(r.distRatio?r.km/r.distRatio:0),ceiling:r.ceiling});
     const chip=r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
-    const reps=(r.segments||[]).filter(g=>g.hard&&g.pace).map(g=>g.pace);
-    const sp=reps.length>=2?`<div class="minib">${reps.map(p=>`<i style="height:${(35+65*(1-(p-Math.min(...reps))/Math.max(1,Math.max(...reps)-Math.min(...reps)))).toFixed(0)}%"></i>`).join('')}</div>`
-      :(r.splits||[]).length>=2?spark(r.splits.map(x=>x.pace),62,30,true,TCOL[r.type]||'#2E9E6A'):'';
+    const sp=paceBars(r);
     return `<div class="li" data-rid="${r.rid}"><div class="map">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
       <div class="m"><b>${ESC(r.title||T.nm)}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg"><span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
       <div class="s">${r.km.toFixed(1)}km · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}${r.hrAvg?' · ♥'+r.hrAvg:''}</div></div><div class="sp">${sp}</div></div>`; }).join('');
