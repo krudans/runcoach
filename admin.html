@@ -29,7 +29,7 @@ h2{font-size:18px;margin:0 0 4px}.sub{color:var(--ink-3);font-size:12.5px;margin
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .bars div{display:grid;grid-template-columns:110px 1fr 44px;gap:8px;align-items:center;font-size:12.5px;margin:4px 0}.bars s{display:block;height:12px;border-radius:6px;background:var(--accent);text-decoration:none}.bars span{text-align:right;font-family:var(--num);font-weight:700}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-.tools input,.tools select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--panel);min-width:200px}
+.tools input,.tools select{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;background:var(--panel);min-width:130px}
 table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:13px}
 th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft);font-size:12px;color:var(--ink-2);white-space:nowrap;cursor:pointer}
 tr.click{cursor:pointer}tr.click:hover td{background:#FBF9FD}
@@ -95,7 +95,7 @@ const clock=s=>{ if(!s)return '—'; s=Math.round(s); const h=Math.floor(s/3600)
 const DIST=m=>!m?'':m>=42000?'풀코스':m>=21000?'하프':(m/1000)+'km';
 const KIND={race:'대회 기록',finish:'완주',aero:'편한 달리기',custom:'직접 짠 계획',start:'30분 달리기',weight:'체중',health:'건강',back:'복귀'};
 function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>e.classList.remove('on'),2200); }
-let S={inst:[],users:[],adm:{},notices:[],fb:[],cat:{add:[],hide:[]},racesJson:null,tab:'dash',q:'',sort:'upd'};
+let S={inst:[],users:[],adm:{},notices:[],fb:[],cat:{add:[],hide:[]},racesJson:null,tab:'dash',q:'',sort:'upd',sortI:'last',rf:{y:'',m:'',reg:'',a:'',st:'',c:'',sort:'date'}};
 
 /* ── 로그인 ── */
 $('login').onclick=async()=>{ $('gateErr').textContent=''; try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }catch(e){ if(/popup/i.test(e.code||'')){ await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } else $('gateErr').textContent='로그인하지 못했어요: '+(e.message||e); } };
@@ -117,6 +117,8 @@ async function loadAll(){
   S.users=us?us.docs.map(d=>Object.assign({uid:d.id},d.data())):[];
   const ins=await get('사용자(installs)',()=>db.collection('installs').get());
   S.inst=ins?ins.docs.map(d=>Object.assign({id:d.id},d.data())):[];
+  const nk=await get('별명(nicks)',()=>db.collection('nicks').get());
+  S.nicks=nk?nk.docs.map(d=>Object.assign({id:d.id},d.data())):[];
   const ad=await get('정지·메모(admin_users)',()=>db.collection('admin_users').get());
   S.adm={}; if(ad)ad.forEach(d=>S.adm[d.id]=d.data());
   const no=await get('공지(notices)',()=>db.collection('notices').orderBy('at','desc').get());
@@ -158,7 +160,7 @@ function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).
   const cntI=f=>{ const o={}; I.forEach(x=>{ const k=f(x); if(k)o[k]=(o[k]||0)+1; }); return Object.entries(o).sort((a,b)=>b[1]-a[1]); };
   return `<h2>통계</h2><p class="sub"><b>사용자</b> = 앱을 쓰는 기기(로그인 안 해도, v19.36부터 집계) · <b>클라우드 회원</b> = 구글 로그인으로 동기화를 켠 사람.</p>
   <div class="kpis">
-    <div class="kpi"><i>사용자(기기)</i><b>${I.length}</b><em>이번 주 새로 ${iNew}</em></div>
+    <div class="kpi"><i>사용자(계정)</i><b>${instMerged().length}</b><em>기기 ${I.length}대 · 이번 주 새로 ${iNew}</em></div>
     <div class="kpi"><i>7일 안에 연 기기</i><b>${i7}</b><em>${I.length?Math.round(i7/I.length*100):0}% · 30일 ${i30}</em></div>
     <div class="kpi"><i>앱으로 설치</i><b>${I.filter(x=>x.pwa).length}</b><em>홈 화면에 추가해 쓰는 기기</em></div>
     <div class="kpi"><i>클라우드 회원</i><b>${n}</b><em>정지 ${L.filter(x=>x.susp).length}</em></div>
@@ -180,12 +182,29 @@ function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).
     <div class="card"><h3>앱 버전</h3>${bars(cnt(x=>x.ver==='—'?'v19.35 이전':'v'+x.ver))}</div>
   </div>`; }
 
-function inst(){ const ms=x=>x&&x.toDate?x.toDate().getTime():(x?Date.parse(x):0); let L=S.inst.slice(); const q=S.q.trim().toLowerCase();
+/* 기기 줄 → 계정 줄. 구글 로그인한 기기는 uid(없으면 이메일)로 합친다. 로그인 안 한 기기는 그대로 */
+function instMerged(){ const ms=x=>x&&x.toDate?x.toDate().getTime():(x?Date.parse(x):0); const by={}, out=[];
+  S.inst.forEach(x=>{ const k=x.uid||x.email; if(!k){ out.push(Object.assign({devs:[x.plat||'기타'],n:1},x)); return; }
+    const m=by[k]; if(!m){ by[k]=Object.assign({devs:[x.plat||'기타'],n:1},x); out.push(by[k]); return; }
+    m.n++; m.devs.push(x.plat||'기타');
+    if(ms(x.last)>ms(m.last)){ m.last=x.last; m.ver=x.ver; m.plat=x.plat; m.goal=x.goal; m.gm=x.gm; m.gdate=x.gdate; m.id=x.id; }
+    if(ms(x.first)&&(!ms(m.first)||ms(x.first)<ms(m.first)))m.first=x.first;
+    m.pwa=m.pwa||x.pwa; m.onb=m.onb||x.onb; m.runs=Math.max(m.runs||0,x.runs||0); m.km=Math.max(m.km||0,x.km||0);
+    ['nick','by','sex','consent','email','uid'].forEach(f=>{ if(!m[f]&&x[f])m[f]=x[f]; }); });
+  return out; }
+function inst(){ const ms=x=>x&&x.toDate?x.toDate().getTime():(x?Date.parse(x):0); let L=instMerged(); const q=S.q.trim().toLowerCase();
   if(q)L=L.filter(x=>((x.email||'')+' '+(x.nick||'')+' '+(x.plat||'')+' '+(x.goal||'')+' '+x.id).toLowerCase().includes(q));
-  L.sort((a,b)=>ms(b.last)-ms(a.last));
-  return `<h2>사용자 목록</h2><p class="sub">앱을 연 기기마다 한 줄 — 로그인하지 않은 사용자도 나와요(이메일은 구글 로그인한 경우만). 앱 설정 › '사용 현황 보내기'를 끈 기기와 v19.36 전 버전에서 아직 한 번도 안 연 기기는 빠져요.</p>
-  <div class="tools"><input id="q" placeholder="이메일·별명·기기·목표 검색" value="${ESC(S.q)}"><button class="btn ghost sm" id="csvI">CSV 내려받기</button><span class="who">${L.length}대</span></div>
-  ${L.length?`<table><tr><th>사용자</th><th>별명</th><th>출생</th><th>성별</th><th>동의</th><th>기기</th><th>처음 사용</th><th>마지막 사용</th><th>버전</th><th>목표</th><th>대회일</th><th>기록</th><th>누적 km</th></tr>${L.map(x=>`<tr${x.uid&&S.users.some(u=>u.uid===x.uid)?` class="click" data-uid="${x.uid}"`:''}><td>${x.email?ESC(x.email):`<span class="tag gray">로그인 안 함</span> <span class="num" style="font-size:11px;color:var(--ink-3)">${x.id.slice(0,8)}</span>`}</td><td>${x.nick?ESC(x.nick):'—'}</td><td class="num">${x.by||'—'}</td><td>${x.sex?({m:'남',f:'여',x:'—'})[x.sex]||x.sex:'—'}</td><td class="num">${x.consent?D(x.consent):'<span class="tag red">없음</span>'}</td><td>${ESC(x.plat||'')}${x.pwa?' <span class="tag">앱</span>':''}</td><td class="num">${D(x.first)}</td><td class="num">${ago(ms(x.last))}</td><td class="num">${ESC(x.ver||'')}</td><td>${x.goal?ESC((KIND[x.goal]||x.goal)+(x.gm?' · '+DIST(x.gm):'')):(x.onb?'목표 없음':'<span class="tag gray">시작 전</span>')}</td><td class="num">${x.gdate||'—'}</td><td class="num">${x.runs??'—'}</td><td class="num">${x.km??'—'}</td></tr>`).join('')}</table>`:'<div class="card empty">아직 집계된 기기가 없어요 — 앱 v19.36을 연 기기부터 나와요</div>'}`; }
+  const soI={last:(a,b)=>ms(b.last)-ms(a.last),first:(a,b)=>ms(b.first)-ms(a.first),nick:(a,b)=>String(a.nick||'힣').localeCompare(String(b.nick||'힣')),km:(a,b)=>(b.km||0)-(a.km||0),runs:(a,b)=>(b.runs||0)-(a.runs||0),consent:(a,b)=>(a.consent?1:0)-(b.consent?1:0)||ms(b.last)-ms(a.last),by:(a,b)=>(a.by||9999)-(b.by||9999)}[S.sortI]||((a,b)=>ms(b.last)-ms(a.last));
+  L.sort(soI);
+  return `<h2>사용자 목록</h2><p class="sub">계정마다 한 줄 — 구글 로그인한 기기는 같은 계정끼리 합치고, 로그인하지 않은 기기는 기기마다 한 줄이에요. 앱 설정 › '사용 현황 보내기'를 끈 기기는 빠져요.</p>
+  <div class="tools"><input id="q" placeholder="이메일·별명·기기·목표 검색" value="${ESC(S.q)}"><select id="sortI"><option value="last">마지막 사용순</option><option value="first">처음 사용순</option><option value="nick">별명순</option><option value="km">누적 거리순</option><option value="runs">기록 수순</option><option value="consent">동의 없는 순</option><option value="by">나이 많은 순</option></select><button class="btn ghost sm" id="csvI">CSV 내려받기</button><span class="who">${L.length}명 · 기기 ${S.inst.length}대</span></div>
+  ${nickBox()}
+  ${L.length?`<table><tr><th>사용자</th><th>별명</th><th>출생</th><th>성별</th><th>동의</th><th>기기</th><th>처음 사용</th><th>마지막 사용</th><th>버전</th><th>목표</th><th>대회일</th><th>기록</th><th>누적 km</th></tr>${L.map(x=>`<tr${x.uid&&S.users.some(u=>u.uid===x.uid)?` class="click" data-uid="${x.uid}"`:''}><td>${x.email?ESC(x.email):`<span class="tag gray">로그인 안 함</span> <span class="num" style="font-size:11px;color:var(--ink-3)">${x.id.slice(0,8)}</span>`}</td><td>${x.nick?ESC(x.nick):'—'}</td><td class="num">${x.by||'—'}</td><td>${x.sex?({m:'남',f:'여',x:'—'})[x.sex]||x.sex:'—'}</td><td class="num">${x.consent?D(x.consent):'<span class="tag red">없음</span>'}</td><td>${x.n>1?`<span class="tag">${x.n}대</span> ${ESC([...new Set(x.devs)].join('·'))}`:ESC(x.plat||'')}${x.pwa?' <span class="tag">앱</span>':''}</td><td class="num">${D(x.first)}</td><td class="num">${ago(ms(x.last))}</td><td class="num">${ESC(x.ver||'')}</td><td>${x.goal?ESC((KIND[x.goal]||x.goal)+(x.gm?' · '+DIST(x.gm):'')):(x.onb?'목표 없음':'<span class="tag gray">시작 전</span>')}</td><td class="num">${x.gdate||'—'}</td><td class="num">${x.runs??'—'}</td><td class="num">${x.km??'—'}</td></tr>`).join('')}</table>`:'<div class="card empty">아직 집계된 기기가 없어요 — 앱 v19.36을 연 기기부터 나와요</div>'}`; }
+/* 별명 예약 — 앱에서는 한 번 정하면 못 바꾼다. 사용자가 계정을 초기화해 새 별명을 쓰면 옛 별명이 남으므로 여기서 푼다 */
+function nickBox(){ const N=(S.nicks||[]).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  const used=new Set(S.inst.map(x=>(x.nick||'').trim().toLowerCase().replace(/\s+/g,'')));
+  return `<details class="card" style="margin:0 0 14px"><summary style="cursor:pointer;font-weight:800">별명 예약 ${N.length}개 <span class="sub" style="font-weight:400">— 앱에서 못 바꾸는 별명. 쓰는 기기가 없는 예약은 '해제'로 풀 수 있어요</span></summary>
+    ${N.length?`<table class="mini" style="margin-top:10px"><tr><th>별명</th><th>기기</th><th>계정</th><th>예약일</th><th>사용 중</th><th></th></tr>${N.map(x=>`<tr><td>${ESC(x.id)}</td><td class="num" style="font-size:11px">${ESC((x.iid||'').slice(0,8))}</td><td class="num" style="font-size:11px">${ESC((x.uid||'').slice(0,8))}</td><td class="num">${x.at?D(x.at):'—'}</td><td>${used.has(x.id)?'<span class="tag green">사용 중</span>':'<span class="tag gray">없음</span>'}</td><td><button class="btn ghost sm" data-nickdel="${ESC(x.id)}">해제</button></td></tr>`).join('')}</table>`:'<div class="empty">예약된 별명 없음</div>'}</details>`; }
 function users(){ let L=S.users.map(U); const q=S.q.trim().toLowerCase();
   if(q)L=L.filter(x=>(x.email+' '+x.goal+' '+x.memo).toLowerCase().includes(q));
   const so={upd:(a,b)=>b.upd-a.upd,email:(a,b)=>a.email.localeCompare(b.email),km:(a,b)=>(b.km||0)-(a.km||0),runs:(a,b)=>(b.runs||0)-(a.runs||0)}[S.sort]; L.sort(so);
@@ -198,7 +217,15 @@ function plans(){ const L=S.users.map(U).filter(x=>x.g.kind).sort((a,b)=>(a.dd??
   ${L.length?`<table><tr><th>회원</th><th>목표</th><th>대회일</th><th>D-day</th><th>뛰는 요일</th><th>일정 시작</th><th>4주 주간 거리</th><th>기준 기록</th></tr>${L.map(x=>`<tr class="click" data-uid="${x.uid}"><td>${ESC(x.email)}</td><td>${ESC(x.goal)}</td><td class="num">${x.date||'—'}</td><td class="num">${x.dd!=null?(x.dd>=0?'D-'+x.dd:'지남'):'—'}</td><td>${ESC(x.days)||'—'}</td><td class="num">${x.planStart||'—'}</td><td class="num">${x.wkKm.join(' → ')||'—'}</td><td class="num">${x.race&&x.race.sec?DIST(x.race.m)+' '+clock(x.race.sec):'—'}</td></tr>`).join('')}</table>`:'<div class="card empty">목표를 정한 회원이 없어요</div>'}`; }
 
 function races(){ const R=(S.racesJson&&S.racesJson.races)||[], hide=new Set(S.cat.hide||[]), today=new Date().toISOString().slice(0,10);
-  const fut=R.filter(r=>r.date>=today);
+  const fut=R.filter(r=>r.date>=today), F=S.rf, CAP=['서울','경기','인천'];
+  const years=[...new Set(fut.map(r=>r.date.slice(0,4)))].sort();
+  const months=F.y?[...new Set(fut.filter(r=>r.date.slice(0,4)===F.y).map(r=>+r.date.slice(5,7)))].sort((a,b)=>a-b):[];
+  const regOk=r=>!F.reg||(F.reg==='cap'?CAP.includes(r.area):!CAP.includes(r.area));
+  const areas=[...new Set(fut.filter(regOk).map(r=>r.area).filter(Boolean))].sort();
+  const cOk=r=>!F.c||(r.courses||[]).some(c=>c===F.c||(F.c==='풀'&&/^풀/.test(c))||(F.c==='하프'&&/^하프/.test(c)));
+  let L=fut.filter(r=>(!F.y||r.date.slice(0,4)===F.y)&&(!F.m||+r.date.slice(5,7)===+F.m)&&regOk(r)&&(!F.a||r.area===F.a)&&(!F.st||(F.st==='open'?r.open:!r.open))&&cOk(r));
+  L.sort({date:(a,b)=>a.date.localeCompare(b.date),name:(a,b)=>a.name.localeCompare(b.name),area:(a,b)=>String(a.area||'힣').localeCompare(String(b.area||'힣'))||a.date.localeCompare(b.date)}[F.sort]||((a,b)=>a.date.localeCompare(b.date)));
+  const sel=(k,opts,cur,first)=>`<select data-rf="${k}"><option value="">${first}</option>${opts.map(([v,l])=>`<option value="${v}"${String(cur)===String(v)?' selected':''}>${l}</option>`).join('')}</select>`;
   return `<h2>대회 목록</h2><p class="sub">앱의 대회 목록 = 매일 자동으로 받는 마라톤온라인 일정(${fut.length}개) + 여기서 추가한 대회 − 숨긴 대회. 바꾸면 앱에 바로 반영돼요.</p>
   <div class="card"><h3>대회 추가</h3><div class="grid2">
     <div><label class="f">대회 이름</label><input class="fld" id="rN" placeholder="예: 2027 대구마라톤"></div>
@@ -209,8 +236,12 @@ function races(){ const R=(S.racesJson&&S.racesJson.races)||[], hide=new Set(S.c
     <div><label class="f">홈페이지</label><input class="fld" id="rH" placeholder="https://"></div></div>
     <div class="row" style="margin-top:10px"><button class="btn" id="rAdd">추가</button></div></div>
   <div class="card"><h3>추가한 대회 (${(S.cat.add||[]).length})</h3>${(S.cat.add||[]).length?`<table class="mini"><tr><th>날짜</th><th>이름</th><th>종목</th><th>장소</th><th></th></tr>${S.cat.add.map((r,i)=>`<tr><td class="num">${r.date}</td><td>${ESC(r.name)}</td><td>${ESC((r.courses||[]).join(', '))}</td><td>${ESC(r.place||'')}</td><td><button class="btn warn sm" data-rdel="${i}">빼기</button></td></tr>`).join('')}</table>`:'<div class="empty">없음</div>'}</div>
-  <div class="card"><h3>자동 목록 (숨김 ${hide.size}개)</h3><div class="tools"><input id="rq" placeholder="이름·장소로 찾기"></div>
-    <table class="mini" id="rTab"><tr><th>날짜</th><th>이름</th><th>종목</th><th>장소</th><th></th></tr>${fut.slice(0,400).map(r=>`<tr data-rtxt="${ESC((r.name+' '+r.place).toLowerCase())}"><td class="num">${r.date}</td><td>${ESC(r.name)}</td><td>${ESC((r.courses||[]).join(', '))}</td><td>${ESC(r.place||'')}</td><td>${hide.has(r.id)?`<button class="btn ghost sm" data-rshow="${ESC(r.id)}">다시 보이기</button>`:`<button class="btn warn sm" data-rhide="${ESC(r.id)}">숨기기</button>`}</td></tr>`).join('')}</table></div>`; }
+  <div class="card"><h3>자동 목록 (숨김 ${hide.size}개)</h3><div class="tools" style="flex-wrap:wrap;gap:8px"><input id="rq" placeholder="이름·장소로 찾기">
+      ${sel('y',years.map(y=>[y,y+'년']),F.y,'연도 전체')}${F.y?sel('m',months.map(m=>[m,m+'월']),F.m,F.y+' 전체'):''}
+      ${sel('reg',[['cap','수도권'],['oth','지방']],F.reg,'전국')}${sel('a',areas.map(a=>[a,a]),F.a,F.reg==='cap'?'수도권 전체':F.reg==='oth'?'지방 전체':'모든 지역')}
+      ${sel('st',[['open','접수중'],['closed','접수 마감']],F.st,'접수 전체')}${sel('c',[['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']],F.c,'종목 전체')}
+      ${sel('sort',[['name','이름순'],['area','지역순']],F.sort,'날짜순')}<span class="who">${L.length}개</span></div>
+    <table class="mini" id="rTab"><tr><th>날짜</th><th>이름</th><th>종목</th><th>지역</th><th>장소</th><th>접수</th><th></th></tr>${L.slice(0,600).map(r=>`<tr data-rtxt="${ESC((r.name+' '+r.place).toLowerCase())}"><td class="num">${r.date}</td><td>${ESC(r.name)}</td><td>${ESC((r.courses||[]).join(', '))}</td><td>${ESC(r.area||'')}</td><td>${ESC(r.place||'')}</td><td>${r.open?'<span class="tag green">접수중</span>':''}</td><td>${hide.has(r.id)?`<button class="btn ghost sm" data-rshow="${ESC(r.id)}">다시 보이기</button>`:`<button class="btn warn sm" data-rhide="${ESC(r.id)}">숨기기</button>`}</td></tr>`).join('')}</table></div>`; }
 
 function notices(){ return `<h2>공지·알림</h2><p class="sub">'게시'한 공지 중 가장 최근 것이 앱 홈 맨 위에 떠요. 회원이 닫으면 그 공지는 다시 안 떠요.</p>
   <div class="card"><h3 id="nTitle">새 공지</h3><input type="hidden" id="nId">
@@ -248,7 +279,10 @@ async function openUser(uid){ const u=S.users.find(x=>x.uid===uid); if(!u)return
 function bind(){
   const q=$('q'); if(q){ q.oninput=()=>{ S.q=q.value; const p=q.selectionStart; render(); const n=$('q'); n.focus(); n.setSelectionRange(p,p); }; }
   const so=$('sort'); if(so){ so.value=S.sort; so.onchange=()=>{ S.sort=so.value; render(); }; }
+  const soI=$('sortI'); if(soI){ soI.value=S.sortI; soI.onchange=()=>{ S.sortI=soI.value; render(); }; }
+  document.querySelectorAll('[data-rf]').forEach(el=>el.onchange=()=>{ S.rf[el.dataset.rf]=el.value; if(el.dataset.rf==='y')S.rf.m=''; if(el.dataset.rf==='reg')S.rf.a=''; render(); });
   document.querySelectorAll('[data-uid]').forEach(tr=>tr.onclick=()=>openUser(tr.dataset.uid));
+  document.querySelectorAll('[data-nickdel]').forEach(b=>b.onclick=async e=>{ e.stopPropagation(); const id=b.dataset.nickdel; if(!confirm(`별명 "${id}" 예약을 풀까요?\n다른 사람이 이 별명을 쓸 수 있게 됩니다.`))return; try{ await db.collection('nicks').doc(id).delete(); S.nicks=S.nicks.filter(x=>x.id!==id); render(); }catch(err){ alert('실패: '+(err.message||err)); } });
   const ci=$('csvI'); if(ci)ci.onclick=()=>{ const rows=[['기기ID','이메일','별명','출생연도','성별','동의일','기기','앱설치','처음','마지막','버전','목표','대회일','기록수','누적km']].concat(S.inst.map(x=>[x.id,x.email||'',x.nick||'',x.by||'',x.sex||'',x.consent?D(x.consent):'',x.plat||'',x.pwa?'Y':'',D(x.first),D(x.last),x.ver||'',x.goal||'',x.gdate||'',x.runs??'',x.km??'']));
     const t='\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download=`gajirun_users_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
   const csv=$('csv'); if(csv)csv.onclick=()=>{ const L=S.users.map(U); const rows=[['email','uid','상태','마지막동기화','목표','대회일','기록수','누적km','최근7일km','버전','메모']].concat(L.map(x=>[x.email,x.uid,x.susp?'정지':'정상',x.upd?D(x.upd):'',x.goal,x.date,x.runs??'',x.km!=null?Math.round(x.km):'',x.w7!=null?Math.round(x.w7):'',x.ver,x.memo]));
