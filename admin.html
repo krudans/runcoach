@@ -170,6 +170,9 @@ function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).
   </div>
   <div class="grid2">
     <div class="card"><h3>기기 종류</h3>${bars(cntI(x=>x.plat||'기타'))}</div>
+    <div class="card"><h3>성별</h3>${bars(cntI(x=>x.sex?({m:'남',f:'여',x:'선택 안 함'})[x.sex]||x.sex:'미입력'))}</div>
+    <div class="card"><h3>연령대 (태어난 해 기준)</h3>${bars(cntI(x=>x.by?(Math.floor((new Date().getFullYear()-x.by)/10)*10)+'대':'미입력'))}</div>
+    <div class="card"><h3>개인정보 동의</h3>${bars([['동의',I.filter(x=>x.consent).length],['미동의·구버전',I.filter(x=>!x.consent).length]])}</div>
     <div class="card"><h3>사용자 목표</h3>${bars(cntI(x=>x.goal?(KIND[x.goal]||x.goal)+(x.gm?' '+DIST(x.gm):''):'목표 없음'))}</div>
     <div class="card"><h3>최근 14일 — 마지막 동기화한 날 (클라우드 회원)</h3>${bars(Object.entries(days))}</div>
     <div class="card"><h3>목표 종류</h3>${bars(cnt(x=>x.g.kind?(KIND[x.g.kind]||x.g.kind)+(x.g.m?' '+DIST(x.g.m):''):'목표 없음'))}</div>
@@ -178,11 +181,11 @@ function dash(){ const L=S.users.map(U), n=L.length, a7=L.filter(x=>ACT(x.upd)).
   </div>`; }
 
 function inst(){ const ms=x=>x&&x.toDate?x.toDate().getTime():(x?Date.parse(x):0); let L=S.inst.slice(); const q=S.q.trim().toLowerCase();
-  if(q)L=L.filter(x=>((x.email||'')+' '+(x.plat||'')+' '+(x.goal||'')+' '+x.id).toLowerCase().includes(q));
+  if(q)L=L.filter(x=>((x.email||'')+' '+(x.nick||'')+' '+(x.plat||'')+' '+(x.goal||'')+' '+x.id).toLowerCase().includes(q));
   L.sort((a,b)=>ms(b.last)-ms(a.last));
   return `<h2>사용자 목록</h2><p class="sub">앱을 연 기기마다 한 줄 — 로그인하지 않은 사용자도 나와요(이메일은 구글 로그인한 경우만). 앱 설정 › '사용 현황 보내기'를 끈 기기와 v19.36 전 버전에서 아직 한 번도 안 연 기기는 빠져요.</p>
-  <div class="tools"><input id="q" placeholder="이메일·기기·목표 검색" value="${ESC(S.q)}"><button class="btn ghost sm" id="csvI">CSV 내려받기</button><span class="who">${L.length}대</span></div>
-  ${L.length?`<table><tr><th>사용자</th><th>기기</th><th>처음 사용</th><th>마지막 사용</th><th>버전</th><th>목표</th><th>대회일</th><th>기록</th><th>누적 km</th></tr>${L.map(x=>`<tr${x.uid&&S.users.some(u=>u.uid===x.uid)?` class="click" data-uid="${x.uid}"`:''}><td>${x.email?ESC(x.email):`<span class="tag gray">로그인 안 함</span> <span class="num" style="font-size:11px;color:var(--ink-3)">${x.id.slice(0,8)}</span>`}</td><td>${ESC(x.plat||'')}${x.pwa?' <span class="tag">앱</span>':''}</td><td class="num">${D(x.first)}</td><td class="num">${ago(ms(x.last))}</td><td class="num">${ESC(x.ver||'')}</td><td>${x.goal?ESC((KIND[x.goal]||x.goal)+(x.gm?' · '+DIST(x.gm):'')):(x.onb?'목표 없음':'<span class="tag gray">시작 전</span>')}</td><td class="num">${x.gdate||'—'}</td><td class="num">${x.runs??'—'}</td><td class="num">${x.km??'—'}</td></tr>`).join('')}</table>`:'<div class="card empty">아직 집계된 기기가 없어요 — 앱 v19.36을 연 기기부터 나와요</div>'}`; }
+  <div class="tools"><input id="q" placeholder="이메일·별명·기기·목표 검색" value="${ESC(S.q)}"><button class="btn ghost sm" id="csvI">CSV 내려받기</button><span class="who">${L.length}대</span></div>
+  ${L.length?`<table><tr><th>사용자</th><th>별명</th><th>출생</th><th>성별</th><th>동의</th><th>기기</th><th>처음 사용</th><th>마지막 사용</th><th>버전</th><th>목표</th><th>대회일</th><th>기록</th><th>누적 km</th></tr>${L.map(x=>`<tr${x.uid&&S.users.some(u=>u.uid===x.uid)?` class="click" data-uid="${x.uid}"`:''}><td>${x.email?ESC(x.email):`<span class="tag gray">로그인 안 함</span> <span class="num" style="font-size:11px;color:var(--ink-3)">${x.id.slice(0,8)}</span>`}</td><td>${x.nick?ESC(x.nick):'—'}</td><td class="num">${x.by||'—'}</td><td>${x.sex?({m:'남',f:'여',x:'—'})[x.sex]||x.sex:'—'}</td><td class="num">${x.consent?D(x.consent):'<span class="tag red">없음</span>'}</td><td>${ESC(x.plat||'')}${x.pwa?' <span class="tag">앱</span>':''}</td><td class="num">${D(x.first)}</td><td class="num">${ago(ms(x.last))}</td><td class="num">${ESC(x.ver||'')}</td><td>${x.goal?ESC((KIND[x.goal]||x.goal)+(x.gm?' · '+DIST(x.gm):'')):(x.onb?'목표 없음':'<span class="tag gray">시작 전</span>')}</td><td class="num">${x.gdate||'—'}</td><td class="num">${x.runs??'—'}</td><td class="num">${x.km??'—'}</td></tr>`).join('')}</table>`:'<div class="card empty">아직 집계된 기기가 없어요 — 앱 v19.36을 연 기기부터 나와요</div>'}`; }
 function users(){ let L=S.users.map(U); const q=S.q.trim().toLowerCase();
   if(q)L=L.filter(x=>(x.email+' '+x.goal+' '+x.memo).toLowerCase().includes(q));
   const so={upd:(a,b)=>b.upd-a.upd,email:(a,b)=>a.email.localeCompare(b.email),km:(a,b)=>(b.km||0)-(a.km||0),runs:(a,b)=>(b.runs||0)-(a.runs||0)}[S.sort]; L.sort(so);
@@ -246,7 +249,7 @@ function bind(){
   const q=$('q'); if(q){ q.oninput=()=>{ S.q=q.value; const p=q.selectionStart; render(); const n=$('q'); n.focus(); n.setSelectionRange(p,p); }; }
   const so=$('sort'); if(so){ so.value=S.sort; so.onchange=()=>{ S.sort=so.value; render(); }; }
   document.querySelectorAll('[data-uid]').forEach(tr=>tr.onclick=()=>openUser(tr.dataset.uid));
-  const ci=$('csvI'); if(ci)ci.onclick=()=>{ const rows=[['기기ID','이메일','기기','앱설치','처음','마지막','버전','목표','대회일','기록수','누적km']].concat(S.inst.map(x=>[x.id,x.email||'',x.plat||'',x.pwa?'Y':'',D(x.first),D(x.last),x.ver||'',x.goal||'',x.gdate||'',x.runs??'',x.km??'']));
+  const ci=$('csvI'); if(ci)ci.onclick=()=>{ const rows=[['기기ID','이메일','별명','출생연도','성별','동의일','기기','앱설치','처음','마지막','버전','목표','대회일','기록수','누적km']].concat(S.inst.map(x=>[x.id,x.email||'',x.nick||'',x.by||'',x.sex||'',x.consent?D(x.consent):'',x.plat||'',x.pwa?'Y':'',D(x.first),D(x.last),x.ver||'',x.goal||'',x.gdate||'',x.runs??'',x.km??'']));
     const t='\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download=`gajirun_users_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
   const csv=$('csv'); if(csv)csv.onclick=()=>{ const L=S.users.map(U); const rows=[['email','uid','상태','마지막동기화','목표','대회일','기록수','누적km','최근7일km','버전','메모']].concat(L.map(x=>[x.email,x.uid,x.susp?'정지':'정상',x.upd?D(x.upd):'',x.goal,x.date,x.runs??'',x.km!=null?Math.round(x.km):'',x.w7!=null?Math.round(x.w7):'',x.ver,x.memo]));
     const t='﻿'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'})); a.download=`gajirun_members_${new Date().toISOString().slice(0,10)}.csv`; a.click(); };
