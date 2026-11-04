@@ -746,7 +746,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #gHead{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line),0 6px 16px rgba(42,22,56,.06);padding-bottom:10px}body.nohead #gHead{display:none}
 #gHead .topline{padding-top:11px}.view:not(#home)>.topline{padding-top:10px}
 .odo{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;border:0;background:none;padding:0;font:inherit;color:var(--ink);text-align:right;cursor:pointer;flex:none}.odo-t{display:flex;align-items:center;gap:5px}.odo-d{display:flex;gap:2px}.odo-d i{display:inline-block;width:18px;height:25px;line-height:25px;text-align:center;background:#2A1638;color:#F4F0EA;font-style:normal;font-weight:900;font-size:16px;border-radius:4px;font-family:var(--num);font-variant-numeric:tabular-nums}.odo-d i.z{opacity:.32}.odo-t b{font-size:11px;font-weight:900}.odo>i{font-style:normal;font-size:11px;color:var(--ink-2);font-weight:800;white-space:nowrap;letter-spacing:.01em;text-align:right;width:100%}.odo>i b{font-weight:900;color:var(--ink)}
-.mile{padding:14px 16px}.mile-odo{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.mile-odo>b{font-size:42px;font-weight:900;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}.mile-odo i b{color:var(--ink);font-weight:800}.mile-odo span{font-size:15px;font-weight:800;color:var(--ink-3)}.mile-odo i{flex-basis:100%;font-style:normal;font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px}
+.mile{padding:14px 16px}.mile-odo{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.mile-hd{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;font:inherit;color:var(--ink);text-align:left;padding:0;cursor:pointer}.mile-hd .mile-odo{flex:none;gap:4px}.mile-hd .mile-odo>b{font-size:28px}.mile-hd .mile-odo span{font-size:13px}.mile-hd>i{flex:1;min-width:0;font-style:normal;font-size:12px;color:var(--ink-3);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mile-chev{flex:none;display:flex;align-items:center;gap:3px;white-space:nowrap;font-style:normal;font-size:12px;font-weight:700;color:var(--accent)}.mile-more{margin-top:12px}.mile-odo>b{font-size:42px;font-weight:900;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}.mile-odo i b{color:var(--ink);font-weight:800}.mile-odo span{font-size:15px;font-weight:800;color:var(--ink-3)}.mile-odo i{flex-basis:100%;font-style:normal;font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px}
 .mile-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}.mile-row span{background:var(--panel-2);border-radius:12px;padding:8px 10px;min-width:0}.mile-row i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700}.mile-row b{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}.mile-row em{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mile-next{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12px;color:var(--ink-2)}.mile-next span{flex:none;white-space:nowrap}.mile-bar{flex:1;height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}.mile-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .mile-badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.mile-badges span{font-size:10.5px;font-weight:800;border-radius:999px;padding:3px 9px;background:var(--panel-2);color:var(--ink-3)}.mile-badges span.on{background:#F4E6C8;color:#8A5A00}
@@ -833,7 +834,7 @@ details.noti .sigc{margin:6px 0}
 .hero-links button{background:none;border:none;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-2);padding:6px 2px;cursor:pointer}
 .hero .tdist{background:var(--bg)}.hero .tdist button{background:var(--panel);color:var(--ink)}.hero .tdist button.ok{background:var(--accent);color:#fff}
 /* 그냥 뛰기 줄 */
-.htiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 16px 0}.htile{background:var(--panel);border:1.5px solid var(--line);border-radius:18px;padding:12px 4px 10px;text-align:center;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}.htile svg{width:26px;height:26px;color:var(--tc)}.htile b{font-size:12.5px;font-weight:800;margin-top:3px}.htile strong{font-size:15px;font-weight:900;color:var(--tc);white-space:nowrap}.htile i{font-style:normal;font-size:10px;color:var(--ink-3);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.htiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 16px 0}.htile{background:var(--panel);border:1.5px solid var(--line);border-radius:18px;padding:12px 4px 10px;text-align:center;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}.htile svg{width:26px;height:26px;color:var(--tc)}.htile b{font-size:12.5px;font-weight:800;margin-top:3px;white-space:nowrap;letter-spacing:-.2px;max-width:100%}.htile strong{font-size:15px;font-weight:900;color:var(--tc);white-space:nowrap}.htile i{font-style:normal;font-size:10px;color:var(--ink-3);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nxrow{width:calc(100% - 32px);text-align:left;font:inherit;color:var(--ink);cursor:pointer;border:1.5px solid var(--line)}.nxrow .nx-go{margin-left:auto;color:var(--ink-3);font-size:18px}
 .nx3{padding:2px 6px 4px}.nx3-hd{display:flex;align-items:center;justify-content:space-between;padding:7px 10px 2px}.nx3-hd b{font-size:12.5px;color:var(--ink-3)}.nx3-hd button{border:none;background:none;font:inherit;font-size:12px;font-weight:700;color:var(--accent);padding:2px;cursor:pointer}
 .nx3-r{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:none;font:inherit;color:var(--ink);padding:6px 10px;border-radius:10px;cursor:pointer}.nx3-r:active{background:var(--panel-2)}
@@ -2263,7 +2264,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.77';
+const APPVER='19.78';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8423,7 +8424,7 @@ function homeTiles(sess){ try{
     ['rec','내 기록',best?fmtClock(best.sec):'—',best?rlLab(best.m)+(best.date?' · '+best.date.slice(2).replace(/-/g,'.'):''):'대회·측정 기록','#C98A00'],
     ['basis','훈련 기준',`♥${D.cap}↓`,e?`이지 ${fmtPace(e.p[0])}~${fmtPace(e.p[1])}`:'','#D9731A'],
     ['body','몸 상태',body[0],body[1],body[2]?'#C2410C':'#3B82C4'],
-    ['mile','마일리지',fmtMile(M.total),`올해 ${fmtMile(M.year)}`,'#7A4CC2'],
+    ['mile','러닝 마일리지',fmtMile(M.total),`올해 ${fmtMile(M.year)}`,'#7A4CC2'],
     ['warm','운동법',(()=>{ try{ return `${['dyn','stat','str','core'].reduce((a,k)=>a+((STR[k]&&STR[k].moves.length)||0),0)}동작`; }catch(e){ return '22동작'; } })(),'동적 · 정적 · 근력 · 코어','#2F8F83'],
     ['race','대회 찾기','실시간',(()=>{ try{ const R=RACES||JSON.parse(localStorage.getItem('rc_racesCache')||'null'); const u=R&&R.updated?new Date(R.updated):null; return u?`${u.getMonth()+1}.${u.getDate()} ${pad(u.getHours())}:${pad(u.getMinutes())} 기준`:'매일 새벽 갱신'; }catch(e){ return '매일 새벽 갱신'; } })(),'#C2410C']];
   if(!RACES){ try{ racesLoad().then(()=>{ const t=document.querySelector('.htile[data-tile="race"] i'); if(t&&RACES&&RACES.updated){ const u=new Date(RACES.updated); t.textContent=`${u.getMonth()+1}.${u.getDate()} ${pad(u.getHours())}:${pad(u.getMinutes())} 기준`; } }).catch(()=>{}); }catch(e){} }
@@ -8444,13 +8445,13 @@ function exerciseSheet(tab){
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-extab]'); if(!b)return; $('tileBody').innerHTML=exerciseSheet(b.dataset.extab); try{ wireHome(null,-1); }catch(err){} });
 function tileOpen(k){
   if(k==='basis')return openMine();
-  const title={goal:'목표',week:'이번 주 · 오늘',rec:'내 기록',body:'몸 상태',mile:'마일리지',warm:'운동법',race:'대회 찾기'}[k]||'';
+  const title={goal:'목표',week:'이번 주 · 오늘',rec:'내 기록',body:'몸 상태',mile:'러닝 마일리지',warm:'운동법',race:'대회 찾기'}[k]||'';
   let body='';
   if(k==='body') body=logBody()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="log" data-logtab="body">기록에서 자세히</button></div>`;
   else if(k==='goal') body=goalCard(true)+mineStripHTML()+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="plan">플랜 전체 보기</button><button type="button" class="btn ghost" data-mygoal="1">목표 고치기</button></div>`;
   else if(k==='week') body=weekStrip();
   else if(k==='rec') body=rlogCard();
-  else if(k==='mile') body=mileCard();
+  else if(k==='mile') body=mileCard({open:true});
   else if(k==='warm') body=exerciseSheet();
   else if(k==='race') body=`<div id="tileRaces" class="rc-host"></div>`;
   $('tileTitle').textContent=title; $('tileBody').innerHTML=body;
@@ -9859,8 +9860,9 @@ function openTimeDec(){
 /* ══════════ 러닝 일지 — 한눈에 · 몸 상태 · 실력 · 제안 · 목록 ══════════
    모든 비교는 '평소 범위'로. 그래프마다 몇 번의 기록으로 본 것인지 붙인다.
    기록이 모자라면 결론 대신 "N번 더 뛰면 보여요". */
-let LOGTAB='sum', LOGPER='month', LOGFLT='all', CALOFF=0;
-const LTABS=[['sum','한눈에'],['body','몸 상태'],['skill','실력'],['list','목록']];   /* '제안' 탭(호흡 실험·시간대·케이던스)은 실력 탭 아래로 */
+let LOGTAB='list', LOGPER='month', LOGFLT='all', CALOFF=0;
+var MILE_OPEN=false;   /* 마일리지 카드 펼침 — 기본은 한 줄 */
+const LTABS=[['list','목록'],['sum','한눈에'],['body','몸 상태'],['skill','실력']];   /* '제안' 탭(호흡 실험·시간대·케이던스)은 실력 탭 아래로 */
 const TCOL={interval:'#E35A32',rep:'#E35A32',threshold:'#F0A030',goalpace:'#7355D6',mpace:'#7355D6',long:'#2F7FD0',easy:'#2E9E6A',recovery:'#9C8AD8',tt:'#D32F45',free:'#5F7A6E',stride:'#3E8FBF',hill:'#B05C1C'};
 const isHardT=t=>['interval','rep','threshold','goalpace','mpace','tt','hill','stride'].includes(t);
 /* 달력·주간 막대·범례가 같은 네 가지 색을 쓴다 — 예전엔 달력은 종류별 색(템포=노랑·회복=보라), 막대는 세 묶음이라 같은 러닝이 서로 다른 색이었다 */
@@ -9934,7 +9936,7 @@ function mileHistSave(h){ PROF=Object.assign({},PROF,{mileHist:h.filter(x=>x&&+x
   try{ paintOdo(); }catch(e){}
   try{ if($('logBody'))renderLog(); }catch(e){}
   /* 홈 타일 시트(마일리지)가 열려 있으면 그 안도 다시 그린다 */
-  try{ const sh=$('tileSheet'); if(sh&&!sh.hidden&&$('tileTitle').textContent==='마일리지'){ $('tileBody').innerHTML=mileCard(); } }catch(e){}
+  try{ const sh=$('tileSheet'); if(sh&&!sh.hidden&&$('tileTitle').textContent==='러닝 마일리지'){ $('tileBody').innerHTML=mileCard({open:true}); } }catch(e){}
   try{ const h2=$('hMain'); if(h2&&!$('tileSheet').classList.contains('up'))renderHome(); }catch(e){} }
 /* 이전 마일리지 입력 시트 — 연도 칩 + 거리 + 미리보기. prompt() 대신 */
 function mileHistAsk(ix,opt){ opt=opt||{}; const h=mileHist().slice(), cur=ix!=null?h[ix]:null, M=mileage();
@@ -9982,11 +9984,12 @@ function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.round(M.total)), s
   const cells=[...str].map((d,i)=>{ const z=lead&&d==='0'&&i<str.length-1; if(d!=='0')lead=false; return `<i class="${z?'z':''}">${d}</i>`; }).join('');
   return `<button type="button" class="odo" id="hOdo" aria-label="누적 ${fmtMile(M.total)}km · 다음 ${fmtMile(M.next)}km까지 ${fmtMile(M.next-M.total)}km"><i>러닝 마일리지 <b>km</b></i><span class="odo-d">${cells}</span></button>`; }catch(e){ return ''; } }
 function paintOdo(){ try{ const o=$('hOdo'); if(o)o.outerHTML=odoHTML(); }catch(e){} }
-function mileCard(){
-  const M=mileage(), pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
+function mileCard(opt){ opt=opt||{};
+  const M=mileage(), open=opt.open||MILE_OPEN, pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
   const years=Object.keys(M.byYear).sort().reverse();
-  return `<div class="lcard mile" id="mileCard">
-    <div class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span><i>${M.base?`이전 마일리지 <b>${fmtMile(M.base)}</b> + 이 앱 달리기 <b>${fmtMile(M.runKm)}</b>${M.raceExtra>0?` + 기록 없는 대회 <b>${fmtMile(M.raceExtra)}</b>`:''} = ${fmtMile(M.total)}`:`이 앱 달리기 ${fmtMile(M.runKm)}${M.raceExtra>0?` + 기록 없는 대회 ${fmtMile(M.raceExtra)}`:''}`}</i></div>
+  return `<div class="lcard mile${open?' open':''}" id="mileCard">
+    <button type="button" class="mile-hd" data-mileopen="1"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>${M.base?`이전 ${fmtMile(M.base)} + 달리기 ${fmtMile(M.runKm)}${M.raceExtra>0?` + 대회 ${fmtMile(M.raceExtra)}`:''}`:`달리기 ${fmtMile(M.runKm)}${M.raceExtra>0?` + 대회 ${fmtMile(M.raceExtra)}`:''}`}</i><em class="mile-chev">${open?'접기':'자세히'} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${open?'M6 15l6-6 6 6':'M6 9l6 6 6-6'}"/></svg></em></button>
+    <div class="mile-more"${open?'':' hidden'}>
     <div class="mile-row"><span><i>달리기</i><b class="num">${fmtMile(M.runKm)}</b><em>${M.n}회 · ${fmtHM(M.runSec)}</em></span><span><i>대회</i><b class="num">${fmtMile(M.race.km)}</b><em>${M.race.n}회</em></span><span><i>올해</i><b class="num">${fmtMile(M.year)}</b><em>이달 ${fmtMile(M.month)} · 이번 주 ${fmtMile(M.week)}</em></span></div>
     <div class="mile-next"><div class="mile-bar"><i style="width:${pct.toFixed(1)}%"></i></div><span><b>${fmtMile(M.next)} km</b>까지 <b>${fmtMile(M.next-M.total)} km</b></span></div>
     <div class="mile-badges">${MILE_STEPS.slice(0,7).map(v=>`<span class="${v<=M.total?'on':''}">${v.toLocaleString('en-US')}</span>`).join('')}</div>
@@ -9995,8 +9998,10 @@ function mileCard(){
       <div class="mile-act"><button type="button" class="btn ghost" data-mhist="new">+ 연도별 넣기</button><button type="button" class="btn ghost" data-mhist="unk">+ 연도 모름으로 넣기</button></div></div>
     ${M.bestMonth?`<div class="small">가장 많이 달린 달 ${M.bestMonth[0].replace('-','.')} · ${fmtMile(M.bestMonth[1])} km</div>`:''}
     <div class="mile-act"><button type="button" class="btn ghost" data-share="mile">이미지</button></div>
+    </div>
   </div>`;
 }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-mileopen]'); if(!b)return; MILE_OPEN=!MILE_OPEN; const c=b.closest('#mileCard'); if(c){ c.classList.toggle('open',MILE_OPEN); const m=c.querySelector('.mile-more'); if(m)m.hidden=!MILE_OPEN; const ch=c.querySelector('.mile-chev'); if(ch)ch.innerHTML=`${MILE_OPEN?'접기':'자세히'} <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${MILE_OPEN?'M6 15l6-6 6 6':'M6 9l6 6 6-6'}"/></svg>`; } });
 function mileBaseAsk(){
   const cur=(PROF.mileBase&&typeof PROF.mileBase==='object')?PROF.mileBase:{km:+(PROF.mileBase||0)||0,from:null};
   const v=prompt('앱 쓰기 전 누적 거리(km) — 스트라바·가민 등 다른 앱에서 본 누적. 비우면 0', cur.km||'');
@@ -10007,7 +10012,7 @@ function mileBaseAsk(){
   if(f==null)return; const d=String(f).trim(); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ alert('날짜 형식: 2026-10-01'); return; }
   PROF=Object.assign({},PROF,{mileBase:{km:Math.round(n*10)/10,from:d}}); DEV.store.set('prof',PROF); try{ renderLog(); paintOdo(); }catch(err){}
 }
-document.addEventListener('click',e=>{ if(e.target.closest('#hOdo')){ LOGTAB='sum'; go('log'); setTimeout(()=>{ try{ const c=$('mileCard'); if(c)c.scrollIntoView({behavior:'smooth',block:'start'}); }catch(err){} },80); return; }
+document.addEventListener('click',e=>{ if(e.target.closest('#hOdo')){ LOGTAB='sum'; MILE_OPEN=true; go('log'); setTimeout(()=>{ try{ const c=$('mileCard'); if(c)c.scrollIntoView({behavior:'smooth',block:'start'}); }catch(err){} },80); return; }
   const b=e.target.closest('[data-mhist]'); if(!b)return; const k=b.dataset.mhist;
   if(k==='new')return mileHistAsk(null);
   if(k==='unk'){ const j=mileHist().findIndex(x=>!x.y); return j>=0?mileHistAsk(j):mileHistAsk(null,{unknown:true}); }
@@ -10025,7 +10030,7 @@ function logSum(){
   const pb=(LOGPER==='week'||LOGPER==='month')?addDays(pa,nd):addDays(a,-1), pLab=LOGPER==='week'?'지난주 같은 요일까지':LOGPER==='month'?'지난달 같은 날까지':'직전 같은 기간';
   const pkm=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=pa&&ldate(r.date).slice(0,10)<=pb).reduce((s,r)=>s+r.km,0);
   const easyKm=R.filter(r=>!isHardT(r.type)).reduce((s,r)=>s+r.km,0);
-  return `${SEC('rec','마일리지','평생 누적',mileCard())}
+  return `${SEC('rec','러닝 마일리지','평생 누적',mileCard())}
     <div class="per">${[['week','이번 주'],['month','이번 달'],['3m','3달'],['all','전체']].map(p=>`<button class="${LOGPER===p[0]?'on':''}" data-per="${p[0]}">${p[1]}</button>`).join('')}</div>
     ${SEC('body','몸 상태','',bodyLight())}
     ${SEC('train','달린 양',(perRange()[2]||''),`<div class="nums3"><div><i>달린 거리</i><b class="num">${km.toFixed(0)}<small>km</small></b><em>${LOGPER!=='all'&&pkm>0?`${pLab} ${km>=pkm?'+':''}${Math.round((km-pkm)/pkm*100)}%`:''}</em></div>
