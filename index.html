@@ -2268,7 +2268,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.73';
+const APPVER='19.74';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8428,7 +8428,7 @@ function homeTiles(sess){ try{
     ['basis','훈련 기준',`♥${D.cap}↓`,e?`이지 ${fmtPace(e.p[0])}~${fmtPace(e.p[1])}`:'','#D9731A'],
     ['body','몸 상태',body[0],body[1],body[2]?'#C2410C':'#3B82C4'],
     ['mile','마일리지',fmtMile(M.total),`올해 ${fmtMile(M.year)}`,'#7A4CC2'],
-    ['warm','운동법',(()=>{ try{ return `${['dyn','stat','str','core'].reduce((a,k)=>a+((STR[k]&&STR[k].moves.length)||0),0)}동작`; }catch(e){ return '22동작'; } })(),'준비 · 마무리 · 근력 · 코어','#2F8F83'],
+    ['warm','운동법',(()=>{ try{ return `${['dyn','stat','str','core'].reduce((a,k)=>a+((STR[k]&&STR[k].moves.length)||0),0)}동작`; }catch(e){ return '22동작'; } })(),'동적 · 정적 · 근력 · 코어','#2F8F83'],
     ['race','대회 찾기',nRace?`${nRace}개`:'›','다가오는 대회','#C2410C']];
   return `<div class="htiles">${tiles.map(x=>`<button type="button" class="htile" data-tile="${x[0]}" style="--tc:${x[4]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_IC[x[0]]}</svg><b>${x[1]}</b><strong class="num">${x[2]}</strong><i>${x[3]}</i></button>`).join('')}</div>`;
 }catch(e){ console.warn('tiles',e); return ''; } }
@@ -8439,7 +8439,7 @@ function exerciseSheet(tab){
   if(!tab){ let ran=false, planned=false; try{ ran=dayKm(t)>0; planned=!!BLOCK.find(x=>x.d.slice(0,10)===t&&x.type!=='off'); }catch(e){}
     tab=EX_TAB||(ran?'stat':planned?'dyn':'str'); }
   EX_TAB=tab;
-  const TABS=[['dyn','준비운동'],['stat','마무리'],['str','근력'],['core','코어']];
+  const TABS=[['dyn','동적 스트레칭'],['stat','정적 스트레칭'],['str','근력'],['core','코어']];
   return `<div class="ex-tabs">${TABS.map(([k,l])=>`<button type="button" data-extab="${k}" class="${tab===k?'on':''}">${l}<em>${STR[k].moves.length}</em></button>`).join('')}</div>
     <div class="ex-note">${{dyn:'달리기 전 3분 — 멈추지 않고 움직이며 몸을 깨웁니다.',stat:'달리고 나서 — 한 자세를 천천히 버티며 풀어줍니다.',str:'쉬는 날이나 이지런 뒤 — 플랜의 근력 항목과 같은 구성입니다.',core:'짧게 자주 — 몸통을 잡아 주는 네 가지.'}[tab]}</div>
     ${stretchCard(tab,{compact:false,id:'tileStr'})}`;
@@ -11426,7 +11426,7 @@ STR.str={en:'STRENGTH',ko:'근력 운동 — 쉬는 날',when:'근력 가능한 
     chk:['6동작 × 3세트','동작마다 50초','세트 사이 숨 고르기'],tips:['처음엔 맨몸 · 4주마다 횟수 +2 또는 무게 추가','힘든 날 다음 날은 코어만'],
     moves:[['squat','스쿼트','허벅지·엉덩이','발 어깨너비 · 무릎 발끝 방향 · 10회',false],
            ['lunge','런지','한 다리 힘 · 균형','큰 걸음 · 뒷무릎 바닥 가까이 · 8회씩',true],
-           ['rdl','루마니안 데드리프트','햄스트링·엉덩이','무릎은 살짝만 · 엉덩이 뒤로 빼며 등 편 채 숙이기 · 손은 정강이 앞 · 8회',false],
+           ['rdl','루마니안 데드','햄스트링·엉덩이','무릎은 살짝만 · 엉덩이 뒤로 빼며 등 편 채 숙이기 · 손은 정강이 앞 · 8회',false],
            ['calfraise','종아리 들기','종아리·아킬레스','벽 짚고 천천히 올라갔다 내려오기 · 15회',false],
            ['bridge','힙 브릿지','엉덩이·허리','누워 무릎 세우고 골반 올리기 · 12회',false],
            ['plank','플랭크','코어','팔꿈치 · 몸 일직선 · 30초',false]]};
