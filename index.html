@@ -745,7 +745,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 #gHead .hbrand{align-items:center;gap:10px}#gHead .hname b{font-size:20px;letter-spacing:-.5px;white-space:nowrap}.hvb{width:1.5px;height:30px;background:#C9BDD8;flex:none;border-radius:1px}.hid{display:flex;flex-direction:column;gap:2px;min-width:0}.hid b{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;letter-spacing:0}.hid i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap;letter-spacing:0}html{scroll-padding-top:100px}
 #gHead{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line),0 6px 16px rgba(42,22,56,.06);padding-bottom:4px}body.nohead #gHead{display:none}
 #gHead .topline{padding-top:12px}.view:not(#home)>.topline{padding-top:10px}
-.odo{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;border:0;background:none;padding:0;font:inherit;color:var(--ink);text-align:right;cursor:pointer;flex:none}.odo-t{display:flex;align-items:center;gap:5px}.odo-d{display:flex;gap:2px}.odo-d i{display:inline-block;width:18px;height:25px;line-height:25px;text-align:center;background:#2A1638;color:#F4F0EA;font-style:normal;font-weight:900;font-size:16px;border-radius:4px;font-family:var(--num);font-variant-numeric:tabular-nums}.odo-d i.z{opacity:.32}.odo-t b{font-size:11px;font-weight:900}.odo>i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700;white-space:nowrap}.odo>i em{font-style:normal;color:var(--accent);font-weight:900}
+.odo{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;border:0;background:none;padding:0;font:inherit;color:var(--ink);text-align:right;cursor:pointer;flex:none}.odo-t{display:flex;align-items:center;gap:5px}.odo-d{display:flex;gap:2px}.odo-d i{display:inline-block;width:18px;height:25px;line-height:25px;text-align:center;background:#2A1638;color:#F4F0EA;font-style:normal;font-weight:900;font-size:16px;border-radius:4px;font-family:var(--num);font-variant-numeric:tabular-nums}.odo-d i.z{opacity:.32}.odo-t b{font-size:11px;font-weight:900}.odo>i{font-style:normal;font-size:11px;color:var(--ink-2);font-weight:800;white-space:nowrap;letter-spacing:.01em}
 .mile{padding:14px 16px}.mile-odo{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.mile-odo>b{font-size:42px;font-weight:900;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}.mile-odo i b{color:var(--ink);font-weight:800}.mile-odo span{font-size:15px;font-weight:800;color:var(--ink-3)}.mile-odo i{flex-basis:100%;font-style:normal;font-size:12px;color:var(--ink-3);font-weight:600;margin-top:2px}
 .mile-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}.mile-row span{background:var(--panel-2);border-radius:12px;padding:8px 10px;min-width:0}.mile-row i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700}.mile-row b{display:block;font-size:19px;font-weight:900;font-variant-numeric:tabular-nums}.mile-row em{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mile-next{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12px;color:var(--ink-2)}.mile-next span{flex:none;white-space:nowrap}.mile-bar{flex:1;height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}.mile-bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
@@ -2252,7 +2252,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.68';
+const APPVER='19.69';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9890,7 +9890,7 @@ const fmtMile=v=>{ const n=Math.round(v*10)/10; return n>=1000?Math.round(n).toL
 /* 롤러 주행거리계 띠 — 모든 탭 위 고정 머리에. 앞자리 0은 흐리게, 누르면 마일리지 카드 */
 function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.floor(M.total)), str=String(n).padStart(6,'0'); let lead=true;
   const cells=[...str].map((d,i)=>{ const z=lead&&d==='0'&&i<str.length-1; if(d!=='0')lead=false; return `<i class="${z?'z':''}">${d}</i>`; }).join('');
-  return `<button type="button" class="odo" id="hOdo" aria-label="누적 ${fmtMile(M.total)}km · 다음 ${fmtMile(M.next)}km까지 ${fmtMile(M.next-M.total)}km"><span class="odo-t"><span class="odo-d">${cells}</span><b>km</b></span><i>${M.year>0?`올해 ${fmtMile(M.year)}`:'누적'}${M.race.n?` · 대회 ${M.race.n}회`:''} · <em>${fmtMile(M.next)}까지 ${fmtMile(M.next-M.total)}</em></i></button>`; }catch(e){ return ''; } }
+  return `<button type="button" class="odo" id="hOdo" aria-label="누적 ${fmtMile(M.total)}km · 다음 ${fmtMile(M.next)}km까지 ${fmtMile(M.next-M.total)}km"><i>러닝 마일리지</i><span class="odo-t"><span class="odo-d">${cells}</span><b>km</b></span></button>`; }catch(e){ return ''; } }
 function paintOdo(){ try{ const o=$('hOdo'); if(o)o.outerHTML=odoHTML(); }catch(e){} }
 function mileCard(){
   const M=mileage(), pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
