@@ -438,10 +438,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 
 /* 숫자 네 칸 — 선으로 나누지 않고 말랑한 조각으로 */
 .grid4{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;flex:none;margin-top:12px}
-.cell{background:var(--rtile);border:none;border-radius:16px;padding:10px 2px;
+.cell{background:var(--rtile);border:none;border-radius:14px;padding:7px 2px 6px;
   text-align:center;color:var(--rink);transition:background .4s;min-width:0}
 .cell .k{font-size:10px;color:var(--rsub);font-weight:700}
-.cell .v{font-family:var(--num);font-size:18px;font-weight:800;line-height:1.15;
+.cell .v{font-family:var(--num);font-size:20px;font-weight:900;line-height:1.1;
   margin-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .cell .u{font-size:9px;color:var(--rsub);font-weight:600;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
@@ -916,12 +916,19 @@ details.noti .sigc{margin:6px 0}
 .kmk{background:#fff;border:1.5px solid #3A4A44;border-radius:50%;width:20px;height:20px;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .kst{background:#0E9B72;color:#fff;font-size:11px;font-weight:800;border-radius:8px;padding:2px 7px}
 .rleg{display:flex;flex-wrap:wrap;gap:10px;font-size:10.5px;color:var(--ink-3);margin-top:6px}.rleg i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:4px;vertical-align:2px}
+/* 결과 화면 — 지도 맨 위, 숫자는 한 카드에 빽빽하게 */
+.rmapbox{position:relative;margin-top:10px}.rmapbox .rmap{margin-top:0;height:230px;border-radius:18px}.rmapbox .mapsw{position:absolute;top:10px;left:10px;margin:0;background:var(--panel);box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:2}.rmapbox .rleg{margin:6px 4px 0}
+.rnum{background:var(--panel);border-radius:14px;padding:8px 4px 6px}.rnum .r1{display:grid;grid-template-columns:1fr 1fr 1fr}.rnum .r1>div,.rnum .r2>div{text-align:center;min-width:0}.rnum .r1>div+div,.rnum .r2>div+div{border-left:1px solid var(--line)}
+.rnum .r1 b{display:block;font-size:22px;font-weight:900;line-height:1.1;letter-spacing:-.3px}.rnum .r1 i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700}
+.rnum .r2{display:grid;grid-template-columns:repeat(4,1fr);margin-top:7px;padding-top:7px;border-top:1px solid var(--line)}.rnum .r2 b{display:block;font-size:14.5px;font-weight:800;line-height:1.1}.rnum .r2 i{font-style:normal;font-size:9px;color:var(--ink-3);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;padding:0 2px}
 /* 결과 화면 — 판정·그래프 */
 .rv-verd{border-radius:16px;padding:12px 14px;background:color-mix(in srgb,var(--vc) 12%,var(--panel));border-left:5px solid var(--vc)}
-.rv-verd>b{display:block;font-size:17px;font-weight:900;color:color-mix(in srgb,var(--vc) 75%,var(--ink))}
-.rv-score{display:flex;align-items:baseline;gap:4px;margin-top:6px;flex-wrap:wrap}.rv-score>b{font-size:30px;font-weight:900;line-height:1;color:var(--vc)}.rv-score small{font-size:12px;font-weight:800;color:var(--vc)}.rv-score span{font-size:11px;color:var(--ink-3);font-weight:700;margin-left:6px}.rv-score span b{color:var(--ink)}
+.rv-verd{margin-top:8px;padding:10px 12px}.rv-vh{display:flex;align-items:center;justify-content:space-between;gap:8px}.rv-vh>b{font-size:15.5px;font-weight:900;color:color-mix(in srgb,var(--vc) 75%,var(--ink));line-height:1.25}.rv-sc{flex:none;font-size:26px;font-weight:900;line-height:1;color:var(--vc)}.rv-sc small{font-size:12px;font-weight:800;margin-left:1px}
+.rv-parts{font-size:11px;color:var(--ink-3);font-weight:700;margin-top:4px}.rv-parts b{color:var(--ink)}
+.rv-score{display:flex;align-items:baseline;gap:4px;margin-top:6px;flex-wrap:wrap}.rv-score span{flex-basis:100%;margin-left:0!important;margin-top:2px}.rv-score>b{font-size:30px;font-weight:900;line-height:1;color:var(--vc)}.rv-score small{font-size:12px;font-weight:800;color:var(--vc)}.rv-score span{font-size:11px;color:var(--ink-3);font-weight:700;margin-left:6px}.rv-score span b{color:var(--ink)}
 .rv-rows{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}.rv-rows li{display:flex;gap:7px;align-items:baseline;font-size:12px;color:var(--ink-2);line-height:1.4}
 .rv-rows li i{flex:none;width:16px;height:16px;border-radius:50%;background:var(--panel-2);color:var(--ink-3);font-size:10px;font-weight:900;font-style:normal;display:inline-flex;align-items:center;justify-content:center;transform:translateY(2px)}
+.rv-rows li.long{flex-wrap:wrap}.rv-rows li.long b{flex-basis:100%;max-width:none;text-align:left;padding-left:23px;font-weight:700;color:var(--ink-2)}
 .rv-rows li.ok i{background:#DDF3EA;color:#0E6E55}.rv-rows li.bad i{background:#F9DEDA;color:#9A2A1F}.rv-rows li span{flex:1;min-width:0}.rv-rows li b{font-weight:800;color:var(--ink);text-align:right;flex:none;max-width:55%}
 .rv-pts{margin-top:10px;background:var(--panel);border-radius:14px;padding:10px 12px}
 .rvch-w{padding:8px 4px 6px}.rvch{display:block;width:100%;height:190px}.rvch-lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--ink-3);font-weight:700;margin:4px 8px 0}.rvch-lg i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px}
@@ -936,7 +943,7 @@ details.noti .sigc{margin:6px 0}
 .rbig{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
 .rbig div{background:var(--panel);border-radius:14px;padding:10px 8px;text-align:center}.rbig b{display:block;font-size:24px;font-weight:900}.rbig i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .rsm{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}
-.rsm div{background:var(--panel);border-radius:12px;padding:8px 4px;text-align:center}.rsm b{display:block;font-size:16px;font-weight:800}.rsm i{font-style:normal;font-size:9.5px;color:var(--ink-3)}
+.rsm div{background:var(--panel);border-radius:12px;padding:8px 4px;text-align:center}.rsm b{display:block;font-size:16px;font-weight:800}.rsm i{font-style:normal;font-size:9.5px;color:var(--ink-3)}.rsm2 small{display:block;font-size:9px;color:var(--ink-3);min-height:12px;white-space:nowrap}
 .rcard{background:var(--panel);border-radius:16px;padding:12px 14px;margin-top:10px}
 .rh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}.rh b{font-size:13.5px}.rh span{font-size:10.5px;color:var(--ink-3)}
 .repbars{position:relative;display:flex;gap:8px;align-items:flex-end;height:150px;padding-top:18px}
@@ -1775,7 +1782,7 @@ details.noti .sigc{margin:6px 0}
 .tc-ic{flex:none;width:46px;height:46px;border-radius:50%;background:var(--tc);color:#fff;display:grid;place-items:center}
 .tc-hd div{flex:1;min-width:0}.tc-hd b{display:block;font-size:19px;font-weight:900;color:var(--tc);line-height:1.1}.tc-hd i{display:block;font-style:normal;font-size:11px;font-weight:700;color:var(--ink-3);margin-top:2px;letter-spacing:.5px}
 .tc-hd em{flex:none;font-style:normal;font-family:var(--num);font-size:12px;font-weight:700;color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);padding:4px 9px;border-radius:999px;max-width:120px;text-align:center}
-.tc-scn{display:block;width:100%;height:auto;aspect-ratio:320/100}
+.tc-scn{display:block;width:100%;height:auto;aspect-ratio:320/130}
 .tc-key{padding:10px 14px 0}.tc-key span,.tc-chk span{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:var(--tc);padding:3px 9px;border-radius:999px}
 .tc-aim{display:flex;gap:8px;align-items:baseline;margin:0 14px 10px;font-size:12.5px;font-weight:700;color:var(--ink-2);line-height:1.5}.tc-aim b{flex:none;font-size:11px;font-weight:900;color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);border-radius:6px;padding:2px 7px}
 .tc-key b{display:block;font-size:15px;margin:0}.tc-key p{margin:0;font-size:12.5px;line-height:1.65;color:var(--ink-2)}
@@ -1974,7 +1981,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pd-bar{flex:none;width:8px;height:34px;border-radius:4px;background:color-mix(in srgb,var(--tc) 18%,transparent);display:flex;align-items:flex-end;overflow:hidden}
 .pd-bar i{display:block;width:100%;background:var(--tc);border-radius:4px}
 .pd-tx{min-width:0}.pd-tx b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pd-tx b small{font-size:10px;font-weight:800;color:var(--accent);background:var(--panel-2);padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:2px}
-.pd-tx i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.pd-tx i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}.pd-tx i b{display:inline;font-size:11.5px;font-weight:800;color:var(--ink-2);white-space:nowrap;overflow:visible}
 .pd-st{flex:none;font-style:normal;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px}
 .pd-st.ok{background:#DDF3EA;color:#0E7A5F}.pd-st.miss{background:#FBE3E1;color:#B4322C}.pd-st.now{background:var(--accent);color:#fff}
 .pd-row.did .pd-tx b{color:var(--ink-3)}.pd-row.past:not(.did) .pd-tx b{color:var(--ink-3)}
@@ -2059,7 +2066,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .gwatch.lite .gw-ic{grid-row:1;grid-column:1}.gwatch.lite .gw-ic svg,.gwatch.lite .gw-ic .gw-z{width:20px;height:20px}.gwatch.lite .gw-ic .gw-z{font-size:9px}
 .gwatch.lite .gw-lb{grid-row:1;grid-column:2;font-size:11.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:30px}
 .gwatch.lite .gw-v{grid-column:1/-1;grid-row:2;margin-top:2px}.gwatch.lite .gw-v b.num{font-size:26px;color:var(--ink)}.gwatch.lite .gw-v b.sm{font-size:16px;color:var(--ink)}.gwatch.lite .gw-v i{font-size:11.5px}
-.gwatch.lite .gw-q{grid-column:1/-1;grid-row:3;font-size:10.5px;line-height:1.4;color:var(--ink-3);margin-top:1px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gwatch.lite .gw-q{grid-column:1/-1;grid-row:3;font-size:10.5px;line-height:1.4;color:var(--ink-3);margin-top:1px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .gwatch.lite .gw-wrap.open .gw-q{-webkit-line-clamp:unset}
 .gwatch.lite .gw-tag{background:var(--line);color:var(--ink-2)}.gwatch.lite .gw-tag.on{background:#F6C27A;color:#2A1638}
 .gwatch.lite .gw-edit{top:8px;right:8px;font-size:10.5px;padding:4px 8px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));color:var(--accent)}
@@ -2074,6 +2081,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pt-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 2px}.pt-bar.pt-foot{margin:14px 0 0}
 .pt-seg{display:flex;background:var(--panel-2);border-radius:11px;padding:3px;flex:1 1 100%}.pt-seg button{flex:1;border:0;background:none;border-radius:9px;height:34px;font:inherit;font-size:13px;font-weight:800;color:var(--ink-3);cursor:pointer}.pt-seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(42,22,56,.12)}
 .pt-b{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:5px;height:38px;border-radius:11px;border:1.5px solid var(--line);background:var(--panel);font:inherit;font-size:13px;font-weight:800;color:var(--ink);cursor:pointer}.pt-b.main{background:var(--accent);border-color:var(--accent);color:#fff}
+.num,.sgr,.spr,.pg-s span,.rbig,.rsm,.nums3,.gl-t em,.wk-n,.rv-rows li b,.rvb-v{font-variant-numeric:tabular-nums}
 .pg-card{background:var(--panel);border-radius:20px;padding:16px 8px 14px;margin:12px 0}
 .pg-hd{padding:0 6px 12px}.pg-hd b{display:block;font-size:16px;font-weight:900;letter-spacing:-.2px}.pg-hd span{font-size:12px;color:var(--ink-3);font-weight:700}
 .pg-wrap{overflow-x:auto}.pg{width:100%;border-collapse:separate;border-spacing:3px 4px;table-layout:fixed;min-width:330px}
@@ -2222,7 +2230,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.52';
+const APPVER='19.53';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4112,6 +4120,8 @@ $('btnGear').onclick=()=>go('settings');
 $('alBack').onclick=()=>go('home');
 $('setBack').onclick=()=>go('home');
 
+/* 숫자만 굵게 — 속도·거리·심박·시간이 설명 글 속에서 바로 보이게 */
+function boldNums(t){ return String(t||'').replace(/(\d+'\d{2}"(?:~\d+'\d{2}")?|\d+(?:\.\d+)?\s?km|\d+(?:\.\d+)?m\b|♥\s?\d{2,3}(?:~\d{2,3})?|\b\d+:\d{2}(?::\d{2})?\b|\bZ[1-5]|\d+회|\d+분)/g,'<b>$1</b>'); }
 const summary=s=>{ if(s&&s.rw)return s.rw.sum; const T=TYPES[s.type]||{}, z=T.hrZone&&T.hrZone[1]&&!T.noHR?` · ${s.reps?'Z'+hrZoneIx(T.hrZone[1]-1):'Z'+hrZoneIx(T.hrZone[1]-1)+'↓'}`:''; if(s.mpFinish){ const L=(s.segs||[]).find(g=>!g.hard&&!isCool(g)&&g.to>2)||mainSeg(s), M=(s.segs||[]).find(g=>g.hard); return `${rangeText(L.pace)}${z} → 후반 ${s.mpFinish}km ${M?fmtPace((M.pace[0]+M.pace[1])/2):''} 목표 속도`; }   /* 존 표시는 앞부분(LSD)에만 — 후반 목표 속도 구간은 Z2가 아니다 */
   return (s.reps?`${s.reps}회 @ ${fmtPace(s.repTarget+(ADJ[s.type]||0))}`:rangeText(mainSeg(s).pace))+z; };
 
@@ -9101,27 +9111,28 @@ function renderResult(host,r,s,opt){
   const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i></div>`).join('');
   /* 판정 — 색: 지킴 초록 · 애매 호박 · 벗어남 빨강 */
   const vc=vd?(vd[1]==='ok'?'#1E9B5C':vd[1]==='bad'?'#D9412B':'#C98A00'):'#7A55B8';
-  const rows=(pr.rows||[]).map(x=>`<li class="${x[2]||''}"><i>${x[2]==='ok'?'✓':x[2]==='bad'?'✗':'·'}</i><span>${x[0]}</span><b>${x[1]}</b></li>`).join('');
+  const rows=(pr.rows||[]).map(x=>`<li class="${x[2]||''}${String(x[1]).replace(/<[^>]+>/g,'').length>18?' long':''}"><i>${x[2]==='ok'?'✓':x[2]==='bad'?'✗':'·'}</i><span>${x[0]}</span><b>${x[1]}</b></li>`).join('');
   let P={good:[],bad:[]}; if(!(opt&&opt.noPoints)){ try{ P=debriefPoints(r,s||{dist:0}); }catch(e){} }
   const prow=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
   /* 잘한 점은 위 약속↔결과 줄과 겹치므로 주의할 점만 */
-  const pts=P.bad.length?`<ul class="db-pts rv-pts">${P.bad.map(x=>prow(x,'bad')).join('')}</ul>`:(rows?'':(P.good.length?`<ul class="db-pts rv-pts">${P.good.map(x=>prow(x,'ok')).join('')}</ul>`:''));
+  const pts=rows?'':((P.bad.length||P.good.length)?`<ul class="db-pts rv-pts">${P.bad.map(x=>prow(x,'bad')).join('')}${P.good.map(x=>prow(x,'ok')).join('')}</ul>`:'');
   const sc=runScore(r,s);
-  const hero=`${vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':'약속 ↔ 결과'}</b>${sc?`<div class="rv-score"><b class="num">${sc.score}</b><small>점</small><span>${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</span></div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:''}
-    <div class="rbig"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
-    <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>${pts}`;
+  const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
+  /* 순서: 숫자(사실) → 판정(해석) */
+  const hero=`<div class="rnum"><div class="r1"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
+      <div class="r2"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?` · 최고 ${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
   const chart=rvPaceHR(r), mv=moveStripHTML(moveSplit(r.track));
   const hasMap=r.track&&r.track.length>3;
   const bullets=rvBullets(reps,tgt);
   const segSec=(bullets||segs||splits)?SEC('goal',reps.length>=2?'회차 · 목표 대비':'구간',reps.length>=2&&r.spread!=null?`회차 차이 ${r.spread}초`:'',
-      bullets+(segs||splits?`<details class="rv-tbl"${bullets?'':' open'}><summary>표로 보기</summary><div class="rcard rtabs"><div class="rtb">${segs?'<button type="button" class="on" data-rt="seg">구간</button>':''}${splits?`<button type="button"${segs?'':' class="on"'} data-rt="km">1km</button>`:''}</div>${segs?`<div data-rtp="seg">${sgf}<div class="sgh"><span>구간</span><span>km</span><span>시간</span><span>페이스</span><span>심박</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div></details>`:'')):'';
+      bullets+(segs||splits?`<details class="rv-tbl"${bullets?'':' open'}><summary>표로 보기</summary><div class="rcard rtabs">${segs&&splits?`<div class="rtb"><button type="button" class="on" data-rt="seg">구간</button><button type="button" data-rt="km">1km</button></div>`:''}${segs?`<div data-rtp="seg">${sgf}<div class="sgh"><span>구간</span><span>km</span><span>시간</span><span>페이스</span><span>심박</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div></details>`:'')):'';
   host.innerHTML=`
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(r.title||T.nm||'')}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
+    ${hasMap?`<div class="rmapbox"><div class="rmap"></div><div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div>
+      <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div></div>`:'<div class="rmap" hidden></div>'}
     ${SEC(vc,'오늘 결과','',hero)}
-    ${hasMap?SEC('train','경로','',`<div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div><div class="rmap"></div>
-      <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div>`):'<div class="rmap" hidden></div>'}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
     ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 존</summary>':''}
     ${segSec}
@@ -9376,15 +9387,15 @@ function renderActResult(host,r){
   const note = r.act==='walk'&&spm ? (spm>=100?`분당 ${spm}걸음 — 중강도 · 100 경계 (Tudor-Locke 2018, B).`:`분당 ${spm} — 저강도 · 100↑ 중강도 (Tudor-Locke 2018, B) · 멈춤 포함`)
              : r.act==='hike'&&r.sec>600 ? `시간당 고도 · 늘면 체력↑` : '';
   host.innerHTML=`<div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} · <span class="tchip2" style="background:${a.col}">${a.nm}</span></div>
-    <h2 class="rt">${a.nm} 기록</h2><div class="dverd mid">${r.act==='walk'?'걷기':r.act==='hike'?'등산':'자전거'}는 기록만 · 거리 제외</div>
-    <div class="actbig"><b class="num">${big[0]}</b><i>${big[1]}</i></div>
-    ${alts.length>3&&r.act!=='walk'?`<div class="rcard"><div class="rh"><b>높이</b><span>▲${r.asc||0}m ▼${r.desc||0}m</span></div>${spark(alts,300,70,false,'#3F6E3A').replace('class="spk"','class="spk" style="width:100%;height:80px" preserveAspectRatio="none"')}</div>`:''}
-    <div class="rmap"></div>
+    <h2 class="rt">${a.nm} 기록</h2>
+    ${SEC(a.col,'기록','달리기 거리에는 안 들어감',`<div class="actbig" style="margin:0"><b class="num">${big[0]}</b><i>${big[1]}</i></div>
     <div class="rsm">${tiles.map(t=>`<div><b class="num">${t[0]}</b><i>${t[1]}</i></div>`).join('')}</div>
-    ${note?`<p class="meta" style="line-height:1.7;margin:4px 2px 12px">${note}</p>`:''}
-    <button class="btn ghost" data-rs="share">사진 공유</button>`;
+    ${note?`<p class="meta" style="line-height:1.7;margin:8px 4px 2px">${note}</p>`:''}`)}
+    ${r.track&&r.track.length>3?SEC('train','경로','',`<div class="rmap"></div>`):'<div class="rmap" hidden></div>'}
+    ${alts.length>3&&r.act!=='walk'?SEC('ana','높이',`▲${r.asc||0}m ▼${r.desc||0}m`,`<div class="rcard">${spark(alts,300,70,false,'#3F6E3A').replace('class="spk"','class="spk" style="width:100%;height:80px" preserveAspectRatio="none"')}</div>`):''}
+    <button class="btn ghost" data-rs="share" style="margin-top:14px">사진 공유</button>`;
   /* 달리기와 같은 지도(카카오 지도 + 경로). 지도를 못 불러오면 경로 그림만 */
-  const m=host.querySelector('.rmap'); if(r.track&&r.track.length>3){ paintMap(m,r.track,null,({hike:'#3F6E3A',bike:'#D9761E',walk:'#2F7FD0'})[r.act]||'#3F6E3A'); } else m.innerHTML='<div class="nomap">경로 기록 없음</div>';
+  const m=host.querySelector('.rmap'); if(r.track&&r.track.length>3){ paintMap(m,r.track,null,({hike:'#3F6E3A',bike:'#D9761E',walk:'#2F7FD0'})[r.act]||'#3F6E3A'); }
   host.querySelector('[data-rs="share"]').onclick=()=>openShare(r,null);
 }
 
@@ -10643,18 +10654,27 @@ function renderGuide(){
 
   /* ── 훈련법 카드 — 큰 제목 · 그림 · 핵심 포인트 · 한눈에 기억하기 · 계산 기준(접기) ── */
   const RN=(c,x,y,sc,flip)=>`<g transform="translate(${x} ${y}) scale(${flip?-sc:sc} ${sc})"><circle cx="14.5" cy="3.6" r="2.4" fill="#F2C9A5"/><path d="M9.6 7.4l4.2-.9c.8-.2 1.6.2 2 .9l1.6 2.8 2.7.9-.6 1.8-3.4-1.1-1-1.6-1.2 3.7 2.6 2.4-.8 5.6h-2.1l.6-4.6-3-2.5-1.5 3.6-4.4 1.6-.8-1.8 3.6-1.4 2.6-6.4-1.6.4-1.6 2.8-1.8-.9z" fill="${c}"/></g>`;
+  /* 자세 셋: JG 조깅(상체 세움·보폭 작게) · WK 걷기(한 발 땅에) · ST 서서 쉬기(무릎 짚음). RN은 질주 */
+  /* 픽토그램식: 머리 원 + 굵은 선(둥근 끝) — 질주(RN)와 같은 두께감 */
+  const FIG=(c,x,y,sc,flip,body,hx,hy)=>`<g transform="translate(${x} ${y}) scale(${flip?-sc:sc} ${sc})"><circle cx="${hx}" cy="${hy}" r="2.6" fill="#F2C9A5"/><path d="${body}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  /* 조깅: 상체 살짝 앞, 무릎 낮게, 팔 90° */
+  const JG=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M12.8 6.6L11.4 12.8M11.4 12.8L8.6 16.4l1.8 4.2M11.4 12.8l3.2 2.8-.4 4.8M12.5 7.6L9.4 9.6l1.4 2.6M12.5 7.6l3.1 1.8 2-2.2',13.5,3.2);
+  /* 걷기: 상체 곧게, 두 발 땅, 팔 아래로 */
+  const WK=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M12.3 6.6L12 12.8M12 12.8L9.8 16.8l-1.4 3.8M12 12.8l2.4 3.8 1.2 4M12.2 7.6l-2 5.2M12.2 7.6l2.4 5',12.3,3.2);
+  /* 서서 쉬기: 허리 숙이고 손은 무릎 */
+  const ST=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M14.6 8.4L10.6 12.4M10.6 12.4L10 17l-.8 3.8M10.6 12.4l2.2 4.2-.2 4.2M14.2 8.8l-1.4 7.4M14.6 9.4l-4 7.2',16,5.6);
   const tree=(x,y,c)=>`<rect x="${x-1.5}" y="${y}" width="3" height="16" fill="#8A6A4A"/><circle cx="${x}" cy="${y-2}" r="11" fill="${c}"/>`;
   const SCN={
-    easy:c=>`<rect width="320" height="130" fill="#EAF6EE"/>${[[30,52,22],[58,38,18],[200,46,26],[232,30,20],[256,50,22]].map(b=>`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${110-b[1]}" fill="#CFE6D7"/>`).join('')}${tree(22,88,'#7CC795')}${tree(290,84,'#69B985')}${tree(276,94,'#8BD1A2')}<rect y="108" width="320" height="22" fill="#BFE3C9"/>${RN(c,130,30,3.4)}`,
-    long:c=>`<rect width="320" height="130" fill="#E8F0FB"/><path d="M0 92L60 40l40 30 50-46 60 52 40-24 70 40v38H0z" fill="#B9CBE8"/><path d="M0 100h320v30H0z" fill="#9CC3E6"/><path d="M90 130c30-12 60-14 110-20s80-6 120-8v28z" fill="#E7D9BE"/>${tree(30,84,'#7CB58D')}${RN(c,150,22,3.4)}`,
-    recovery:c=>`<rect width="320" height="130" fill="#EAF2FA"/><circle cx="250" cy="96" r="38" fill="#FFE2A8"/><rect y="104" width="320" height="26" fill="#CFE0F0"/>${RN(c,120,34,3.1)}<text x="200" y="40" font-size="16" font-weight="800" fill="${c}" opacity=".55">z z</text>`,
-    interval:c=>`<rect width="320" height="130" fill="#FFF3E6"/>${[0,1,2,3].map(i=>RN(i%2?'#3D63C8':c,14+i*76,22,2.6))+[0,1,2].map(i=>`<path d="M${74+i*76} 52h14m-5-5 5 5-5 5" stroke="#B4561A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}${['빠르게','천천히','빠르게','천천히'].map((t,i)=>`<text x="${44+i*76}" y="100" text-anchor="middle" font-size="11.5" font-weight="700" fill="${i%2?'#3D63C8':c}">${t}</text>`).join('')}<path d="M40 112q120 18 240 0" stroke="#E9B98E" stroke-dasharray="4 4" fill="none" stroke-width="2"/><text x="160" y="126" text-anchor="middle" font-size="11" font-weight="800" fill="#B4561A">반복</text>`,
+    easy:c=>`<rect width="320" height="130" fill="#EAF6EE"/>${[[30,52,22],[58,38,18],[200,46,26],[232,30,20],[256,50,22]].map(b=>`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${110-b[1]}" fill="#CFE6D7"/>`).join('')}${tree(22,88,'#7CC795')}${tree(290,84,'#69B985')}${tree(276,94,'#8BD1A2')}<rect y="108" width="320" height="22" fill="#BFE3C9"/>${JG(c,118,26,3.6)}`,
+    long:c=>`<rect width="320" height="130" fill="#E8F0FB"/><path d="M0 92L60 40l40 30 50-46 60 52 40-24 70 40v38H0z" fill="#B9CBE8"/><path d="M0 100h320v30H0z" fill="#9CC3E6"/><path d="M90 130c30-12 60-14 110-20s80-6 120-8v28z" fill="#E7D9BE"/>${tree(30,84,'#7CB58D')}${JG(c,140,22,3.4)}`,
+    recovery:c=>`<rect width="320" height="130" fill="#EAF2FA"/><circle cx="250" cy="96" r="38" fill="#FFE2A8"/><rect y="104" width="320" height="26" fill="#CFE0F0"/>${WK(c,110,30,3.3)}<text x="200" y="40" font-size="16" font-weight="800" fill="${c}" opacity=".55">z z</text>`,
+    interval:c=>`<rect width="320" height="130" fill="#FFF3E6"/>${[0,1,2,3].map(i=>i%2?JG('#3D63C8',16+i*76,22,2.6):RN(c,14+i*76,22,2.6))+[0,1,2].map(i=>`<path d="M${74+i*76} 52h14m-5-5 5 5-5 5" stroke="#B4561A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}${['빠르게','천천히','빠르게','천천히'].map((t,i)=>`<text x="${44+i*76}" y="100" text-anchor="middle" font-size="11.5" font-weight="700" fill="${i%2?'#3D63C8':c}">${t}</text>`).join('')}<path d="M40 112q120 18 240 0" stroke="#E9B98E" stroke-dasharray="4 4" fill="none" stroke-width="2"/><text x="160" y="126" text-anchor="middle" font-size="11" font-weight="800" fill="#B4561A">반복</text>`,
     threshold:c=>`<rect width="320" height="130" fill="#F3EEFB"/>${[0,1,2,3,4].map(i=>`<rect x="${20+i*56}" y="88" width="54" height="16" fill="${c}" opacity="${.25+i*.17}" rx="${i===0||i===4?4:0}"/>`).join('')}<path d="M224 80l-8-10h16z" fill="${c}"/>${RN(c,190,4,2.7)}${['편안','보통','힘듦','매우 힘듦'].map((t,i)=>`<text x="${[30,130,224,290][i]}" y="120" text-anchor="middle" font-size="10.5" font-weight="700" fill="#6B5A80">${t}</text>`).join('')}`,
-    rep:c=>`<rect width="320" height="130" fill="#FDEEE6"/>${[0,1,2,3,4].map(i=>`<rect x="${30+i*58}" y="${30}" width="16" height="74" rx="3" fill="${c}"/><rect x="${48+i*58}" y="94" width="36" height="10" rx="3" fill="${c}" opacity=".25"/>`).join('')}<text x="160" y="122" text-anchor="middle" font-size="11" font-weight="700" fill="#9A4A1F">짧고 아주 빠르게 · 완전 휴식</text>`,
+    rep:c=>`<rect width="320" height="130" fill="#FDEEE6"/><rect y="96" width="320" height="34" fill="#F6D8C6"/>${[0,1,2].map(i=>`${RN(c,8+i*100,30,2.6)}<path d="M${54+i*100} 60h12l-4-4m4 4-4 4" stroke="#B4561A" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>${ST('#8A6A4A',66+i*100,32,2.5)}`).join('')}${['질주','쉬기','질주','쉬기','질주','쉬기'].map((t,i)=>`<text x="${(i%2?94:34)+Math.floor(i/2)*100}" y="116" text-anchor="middle" font-size="11" font-weight="700" fill="${i%2?'#8A6A4A':c}">${t}</text>`).join('')}`,
     stride:c=>`<rect width="320" height="130" fill="#E8F3FA"/><rect y="84" width="320" height="30" fill="#E07B5C" opacity=".85"/>${[92,104].map(y=>`<path d="M0 ${y}h320" stroke="#fff" stroke-width="1.5" opacity=".7"/>`).join('')}${RN(c,40,8,2.9)}${[0,1,2,3].map(i=>`<path d="M${130+i*44} 60h26" stroke="${c}" stroke-width="5" stroke-linecap="round"/>`).join('')}<text x="215" y="44" text-anchor="middle" font-size="11" font-weight="700" fill="${c}">20초 × 4~6</text>`,
     tt:c=>`<rect width="320" height="130" fill="#FCEBEB"/><circle cx="96" cy="70" r="40" fill="#fff" stroke="${c}" stroke-width="6"/><path d="M96 70V44M96 70l16 10M88 22h16M96 22v8" stroke="${c}" stroke-width="5" stroke-linecap="round"/><path d="M200 108V26" stroke="#2A1638" stroke-width="4" stroke-linecap="round"/><path d="M202 28h70l-14 18 14 18h-70z" fill="${c}"/><text x="236" y="52" text-anchor="middle" font-size="14" font-weight="900" fill="#fff">2km</text>`,
     goalpace:c=>`<rect width="320" height="130" fill="#F1ECFA"/>${[0,1,2,3].map(i=>`<rect x="${30+i*70}" y="48" width="54" height="40" rx="4" fill="${c}" opacity=".85"/>`).join('')}<path d="M20 44h290" stroke="${c}" stroke-dasharray="5 5" stroke-width="2"/><text x="160" y="112" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5B3F86">전 구간 같은 목표 속도</text>`,
-    buildup:c=>`<rect width="320" height="130" fill="#E6F5F2"/>${[0,1,2,3,4,5].map(i=>`<rect x="${110+i*34}" y="${104-(i+1)*14}" width="32" height="${(i+1)*14}" fill="${c}" opacity="${.3+i*.12}"/>`).join('')}<path d="M110 92L310 14" stroke="${c}" stroke-width="3.5"/><path d="M300 12l12 1-6 10" fill="none" stroke="${c}" stroke-width="3.5" stroke-linejoin="round"/>${RN(c,30,40,2.6)}<text x="44" y="122" font-size="10.5" font-weight="700" fill="#2C6E62">천천히 시작</text><text x="300" y="122" text-anchor="end" font-size="10.5" font-weight="700" fill="#2C6E62">점점 빠르게</text>`
+    buildup:c=>`<rect width="320" height="130" fill="#E6F5F2"/>${[0,1,2,3,4,5].map(i=>`<rect x="${110+i*34}" y="${104-(i+1)*14}" width="32" height="${(i+1)*14}" fill="${c}" opacity="${.3+i*.12}"/>`).join('')}<path d="M110 92L310 14" stroke="${c}" stroke-width="3.5"/><path d="M300 12l12 1-6 10" fill="none" stroke="${c}" stroke-width="3.5" stroke-linejoin="round"/>${JG(c,30,42,2.6)}${RN(c,250,14,2.3)}<text x="44" y="122" font-size="10.5" font-weight="700" fill="#2C6E62">천천히 시작</text><text x="300" y="122" text-anchor="end" font-size="10.5" font-weight="700" fill="#2C6E62">점점 빠르게</text>`
   };
   const TIC={easy:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="none"/>',long:'<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
     recovery:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',interval:'<path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>',
@@ -10863,7 +10883,7 @@ function renderGuide(){
     cad:{man:!!(O.cad||GW_MAN.cad), mine:cu?`평소 ${cu}`:'평소 —', auto:autoNote(ca?`최근 10번 중앙값 ${ca}`:'기록 3번↑ → 자동'), form:fld('cad','평소 케이던스',O.cad||ca||'','spm','175')},
     stride:{man:!!(O.stride||GW_MAN.stride), mine:myStride?`편하게 ${myStride.toFixed(2)}m`:'—', auto:autoNote('보폭 = m/min ÷ 케이던스 · 쉬움'), form:fld('stride','평소 보폭',O.stride||myStride||'','m','1.00')+autoNote('표시용 · 코칭 미사용')},
     hr:{man:!!(O.hrmax||GW_MAN.hr), mine:`최대 ${HRMAX}`, auto:autoNote(`최대 ${SUG.hrmax} · ${hsrc==='measured'?'직접 측정값':hsrc==='observed'?'30초↑ 유지된 최고':'나이로 추정 (±10 오차)'}`), form:fld('hrmax','최대 심박',O.hrmax||HRMAX,'bpm','185')},
-    thr:{man:!!(O.T||GW_MAN.thr), mine:`역치 ${fp(PACE.T)} (템포런은 +8초 ${fp(sessTgt('threshold'))}) · ♥${TYPES.threshold.hrZone[0]}~${TYPES.threshold.hrZone[1]}`,
+    thr:{man:!!(O.T||GW_MAN.thr), mine:`역치 ${fp(PACE.T)} · 템포 ${fp(sessTgt('threshold'))} · ♥${TYPES.threshold.hrZone[0]}~${TYPES.threshold.hrZone[1]}`,
       auto:autoNote(`역치 = 1시간 한계 속도<br>${fp(SUG.T)} · 최대 심박 88~92% (Daniels, B)`), form:fld('T','역치(템포) 페이스',mmss(PACE.T),'/km')},
     zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`존2 ${ZONES[1][0]}~${ZONES[1][1]}${(()=>{ const c=easyCapOv(); return c&&c!==ZONES[1][1]?` · 이지 상한 ${c}${c>HRMAX*0.82?' ⚠':''}`:''; })()}`,
       auto:autoNote(`존2 상한 = ${ZONES.kind==='hrr'?`안정 ${ZONES.rhr} + (최대 ${HRMAX} − 안정) × 0.70`:`최대 심박 ${HRMAX} × 0.80`} = ${SUG.easyCap}${(()=>{ const c=easyCapOv(), a=aeroGoal(); return c&&c>HRMAX*0.82?`<br><b>⚠ 쉬운 날 상한 ${c}</b> (${!ovGet().easyCap&&a?'목표 설정값':'직접 입력값'}) — 최대 ${Math.round(c/HRMAX*100)}%(88%↑ = 역치) · 권장 ~80%(${SUG.easyCap}) (Daniels E 65~79%, B)`:''; })()}`), form:fld('easyCap','존2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
@@ -11237,7 +11257,7 @@ function planListHTML(){
         const st=did?`<em class="pd-st ok">✓${Math.abs(freeKm-km)>=0.5?` ${fmtKm1(freeKm)}km`:''}</em>`:miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" data-pgo="${i}"><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
-            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:#F9DEDA;color:#9A2A1F">⚠ 최장+10% 넘음</small>':''}</b><i>${summary(sv)}</i></span></button>
+            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:#F9DEDA;color:#9A2A1F">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
           ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:''}</div>`; }).join(''); }).join('');
     const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
     const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
@@ -11378,7 +11398,7 @@ function futureListHTML(){
       if(!L.length)return g&&g.date&&g.date.slice(0,10)===ds?`<div class="pd-row race">${dn}<span class="pd-rest" style="color:#C2410C;font-weight:900">★ 대회 — ${g.m?gdLabel(g.m):''}${g.sec?' '+fmtClock(g.sec):''}</span></div>`:`<div class="pd-row rest">${dn}<span class="pd-rest">쉬는 날</span></div>`;
       return L.map(x=>{ const col=(TYPES[x.type]||{}).col||'#5B2D86';
         return `<div class="pd-row" style="--tc:${col}">${dn}<span class="pd-main" style="cursor:default"><span class="pd-bar"><i style="height:${Math.max(18,(x.dist||0)/max*100)}%"></i></span>
-          <span class="pd-tx"><b>${ESC(String(x.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${summary(x)}</i></span></span></div>`; }).join(''); }).join('');
+          <span class="pd-tx"><b>${ESC(String(x.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${boldNums(summary(x))}</i></span></span></div>`; }).join(''); }).join('');
     return `<section class="pw pw-f fu${pwFold(mon,false)?' fold':''}" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${w0+wi+1}주차</b><span class="pw-role fu">예상</span>${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
       <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i></div></div><span class="pw-km"><b class="num">${km.toFixed(0)}</b>km</span></header><div class="pw-rows">${rows}</div></section>`; }).join('');
 }
@@ -12139,6 +12159,7 @@ function openMyGoal(){
 /* ═════════════════════ 화면 카드 → 이미지 저장 (SNS용) ═════════════════════
    보이는 카드를 그대로 PNG로 만든다. 외부 라이브러리 없이: DOM 복제 → 계산된 스타일 인라인 → SVG foreignObject → 캔버스.
    아래에 가지런 로고 줄을 붙이고, 폰이면 공유창(navigator.share), 아니면 파일 저장. */
+const SNAP_HIDE='.mygoal summary,.gs-more>summary,.rv-tbl>summary,.rtb';   /* 지우면 details가 'Details' 기본 글자를 띄운다 — 숨기기만 */
 const SNAP_SKIP='button,.pw-cv,.pw-sum,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
 function snapInline(src,dst){
   const cs=getComputedStyle(src); let css='';
@@ -12159,8 +12180,10 @@ function snapCuts(root,h,ch){
   root.querySelectorAll('*').forEach(e=>{ const r=e.getBoundingClientRect(); const a=r.top-cr.top, b=r.bottom-cr.top, d=b-a; if(d<=0.5)return;
     const own=[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim()), leaf=!e.children.length||own||/^(IMG|svg|CANVAS|TR)$/i.test(e.tagName);
     if(leaf&&d<420){ mark(bad[0],a,b); mark(bad[1],a,b); mark(bad[2],a,b); }
-    if(d>24&&d<h*0.9){ const cs=getComputedStyle(e); if((cs.backgroundColor&&!/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor))||parseFloat(cs.borderTopWidth)>0){ mark(bad[0],a,b); mark(bad[1],a,b); } }
-    if(d>24&&d<ch*0.45)mark(bad[0],a,b); });
+    if(d>24&&d<h*0.9){ const cs=getComputedStyle(e); if((cs.backgroundColor&&!/rgba\(0, 0, 0, 0\)|transparent/.test(cs.backgroundColor))||parseFloat(cs.borderTopWidth)>0){ mark(bad[0],a,b); mark(bad[1],a,b); if(d<ch*0.6)mark(bad[2],a,b); } }   /* 쪽의 60%보다 작은 상자는 어느 단계에서도 가르지 않는다 */
+    if(d>24&&d<ch*0.45)mark(bad[0],a,b);
+    /* 제목 줄 바로 아래서는 자르지 않는다 — 제목만 앞 쪽에 남는 고아 방지 */
+    if(d<90&&(/^H[1-6]$/i.test(e.tagName)||/(^|\s)(ps-h|rh|sec-hd|lbl|pg-hd|gc-lab|ws-h|gd-hero|tc-hd|mc-top|fu-hd)(\s|$)/.test(e.className||''))){ mark(bad[0],a,b+90); mark(bad[1],a,b+90); mark(bad[2],a,b+60); } });
   const cuts=[0]; let at=0;
   while(h-at>ch){ const hi=Math.floor(at+ch); let y=null;
     for(const [t,from] of [[0,0.7],[1,0.7],[2,0.7],[0,0.4],[1,0.4],[2,0.3]]){ for(let z=hi;z>=at+ch*from;z--){ if(!bad[t][z]){y=z;break;} } if(y!=null)break; }
@@ -12184,6 +12207,7 @@ async function snapCard(el,name,title){
   clone.querySelectorAll('input,textarea').forEach(x=>{ const sp=document.createElement('span'); sp.textContent=x.value; x.replaceWith(sp); });
   /* 원본 순서가 같아야 스타일을 1:1로 복사할 수 있다 — 지운 요소는 원본에서도 건너뛴다 */
   const src=el.cloneNode(true); src.classList.remove('fold'); snapKeep(src); src.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); kFix(src);
+  src.querySelectorAll(SNAP_HIDE).forEach(x=>x.style.display='none'); clone.querySelectorAll(SNAP_HIDE).forEach(x=>x.style.display='none');
   const probe=document.createElement('div'); probe.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; probe.appendChild(src); document.body.appendChild(probe);
   src.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); src.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
   /* 빈 곳 없는 9:16 — 내용 폭을 바꿔 보며(글줄·칸이 다시 흐른다) 실제로 잘라 본 뒤, 쪽들이 가장 꽉 차는 폭을 고른다 */
