@@ -2230,7 +2230,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.54';
+const APPVER='19.55';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10659,9 +10659,9 @@ function renderGuide(){
   /* 픽토그램식: 머리 원 + 굵은 선(둥근 끝) — 질주(RN)와 같은 두께감 */
   const FIG=(c,x,y,sc,flip,body,hx,hy)=>`<g transform="translate(${x} ${y}) scale(${flip?-sc:sc} ${sc})"><circle cx="${hx}" cy="${hy}" r="2.6" fill="#F2C9A5"/><path d="${body}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   /* 조깅: 상체 살짝 앞, 무릎 낮게, 팔 90° */
-  /* 조깅·걷기 = 질주 실루엣을 좁혀(보폭 작게) 조금 세운 것 — 같은 그림체 */
-  const JG=(c,x,y,sc,flip)=>RNX(c,x+2*sc,y,sc,flip,0.8,-6);
-  const WK=JG;
+  /* 천천히 = 걷듯 가볍게 뛰는 픽토그램 (사용자가 고른 모양). 빠르게만 질주 실루엣 */
+  const WK=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M12.3 6.6L12 12.8M12 12.8L9.8 16.8l-1.4 3.8M12 12.8l2.4 3.8 1.2 4M12.2 7.6l-2 5.2M12.2 7.6l2.4 5',12.3,3.2);
+  const JG=WK;
   /* 서서 쉬기: 허리 숙이고 손은 무릎 */
   const ST=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M14.6 8.4L10.6 12.4M10.6 12.4L10 17l-.8 3.8M10.6 12.4l2.2 4.2-.2 4.2M14.2 8.8l-1.4 7.4M14.6 9.4l-4 7.2',16,5.6);
   const tree=(x,y,c)=>`<rect x="${x-1.5}" y="${y}" width="3" height="16" fill="#8A6A4A"/><circle cx="${x}" cy="${y-2}" r="11" fill="${c}"/>`;
