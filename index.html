@@ -2263,7 +2263,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.75';
+const APPVER='19.76';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8424,7 +8424,8 @@ function homeTiles(sess){ try{
     ['body','몸 상태',body[0],body[1],body[2]?'#C2410C':'#3B82C4'],
     ['mile','마일리지',fmtMile(M.total),`올해 ${fmtMile(M.year)}`,'#7A4CC2'],
     ['warm','운동법',(()=>{ try{ return `${['dyn','stat','str','core'].reduce((a,k)=>a+((STR[k]&&STR[k].moves.length)||0),0)}동작`; }catch(e){ return '22동작'; } })(),'동적 · 정적 · 근력 · 코어','#2F8F83'],
-    ['race','대회 찾기',nRace?`${nRace}개`:'›','다가오는 대회','#C2410C']];
+    ['race','대회 찾기','실시간',(()=>{ try{ const R=RACES||JSON.parse(localStorage.getItem('rc_racesCache')||'null'); const u=R&&R.updated?new Date(R.updated):null; return u?`${u.getMonth()+1}.${u.getDate()} ${pad(u.getHours())}:${pad(u.getMinutes())} 기준`:'매일 새벽 갱신'; }catch(e){ return '매일 새벽 갱신'; } })(),'#C2410C']];
+  if(!RACES){ try{ racesLoad().then(()=>{ const t=document.querySelector('.htile[data-tile="race"] i'); if(t&&RACES&&RACES.updated){ const u=new Date(RACES.updated); t.textContent=`${u.getMonth()+1}.${u.getDate()} ${pad(u.getHours())}:${pad(u.getMinutes())} 기준`; } }).catch(()=>{}); }catch(e){} }
   return `<div class="htiles">${tiles.map(x=>`<button type="button" class="htile" data-tile="${x[0]}" style="--tc:${x[4]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_IC[x[0]]}</svg><b>${x[1]}</b><strong class="num">${x[2]}</strong><i>${x[3]}</i></button>`).join('')}</div>`;
 }catch(e){ console.warn('tiles',e); return ''; } }
 /* 운동법 시트 — 몸으로 하는 운동만 한곳에: 준비(동적) · 마무리(정적) · 근력 · 코어. 처음 여는 탭은 오늘 상황대로 */
