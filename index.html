@@ -152,6 +152,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   display:flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:.02em}
 .nav button i{display:block;width:20px;height:20px;border-radius:5px;background:currentColor;
   opacity:.5;mask-size:contain;-webkit-mask-size:contain}
+#adBar{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:19;display:flex;align-items:center;gap:8px;height:36px;padding:0 16px;background:var(--ink);color:#fff;text-decoration:none;font-size:13px;font-weight:700}#adBar .ad-k{font-size:9px;font-weight:800;letter-spacing:.08em;background:rgba(255,255,255,.18);border-radius:4px;padding:2px 5px;flex:none}#adBar b{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}#adBar svg{flex:none;opacity:.8}body.nonav #adBar,body.nohead #adBar{display:none}body.has-dock #adBar{bottom:calc(122px + env(safe-area-inset-bottom))}body.has-ad:not(.nonav) .view.on{padding-bottom:calc(114px + env(safe-area-inset-bottom))}body.has-ad.has-dock:not(.nonav) .view.on{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 .nav button.on{color:var(--accent)} .nav button.on i{opacity:1}
 .navpad{height:0}
 #bye{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;
@@ -2274,7 +2275,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.85';
+const APPVER='19.86';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3007,6 +3008,15 @@ function fsEnc(x){ if(x==null)return {nullValue:null}; if(typeof x==='boolean')r
   if(x instanceof Date)return {timestampValue:x.toISOString()}; return {stringValue:String(x)}; }
 async function fsGet(path){ const r=await fetch(`${FSR}/${path}?key=${FSKEY}&pageSize=50`,{cache:'no-store'}); if(!r.ok)throw new Error('fs '+r.status); return r.json(); }
 var NOTICE=null;
+/* 하단 배너 — 관리자가 정한 제목·링크·게재 기간. 제목만 보이고 누르면 링크로 */
+let BANNER=null;
+async function bannerLoad(){ try{ const d=await fsGet('catalog/banner'); const b=fsDec({mapValue:{fields:d.fields||{}}})||{}; const t=todayStr();
+    const on=b.active&&b.title&&/^https?:\/\//.test(b.url||'')&&(!b.from||b.from<=t)&&(!b.to||b.to>=t);
+    BANNER=on?b:null; }catch(e){ BANNER=null; } paintBanner(); }
+function paintBanner(){ let a=$('adBar'); if(!BANNER){ if(a)a.remove(); document.body.classList.remove('has-ad'); return; }
+  if(!a){ a=document.createElement('a'); a.id='adBar'; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); }
+  a.href=BANNER.url; a.innerHTML=`<span class="ad-k">AD</span><b>${ESC(BANNER.title)}</b><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>`;
+  document.body.classList.add('has-ad'); }
 async function noticeLoad(){ try{ const j=await fsGet('notices'); const t=todayStr(), seen=JSON.parse(localStorage.getItem('rc_noticeSeen')||'[]');
     const L=(j.documents||[]).map(d=>Object.assign({id:d.name.split('/').pop()},fsDec({mapValue:{fields:d.fields}}))).filter(n=>n.active&&(!n.until||n.until>=t)&&!seen.includes(n.id)).sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
     const was=NOTICE&&NOTICE.id; NOTICE=L[0]||null; if((NOTICE&&NOTICE.id)!==was&&document.querySelector('#home.on'))renderHome(); }catch(e){} }
@@ -10764,7 +10774,7 @@ function goalBadge(){
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
   else if(!DEV.store.get('consent',null)){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 기본 정보·동의 한 번 */
   splashRun();
-  setTimeout(()=>{ try{ noticeLoad(); }catch(e){} try{ usagePing(); }catch(e){} const u=$('usageOpt'); if(u)u.checked=usageOn(); },1500);   /* 공지·사용 현황 — 화면이 뜬 뒤 조용히 */
+  setTimeout(()=>{ try{ noticeLoad(); }catch(e){} try{ bannerLoad(); }catch(e){} try{ usagePing(); }catch(e){} const u=$('usageOpt'); if(u)u.checked=usageOn(); },1500);   /* 공지·사용 현황 — 화면이 뜬 뒤 조용히 */
 })();
 /* 시작 화면 — 브랜드 한 장: 가지런 · 실시간 코칭 프로그램 · 가지런하다 */
 function splashRun(){ const sp=$('splash'); if(!sp)return;
