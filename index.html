@@ -1016,8 +1016,8 @@ details.noti .sigc{margin:6px 0}
 .brt{position:relative;height:16px;background:var(--panel-2);border-radius:8px}
 .brt i{position:absolute;top:3px;bottom:3px;border-radius:5px}.brt em{position:absolute;top:2px;width:12px;height:12px;margin-left:-6px;border-radius:50%;border:2px solid #fff}
 .brt u{position:absolute;top:-2px;bottom:-2px;width:1.5px;background:var(--ink-3)}
-.tsv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.tsv div{border-radius:14px;padding:11px;background:var(--panel-2)}
-.tsv .am{background:linear-gradient(140deg,#FFE7B5,#FFC874)}.tsv .pm{background:linear-gradient(140deg,#2C3E78,#1A2550);color:#fff}.tsv .day{background:#E5EEF9}
+.tsv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.tsv>div{display:block;border-radius:14px;padding:11px;background:var(--panel-2)}
+.tsv .tsv-am{background:linear-gradient(140deg,#FFE7B5,#FFC874)}.tsv .tsv-pm{background:linear-gradient(140deg,#2C3E78,#1A2550);color:#fff}.tsv .tsv-day{background:#E5EEF9}
 .tsv span{font-size:11px;font-weight:700;opacity:.85}.tsv b{display:block;font-size:24px;font-weight:900;margin-top:3px}.tsv i{font-style:normal;font-size:10.5px;opacity:.8}
 .bcomf{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .bcomf .cs{display:flex;gap:4px}.bcomf .cs button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel);font:inherit;font-weight:700}
@@ -1030,6 +1030,7 @@ details.noti .sigc{margin:6px 0}
 .ltabs button{flex:1;text-align:center;font:inherit;font-size:12px;font-weight:800;padding:8px 0;border-radius:10px;border:none;background:var(--panel-2);color:var(--ink-3)}
 .ltabs button.on{background:var(--ink);color:#fff}
 .per,.flt{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.flt.ym{margin-top:6px}.flt.ym.mo{margin-top:4px}.flt.ym.mo button{font-size:11px;padding:4px 9px;background:var(--panel-2);border-color:transparent}.flt.ym.mo button.on{background:var(--ink);color:#fff}
 .per button,.flt button{font:inherit;font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:20px;border:1px solid var(--line);background:var(--panel);color:var(--ink-2)}
 .per button.on{border-color:var(--ink);color:var(--ink)}.flt button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .light{display:flex;gap:11px;align-items:center;background:linear-gradient(135deg,#E3F5EC,#CBEBDD);border-radius:18px;padding:12px;margin-top:10px}
@@ -2265,7 +2266,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.80';
+const APPVER='19.81';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9845,7 +9846,8 @@ function timeStats(){
 function timeStatsHTML(){
   const t=timeStats(); if(!t||t.groups.length<2) return `<div class="meta">아침·저녁 기록 → 비교</div>`;
   const [a,b]=t.groups, ok=a.n>=8&&b.n>=8, diff=Math.round(b.pace-a.pace);
-  return `<div class="tsv">${t.groups.slice(0,2).map(x=>`<div class="${x.k}"><span>${HGN[x.k]} · ${x.n}번</span><b class="num">${fmtPace(x.pace)}</b><i>심박 ${Math.round(x.hr)} · 주로 ${x.dow}요일</i></div>`).join('')}</div>
+  if(a.n<3||b.n<3) return needBar(Math.min(a.n,b.n),3,'시간대별 기록이');   /* 1~2번으로는 비교가 안 된다 — 그래프 대신 필요한 횟수만 */
+  return `<div class="tsv">${t.groups.slice(0,2).map(x=>`<div class="tsv-${x.k}"><span>${HGN[x.k]} · ${x.n}번</span><b class="num">${fmtPace(x.pace)}</b><i>심박 ${Math.round(x.hr)} · 주로 ${x.dow}요일</i></div>`).join('')}</div>
     <div class="meta" style="margin-top:7px;line-height:1.6">같은 심박 ${t.ref}±5에서 1km 속도. ${ok?`<b>${HGN[a.k]}이 ${diff}초 빠름</b> — ${a.n+b.n}번 기준 ${GRB('D')}`:`<b>8번 이상</b> 필요 (지금 ${a.n}·${b.n}번) · 저녁 유리(근거 약) ${GRB('B')}`}</div>
     ${ok&&GOAL&&GOAL.date?`<button class="btn sm ghost" data-ts="apply" style="margin-top:8px">훈련에 반영</button>`:''}`;
 }
@@ -9861,7 +9863,7 @@ function openTimeDec(){
 /* ══════════ 러닝 일지 — 한눈에 · 몸 상태 · 실력 · 제안 · 목록 ══════════
    모든 비교는 '평소 범위'로. 그래프마다 몇 번의 기록으로 본 것인지 붙인다.
    기록이 모자라면 결론 대신 "N번 더 뛰면 보여요". */
-let LOGTAB='list', LOGPER='month', LOGFLT='all', CALOFF=0;
+let LOGTAB='list', LOGPER='month', LOGFLT='all', CALOFF=0, LOGY='', LOGM='';   /* 목록: 연도·월 선택 ('' = 전체) */
 var MILE_OPEN=false;   /* 마일리지 카드 펼침 — 기본은 한 줄 */
 const LTABS=[['list','목록'],['sum','한눈에'],['body','몸 상태'],['skill','실력']];   /* '제안' 탭(호흡 실험·시간대·케이던스)은 실력 탭 아래로 */
 const TCOL={interval:'#E35A32',rep:'#E35A32',threshold:'#F0A030',goalpace:'#7355D6',mpace:'#7355D6',long:'#2F7FD0',easy:'#2E9E6A',recovery:'#9C8AD8',tt:'#D32F45',free:'#5F7A6E',stride:'#3E8FBF',hill:'#B05C1C'};
@@ -9885,6 +9887,8 @@ function wireLog(host){
   host.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{ LOGPER=b.dataset.per; renderLog(); });
   host.querySelectorAll('[data-calm]').forEach(b=>b.onclick=()=>{ const v=b.dataset.calm; CALOFF=v==='0'?0:CALOFF+(+v); renderLog(); });
   host.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{ LOGFLT=b.dataset.flt; renderLog(); });
+  host.querySelectorAll('[data-ly]').forEach(b=>b.onclick=()=>{ LOGY=b.dataset.ly; LOGM=''; renderLog(); });
+  host.querySelectorAll('[data-lm]').forEach(b=>b.onclick=()=>{ LOGM=b.dataset.lm; renderLog(); });
   host.querySelectorAll('[data-rid]').forEach(b=>b.onclick=()=>openRunView(b.dataset.rid));
   host.querySelectorAll('[data-calp]').forEach(b=>b.onclick=()=>openConfirm(+b.dataset.calp));
   host.querySelectorAll('[data-ts]').forEach(b=>b.onclick=()=>openTimeDec());
@@ -9992,8 +9996,6 @@ function mileCard(opt){ opt=opt||{};
     <button type="button" class="mile-hd" data-mileopen="1"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>내가 달린 총 거리</i><em class="mile-chev" aria-label="${open?'접기':'펼치기'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${open?'M6 15l6-6 6 6':'M6 9l6 6 6-6'}"/></svg></em></button>
     <div class="mile-more"${open?'':' hidden'}>
     <div class="mile-row"><span><i>달리기</i><b class="num">${fmtMile(M.runKm)}</b><em>${M.n}회 · ${fmtHM(M.runSec)}</em></span><span><i>대회</i><b class="num">${fmtMile(M.race.km)}</b><em>${M.race.n}회</em></span><span><i>올해</i><b class="num">${fmtMile(M.year)}</b><em>이달 ${fmtMile(M.month)} · 이번 주 ${fmtMile(M.week)}</em></span></div>
-    <div class="mile-next"><div class="mile-bar"><i style="width:${pct.toFixed(1)}%"></i></div><span><b>${fmtMile(M.next)} km</b>까지 <b>${fmtMile(M.next-M.total)} km</b></span></div>
-    <div class="mile-badges">${MILE_STEPS.slice(0,7).map(v=>`<span class="${v<=M.total?'on':''}">${v.toLocaleString('en-US')}</span>`).join('')}</div>
     ${years.length||M.unknown?`<div class="mile-years">${years.map(yy=>`<div><b>${yy}</b><span class="num">${fmtMile(M.byYear[yy].km)} km</span><i>${M.byYear[yy].n?`${M.byYear[yy].n}회`:''}${M.byYear[yy].race?` · 대회 ${M.byYear[yy].race}`:''}${M.byYear[yy].prev?` · 이전 ${fmtMile(M.byYear[yy].prev)}`:''}</i></div>`).join('')}${M.unknown?`<div><b>모름</b><span class="num">${fmtMile(M.unknown)} km</span><i>연도 모름 · 이전 마일리지</i></div>`:''}</div>`:''}
     <div class="mile-prev"><div class="mile-ph"><b>이전 마일리지</b><i>다른 앱·수첩에 있던 거리 — 이 앱에 없는 것만</i></div>${M.hist.length?M.hist.map((x,i)=>`<button type="button" class="mile-pr" data-mhist="${i}"><b>${x.y?x.y+'년':'연도 모름'}</b><span class="num">${fmtMile(x.km)} km</span><i>✎</i></button>`).join(''):'<div class="small">아직 없음</div>'}
       <div class="mile-act"><button type="button" class="btn ghost" data-mhist="new">+ 연도별 넣기</button><button type="button" class="btn ghost" data-mhist="unk">+ 연도 모름으로 넣기</button></div></div>
@@ -10232,6 +10234,16 @@ function logList(){
   Object.keys(RESTLOG).forEach(d=>{ const m=RESTLOG[d].m||{}; if(Object.values(m).some(Boolean))items.push({r:{date:d+'T23:00:00',rest:true,m},k:'rest'}); });
   items=items.filter(x=>LOGFLT==='all'||(LOGFLT==='run'&&x.k==='run')||(LOGFLT==='plan'&&x.k==='run'&&x.r.type!=='free')||(LOGFLT==='free'&&x.k==='run'&&x.r.type==='free')||x.k===LOGFLT)
     .sort((a,b)=>Date.parse(b.r.date)-Date.parse(a.r.date));
+  /* 연도·월 — 기록이 있는 연도만, 월은 고른 연도에 기록이 있는 달만 */
+  const ymOf=x=>ldate(x.r.date).slice(0,7);
+  const years=[...new Set(items.map(x=>ymOf(x).slice(0,4)))].sort().reverse();
+  if(LOGY&&!years.includes(LOGY)){ LOGY=''; LOGM=''; }
+  const months=LOGY?[...new Set(items.filter(x=>ymOf(x).slice(0,4)===LOGY).map(x=>+ymOf(x).slice(5,7)))].sort((a,b)=>a-b):[];
+  if(LOGM&&!months.includes(+LOGM))LOGM='';
+  const total=items.length;
+  if(LOGY)items=items.filter(x=>ymOf(x).slice(0,4)===LOGY&&(!LOGM||+ymOf(x).slice(5,7)===+LOGM));
+  const ymBar=years.length?`<div class="flt ym"><button class="${LOGY===''?'on':''}" data-ly="">전체</button>${years.map(y=>`<button class="${LOGY===y?'on':''}" data-ly="${y}">${y}</button>`).join('')}</div>
+    ${LOGY?`<div class="flt ym mo"><button class="${LOGM===''?'on':''}" data-lm="">${LOGY} 전체</button>${months.map(m=>`<button class="${+LOGM===m?'on':''}" data-lm="${m}">${m}월</button>`).join('')}</div>`:''}`:'';
   const rows=items.slice(0,120).map(({r,k})=>{
     const d=new Date(r.date), when=`${d.getMonth()+1}/${d.getDate()} ${dowOf(ldate(r.date).slice(0,10))}`;
     if(k==='rest') return `<div class="li"><div class="map rest">☾</div><div class="m"><b>쉬는 날</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#9C8AD8">휴식</span>${r.m.norun?'<span class="chip g">참음 ✓</span>':''}</div>
@@ -10246,8 +10258,9 @@ function logList(){
     return `<div class="li" data-rid="${r.rid}"><div class="map">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
       <div class="m"><b>${ESC(r.title||T.nm)}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg"><span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
       <div class="s">${r.km.toFixed(1)}km · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}${r.hrAvg?' · ♥'+r.hrAvg:''}</div></div><div class="sp">${sp}</div></div>`; }).join('');
-  return `<div class="flt">${F.map(f=>`<button class="${LOGFLT===f[0]?'on':''}" data-flt="${f[0]}">${f[1]}</button>`).join('')}</div>
+  return `<div class="flt">${F.map(f=>`<button class="${LOGFLT===f[0]?'on':''}" data-flt="${f[0]}">${f[1]}</button>`).join('')}</div>${ymBar}
     <div class="lcard" style="padding:4px 12px">${rows||'<div class="empty">기록 없음</div>'}</div>
+    ${LOGY?`<div class="small">${LOGY}년${LOGM?' '+LOGM+'월':''} ${items.length}건 / 전체 ${total}건</div>`:''}
     <div class="small">눌러 지도·구간·공유</div>`;
 }
 
