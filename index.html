@@ -954,7 +954,7 @@ details.noti .sigc{margin:6px 0}
 .rb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
 .rb span{display:block;width:70%;max-width:46px;background:#F2B08F;border-radius:7px 7px 0 0}.rb span.bad{background:var(--fast)}
 .rb em{font-style:normal;font-size:10.5px;font-weight:800;font-family:var(--num);margin-bottom:3px}.rb i{font-style:normal;font-size:10.5px;color:var(--ink-3);margin-top:4px}
-.sgh,.sgr{display:grid;grid-template-columns:1.5fr .8fr .95fr .85fr .6fr .85fr;gap:5px;font-size:11.5px;padding:6px 0;align-items:baseline}
+.sgh,.sgr{display:grid;grid-template-columns:1.2fr .7fr .9fr .85fr .6fr .6fr 1fr;gap:4px;font-size:11.5px;padding:6px 0;align-items:baseline}.sgr>span:last-child{white-space:nowrap}
 .sgr span:not(:first-child),.sgh span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
 .sgr.sgt{font-weight:800;border-top:1.5px solid var(--ink-3);color:var(--ink)}
 .sgf{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px}.sgf button{border:1px solid var(--line);background:none;border-radius:999px;padding:5px 11px;font:700 11.5px inherit;color:var(--ink-2)}.sgf button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -969,7 +969,7 @@ details.noti .sigc{margin:6px 0}
 .sgr[hidden]{display:none}
 .sgh{font-size:10.5px;color:var(--ink-3);border-bottom:1px solid var(--line)}.sgr{border-bottom:1px solid var(--line)}.sgr:last-child{border-bottom:none}
 .sgr.hard span:first-child{color:var(--fast);font-weight:700}.sgr .ok{color:#0A7A66}.sgr .bad{color:#B4421F}
-.spr{display:grid;grid-template-columns:22px 1fr 54px 44px;gap:8px;align-items:center;font-size:12px;padding:3px 0}
+.spr{display:grid;grid-template-columns:22px 1fr 54px 44px 50px;gap:6px;align-items:center;font-size:12px;padding:3px 0}.spr i small{font-size:9px;margin-left:1px}
 .spr u{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}.spr s{display:block;height:100%;background:var(--accent);border-radius:4px}
 .spr b{font-family:var(--num)}.spr i{font-style:normal;color:var(--ink-3);font-size:11px}
 .grow1{font-size:12.5px;line-height:1.6;color:var(--ink-2)}.grow1 b{color:var(--ink);display:block;margin-bottom:2px}
@@ -2235,7 +2235,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.63';
+const APPVER='19.64';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9157,15 +9157,17 @@ function renderResult(host,r,s,opt){
   const tgt=repTargetOf(r,s);
   const cu=cadUsual();
   const dt=new Date(r.date);
-  const SG=r.segments||[];
+  const SG=r.segments||[], sp0=()=>(r.splits||[]).filter(x=>x&&isFinite(x.pace));
   const sgKind=g=>g.hard?'main':/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm||'')?'rest':/웜업|준비|도입|쿨다운|마무리|출발/.test(g.nm||'')?'wc':'main';
   let segs=SG.map(g=>{ const d=g.pace&&g.plan?Math.round(g.pace-midPace(g.plan)):null;
-    return `<div class="sgr${g.hard?' hard':''}" data-k="${sgKind(g)}"><span>${ESC(g.nm)}</span><span>${g.km!=null?g.km.toFixed(2):''}</span><span>${g.sec?fmtClock(g.sec):'—'}</span><span>${g.pace?fmtPace(g.pace):'—'}</span><span>${g.hr||'—'}</span><span class="${g.pass===false?'bad':g.pass?'ok':''}">${d==null?'':(d>0?'+':'')+d+'초'}${g.pass===false?' ✗':g.pass?' ✓':''}</span></div>`; }).join('');
-  if(SG.length){ const tk=SG.reduce((a,g)=>a+(g.km||0),0), ts=SG.reduce((a,g)=>a+(g.sec||0),0), hs=SG.filter(g=>g.hr&&g.sec), th=hs.length?Math.round(hs.reduce((a,g)=>a+g.hr*g.sec,0)/hs.reduce((a,g)=>a+g.sec,0)):null;
-    segs+=`<div class="sgr sgt"><span>합계</span><span>${tk.toFixed(2)}</span><span>${fmtClock(ts)}</span><span>${tk>0?fmtPace(ts/tk):'—'}</span><span>${th||'—'}</span><span></span></div>`; }
+    return `<div class="sgr${g.hard?' hard':''}" data-k="${sgKind(g)}"><span>${ESC(g.nm)}</span><span>${g.km!=null?g.km.toFixed(2):''}</span><span>${g.sec?fmtClock(g.sec):'—'}</span><span>${g.pace?fmtPace(g.pace):'—'}</span><span>${g.hr||'—'}</span><span>${g.cad||'—'}</span><span class="${g.pass===false?'bad':g.pass?'ok':''}">${d==null?'':(d>0?'+':'')+d+'초'}${g.pass===false?' ✗':g.pass?' ✓':''}</span></div>`; }).join('');
+  if(SG.length<2&&sp0().length) segs='';
+  if(SG.length>=2){ const tk=SG.reduce((a,g)=>a+(g.km||0),0), ts=SG.reduce((a,g)=>a+(g.sec||0),0), hs=SG.filter(g=>g.hr&&g.sec), th=hs.length?Math.round(hs.reduce((a,g)=>a+g.hr*g.sec,0)/hs.reduce((a,g)=>a+g.sec,0)):null;
+    const cs=SG.filter(g=>g.cad&&g.sec), tc=cs.length?Math.round(cs.reduce((a,g)=>a+g.cad*g.sec,0)/cs.reduce((a,g)=>a+g.sec,0)):null;
+    segs+=`<div class="sgr sgt"><span>합계</span><span>${tk.toFixed(2)}</span><span>${fmtClock(ts)}</span><span>${tk>0?fmtPace(ts/tk):'—'}</span><span>${th||'—'}</span><span>${tc||'—'}</span><span></span></div>`; }
   const sgf=SG.length>=5&&new Set(SG.map(sgKind)).size>1?`<div class="sgf"><button type="button" class="on" data-sgf="all">모두</button>${SG.some(g=>sgKind(g)==='wc')?'<button type="button" data-sgf="wc">웜업·쿨다운</button>':''}<button type="button" data-sgf="main">본 구간</button>${SG.some(g=>sgKind(g)==='rest')?'<button type="button" data-sgf="rest">쉬기</button>':''}</div>`:'';
-  const sp=(r.splits||[]); const spMin=sp.length?Math.min(...sp.map(x=>x.pace)):0, spMax=sp.length?Math.max(...sp.map(x=>x.pace)):1;
-  const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i></div>`).join('');
+  const sp=sp0(); const spMin=sp.length?Math.min(...sp.map(x=>x.pace)):0, spMax=sp.length?Math.max(...sp.map(x=>x.pace)):1;
+  const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i><i>${x.cad?x.cad+'<small>spm</small>':''}</i></div>`).join('');
   /* 판정 — 색: 지킴 초록 · 애매 호박 · 벗어남 빨강 */
   const vc=vd?(vd[1]==='ok'?'#1E9B5C':vd[1]==='bad'?'#D9412B':'#C98A00'):'#7A55B8';
   const rows=(pr.rows||[]).map(x=>`<li class="${x[2]||''}${String(x[1]).replace(/<[^>]+>/g,'').length>18?' long':''}"><i>${x[2]==='ok'?'✓':x[2]==='bad'?'✗':'·'}</i><span>${x[0]}</span><b>${x[1]}</b></li>`).join('');
@@ -9182,7 +9184,7 @@ function renderResult(host,r,s,opt){
   const hasMap=r.track&&r.track.length>3;
   const bullets=rvBullets(reps,tgt);
   const segSec=(bullets||segs||splits)?SEC('goal',reps.length>=2?'회차 · 목표 대비':'구간',reps.length>=2&&r.spread!=null?`회차 차이 ${r.spread}초`:'',
-      bullets+(segs||splits?`<details class="rv-tbl"${bullets?'':' open'}><summary>표로 보기</summary><div class="rcard rtabs">${segs&&splits?`<div class="rtb"><button type="button" class="on" data-rt="seg">구간</button><button type="button" data-rt="km">1km</button></div>`:''}${segs?`<div data-rtp="seg">${sgf}<div class="sgh"><span>구간</span><span>km</span><span>시간</span><span>페이스</span><span>심박</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div></details>`:'')):'';
+      bullets+(segs||splits?`<details class="rv-tbl"${bullets?'':' open'}><summary>표로 보기</summary><div class="rcard rtabs">${segs&&splits?`<div class="rtb"><button type="button" class="on" data-rt="seg">구간</button><button type="button" data-rt="km">1km</button></div>`:''}${segs?`<div data-rtp="seg">${sgf}<div class="sgh"><span>구간</span><span>km</span><span>시간</span><span>페이스</span><span>심박</span><span>spm</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div></details>`:'')):'';
   host.innerHTML=`
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(r.title||T.nm||'')}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
