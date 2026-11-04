@@ -1339,7 +1339,7 @@ details.noti .sigc{margin:6px 0}
   <div class="bar"><button class="sub" id="setBack">← 홈</button><h1 style="text-align:center">설정</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad" style="padding-bottom:80px">
 
-  <!-- 설정 순서: 내 정보 → 안정시 심박 → 신발 → 심박 기기 → 훈련 원리·음악 → 백업 → 고급 -->
+  <!-- 설정 순서: 내 정보 → 안정시 심박 → 등산 기록 → 심박 기기 → 훈련 원리·음악 → 백업 → 고급 -->
   <details class="cset"><summary>속도·심박 구간 근거</summary>
   <div class="card tight" style="margin:0 0 12px">
     <div class="row" style="margin-bottom:10px">
@@ -1377,12 +1377,7 @@ details.noti .sigc{margin:6px 0}
     <div id="rhrList" style="margin-top:11px;font-size:12.5px;color:var(--ink-2)"></div>
   </div></details>
 
-  <details class="cset"><summary>신발 · 등산 기록</summary>
-  <div class="card tight" style="margin:0 0 10px">
-    <div class="meta" style="margin-bottom:9px">수명 600~800km · 신발별 누적</div>
-    <div class="row"><input type="text" id="shoeName" placeholder="신발 이름"><button class="btn sm" style="margin:0;flex:0 0 68px" id="shoeAdd">추가</button></div>
-    <div id="shoeList" style="margin-top:11px"></div>
-  </div>
+  <details class="cset"><summary>등산 기록(시간만)</summary>
   <div class="card tight" style="margin:0 0 12px">
     <div class="meta" style="margin-bottom:9px">등산은 시간만 입력</div>
     <div class="row"><input type="date" id="hikeDate"><input type="number" id="hikeHrs" placeholder="시간" step="0.5" inputmode="decimal"><button class="btn sm" style="margin:0;flex:0 0 68px" id="hikeAdd">추가</button></div>
@@ -2268,7 +2263,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.74';
+const APPVER='19.75';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5774,7 +5769,7 @@ function renderTools(){
       (()=>{ const b=rhrBase(); return b?`<div style="margin-top:7px;color:var(--ink-3)">평소 ${Math.round(b.m)} · 경보선 ${Math.round(b.m+2*b.sd)} (기록 ${b.n}번)</div>`
         :`<div style="margin-top:7px;color:var(--ink-3)">${Math.max(1,9-RHR.length)}번 더 → 범위·경보선</div>`; })()
     : '<span style="color:var(--ink-3)">기록 없음</span>';
-  $('shoeList').innerHTML=SHOES.length?SHOES.map(sh=>{
+  if($('shoeList'))$('shoeList').innerHTML=SHOES.length?SHOES.map(sh=>{
     const pct=Math.min(100,sh.km/700*100), c=sh.km>700?'var(--alarm)':sh.km>550?'var(--z3)':'var(--accent)';
     return `<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:13px">
       <span>${ESC(sh.name)}</span><span class="num" style="color:${c}">${sh.km.toFixed(0)} km</span></div>
@@ -6108,7 +6103,7 @@ $('wipeRuns').onclick=()=>{
   SHOES.forEach(s=>s.km=0); DEV.store.set('shoes',SHOES);
   afterRunsChanged(); alert('전부 삭제됨');
 };
-$('shoeAdd').onclick=()=>{const n=$('shoeName').value.trim();
+if($('shoeAdd'))$('shoeAdd').onclick=()=>{const n=$('shoeName').value.trim();
   if(!n)return; SHOES.push({name:n,km:0}); DEV.store.set('shoes',SHOES);
   $('shoeName').value=''; renderTools();};
 $('hikeAdd').onclick=()=>{const d=$('hikeDate').value,h=+$('hikeHrs').value;
