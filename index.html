@@ -2230,7 +2230,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.53';
+const APPVER='19.54';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10653,14 +10653,15 @@ function renderGuide(){
   ];
 
   /* ── 훈련법 카드 — 큰 제목 · 그림 · 핵심 포인트 · 한눈에 기억하기 · 계산 기준(접기) ── */
-  const RN=(c,x,y,sc,flip)=>`<g transform="translate(${x} ${y}) scale(${flip?-sc:sc} ${sc})"><circle cx="14.5" cy="3.6" r="2.4" fill="#F2C9A5"/><path d="M9.6 7.4l4.2-.9c.8-.2 1.6.2 2 .9l1.6 2.8 2.7.9-.6 1.8-3.4-1.1-1-1.6-1.2 3.7 2.6 2.4-.8 5.6h-2.1l.6-4.6-3-2.5-1.5 3.6-4.4 1.6-.8-1.8 3.6-1.4 2.6-6.4-1.6.4-1.6 2.8-1.8-.9z" fill="${c}"/></g>`;
+  const RNX=(c,x,y,sc,flip,kx,rot)=>`<g transform="translate(${x} ${y}) rotate(${rot||0} ${12*sc} ${12*sc}) scale(${(flip?-sc:sc)*(kx||1)} ${sc})"><circle cx="14.5" cy="3.6" r="2.4" fill="#F2C9A5"/><path d="M9.6 7.4l4.2-.9c.8-.2 1.6.2 2 .9l1.6 2.8 2.7.9-.6 1.8-3.4-1.1-1-1.6-1.2 3.7 2.6 2.4-.8 5.6h-2.1l.6-4.6-3-2.5-1.5 3.6-4.4 1.6-.8-1.8 3.6-1.4 2.6-6.4-1.6.4-1.6 2.8-1.8-.9z" fill="${c}"/></g>`;
+  const RN=(c,x,y,sc,flip)=>RNX(c,x,y,sc,flip,1,0);
   /* 자세 셋: JG 조깅(상체 세움·보폭 작게) · WK 걷기(한 발 땅에) · ST 서서 쉬기(무릎 짚음). RN은 질주 */
   /* 픽토그램식: 머리 원 + 굵은 선(둥근 끝) — 질주(RN)와 같은 두께감 */
   const FIG=(c,x,y,sc,flip,body,hx,hy)=>`<g transform="translate(${x} ${y}) scale(${flip?-sc:sc} ${sc})"><circle cx="${hx}" cy="${hy}" r="2.6" fill="#F2C9A5"/><path d="${body}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   /* 조깅: 상체 살짝 앞, 무릎 낮게, 팔 90° */
-  const JG=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M12.8 6.6L11.4 12.8M11.4 12.8L8.6 16.4l1.8 4.2M11.4 12.8l3.2 2.8-.4 4.8M12.5 7.6L9.4 9.6l1.4 2.6M12.5 7.6l3.1 1.8 2-2.2',13.5,3.2);
-  /* 걷기: 상체 곧게, 두 발 땅, 팔 아래로 */
-  const WK=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M12.3 6.6L12 12.8M12 12.8L9.8 16.8l-1.4 3.8M12 12.8l2.4 3.8 1.2 4M12.2 7.6l-2 5.2M12.2 7.6l2.4 5',12.3,3.2);
+  /* 조깅·걷기 = 질주 실루엣을 좁혀(보폭 작게) 조금 세운 것 — 같은 그림체 */
+  const JG=(c,x,y,sc,flip)=>RNX(c,x+2*sc,y,sc,flip,0.8,-6);
+  const WK=JG;
   /* 서서 쉬기: 허리 숙이고 손은 무릎 */
   const ST=(c,x,y,sc,flip)=>FIG(c,x,y,sc,flip,'M14.6 8.4L10.6 12.4M10.6 12.4L10 17l-.8 3.8M10.6 12.4l2.2 4.2-.2 4.2M14.2 8.8l-1.4 7.4M14.6 9.4l-4 7.2',16,5.6);
   const tree=(x,y,c)=>`<rect x="${x-1.5}" y="${y}" width="3" height="16" fill="#8A6A4A"/><circle cx="${x}" cy="${y-2}" r="11" fill="${c}"/>`;
