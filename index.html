@@ -774,11 +774,12 @@ details.noti .sigc{margin:6px 0}
 .gs-more .hc{margin:10px 0 0;padding:12px;background:var(--bg);box-shadow:none}
 /* 이번 주 */
 .wstrip{margin:10px 16px 0;padding:12px 14px 10px;background:var(--panel);border-radius:22px}
-.ws-h{display:flex;align-items:baseline;justify-content:space-between}
+.ws-prog{position:relative;height:8px;border-radius:4px;background:var(--panel-2);margin:8px 0 10px;overflow:visible}.ws-prog i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#1E9B5C,#5B2D86)}.ws-prog em{position:absolute;right:0;top:-18px;font-style:normal;font-size:10px;font-weight:900;color:#9A2A1F}
+.ws-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.ws-h>b{font-size:14px;font-weight:900}.ws-h span>b{font-size:22px;font-weight:900;color:var(--ink)}.ws-sub{font-size:11px;color:var(--ink-3);font-weight:700;margin-top:-2px}
 .ws-h>b{font-size:13px;font-weight:800;color:var(--ink-2)}.ws-h span{font-size:12px;color:var(--ink-3)}.ws-h span b{font-size:16px;color:var(--ink);font-weight:900}
 .ws-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:8px}
 .wk-d{display:flex;flex-direction:column;align-items:center;gap:3px}
-.wk-n{font-size:12px;font-weight:800;min-height:14px;line-height:1}.wk-n small{font-size:9px;font-weight:700;margin-left:1px}.wk-n i{font-style:normal;color:var(--ink-3);font-weight:600}.wk-n.mid{color:#8A5200}.wk-n.hi{color:#9A3E00}.wk-n.bad{color:#A3302A}.wk-n.ok{color:#0E6E55}
+.wk-n{font-size:11.5px;font-weight:800;min-height:14px;line-height:1;white-space:nowrap}.wk-n.sc-ok{color:#0E6E55}.wk-n.sc-mid{color:#8A5A00}.wk-n.sc-bad{color:#9A2A1F}.wk-n small{font-size:9px;font-weight:700;margin-left:1px}.wk-n i{font-style:normal;color:var(--ink-3);font-weight:600}.wk-n.mid{color:#8A5200}.wk-n.hi{color:#9A3E00}.wk-n.bad{color:#A3302A}.wk-n.ok{color:#0E6E55}
 .wk-d em{font-style:normal;font-size:11px;color:var(--ink-3)}.wk-d.now em{color:var(--accent);font-weight:900}
 .ws-note{font-size:10.5px;color:var(--ink-3);margin-top:8px}.ws-h small{font-size:11px;color:var(--ink-3);font-weight:600}
 .wk-bar{position:relative;width:100%;max-width:30px;height:52px;border-radius:9px;background:var(--bg);display:flex;align-items:flex-end;overflow:hidden}
@@ -918,6 +919,7 @@ details.noti .sigc{margin:6px 0}
 /* 결과 화면 — 판정·그래프 */
 .rv-verd{border-radius:16px;padding:12px 14px;background:color-mix(in srgb,var(--vc) 12%,var(--panel));border-left:5px solid var(--vc)}
 .rv-verd>b{display:block;font-size:17px;font-weight:900;color:color-mix(in srgb,var(--vc) 75%,var(--ink))}
+.rv-score{display:flex;align-items:baseline;gap:4px;margin-top:6px;flex-wrap:wrap}.rv-score>b{font-size:30px;font-weight:900;line-height:1;color:var(--vc)}.rv-score small{font-size:12px;font-weight:800;color:var(--vc)}.rv-score span{font-size:11px;color:var(--ink-3);font-weight:700;margin-left:6px}.rv-score span b{color:var(--ink)}
 .rv-rows{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}.rv-rows li{display:flex;gap:7px;align-items:baseline;font-size:12px;color:var(--ink-2);line-height:1.4}
 .rv-rows li i{flex:none;width:16px;height:16px;border-radius:50%;background:var(--panel-2);color:var(--ink-3);font-size:10px;font-weight:900;font-style:normal;display:inline-flex;align-items:center;justify-content:center;transform:translateY(2px)}
 .rv-rows li.ok i{background:#DDF3EA;color:#0E6E55}.rv-rows li.bad i{background:#F9DEDA;color:#9A2A1F}.rv-rows li span{flex:1;min-width:0}.rv-rows li b{font-weight:800;color:var(--ink);text-align:right;flex:none;max-width:55%}
@@ -2020,7 +2022,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .gr-warn b{font-weight:900}.gr-ch{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.gr-ch .tch{border:1.5px solid #C2410C;background:#fff;color:#C2410C;border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
 .gr-nx{list-style:none;margin:8px 0 0;padding:0;font-size:12.5px;line-height:1.5}.gr-nx li{padding:5px 0;border-top:1px solid var(--line)}.gr-nx li b{font-weight:900}
 .mine-strip{display:flex;align-items:center;gap:10px;width:100%;margin:10px 0 0;padding:11px 14px;border:1.5px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:16px;background:var(--panel);font:inherit;color:var(--ink);text-align:left;cursor:pointer}
-.mine-strip .ms-l{flex:none;font-size:12px;font-weight:900;color:var(--accent)}.mine-strip .ms-v{flex:1;min-width:0;display:flex;align-items:center;gap:7px;overflow:hidden;white-space:nowrap}
+.mine-strip .ms-l{flex:none;font-size:12px;font-weight:900;color:var(--accent)}.mine-strip .ms-v{flex:1;min-width:0;display:flex;align-items:center;gap:3px 7px;flex-wrap:wrap;white-space:nowrap}.ms-v b{flex:none}
 .mine-strip .ms-v b{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}.mine-strip .ms-v i{width:3px;height:3px;border-radius:50%;background:var(--ink-3);flex:none}.mine-strip .ms-go{flex:none;font-size:20px;color:var(--ink-3);line-height:1}
 .mt-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--line);border-radius:12px;padding:3px;margin:0 0 10px}
 .mt-tabs button{border:0;background:none;font:inherit;font-size:13.5px;font-weight:900;color:var(--ink-2);padding:7px 0 6px;border-radius:9px;cursor:pointer;line-height:1.25}.mt-tabs button i{display:block;font-style:normal;font-size:10px;font-weight:700;color:var(--ink-3)}
@@ -2220,7 +2222,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.51';
+const APPVER='19.52';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8547,34 +8549,67 @@ function goalStrip(){
       <button type="button" class="gt-more-btn" data-mygoal="1">목표 ›</button></details>
   </section>`;
 }
-/* ───────── 이번 주 — 7일 막대. 높이 = 거리, 색 = 훈련 종류, 체크 = 완료 ───────── */
+/* ───────── 하루 점수 — 100점 만점. 거리 40 · 강도(목표 속도/심박 상한) 40 · 고르게(회차 편차/편한 구간) 20
+   판정 기준은 결과 화면과 같은 judgeTh()의 숫자. 잴 수 없는 항목은 빼고 100으로 환산한다 ───────── */
+function runScore(r,s){ try{
+  if(!r||!isRun(r)||r.type==='free')return null;
+  const th=r.th||judgeTh(), T=TYPES[r.type]||{}, P=[];
+  const ratio=r.distRatio!=null?r.distRatio:(s&&s.dist?r.km/s.dist:null);
+  if(ratio!=null) P.push(['거리',Math.round(40*Math.min(1,ratio/th.dist)),40]);
+  const reps=(r.segments||[]).filter(g=>g.hard&&g.pace), tgt=repTargetOf(r,s);
+  if(reps.length&&tgt){ const dev=reps.reduce((a,g)=>a+Math.abs(g.pace-tgt),0)/reps.length; P.push(['목표 속도',Math.round(40*Math.max(0,1-Math.max(0,dev-5)/20)),40]); }
+  else if(r.hrCap&&r.hrOverRatio!=null) P.push(['심박 상한',Math.round(40*Math.max(0,1-Math.max(0,r.hrOverRatio-th.hrOver)/0.3)),40]);
+  else if(r.ceilRatio!=null) P.push(['속도 상한',Math.round(40*Math.max(0,1-Math.max(0,r.ceilRatio-th.ceil)/0.3)),40]);
+  if(reps.length>=2&&r.spread!=null) P.push(['회차 고르게',Math.round(20*Math.max(0,1-Math.max(0,r.spread-th.spread)/15)),20]);
+  else if(r.zones&&(T.primary==='hr'||T.judgeBy==='distance')){ const z=r.zones, t=z.reduce((a,b)=>a+b,0); if(t>=60) P.push(['편한 구간',Math.round(20*Math.min(1,((z[0]||0)+(z[1]||0))/t/0.7)),20]); }
+  if(!P.length)return null;
+  const max=P.reduce((a,x)=>a+x[2],0), got=P.reduce((a,x)=>a+x[1],0);
+  return {score:Math.round(got/max*100),parts:P};
+}catch(e){ return null; } }
+function dayScore(d){ /* 그날 점수 — 계획과 짝이 맞는 기록 우선 */
+  const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d); if(!rs.length)return null;
+  const b=BLOCK.find(x=>x.d.slice(0,10)===d&&x.type!=='off'); const r=rs.find(x=>b&&x.planId===b.d)||rs[0];
+  const d0=r.planKm||(r.distRatio?+(r.km/r.distRatio).toFixed(1):0);
+  const s=b?Object.assign({},b,{dist:d0||DIST[b.d]||b.dist,ceiling:r.ceiling||b.ceiling}):{dist:d0,ceiling:r.ceiling,repTarget:null};
+  return runScore(r,s); }
+/* ───────── 이번 주 — 7일 막대. 높이 = 그날 점수, 색 = 훈련 종류 ───────── */
 function weekStrip(){ try{ return weekStrip0(); }catch(e){ console.warn('weekStrip',e); return ''; } }
 function weekStrip0(){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람) 요일 그래프는 늘 보인다 — 한 점수만 */
   const t=todayStr(), mon=weekMonday(t), prevMon=addDays(mon,-7);
   const dayLoad=d=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d).reduce((a,r)=>{ const L=loadOf(r); return a+(L&&L.tss!=null?L.tss:0); },0);   /* 점수는 rTSS 한 가지 단위만 */
   const days=[0,1,2,3,4,5,6].map(i=>{ const d=addDays(mon,i), ix=BLOCK.length?BLOCK.findIndex(x=>x.d.slice(0,10)===d&&x.type!=='off'):-1, s=ix>=0?sessionOf(ix):null;
-    return {d,s,km:s?(s.dist||0):0,ran:dayKm(d),load:Math.round(dayLoad(d)),st:dayStatus(d)}; });
+    const sc=dayScore(d); return {d,s,km:s?(s.dist||0):0,ran:dayKm(d),load:Math.round(dayLoad(d)),st:dayStatus(d),sc:sc?sc.score:null}; });
   const sumL=days.reduce((a,x)=>a+x.load,0), prevL=[0,1,2,3,4,5,6].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
   /* 계획된 날의 예상 점수 — 계획 페이스·거리로 rTSS를 미리 계산해 '얼마짜리 훈련인지' 보여준다 */
   const planLoad=s=>{ if(!s||!s.segs||!Z||!Z.T)return 0; const its=planItems(s,ADJ[s.type]||0); return Math.round(its.reduce((a,x)=>{ const sec=x.dur||0, pace=x.p?(x.p[0]+x.p[1])/2:0; if(!sec||!pace)return a; const IF=Z.T/pace; return a+sec*IF*IF/3600*100; },0)); };
   days.forEach(x=>{ x.plan=x.s?planLoad(x.s):0; });
+  /* 날마다 100% = 그날 계획. 뛴 날은 (실제 부하 ÷ 계획 부하)%, 계획 없는 날(프리런)은 부하 숫자 그대로 */
   const mx=Math.max(40,...days.map(x=>Math.max(x.load,x.plan)));
   const cells=days.map(x=>{ const col=x.s?hexes((LOOK[x.s.type]||LOOK.free).bg)[0]:'var(--line)';
     const done=x.load>0||['kept','free','over','under'].includes(x.st)||x.ran>0, miss=!done&&(x.st==='missed'||x.st==='missedOk'), rest=!x.s&&!done;
-    const h=done?Math.max(10,x.load/mx*100):x.plan?Math.max(8,x.plan/mx*100):0;
-    const band=done&&x.load?loadBand('tss',x.load)[2]:'';
+    const dp=done?x.sc:null;
+    const h=dp!=null?Math.max(8,dp):done?Math.max(10,x.load/mx*100):x.plan?100:0;
+    const band=dp!=null?(dp>=80?'ok':dp>=50?'mid':'bad'):'';
     return `<div class="wk-d${x.d===t?' now':''}${done?' done':''}${miss?' miss':''}" title="${dowOf(x.d)} ${x.s?ESC(x.s.t):'쉬는 날'}">
-      <b class="wk-n num ${band}">${done?(x.load?x.load+'<small>점</small>':'✓'):''}</b>
-      <div class="wk-bar">${h?`<i style="height:${h.toFixed(0)}%;background:${col};opacity:${done?1:.3}"></i>`:''}${miss?'<span>×</span>':''}</div><em>${dowOf(x.d)}</em></div>`; }).join('');
+      <b class="wk-n num sc-${band}">${done?(dp!=null?dp+'<small>점</small>':'✓'):''}</b>
+      <div class="wk-bar">${h?`<i style="height:${h.toFixed(0)}%;background:${col};opacity:${done?1:.22}"></i>`:''}${miss?'<span>×</span>':''}</div><em>${dowOf(x.d)}</em></div>`; }).join('');
   /* 지난주와 비교는 '같은 요일까지'끼리 — 월요일 아침에 이번 주 0점을 지난주 전체와 비교하면 늘 -100%가 나왔다 */
   const dIx=Math.max(0,Math.min(6,Math.round((Date.parse(t)-Date.parse(weekMonday(t)))/864e5))), doneToday=days[dIx]&&days[dIx].load>0;
   const upto=doneToday?dIx:dIx-1, prevUpto=upto<0?0:[...Array(upto+1).keys()].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
   const sumUpto=upto<0?0:days.slice(0,upto+1).reduce((a,x)=>a+x.load,0);
   const diff=(upto>=0&&prevUpto>0)?Math.round((sumUpto-prevUpto)/prevUpto*100):null;
-  return `<section class="wstrip" aria-label="이번 주 훈련 점수">
-    <div class="ws-h"><b>이번 주 훈련 점수</b><span class="num"><b>${sumL}</b>점${prevL?` <small>지난주 ${Math.round(prevL)}점${diff!=null?` · 같은 요일까지 ${diff>0?'+':''}${diff}%`:''}</small>`:''}</span></div>
+  /* 100점 만점 = 이번 주 계획 전부. 한 날은 실제 부하(뛴 날)와 계획 부하(안 뛴 날) 중 하나로 센다 */
+  /* 주 달성률 = 이번 주 계획한 훈련의 점수 합 ÷ (계획 횟수 × 100). 아직 안 온 날·놓친 날은 0 → 주가 갈수록 100%에 다가간다 */
+  const planned=days.filter(x=>x.s), nP=planned.length, got=planned.reduce((a,x)=>a+(x.sc||0),0), doneN=planned.filter(x=>x.sc!=null).length;
+  const wkPct=nP?Math.round(got/(nP*100)*100):null;
+  const todaySc=days[dIx]&&days[dIx].sc;
+  const cmp=prevL?`부하 ${sumL} · 지난주 ${Math.round(prevL)}${diff!=null?` (같은 요일까지 ${diff>0?'+':''}${diff}%)`:''}`:`부하 ${sumL}`;
+  return `<section class="wstrip" aria-label="이번 주 훈련">
+    <div class="ws-h"><b>이번 주 달성</b><span class="num">${wkPct!=null?`<b>${wkPct}</b>%`:'<b>—</b>'}</span></div>
+    <div class="ws-sub">${nP?`계획 ${nP}회 중 ${doneN}회 뜀${todaySc!=null?` · 오늘 ${todaySc}점`:''} · `:''}${cmp}</div>
+    ${wkPct!=null?`<div class="ws-prog"><i style="width:${Math.min(100,wkPct)}%"></i></div>`:''}
     <div class="ws-days">${cells}</div>
-    <div class="ws-note">rTSS · 역치 1시간 = 100점${BLOCK.length?' · 옅은 막대 = 미완료':''}${diff!=null&&diff>30?' · 전주 대비 30% 초과':''}</div></section>`;
+    <div class="ws-note">하루 100점 = 거리 40 · 강도 40 · 고르게 20 · 주 100% = 계획한 훈련 전부 100점${BLOCK.length?' · 옅은 막대 = 아직 안 뜀':''}${diff!=null&&diff>30?' · 부하가 지난주보다 30% 넘게 많음':''}</div></section>`;
 }
 /* 목표 계단 (예전 카드 — 지금은 안 쓴다) */
 function goalCardOld(){
@@ -9071,7 +9106,8 @@ function renderResult(host,r,s,opt){
   const prow=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
   /* 잘한 점은 위 약속↔결과 줄과 겹치므로 주의할 점만 */
   const pts=P.bad.length?`<ul class="db-pts rv-pts">${P.bad.map(x=>prow(x,'bad')).join('')}</ul>`:(rows?'':(P.good.length?`<ul class="db-pts rv-pts">${P.good.map(x=>prow(x,'ok')).join('')}</ul>`:''));
-  const hero=`${vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':'약속 ↔ 결과'}</b>${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:''}
+  const sc=runScore(r,s);
+  const hero=`${vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':'약속 ↔ 결과'}</b>${sc?`<div class="rv-score"><b class="num">${sc.score}</b><small>점</small><span>${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</span></div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:''}
     <div class="rbig"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
     <div class="rsm"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?' · 최고 '+r.hrMax:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}${cu&&r.cadAvg?` · 평소 ${cu}`:''}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div>${pts}`;
   const chart=rvPaceHR(r), mv=moveStripHTML(moveSplit(r.track));
