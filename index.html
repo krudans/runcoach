@@ -1978,7 +1978,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pw-prog{height:4px;background:var(--line);margin:0 14px 6px;border-radius:2px;overflow:hidden}.pw-prog i{display:block;height:100%;background:var(--ok)}
 .pw-rows{padding:0 6px 4px}
 .pd-row{display:flex;align-items:center;gap:6px;min-height:52px;border-top:1px solid var(--line);padding:4px 4px}
-.pd-row.today{background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:12px}
+.pd-row.today{background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:12px;box-shadow:inset 3px 0 0 var(--accent);border-top-color:transparent}.pd-row.today+.pd-row{border-top-color:transparent}.pd-row.today .pd-dt b{background:var(--accent);color:#fff;border-radius:9px;width:26px;margin:0 auto;line-height:24px}
 .pd-dt{flex:none;width:38px;text-align:center;line-height:1.1}.pd-dt b{display:block;font-family:var(--num);font-size:17px}.pd-dt i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .pd-dt.t b{color:var(--accent)}
 .pd-main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:none;background:none;font:inherit;color:var(--ink);text-align:left;padding:6px 2px;cursor:pointer}
@@ -1990,7 +1990,8 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pd-st.ok{background:#DDF3EA;color:#0E7A5F}.pd-st.miss{background:#FBE3E1;color:#B4322C}.pd-st.now{background:var(--accent);color:#fff}
 .pd-row.did .pd-tx b{color:var(--ink-3)}.pd-row.past:not(.did) .pd-tx b{color:var(--ink-3)}
 .pd-ed,.pd-add{flex:none;width:36px;height:36px;border-radius:10px;border:none;background:var(--panel-2);color:var(--accent);font-size:16px;cursor:pointer}
-.pd-row.rest{min-height:40px}.pd-rest{flex:1;font-size:12.5px;color:var(--ink-3);padding-left:20px}.pd-row.rest.past{opacity:.6}
+.pd-row.rest{min-height:46px}.pd-rest{flex:1;font-size:12.5px;color:var(--ink-3);min-width:0}.pd-rest .pd-rl{display:block;font-weight:600;color:var(--ink-2)}.pd-rest .pd-rl b{color:var(--ink)}.pd-rest i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pd-row.rest.past:not(.did){opacity:.6}
+.pd-bar.rest{--tc:#9C8AD8;background:color-mix(in srgb,#9C8AD8 18%,transparent)}.pd-st.rest{background:var(--panel-2);color:var(--ink-2)}
 .pd-add{background:none;border:1.5px dashed var(--line);color:var(--ink-3)}
 .pw-tools{display:flex;align-items:center;gap:6px;padding:8px 14px 12px;border-top:1px solid var(--line)}.pw-tools span{flex:1;font-size:12px;color:var(--ink-3)}
 .pw-tools button{border:none;background:var(--panel-2);border-radius:9px;padding:7px 12px;font:inherit;font-size:12.5px;font-weight:800;color:var(--ink-2);cursor:pointer}
@@ -2234,7 +2235,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.61';
+const APPVER='19.62';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11347,7 +11348,11 @@ function planListHTML(){
       const dn=`<span class="pd-dt${ds===t?' t':''}"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`;
       const freeKm=ranOn(ds);
       { const gg=(PLAN&&PLAN.goal)||GOAL; if(!list.length&&gg&&gg.date&&gg.date.slice(0,10)===ds) return `<div class="pd-row race">${dn}<span class="pd-rest" style="color:#C2410C;font-weight:900">★ 대회 — ${gg.m?gdLabel(gg.m):''}${gg.sec?' '+fmtClock(gg.sec):''}</span></div>`; }
-      if(!list.length) return `<div class="pd-row rest${ds<t?' past':''}${freeKm?' did':''}">${dn}<span class="pd-rest">${freeKm?`쉬는 날 · <b>프리런 ${fmtKm1(freeKm)}km</b>`:(()=>{ const K=restKind(ds); return K.k==='plain'?'쉬는 날':K.k==='str'?'쉬는 날 · <b>근력</b>':`쉬는 날 · ${K.lab.replace(' 휴식','')}`; })()}</span>${freeKm?'<em class="pd-st ok">✓</em>':''}${ds>=t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`;
+      if(!list.length){ const K=restKind(ds), scored=K.k!=='plain', R=scored?restScore(ds):null, closed=!!(RESTLOG[ds]&&RESTLOG[ds].closed), m=restMis(ds), any=Object.values(m).some(Boolean);
+        const lab=K.k==='plain'?'쉬는 날':K.k==='str'?'쉬는 날 · <b>근력</b>':`쉬는 날 · <b>${K.lab.replace(' 휴식','')}</b>`;
+        const sub=scored?restMissions(K.k).filter(x=>x.pts).map(x=>x.k==='str'?'근력 6동작×3':x.k==='core'?'코어 4동작×2':x.k==='norun'?'뛰지 않기':x.k==='rhr'?'안정 심박':x.k==='sleep'?'수면':x.t).join(' · '):'';
+        const st=freeKm?`<em class="pd-st ok">✓ 프리런 ${fmtKm1(freeKm)}km</em>`:!scored?'':closed?`<em class="pd-st ok">☾ ${R.score}점 ✓</em>`:ds===t?`<em class="pd-st now">오늘${any?` · ${R.score}점`:''}</em>`:ds<t?(any?`<em class="pd-st rest">☾ ${R.score}점</em>`:'<em class="pd-st rest">기록 없음</em>'):'';
+        return `<div class="pd-row rest${ds<t?' past':''}${freeKm||closed?' did':''}${ds===t?' today':''}">${dn}<span class="pd-bar rest"><i style="height:${scored?Math.max(18,(closed||any?R.score:0)):0}%"></i></span><span class="pd-rest"><b class="pd-rl">${lab}</b>${sub?`<i>${sub}</i>`:''}</span>${st}${ds>t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`; }
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=sessionOf(i)||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         const did=RUNS.some(r=>r.planId===sx.d), miss=!did&&ds<t, word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
         const st=did?`<em class="pd-st ok">✓${Math.abs(freeKm-km)>=0.5?` ${fmtKm1(freeKm)}km`:''}</em>`:miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
