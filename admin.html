@@ -125,6 +125,8 @@ async function loadAll(){
   S.notices=no?no.docs.map(d=>Object.assign({id:d.id},d.data())):[];
   const fb=await get('피드백(feedback)',()=>db.collection('feedback').orderBy('at','desc').limit(500).get());
   S.fb=fb?fb.docs.map(d=>Object.assign({id:d.id},d.data())):[];
+  const bn=await get('배너(catalog/banner)',()=>db.collection('catalog').doc('banner').get());
+  S.banner=bn&&bn.exists?bn.data():{};
   const ct=await get('대회 추가·숨김(catalog)',()=>db.collection('catalog').doc('races').get());
   S.cat=Object.assign({add:[],hide:[]},ct&&ct.exists?ct.data():{});
   try{ const r=await fetch('races.json',{cache:'no-store'}); S.racesJson=r.ok?await r.json():null; }catch(e){ S.racesJson=null; }
@@ -243,7 +245,16 @@ function races(){ const R=(S.racesJson&&S.racesJson.races)||[], hide=new Set(S.c
       ${sel('sort',[['name','이름순'],['area','지역순']],F.sort,'날짜순')}<span class="who">${L.length}개</span></div>
     <table class="mini" id="rTab"><tr><th>날짜</th><th>이름</th><th>종목</th><th>지역</th><th>장소</th><th>접수</th><th></th></tr>${L.slice(0,600).map(r=>`<tr data-rtxt="${ESC((r.name+' '+r.place).toLowerCase())}"><td class="num">${r.date}</td><td>${ESC(r.name)}</td><td>${ESC((r.courses||[]).join(', '))}</td><td>${ESC(r.area||'')}</td><td>${ESC(r.place||'')}</td><td>${r.open?'<span class="tag green">접수중</span>':''}</td><td>${hide.has(r.id)?`<button class="btn ghost sm" data-rshow="${ESC(r.id)}">다시 보이기</button>`:`<button class="btn warn sm" data-rhide="${ESC(r.id)}">숨기기</button>`}</td></tr>`).join('')}</table></div>`; }
 
-function notices(){ return `<h2>공지·알림</h2><p class="sub">'게시'한 공지 중 가장 최근 것이 앱 홈 맨 위에 떠요. 회원이 닫으면 그 공지는 다시 안 떠요.</p>
+function bannerCard(){ const b=S.banner||{}, t=new Date().toISOString().slice(0,10), live=b.active&&b.title&&b.url&&(!b.from||b.from<=t)&&(!b.to||b.to>=t);
+  return `<div class="card"><h3>하단 배너 광고 <span class="tag ${live?'green':'gray'}">${live?'지금 보임':b.active?'기간 밖':'꺼짐'}</span></h3>
+    <p class="sub">앱 맨 아래 한 줄로 제목만 보이고, 누르면 링크로 바로 가요. 한 번에 하나만 걸 수 있어요.</p>
+    <div class="grid2"><div><label class="f">제목 (앱에 보이는 글)</label><input class="fld" id="bT" maxlength="40" value="${ESC(b.title||'')}" placeholder="예: 627 HEALTH 정보"></div>
+      <div><label class="f">링크</label><input class="fld" id="bU" value="${ESC(b.url||'')}" placeholder="https://"></div>
+      <div><label class="f">게재 시작일</label><input class="fld" type="date" id="bF" value="${ESC(b.from||'')}"></div>
+      <div><label class="f">게재 종료일</label><input class="fld" type="date" id="bE" value="${ESC(b.to||'')}"></div></div>
+    <div class="row" style="margin-top:10px"><label class="row"><input type="checkbox" id="bA"${b.active?' checked':''}> 게시</label><span class="sp" style="flex:1"></span><button class="btn" id="bSave">저장</button></div>
+    <div class="sub" style="margin-top:8px">미리보기: <span style="display:inline-flex;align-items:center;gap:8px;background:#2A1638;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700"><span style="font-size:9px;letter-spacing:.08em;background:rgba(255,255,255,.18);border-radius:4px;padding:2px 5px">AD</span>${ESC(b.title||'제목')} ↗</span></div></div>`; }
+function notices(){ return `<h2>공지·알림</h2>${bannerCard()}<p class="sub">'게시'한 공지 중 가장 최근 것이 앱 홈 맨 위에 떠요. 회원이 닫으면 그 공지는 다시 안 떠요.</p>
   <div class="card"><h3 id="nTitle">새 공지</h3><input type="hidden" id="nId">
     <label class="f">제목</label><input class="fld" id="nT" maxlength="60">
     <label class="f">내용</label><textarea id="nB" rows="4" maxlength="600"></textarea>
@@ -297,6 +308,9 @@ function bind(){
   document.querySelectorAll('[data-rshow]').forEach(b=>b.onclick=async()=>{ S.cat.hide=(S.cat.hide||[]).filter(x=>x!==b.dataset.rshow); try{ await saveCat(); render(); }catch(e){ alert(e.code||e.message); } });
   const rq=$('rq'); if(rq)rq.oninput=()=>{ const v=rq.value.trim().toLowerCase(); document.querySelectorAll('#rTab tr[data-rtxt]').forEach(tr=>tr.hidden=!!v&&!tr.dataset.rtxt.includes(v)); };
   /* 공지 */
+  const bs=$('bSave'); if(bs)bs.onclick=async()=>{ const title=$('bT').value.trim(), url=$('bU').value.trim(), from=$('bF').value||null, to=$('bE').value||null, active=$('bA').checked;
+    if(active&&(!title||!/^https?:\/\//.test(url)))return alert('제목과 https:// 링크를 넣어 주세요'); if(from&&to&&from>to)return alert('종료일이 시작일보다 앞이에요');
+    try{ const o={title,url,from,to,active,updatedAt:new Date().toISOString()}; await db.collection('catalog').doc('banner').set(o); S.banner=o; render(); alert(active?'배너 게시됨 — 앱은 다음에 열 때 반영':'배너 저장됨(꺼짐)'); }catch(e){ alert('실패: '+(e.message||e)); } };
   const ns=$('nSave'); if(ns)ns.onclick=async()=>{ const t=$('nT').value.trim(), bd=$('nB').value.trim(); if(!t||!bd)return alert('제목과 내용을 넣어 주세요');
     const o={title:t,body:bd,link:$('nL').value.trim()||null,until:$('nU').value||null,active:$('nA').checked,by:auth.currentUser.email}; const id=$('nId').value;
     try{ if(id)await db.collection('notices').doc(id).set(o,{merge:true}); else await db.collection('notices').add(Object.assign(o,{at:firebase.firestore.FieldValue.serverTimestamp()})); toast('공지를 저장했어요'); await loadAll(); }catch(e){ alert('저장하지 못했어요: '+(e.code||e.message)); } };
