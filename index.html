@@ -1345,6 +1345,7 @@ details.noti .sigc{margin:6px 0}
   <!-- 설정 순서: 내 정보 → 안정시 심박 → 등산 기록 → 심박 기기 → 훈련 원리·음악 → 백업 → 고급 -->
   <details class="cset"><summary>속도·심박 구간 근거</summary>
   <div class="card tight" style="margin:0 0 12px">
+    <div class="row" style="margin-bottom:10px"><div style="flex:1"><div style="font-size:11px;color:var(--ink-3)">별명 · 바꿀 수 없음</div><input type="text" id="pNick" readonly style="background:var(--panel-2)"></div></div>
     <div class="row" style="margin-bottom:10px">
       <div style="flex:1.4"><div style="font-size:11px;color:var(--ink-3)">생년월일 <span id="pAgeNow"></span></div><input type="date" id="pBirth"></div>
       <div><div style="font-size:11px;color:var(--ink-3)">체중 kg</div><input type="number" id="pW" inputmode="decimal"></div>
@@ -1425,6 +1426,8 @@ details.noti .sigc{margin:6px 0}
       <button class="btn sm" style="margin:8px 0 0" id="fbCfgSave">저장 · 연결</button>
     </div>
     <button class="btn sm ghost" id="wipeRuns" style="margin:14px 0 0;color:var(--alarm)">모든 러닝 기록 삭제</button>
+    <button class="btn sm ghost" id="wipeAll" style="margin:9px 0 0;color:var(--alarm)">계정 초기화 — 모든 데이터 삭제</button>
+    <div class="meta" style="margin-top:6px;line-height:1.6">기록·설정·별명·동의가 모두 지워지고 처음 화면부터 다시 시작합니다. 구글로 동기화한 데이터도 함께 지웁니다.</div>
   </div></details>
 
   <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">가지런 · GAJI RUN <b id="verNow">—</b></div>
@@ -2160,6 +2163,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pe-days button:disabled{opacity:.35}
 .pe-other{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12px;color:var(--ink-3);margin-top:8px;white-space:nowrap}.pe-other input{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:9px;padding:5px 8px;background:var(--panel)}
 .pe-warn{font-size:12.5px;font-weight:700;color:#C2410C;margin:10px 2px 0}
+.ask-body{font-size:14px;line-height:1.7;color:var(--ink)}.ask-body .meta{display:inline-block;margin-top:6px}.btn.danger{background:#C2410C}
 .obreq{font-size:10px;font-weight:800;color:#fff;background:var(--accent);border-radius:999px;padding:1px 6px;margin-left:4px;vertical-align:middle}
 #obNick,#obBy{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:12px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel)}
 .obconsent{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--ink-2)}.obconsent summary{font-weight:800;color:var(--ink);cursor:pointer}.obconsent p{margin:8px 0 0}.obconsent p b{color:var(--ink);margin-right:4px}
@@ -2270,7 +2274,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.84';
+const APPVER='19.85';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6102,6 +6106,18 @@ async function selfTest(){
 }
 $('stRun').onclick=()=>{ $('stRun').disabled=true; selfTest().finally(()=>{$('stRun').disabled=false;}); };
 
+$('wipeAll').onclick=async()=>{
+  const a=await askSheet({title:'계정 초기화',danger:true,html:`<b>모든 데이터가 지워집니다.</b><br><span class="meta">달리기 기록 ${RUNS.length}건 · 목표·일정 · 설정 · 별명 · 개인정보 동의${FB.user?'<br>구글 계정에 동기화된 데이터도 삭제':''}<br>복구할 수 없어요.</span>`,yes:'지우기',no:'취소'});
+  if(!a)return;
+  const b=await askSheet({title:'정말 지울까요?',danger:true,text:'이 폰의 가지런 데이터를 전부 삭제하고 처음 화면으로 돌아갑니다.',yes:'네, 전부 삭제',no:'취소'});
+  if(!b)return;
+  try{ if(FB.user){ const r=FB.ref(); if(r){ const db=firebase.firestore();
+      for(const sub of ['runs','acts']){ const ss=await r.collection(sub).get(); const docs=ss.docs; for(let i=0;i<docs.length;i+=400){ const bt=db.batch(); docs.slice(i,i+400).forEach(d=>bt.delete(d.ref)); await bt.commit(); } }
+      await r.delete(); } await FB.signOut(); } }catch(e){}
+  try{ await Promise.race([MDB.clear(),new Promise(r=>setTimeout(r,1500))]); }catch(e){}
+  try{ const keep=localStorage.getItem('rc_iid'); Object.keys(localStorage).filter(k=>k.startsWith('rc_')).forEach(k=>localStorage.removeItem(k)); if(keep)localStorage.setItem('rc_iid',keep); sessionStorage.clear(); }catch(e){}
+  location.replace(location.pathname);
+};
 $('wipeRuns').onclick=()=>{
   if(!RUNS.length)return alert('지울 기록 없음');
   if(!confirm(`${RUNS.length}건 삭제\n복구 불가`))return;
@@ -6142,6 +6158,7 @@ $('vCalc').onclick=()=>{
 /* 프로필이 바뀌면 존·페이스·블록을 전부 다시 만든다 */
 let pRaceD=10000, pRaceK='race', pHRSrc='measured';
 function paintProf(){
+  { const n=$('pNick'); if(n)n.value=PROF.nick||'—'; }
   $('pBirth').value=PROF.birth||''; $('pW').value=PROF.w||''; $('pRHR').value=PROF.rhr||'';
   const ag=ageOf($('pBirth').value)||PROF.age;
   $('pAgeNow').textContent = ag ? `· 만 ${ag}세` : (PROF.age?`· 나이 ${PROF.age} — 생년월일 입력`:'');
@@ -6520,6 +6537,14 @@ function obTags(key,multi){
   ).join('')+`</div>`;
 }
 const CONSENT_VER='2026-11-05';
+/* 확인 시트 — prompt/confirm 대신. 약속(Promise)으로 true/false */
+function askSheet(o){ return new Promise(res=>{ let sh=$('askSheet'); if(!sh){ sh=document.createElement('div'); sh.id='askSheet'; sh.className='msheet'; sh.hidden=true; document.body.appendChild(sh); }
+  sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="${ESC(o.title||'확인')}"><div class="ms-hd"><b>${ESC(o.title||'확인')}</b><button type="button" data-ask="0" aria-label="닫기">✕</button></div>
+    <div class="ask-body">${o.html||ESC(o.text||'')}</div>
+    <div class="mile-act" style="margin-top:14px"><button type="button" class="btn ghost" data-ask="0">${ESC(o.no||'취소')}</button><button type="button" class="btn${o.danger?' danger':''}" data-ask="1">${ESC(o.yes||'확인')}</button></div></div>`;
+  sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
+  const done=v=>{ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); sh.onclick=null; res(v); };
+  sh.onclick=e=>{ const b=e.target.closest('[data-ask]'); if(b)return done(b.dataset.ask==='1'); if(e.target===sh)done(false); }; }); }
 const nickKey=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,'');
 /* 별명 중복 확인 — 서버의 nicks/{별명} 문서. 내 기기(iid)나 내 계정(uid)이 가진 별명이면 통과. 인터넷이 없으면 확인 못 함(그대로 진행) */
 async function nickCheck(){ const d=OB.d, nick=String(d.nick||'').trim(), key=nickKey(nick), note=$('obNickNote');
@@ -6538,7 +6563,8 @@ async function nickCheck(){ const d=OB.d, nick=String(d.nick||'').trim(), key=ni
 async function nickReserve(nick){ try{ const key=nickKey(nick); if(!key)return; const iid=localStorage.getItem('rc_iid')||'', uid=(FB&&FB.user&&FB.user.uid)||null;
     const fields={iid:fsEnc(iid),at:fsEnc(new Date())}; if(uid)fields.uid=fsEnc(uid);
     await fetch(`${FSR}/nicks?documentId=${encodeURIComponent(key)}&key=${FSKEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})}); }catch(e){} }
-function saveBasics(d){ PROF=Object.assign({},PROF,{nick:String(d.nick||'').trim(),by:d.by||PROF.by||null,sex:d.sex||PROF.sex||null});
+function saveBasics(d){ const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick; PROF=Object.assign({},PROF,{nick:lock?PROF.nick:String(d.nick||'').trim(),by:d.by||PROF.by||null,sex:d.sex||PROF.sex||null});
+  if(PROF.nick)DEV.store.set('nickLock',{at:new Date().toISOString()});
   if(PROF.by&&!PROF.birth)PROF.birth=`${PROF.by}-07-01`;
   if(PROF.birth){ const a=ageOf(PROF.birth); if(a)PROF.age=a; }
   DEV.store.set('prof',PROF);
@@ -6549,9 +6575,10 @@ const OBSTEP=[
  {q:'먼저 기본 정보를<br>알려주세요',
   s:'별명 · 태어난 해 · 성별 — 코칭 기준과 기록에 쓰여요',
   body(){ const d=OB.d, Y=+todayStr().slice(0,4);
-    return `<div class="oblab">별명 <span class="obreq">필수</span></div>
-      <input type="text" id="obNick" maxlength="12" placeholder="2~12자 · 다른 사람과 겹치면 안 돼요" value="${ESC(d.nick||'')}" autocomplete="nickname">
-      <div class="meta" id="obNickNote" style="margin-top:6px;min-height:18px"></div>
+    const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick;
+    return `<div class="oblab">별명 <span class="obreq">${lock?'확정됨':'필수'}</span></div>
+      <input type="text" id="obNick" maxlength="12" placeholder="2~12자 · 다른 사람과 겹치면 안 돼요" value="${ESC(lock?PROF.nick:(d.nick||''))}" autocomplete="nickname"${lock?' readonly':''}>
+      <div class="meta" id="obNickNote" style="margin-top:6px;min-height:18px">${lock?'별명은 한 번 정하면 바꿀 수 없어요 (설정 › 계정 초기화로만)':'한 번 정하면 바꿀 수 없어요'}</div>
       <div class="oblab">태어난 해 <span class="obreq">필수</span></div>
       <select id="obBy"><option value="">선택</option>${Array.from({length:Y-10-1939},(_,i)=>Y-10-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}</select>
       <div class="meta" style="margin-top:6px">최대심박 추정(208 − 0.7 × 나이)에 씁니다</div>
@@ -6581,7 +6608,11 @@ const OBSTEP=[
     if(!d.by)return {m:'태어난 해를 골라 주세요',f:'obBy'};
     if(!d.sex)return {m:'성별을 골라 주세요',f:'obSex0'};
     if(!d.agree)return {m:'개인정보 동의가 필요해요',f:'obAgree'};
+    const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick;
+    if(lock){ d.nick=PROF.nick; return true; }
     const r=await nickCheck(); if(r!==true)return {m:r,f:'obNick'};
+    const ok=await askSheet({title:'별명 확정',html:`별명 <b style="font-size:18px">${ESC(nick)}</b><br><span class="meta">한 번 정하면 바꿀 수 없어요. 다른 사람도 이 별명을 못 씁니다.<br>바꾸려면 설정 › 계정 초기화 뒤 처음부터 다시 해야 해요.</span>`,yes:'이 별명으로 확정',no:'다시 입력'});
+    if(!ok)return {m:'별명을 다시 정해 주세요',f:'obNick'};
     return true; }},
  /* 1 ─ 설문 */
  {q:'요즘 얼마나<br>달리나요?',
