@@ -2281,7 +2281,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.89';
+const APPVER='19.90';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3061,7 +3061,8 @@ async function usagePing(force){ if(!usageOn())return; try{
       onb:!!DEV.store.get('onboarded',false),goal:g.kind||null,gm:g.m||null,gdate:g.date?String(g.date).slice(0,10):null,
       runs:R.length,km:Math.round(R.reduce((a,r)=>a+(+r.km||0),0)),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null,
       email:(FB&&FB.user&&FB.user.email)||(ACCT&&ACCT.email)||null,uid:(FB&&FB.user&&FB.user.uid)||(ACCT&&ACCT.uid)||null,
-      nick:PROF.nick||null,by:PROF.by||null,sex:PROF.sex||null,mile:(()=>{ try{ return Math.round(mileage().total); }catch(e){ return null; } })(),consent:(()=>{ const c=DEV.store.get('consent',null); return c&&c.at?new Date(c.at):null; })()};
+      nick:PROF.nick||null,by:PROF.by||null,sex:PROF.sex||null,mile:(()=>{ try{ return Math.round(mileage().total); }catch(e){ return null; } })(),consent:(()=>{ const c=DEV.store.get('consent',null); return c&&c.at?new Date(c.at):null; })(),
+      syncErr:(typeof FB!=='undefined'&&FB.err&&FB.user)?String(FB.err).slice(0,200):null};   /* 동기화가 실패하고 있으면 관리자 화면에 보이게 */
     if(isNew||!localStorage.getItem('rc_usageFirst')){ F.first=new Date(); }
     const fields={}; Object.entries(F).forEach(([k,v])=>fields[k]=fsEnc(v));
     const mask=Object.keys(F).map(k=>'updateMask.fieldPaths='+k).join('&');
@@ -6127,15 +6128,25 @@ async function selfTest(){
 $('stRun').onclick=()=>{ $('stRun').disabled=true; selfTest().finally(()=>{$('stRun').disabled=false;}); };
 
 $('wipeAll').onclick=async()=>{
-  const a=await askSheet({title:'계정 초기화',danger:true,html:`<b>모든 데이터가 지워집니다.</b><br><span class="meta">달리기 기록 ${RUNS.length}건 · 목표·일정 · 설정 · 별명 · 개인정보 동의${FB.user?'<br>구글 계정에 동기화된 데이터도 삭제':''}<br>복구할 수 없어요.</span>`,yes:'지우기',no:'취소'});
+  const a=await askSheet({title:'계정 초기화',danger:true,html:`<b>모든 데이터가 지워집니다.</b><br><span class="meta">달리기 기록 ${RUNS.length}건 · 목표·일정 · 설정 · 별명 · 개인정보 동의${FB.user?'<br>구글 계정에 동기화된 데이터와 로그인 계정도 삭제':''}<br>복구할 수 없어요.</span>`,yes:'지우기',no:'취소'});
   if(!a)return;
   const b=await askSheet({title:'정말 지울까요?',danger:true,text:'이 폰의 가지런 데이터를 전부 삭제하고 처음 화면으로 돌아갑니다.',yes:'네, 전부 삭제',no:'취소'});
   if(!b)return;
+  /* 지우는 것: 클라우드 기록·설정 → 별명 예약 → 사용 현황 → 구글 로그인 계정 → 폰 안의 데이터.
+     구글 플레이·개인정보보호법 모두 '계정과 그 데이터'를 지우라고 한다 — 예전엔 로그인 계정·별명·사용 현황이 남았다 */
+  const left=[];
+  const nk=nickKey(PROF.nick||''), iid=localStorage.getItem('rc_iid')||'';
   try{ if(FB.user){ const r=FB.ref(); if(r){ const db=firebase.firestore();
       for(const sub of ['runs','acts']){ const ss=await r.collection(sub).get(); const docs=ss.docs; for(let i=0;i<docs.length;i+=400){ const bt=db.batch(); docs.slice(i,i+400).forEach(d=>bt.delete(d.ref)); await bt.commit(); } }
-      await r.delete(); } await FB.signOut(); } }catch(e){}
+      await r.delete();
+      if(nk){ try{ await db.collection('nicks').doc(nk).delete(); }catch(e){ left.push('별명 예약'); } } } } }catch(e){ left.push('클라우드 기록'); }
+  if(iid){ try{ await fetch(`${FSR}/installs/${encodeURIComponent(iid)}?key=${FSKEY}`,{method:'DELETE'}); }catch(e){ left.push('사용 현황'); } }
+  if(FB.user){ try{ await firebase.auth().currentUser.delete(); }
+    catch(e){ if(/recent-login/.test(e.code||'')){ try{ const p=new firebase.auth.GoogleAuthProvider(); await firebase.auth().currentUser.reauthenticateWithPopup(p); await firebase.auth().currentUser.delete(); }catch(e2){ left.push('구글 로그인 계정'); } } else left.push('구글 로그인 계정'); }
+    try{ await FB.signOut(); }catch(e){} }
+  if(left.length){ try{ await askSheet({title:'일부를 지우지 못했어요',html:`${left.join(' · ')}<br><span class="meta">인터넷이 연결된 상태에서 다시 하거나, <a href="delete.html" target="_blank" rel="noopener">삭제 요청 페이지</a>에서 요청해 주세요. 폰 안의 데이터는 지금 지워요.</span>`,yes:'확인',no:'닫기'}); }catch(e){} }
   try{ await Promise.race([MDB.clear(),new Promise(r=>setTimeout(r,1500))]); }catch(e){}
-  try{ const keep=localStorage.getItem('rc_iid'); Object.keys(localStorage).filter(k=>k.startsWith('rc_')).forEach(k=>localStorage.removeItem(k)); if(keep)localStorage.setItem('rc_iid',keep); sessionStorage.clear(); }catch(e){}
+  try{ Object.keys(localStorage).filter(k=>k.startsWith('rc_')).forEach(k=>localStorage.removeItem(k)); sessionStorage.clear(); }catch(e){}
   location.replace(location.pathname);
 };
 $('wipeRuns').onclick=()=>{
@@ -6179,7 +6190,7 @@ $('vCalc').onclick=()=>{
 let pRaceD=10000, pRaceK='race', pHRSrc='measured';
 function paintProf(){
   { const n=$('pNick'), ns=$('pNickSet'); if(n)n.textContent=PROF.nick||'아직 없음'; if(ns)ns.hidden=!!PROF.nick; }
-  { const y=$('pBy'); if(y){ const Y=+todayStr().slice(0,4); if(!y.options.length)y.innerHTML='<option value="">선택</option>'+Array.from({length:Y-10-1939},(_,i)=>Y-10-i).map(v=>`<option value="${v}">${v}년</option>`).join('');
+  { const y=$('pBy'); if(y){ const Y=+todayStr().slice(0,4); if(!y.options.length)y.innerHTML='<option value="">선택</option>'+Array.from({length:Y-14-1939},(_,i)=>Y-14-i).map(v=>`<option value="${v}">${v}년</option>`).join('');
       y.value=String(PROF.by||(PROF.birth?String(PROF.birth).slice(0,4):'')); } }
   if(document.activeElement!==$('pW'))$('pW').value=PROF.w||''; if(document.activeElement!==$('pRHR'))$('pRHR').value=PROF.rhr||'';
   const ag=ageOf(PROF.birth)||PROF.age;
@@ -6349,8 +6360,19 @@ const FB={
      한 문서에 다 넣으면 1MB 한계에 금방 닿는다. */
   SETK:['prof','survey','shoes','props','adj','dist','hero','lapc','rhr','hikes','del','onboarded',
         'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','extraSeen','sigSeen'],
+  /* 동기화 장부 — 계정마다. 이미 올린 기록의 지문(h), 마지막으로 받은 시각(pullAt), 클라우드에서 지운 표(dd).
+     예전엔 동기화마다 모든 기록을 다시 읽고 다시 썼다 — 무료 한도(하루 읽기 5만·쓰기 2만)를 사용자 수십 명이면 넘겼다 */
+  st(){ const u=FB.user; let s=DEV.store.get('syncst',null);
+    if(!s||s.uid!==u.uid)s={uid:u.uid,pullAt:0,h:{},dd:[]}; s.h=s.h||{}; s.dd=s.dd||[]; return s; },
+  hash(t){ let h=5381; for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0; return (h>>>0).toString(36)+'.'+t.length; },
+  packRun(x){ const c=JSON.parse(JSON.stringify(x)); delete c._at;
+    if(c.track&&c.track.length>300)c.track=c.track.filter((_,j)=>j%Math.ceil(c.track.length/300)===0);
+    return fsPackObj(c); },
   async pull(){
     const r=FB.ref(); if(!r)return 0;
+    const ST=FB.st(), pullStart=Date.now(), since=ST.pullAt?ST.pullAt-2*60e3:0;   /* 폰마다 시계가 조금 달라 2분 겹쳐 받는다 */
+    const pulled=[];   /* 받은 기록은 이미 클라우드에 있으니 다음 push에서 다시 올리지 않게 지문을 적어 둔다 */
+    const getSince=c=>since?r.collection(c).where('_at','>',since).get():r.collection(c).get();
     const snap=await r.get();
     const cloud=fsUnpackObj(snap.exists?(snap.data()||{}):{});
     const mine=+DEV.store.get('upd',0)||0, theirs=+cloud.updatedAt||0;
@@ -6376,7 +6398,7 @@ const FB={
     if(took)reloadLocals();
     const del=new Set(myDel.concat(cloud.del||[]).concat(DEV.store.get('del',[])));
     DEV.store.set('del',[...del]);
-    const rs=await r.collection('runs').get();
+    const rs=await getSince('runs');
     const sig=x=>String(x.date)+'|'+(+x.km||0).toFixed(2);
     const cloudBySig={}; rs.forEach(d=>{ const v=fsUnpackObj(d.data()); if(v&&v.rid&&!cloudBySig[sig(v)])cloudBySig[sig(v)]=v.rid; });
     /* rid가 없던 시절 기록 — 매번 새 rid로 올라가 겹쳤다. 클라우드에 같은 기록이 있으면 그 rid를 쓰고, 붙인 rid는 저장한다 */
@@ -6392,20 +6414,21 @@ const FB={
       if(!v||!v.rid||(v.act&&v.act!=='run'))return;   /* 러닝만 — 걷기·등산은 acts로 */
       if(del.has(v.rid)||have.has(v.rid)||haveSig.has(sig(v)))return;   /* 같은 시각·거리 = 같은 기록 */
       if(isSeedRun(v))return;   /* 테스트 씨앗은 받지 않는다 */
-      RUNS.push(v); have.add(v.rid); haveSig.add(sig(v)); added++; });
+      delete v._at; RUNS.push(v); have.add(v.rid); haveSig.add(sig(v)); added++; pulled.push(['runs',v]); });
     if(added){ RUNS.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
       DEV.store.set('runs',RUNS); }
     /* 걷기·자전거·등산은 따로 모은다 — 설정 문서(1MB)에 넣으면 금방 넘친다. 예전엔 아예 올라가지 않았다 */
     let aAdd=0, aCut=0, aFix=0;
     ACTS.forEach(x=>{ if(!x.rid){ x.rid=newRid(x); aFix++; } });
     for(let i=ACTS.length-1;i>=0;i--) if(del.has(ACTS[i].rid)){ ACTS.splice(i,1); aCut++; }
-    const as=await r.collection('acts').get();
+    const as=await getSince('acts');
     const haveA=new Set(ACTS.map(x=>x.rid));
-    as.forEach(d=>{ const v=fsUnpackObj(d.data()); if(!v||!v.rid||del.has(v.rid)||haveA.has(v.rid))return; ACTS.push(v); haveA.add(v.rid); aAdd++; });
+    as.forEach(d=>{ const v=fsUnpackObj(d.data()); if(!v||!v.rid||del.has(v.rid)||haveA.has(v.rid))return; delete v._at; ACTS.push(v); haveA.add(v.rid); aAdd++; pulled.push(['acts',v]); });
     if(aAdd||aCut||aFix){ ACTS.sort((a,b)=>String(a.date).localeCompare(String(b.date))); DEV.store.set('acts',ACTS); }
     /* 신발 누적 — 두 폰이 각자 더한 값은 설정째 덮이면 한쪽이 사라진다. 기록에서 다시 센 값보다 작으면 올린다 */
     if(added||took){ let ch=false; SHOES.forEach(sh=>{ const k=+RUNS.filter(x=>x.shoe===sh.name).reduce((a,x)=>a+(x.km||0),0).toFixed(3);
         if(k>(sh.km||0)+0.001){ sh.km=k; ch=true; } }); if(ch)DEV.store.set('shoes',SHOES); }
+    { const st2=FB.st(); st2.pullAt=pullStart; pulled.forEach(([col,v])=>{ st2.h[col+'/'+v.rid]=FB.hash(JSON.stringify(FB.packRun(v))); }); DEV.store.set('syncst',st2); }
     return added||cut||aAdd||aCut;
   },
   async push(){
@@ -6419,35 +6442,34 @@ const FB={
       o.stat={runs:R.length,km:+R.reduce((a,r)=>a+(+r.km||0),0).toFixed(1),km7:+R.filter(r=>ldate(r.date).slice(0,10)>=t7).reduce((a,r)=>a+(+r.km||0),0).toFixed(1),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null};
       const mon=weekMonday(todayStr()); o.stat.kmWk=+R.filter(r=>weekMonday(ldate(r.date).slice(0,10))===mon).reduce((a,r)=>a+(+r.km||0),0).toFixed(1);
       try{ o.stat.mile=Math.round(mileage().total); }catch(e){} }catch(e){}
-    await r.set(o,{merge:true});
-    DEV.store.set('upd',o.updatedAt);
+    const ST=FB.st();
+    /* 설정 문서도 바뀐 게 없으면 다시 쓰지 않는다 */
+    const sh=FB.hash(JSON.stringify(Object.assign({},o,{updatedAt:0})));
+    if(ST.h.__set!==sh){ await r.set(o,{merge:true}); DEV.store.set('upd',o.updatedAt); ST.h.__set=sh; }
     const db=firebase.firestore();
     let n=0, fixed=false;
-    for(let i=0;i<RUNS.length;i+=400){
+    /* 바뀐 기록만 — 지문이 같으면 건너뛴다. 받을 때 '이후 바뀐 것'만 고르도록 _at을 붙인다 */
+    const ups=[];
+    [['runs',RUNS],['acts',ACTS]].forEach(([col,L])=>L.forEach(x=>{
+      if(!x.rid){ x.rid=newRid(x); fixed=true; }
+      const c=FB.packRun(x), h=FB.hash(JSON.stringify(c)), k=col+'/'+x.rid;
+      if(ST.h[k]===h)return; c._at=Date.now(); ups.push([col,x.rid,c,k,h]); }));
+    for(let i=0;i<ups.length;i+=400){
       const b=db.batch();
-      RUNS.slice(i,i+400).forEach(x=>{
-        if(!x.rid){ x.rid=newRid(x); fixed=true; }
-        const c=JSON.parse(JSON.stringify(x));
-        if(c.track&&c.track.length>300)c.track=c.track.filter((_,j)=>j%Math.ceil(c.track.length/300)===0);
-        b.set(r.collection('runs').doc(x.rid),fsPackObj(c),{merge:true}); n++; });
+      ups.slice(i,i+400).forEach(([col,rid,c])=>{ b.set(r.collection(col).doc(rid),c,{merge:true}); if(col==='runs')n++; });
       await b.commit();
+      ups.slice(i,i+400).forEach(([,, ,k,h])=>{ ST.h[k]=h; });
+      DEV.store.set('syncst',ST);
     }
-    if(fixed)DEV.store.set('runs',RUNS);          /* 붙인 rid를 저장하지 않으면 다음에 또 새 rid로 올라간다 */
-    for(let i=0;i<ACTS.length;i+=400){
-      const b=db.batch();
-      ACTS.slice(i,i+400).forEach(x=>{
-        if(!x.rid){ x.rid=newRid(x); fixed=true; }
-        const c=JSON.parse(JSON.stringify(x));
-        if(c.track&&c.track.length>300)c.track=c.track.filter((_,j)=>j%Math.ceil(c.track.length/300)===0);
-        b.set(r.collection('acts').doc(x.rid),fsPackObj(c),{merge:true}); });
+    if(fixed){ DEV.store.set('runs',RUNS); DEV.store.set('acts',ACTS); }   /* 붙인 rid를 저장하지 않으면 다음에 또 새 rid로 올라간다 */
+    const del=DEV.store.get('del',[]), done=new Set(ST.dd);
+    const todo=del.filter(id=>!done.has(id)).slice(-200);
+    if(todo.length){ const b=db.batch();
+      todo.forEach(id=>{ b.delete(r.collection('runs').doc(id)); b.delete(r.collection('acts').doc(id)); });
       await b.commit();
-    }
-    if(fixed)DEV.store.set('acts',ACTS);
-    const del=DEV.store.get('del',[]);
-    if(del.length){ const b=db.batch();
-      /* 최근 것부터 — 예전엔 가장 오래된 400개만 지워서 새로 지운 기록이 클라우드에 남았다 */
-      del.slice(-200).forEach(id=>{ b.delete(r.collection('runs').doc(id)); b.delete(r.collection('acts').doc(id)); });
-      await b.commit(); }
+      todo.forEach(id=>{ delete ST.h['runs/'+id]; delete ST.h['acts/'+id]; });
+      ST.dd=ST.dd.concat(todo).slice(-1000); }
+    DEV.store.set('syncst',ST);
     return n;
   },
   /* 예전에는 동기화가 도는 중에 또 부르면 아무것도 안 하고 바로 돌아왔다.
@@ -6464,12 +6486,13 @@ const FB={
         try{ const a=await firebase.firestore().collection('admin_users').doc(FB.user.uid).get(); FB.susp=!!(a.exists&&a.data().suspended); }catch(e){ FB.susp=false; }
         if(FB.susp){ FB.err='동기화 중지 · 폰 기록 유지 — 설정 › 의견'; return 0; }
         const got=await FB.pull(); await FB.push();
-        FB.err=null; FB.last=Date.now();
+        const hadErr=!!FB.err; FB.err=null; FB.last=Date.now(); if(hadErr){ try{ usagePing(true); }catch(_){} }   /* 고쳐졌으면 오류 표시를 지운다 */
         if(got){ afterRunsChanged(); }
         return got;
       }catch(e){ FB.err=e.message||String(e);
         /* 실패하면 2분 뒤 혼자 다시 — 사용자가 '동기화'를 누르지 않아도 되게 (연달아 실패하면 최대 30분 간격) */
         FB._fails=(FB._fails||0)+1; clearTimeout(FB._rt);
+        if(FB._fails===1){ try{ usagePing(true); }catch(_){} }   /* 처음 실패할 때 한 번 알린다 */
         FB._rt=setTimeout(()=>{ if(FB.user)FB.sync().catch(()=>{}); },Math.min(30,2*FB._fails)*60e3);
         throw e; }
       finally{ FB.busy=false; FB._p=null; paintFb(); if(!FB.err)FB._fails=0; }
@@ -6579,7 +6602,7 @@ function obStart(again){
   /* 처음 쓰는 사람에게는 비어 있어야 한다 — 남의 기록이 기본값으로 들어가면 안 된다 */
   const had=DEV.store.get('prof',null), r=(had&&had.race)||null;
   OB={i:0,d:Object.assign({
-    nick: had?(PROF.nick||''):'', by: had?(PROF.by||(PROF.birth?+String(PROF.birth).slice(0,4):null)):null, agree: !!DEV.store.get('consent',null),
+    nick: had?(PROF.nick||''):'', by: had?(PROF.by||(PROF.birth?+String(PROF.birth).slice(0,4):null)):null, agree: (DEV.store.get('consent',{})||{}).ver===CONSENT_VER, age14: !!(DEV.store.get('consent',{})||{}).age14, health: !!(DEV.store.get('consent',{})||{}).health,
     birth: had?PROF.birth:null, sex: had?PROF.sex:null, age: had?PROF.age:null, w: had?PROF.w:null, rhr: had?PROF.rhr:null,
     rd: r?r.m:0, rt: r?r.sec:null, rk: r?(r.kind||'race'):'race'
   },SURVEY)};
@@ -6596,7 +6619,7 @@ function obTags(key,multi){
     `<button type="button" class="obopt${OB.d[key]===x.v?' on':''}" data-v="${x.v}">${x.l}</button>`
   ).join('')+`</div>`;
 }
-const CONSENT_VER='2026-11-05';
+const CONSENT_VER='2026-11-05-2';   /* 고지를 바꾸면 올린다 — 기존 사용자에게 한 번 다시 묻는다 */
 /* 확인 시트 — prompt/confirm 대신. 약속(Promise)으로 true/false */
 function askSheet(o){ return new Promise(res=>{ let sh=$('askSheet'); if(!sh){ sh=document.createElement('div'); sh.id='askSheet'; sh.className='msheet'; sh.hidden=true; document.body.appendChild(sh); }
   sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="${ESC(o.title||'확인')}"><div class="ms-hd"><b>${ESC(o.title||'확인')}</b><button type="button" data-ask="0" aria-label="닫기">✕</button></div>
@@ -6628,7 +6651,7 @@ function saveBasics(d){ const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick
   if(PROF.by&&!PROF.birth)PROF.birth=`${PROF.by}-07-01`;
   if(PROF.birth){ const a=ageOf(PROF.birth); if(a)PROF.age=a; }
   DEV.store.set('prof',PROF);
-  if(d.agree&&!DEV.store.get('consent',null))DEV.store.set('consent',{at:new Date().toISOString(),ver:CONSENT_VER});
+  { const c0=DEV.store.get('consent',null); if(d.agree&&d.health&&d.age14&&(!c0||c0.ver!==CONSENT_VER))DEV.store.set('consent',{at:new Date().toISOString(),ver:CONSENT_VER,health:true,age14:true}); }
   nickReserve(PROF.nick); try{ usagePing(true); }catch(e){} }
 const OBSTEP=[
  /* 0 ─ 기본 정보 · 개인정보 동의 */
@@ -6640,8 +6663,8 @@ const OBSTEP=[
       <input type="text" id="obNick" maxlength="12" placeholder="2~12자 · 다른 사람과 겹치면 안 돼요" value="${ESC(lock?PROF.nick:(d.nick||''))}" autocomplete="nickname"${lock?' readonly':''}>
       <div class="meta" id="obNickNote" style="margin-top:6px;min-height:18px">${lock?'별명은 한 번 정하면 바꿀 수 없어요 (설정 › 계정 초기화로만)':'한 번 정하면 바꿀 수 없어요'}</div>
       <div class="oblab">태어난 해 <span class="obreq">필수</span></div>
-      <select id="obBy"><option value="">선택</option>${Array.from({length:Y-10-1939},(_,i)=>Y-10-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}</select>
-      <div class="meta" style="margin-top:6px">최대심박 추정(208 − 0.7 × 나이)에 씁니다</div>
+      <select id="obBy"><option value="">선택</option>${Array.from({length:Y-14-1939},(_,i)=>Y-14-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}</select>
+      <div class="meta" style="margin-top:6px">최대심박 추정(208 − 0.7 × 나이)에 씁니다 · 만 14세 이상만 쓸 수 있어요</div>
       <div class="oblab">성별 <span class="obreq">필수</span></div>
       <div class="tagrow" id="obSex0" style="margin:0">
         <button type="button" class="tag${d.sex==='m'?' on':''}" data-v="m">남</button>
@@ -6651,23 +6674,38 @@ const OBSTEP=[
       <details class="obconsent"><summary>어떤 정보를, 왜, 어디에 두는지</summary>
         <p><b>수집 항목</b> 별명 · 태어난 해 · 성별 · 체중/안정 심박(입력 시) · 달리기 기록(거리·시간·페이스·심박·경로) · 기기 종류·앱 버전 · 구글 로그인 시 이메일</p>
         <p><b>이용 목적</b> 훈련 기준(심박·페이스) 계산, 기록 보관과 통계, 앱 사용 현황 파악과 공지</p>
-        <p><b>보관 위치·기간</b> 기본은 이 폰 안에만 저장. 구글 계정으로 로그인하면 Firebase(구글 클라우드)에 동기화. 삭제를 요청하거나 설정 › 내 정보에서 지우면 즉시 삭제</p>
+        <p><b>보관 위치·기간</b> 기본은 이 폰 안에만 저장. 구글 계정으로 로그인하면 Firebase(구글 클라우드)에 동기화. 계정을 지울 때까지 보관하고, 지우면 바로 삭제</p>
+        <p><b>처리 위탁</b> Google(Firebase) — 데이터 저장·로그인. 서버가 해외에 있을 수 있어요</p>
         <p><b>제공</b> 제3자에게 제공하지 않음. 별명은 중복 확인을 위해 서버에 저장</p>
-        <p><b>동의 철회</b> 설정 › 내 정보 › 데이터 지우기. 철회하면 앱의 코칭 기능을 쓸 수 없음</p>
+        <p><b>동의 철회·삭제</b> 설정 › 고급 › 계정 초기화. 앱을 지웠다면 <a href="delete.html" target="_blank" rel="noopener">삭제 요청 페이지</a>에서 요청. 철회하면 앱을 쓸 수 없어요</p>
+        <p><a href="privacy.html" target="_blank" rel="noopener">개인정보처리방침 전문 보기</a></p>
         <p class="meta">고지 버전 ${CONSENT_VER}</p></details>
-      <label class="obchk big"><input type="checkbox" id="obAgree"${d.agree?' checked':''}> <span>위 내용을 읽었고 개인정보 수집·이용에 동의합니다</span></label>`; },
+      <label class="obchk big"><input type="checkbox" id="obAgree"${d.agree?' checked':''}> <span>위 내용을 읽었고 개인정보 수집·이용에 동의합니다</span></label>
+      <label class="obchk big"><input type="checkbox" id="obAge14"${d.age14?' checked':''}> <span>만 14세 이상입니다</span></label>
+      <details class="obconsent" style="margin-top:12px"><summary>건강 정보 수집·이용 동의 (민감정보)</summary>
+        <p><b>수집 항목</b> 심박(달리는 동안·안정 심박·최대심박), 체중(입력 시), 건강 확인 질문의 답(통증·심장·혈압 관련 여부)</p>
+        <p><b>이용 목적</b> 심박 구간과 훈련 강도 계산, 무리한 훈련 경고. 진단·치료에는 쓰지 않아요</p>
+        <p><b>보관</b> 위 개인정보와 같아요(기본은 폰, 로그인하면 클라우드)</p>
+        <p><b>거부할 권리</b> 동의하지 않을 수 있어요. 다만 심박 기반 코칭이 핵심 기능이라 동의하지 않으면 앱을 쓸 수 없어요</p></details>
+      <label class="obchk big"><input type="checkbox" id="obHealth"${d.health?' checked':''}> <span>건강 정보 수집·이용에 동의합니다</span></label>
+`; },
   wire(){ const n=$('obNick'); n.oninput=()=>{ OB.d.nick=n.value; OB.d.nickOk=null; $('obNickNote').textContent=''; };
     n.onchange=()=>nickCheck();
     $('obBy').onchange=e=>{ OB.d.by=+e.target.value||null; };
     $('obSex0').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return; OB.d.sex=b.dataset.v; $('obSex0').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); };
-    $('obAgree').onchange=e=>{ OB.d.agree=e.target.checked; }; },
-  read(){ const n=$('obNick'); if(n)OB.d.nick=n.value; const b=$('obBy'); if(b)OB.d.by=+b.value||null; const a=$('obAgree'); if(a)OB.d.agree=a.checked; },
+    $('obAgree').onchange=e=>{ OB.d.agree=e.target.checked; };
+    $('obAge14').onchange=e=>{ OB.d.age14=e.target.checked; };
+    $('obHealth').onchange=e=>{ OB.d.health=e.target.checked; }; },
+  read(){ const n=$('obNick'); if(n)OB.d.nick=n.value; const b=$('obBy'); if(b)OB.d.by=+b.value||null; const a=$('obAgree'); if(a)OB.d.agree=a.checked; const g=$('obAge14'); if(g)OB.d.age14=g.checked; const h=$('obHealth'); if(h)OB.d.health=h.checked; },
   async ok(){ const d=OB.d, nick=String(d.nick||'').trim();
     if(nick.length<2||nick.length>12)return {m:'별명은 2~12자',f:'obNick'};
     if(!/^[가-힣A-Za-z0-9_\-. ]+$/.test(nick))return {m:'별명은 한글·영문·숫자만',f:'obNick'};
     if(!d.by)return {m:'태어난 해를 골라 주세요',f:'obBy'};
     if(!d.sex)return {m:'성별을 골라 주세요',f:'obSex0'};
     if(!d.agree)return {m:'개인정보 동의가 필요해요',f:'obAgree'};
+    if(!d.age14)return {m:'만 14세 이상만 쓸 수 있어요',f:'obAge14'};
+    if(d.by&&+todayStr().slice(0,4)-d.by<14)return {m:'만 14세 이상만 쓸 수 있어요',f:'obBy'};
+    if(!d.health)return {m:'건강 정보 동의가 필요해요',f:'obHealth'};
     const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick;
     if(lock){ d.nick=PROF.nick; return true; }
     const r=await nickCheck(); if(r!==true)return {m:r,f:'obNick'};
@@ -10822,7 +10860,7 @@ function goalBadge(){
     else { const er=$('introErr'); if(er){ er.textContent='로그인 실패 · 재시도'; er.style.display='block'; } }
   }).catch(()=>{});
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
-  else if(!DEV.store.get('consent',null)){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 기본 정보·동의 한 번 */
+  else if(!DEV.store.get('consent',null)||DEV.store.get('consent',{}).ver!==CONSENT_VER){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 고지가 바뀌면 한 번 다시 */
   splashRun();
   setTimeout(()=>{ try{ noticeLoad(); }catch(e){} try{ bannerLoad(); }catch(e){} try{ usagePing(); }catch(e){} const u=$('usageOpt'); if(u)u.checked=usageOn(); },1500);   /* 공지·사용 현황 — 화면이 뜬 뒤 조용히 */
 })();
