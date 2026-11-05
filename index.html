@@ -1375,7 +1375,8 @@ details.noti .sigc{margin:6px 0}
       <button class="btn sm" id="pInfoSave" style="margin:12px 0 0;width:100%">내 정보 저장</button>
     </div>
   </section>
-  <details class="cset"><summary>속도·심박 구간 근거</summary>
+  <!-- 속도·심박 구간 근거: 훈련 원리 '내 숫자'·홈 '대회 기록'과 겹쳐 화면에서 뺐다. 칸은 계산 코드가 읽어서 숨겨 둔다 -->
+  <details class="cset" hidden><summary>속도·심박 구간 근거</summary>
   <div class="card tight" style="margin:0 0 12px">
     <div style="font-size:11px;color:var(--ink-3);margin-bottom:6px">최대심박</div>
     <div class="tagrow" id="pHRSrc" style="margin-bottom:8px">
@@ -1393,15 +1394,9 @@ details.noti .sigc{margin:6px 0}
     <div class="tagrow" id="pRaceK" style="margin:8px 0 10px"><button class="tag" data-v="race">대회 기록</button><button class="tag" data-v="solo">혼자 측정</button></div>
     <div class="note green" id="pOut" style="margin:0 0 10px"></div>
     <button class="btn sm" id="pSave" style="margin:0">저장 — 전체 재계산</button>
-    <button class="btn sm ghost" style="margin:9px 0 0" id="obAgain">시작 설문 재실시</button>
   </div></details>
 
-  <details class="cset"><summary>아침 안정시 심박</summary>
-  <div class="card tight" style="margin:0 0 12px">
-    <div class="meta" style="margin-bottom:9px">아침 1분 측정 · 높으면 알림</div>
-    <div class="row"><input type="number" id="rhrIn" placeholder="bpm" inputmode="numeric"><button class="btn sm" style="margin:0;flex:0 0 86px" id="rhrAdd">기록</button></div>
-    <div id="rhrList" style="margin-top:11px;font-size:12.5px;color:var(--ink-2)"></div>
-  </div></details>
+  <!-- 아침 안정시 심박: 내 정보 '안정 심박'으로 합쳤다(저장하면 오늘 기록으로도 남아 7일 평균·경보에 쓰인다) -->
 
   <details class="cset"><summary>등산 기록(시간만)</summary>
   <div class="card tight" style="margin:0 0 12px">
@@ -1427,10 +1422,9 @@ details.noti .sigc{margin:6px 0}
     <label class="setlink" for="usageOpt" style="cursor:pointer"><b>사용 현황 보내기</b><i>기기·버전·목표만 전송</i><input type="checkbox" id="usageOpt" style="width:20px;height:20px;accent-color:var(--accent)"></label>
   </div>
 
-  <details class="cset"><summary>백업 · 클라우드</summary>
+  <details class="cset"><summary>백업</summary>
   <div class="card tight" style="margin:0 0 12px">
     <div id="fbState" class="meta" style="margin-bottom:10px">미설정</div>
-    <div class="row" style="margin-bottom:10px"><button class="btn sm" style="margin:0" id="fbLogin">Google 로그인</button><button class="btn sm ghost" style="margin:0;flex:0 0 86px" id="fbSync">동기화</button></div>
     <div id="storeState" style="font-size:12px;color:var(--ink-3);margin-bottom:9px">확인 중…</div>
     <div class="row"><button class="btn sm ghost" style="margin:0" id="bkExport">백업 내려받기</button><button class="btn sm ghost" style="margin:0" id="bkImport">백업 불러오기</button></div>
     <input type="file" id="bkFile" accept="application/json" hidden>
@@ -1439,13 +1433,9 @@ details.noti .sigc{margin:6px 0}
   <details class="cset"><summary>고급</summary>
   <div class="card tight" style="margin:0 0 12px">
     <button class="btn sm ghost" style="margin:0" id="btnFresh">최신 버전 새로고침</button>
+    <button class="btn sm ghost" style="margin:9px 0 0" id="obAgain">시작 설문 다시 하기</button>
     <button class="btn sm ghost" style="margin:9px 0 0" id="btnReDist">기록 거리 재계산</button>
     <button class="btn sm ghost" style="margin:9px 0 0" id="btnSelf">자가 점검</button>
-    <button class="btn sm ghost" style="margin:9px 0 0" id="fbCfgT">Firebase 설정값 넣기 ▾</button>
-    <div id="fbCfgBox" hidden>
-      <textarea id="fbCfg" rows="5" placeholder='{ "apiKey": "...", "authDomain": "...", "projectId": "..." }'></textarea>
-      <button class="btn sm" style="margin:8px 0 0" id="fbCfgSave">저장 · 연결</button>
-    </div>
     <button class="btn sm ghost" id="wipeRuns" style="margin:14px 0 0;color:var(--alarm)">모든 러닝 기록 삭제</button>
     <button class="btn sm ghost" id="wipeAll" style="margin:9px 0 0;color:var(--alarm)">계정 초기화 — 모든 데이터 삭제</button>
     <div class="meta" style="margin-top:6px;line-height:1.6">기록·설정·별명·동의가 모두 지워지고 처음 화면부터 다시 시작합니다. 구글로 동기화한 데이터도 함께 지웁니다.</div>
@@ -2098,7 +2088,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .mc-lad{border-radius:14px;overflow:hidden;border:1px solid var(--line)}
 .mc-row{display:grid;grid-template-columns:70px auto 1fr 30px;align-items:center;gap:8px;padding:8px 12px 8px 14px;position:relative;background:var(--panel);border-top:1px solid var(--line)}.mc-row:first-child{border-top:0}
 .mc-row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
-.mc-row .mc-nm{font-size:13px;font-weight:900;color:var(--c);display:flex;align-items:center;gap:4px}.mc-row .mc-nm u{text-decoration:none;font-size:9.5px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px}
+.mc-row .mc-nm{font-size:13px;font-weight:900;color:var(--c);display:flex;flex-direction:column;align-items:flex-start;gap:2px;white-space:nowrap}.mc-row .mc-nm u{text-decoration:none;font-size:9.5px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 6px}
 .mc-row b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}.mc-row b s{text-decoration:none;color:var(--ink-3);font-weight:600;margin:0 2px}
 .mc-row .mc-hr{font-size:11.5px;color:var(--ink-2);font-weight:700;white-space:nowrap;text-align:right;overflow:hidden;text-overflow:ellipsis}.mc-row .mc-n{font-size:11px;color:var(--ink-3);text-align:right;font-weight:700}
 .mc-row em{position:absolute;right:46px;top:3px;font-style:normal;font-size:9px;font-weight:800;color:var(--accent)}
@@ -2108,8 +2098,8 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .mc-zb i em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-weight:900;color:#fff}
 .mc-zb b{position:absolute;top:-5px;bottom:-5px;width:3px;margin-left:-1.5px;background:var(--ink);border-radius:2px}
 .mc-zl{position:relative;display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);font-weight:700;margin-top:6px;height:16px}.mc-zl .cap{position:absolute;transform:translateX(-50%);color:var(--ink);font-weight:900;white-space:nowrap}
-.mc-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:6px;margin-top:10px}.mc-grid>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
-.mc-grid i{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700}.mc-grid b{display:block;font-size:16px;font-weight:900;margin-top:1px}.mc-grid b small{font-size:10.5px;color:var(--ink-3)}.mc-grid em{display:block;font-style:normal;font-size:10px;color:var(--ink-3);margin-top:1px}
+.mc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:10px}.mc-grid>div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.mc-grid i{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:700}.mc-grid b{display:block;font-size:16px;font-weight:900;margin-top:1px}.mc-grid b small{font-size:10.5px;color:var(--ink-3)}.mc-grid em{display:block;font-style:normal;font-size:10px;line-height:1.45;color:var(--ink-3);margin-top:1px;overflow-wrap:anywhere}
 .mc-btns .snapb{white-space:nowrap;flex:none}.mc-btns .btn{flex:1}
 .mc-foot{font-size:10.5px;color:var(--ink-3);margin-top:8px;text-align:center}.mc-btns{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
 /* ── 달릴 때 보는 8가지 — 밝은 2열 타일. 한 화면에 다 보이고, 이미지로 저장된다 ── */
@@ -2186,7 +2176,8 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pe-warn{font-size:12.5px;font-weight:700;color:#C2410C;margin:10px 2px 0}
 .ask-body{font-size:14px;line-height:1.7;color:var(--ink)}.ask-body .meta{display:inline-block;margin-top:6px}.btn.danger{background:#C2410C}
 .myinfo .mi-hd{display:flex;align-items:baseline;gap:8px;margin:4px 2px 8px}.myinfo .mi-hd b{font-size:16px}.myinfo .mi-hd i{font-style:normal;font-size:12px;color:var(--ink-3)}
-.mi-row{display:flex;align-items:center;gap:12px;min-height:46px;border-bottom:1px solid var(--line);padding:6px 0}.mi-row:last-of-type{border-bottom:none}.mi-row>label{flex:0 0 88px;font-size:13px;font-weight:700;color:var(--ink-2)}.mi-v{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mi-v b{font-size:15px}.mi-acct{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px!important}.mi-on{font-size:11px;font-weight:700;color:#0B7A68;background:#E3F6F1;border-radius:999px;padding:2px 8px;flex:none}
+.mi-row{display:flex;align-items:center;gap:12px;min-height:46px;border-bottom:1px solid var(--line);padding:6px 0}.mi-row:last-of-type{border-bottom:none}.mi-row>label{flex:0 0 88px;font-size:13px;font-weight:700;color:var(--ink-2)}.mi-v{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mi-v b{font-size:15px}.mi-out{margin-left:auto;flex:none;border:none;background:none;font:inherit;font-size:12px;font-weight:700;color:var(--ink-3);text-decoration:underline;cursor:pointer;padding:4px 2px}
+.mi-acct{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px!important}.mi-on{font-size:11px;font-weight:700;color:#0B7A68;background:#E3F6F1;border-radius:999px;padding:2px 8px;flex:none}
 .mi-lock{font-size:11px;color:var(--ink-3);background:var(--panel-2);border-radius:999px;padding:2px 8px}.mi-v select,.mi-v input{flex:1;min-width:0;max-width:200px;font:inherit;font-size:15px;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel)}.mi-v .meta{line-height:1.5}
 .obreq{font-size:10px;font-weight:800;color:#fff;background:var(--accent);border-radius:999px;padding:1px 6px;margin-left:4px;vertical-align:middle}
 #obNick,#obBy{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:12px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel)}
@@ -2298,7 +2289,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.95';
+const APPVER='19.97';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5815,7 +5806,7 @@ function renderTools(){
   $('pW').value=PROF.w; $('pHR').value=PROF.hrmax; $('pRHR').value=PROF.rhr||'';
   $('hikeDate').value=todayStr();
   const s=[...RHR].sort((a,b)=>a.date<b.date?1:-1).slice(0,10);
-  $('rhrList').innerHTML=s.length
+  if($('rhrList'))$('rhrList').innerHTML=s.length
     ? s.map(x=>`<div>${x.date.slice(5)} — <b class="num">${x.bpm}</b> bpm</div>`).join('')+
       (()=>{ const b=rhrBase(); return b?`<div style="margin-top:7px;color:var(--ink-3)">평소 ${Math.round(b.m)} · 경보선 ${Math.round(b.m+2*b.sd)} (기록 ${b.n}번)</div>`
         :`<div style="margin-top:7px;color:var(--ink-3)">${Math.max(1,9-RHR.length)}번 더 → 범위·경보선</div>`; })()
@@ -5830,7 +5821,7 @@ function renderTools(){
    :'<span style="color:var(--ink-3)">등록 신발 없음</span>';
   renderHike(); BT.paint(); paintStore(); paintProf();
 }
-$('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
+if($('rhrAdd'))$('rhrAdd').onclick=()=>{const v=+$('rhrIn').value;
   if(!(v>25&&v<140))return alert('30~140 입력');
   RHR=RHR.filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v});
   DEV.store.set('rhr',RHR); $('rhrIn').value=''; afterRunsChanged();};   /* 안정심박이 생기면 존이 여유심박으로 바뀐다 — 바로 다시 계산 */
@@ -6253,6 +6244,8 @@ $('pInfoSave').onclick=()=>{
   if(!PROF.by&&!PROF.birth)return toast('태어난 해를 골라 주세요');
   if(!PROF.sex)return toast('성별을 골라 주세요');
   PROF=Object.assign({},PROF,{w:+$('pW').value||null,rhr:+$('pRHR').value||null});
+  /* 안정 심박을 넣으면 오늘 측정으로도 남긴다 — 예전 '아침 안정시 심박' 칸의 7일 평균·높을 때 알림이 그대로 돈다 */
+  { const v=+$('pRHR').value; if(v>25&&v<140){ RHR=(RHR||[]).filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v}); DEV.store.set('rhr',RHR); } }
   if(!PROF.by&&PROF.birth)PROF.by=+String(PROF.birth).slice(0,4);
   if(!(PROF.hrmaxSrc==='measured'&&PROF.hrmax))PROF.hrmax=null;
   DEV.store.set('prof',PROF);
@@ -6557,29 +6550,30 @@ function paintFb(){
   if(!FBCFG) st.innerHTML='미연결 · 폰에만 저장<br>'+
     '<b>Firebase 설정</b> → 구글 저장';
   else if(!u&&FBCFG===FB_BUILTIN&&!FB.err)
-    st.innerHTML='준비됨<br>로그인 → 새 폰도 유지';
+    st.innerHTML='지금은 이 폰에만 저장 · 구글 계정 연결은 위 \'내 정보\'에서';
   else if(FB.err) st.innerHTML=/^동기화 중지/.test(FB.err)?`<span style="color:var(--alarm)">${FB.err}</span>`
     :`<span style="color:var(--alarm)">클라우드에 저장하지 못했어요. 잠시 뒤 '동기화'를 다시 눌러 주세요.</span><br><span style="font-size:11px;color:var(--ink-3)">${String(FB.err).replace(/[<>&]/g,'')}</span>`;
   else if(FB.busy) st.textContent='동기화 중…';
   else if(u) st.innerHTML=`<b>${u.email||'로그인됨'}</b>으로 저장 중 · 기록 ${RUNS.length}건`+
     (FB.last?` · 마지막 ${new Date(FB.last).toTimeString().slice(0,5)}`:'');
-  else st.textContent='입력됨 · 구글 로그인';
-  $('fbLogin').textContent=u?'로그아웃':'Google 로그인';
-  $('fbSync').disabled=!u||FB.busy;
+  else st.textContent='지금은 이 폰에만 저장 · 구글 계정 연결은 위 \'내 정보\'에서';
+  if($('fbLogin'))$('fbLogin').textContent=u?'로그아웃':'Google 로그인';
+  if($('fbSync'))$('fbSync').disabled=!u||FB.busy;
   paintAcct();
 }
 /* 설정 맨 위 '내 정보'의 구글 계정 줄 — 클라우드 저장을 찾기 쉽게. 로그아웃은 '백업 · 클라우드'에만 둔다 */
 function paintAcct(){ const el=$('pAcct'); if(!el)return; const u=FB.user;
   const h=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  if(u){ el.innerHTML=`<b class="mi-acct">${h(u.email||'연결됨')}</b><span class="mi-on">${FB.busy?'저장 중':'연결됨'}</span>`; return; }
+  if(u){ el.innerHTML=`<b class="mi-acct">${h(u.email||'연결됨')}</b><span class="mi-on">${FB.busy?'저장 중':'연결됨'}</span><button type="button" class="mi-out" id="pAcctOut">로그아웃</button>`; return; }
   el.innerHTML=`<span class="meta" style="flex:1;min-width:0;margin:0;font-size:12.5px;text-align:left">폰을 바꿔도<br>기록이 남아요</span><button type="button" class="btn sm" id="pAcctGo" style="margin:0 0 0 auto;width:auto;flex:none;padding:8px 16px">연결하기</button>`; }
-document.addEventListener('click',async e=>{ const b=e.target.closest&&e.target.closest('#pAcctGo'); if(!b||b.disabled)return;
+document.addEventListener('click',async e=>{ const o=e.target.closest&&e.target.closest('#pAcctOut'); if(o){ if(await askSheet({title:'로그아웃',html:'이 폰의 기록은 그대로 남아요. 다시 연결하면 이어서 저장돼요.',yes:'로그아웃',no:'취소'})){ await FB.signOut(); paintAcct(); } return; }
+  const b=e.target.closest&&e.target.closest('#pAcctGo'); if(!b||b.disabled)return;
   b.disabled=true; b.textContent='연결 중…';
   try{ await FB.signIn(); }catch(err){ alert('연결하지 못했어요\n'+(err.message||err)); }
   paintAcct(); });
-$('fbCfgT').onclick=()=>{ const b=$('fbCfgBox'); b.hidden=!b.hidden;
+if($('fbCfgT'))$('fbCfgT').onclick=()=>{ const b=$('fbCfgBox'); b.hidden=!b.hidden;
   if(!b.hidden&&FBCFG)$('fbCfg').value=JSON.stringify(FBCFG,null,1); };
-$('fbCfgSave').onclick=async()=>{
+if($('fbCfgSave'))$('fbCfgSave').onclick=async()=>{
   const c=parseFbCfg($('fbCfg').value);
   if(!c)return alert('apiKey · authDomain · projectId 없음\nfirebaseConfig 붙여넣기');
   FBCFG=c; DEV.store.set('fbcfg',c);
@@ -6588,11 +6582,11 @@ $('fbCfgSave').onclick=async()=>{
   paintFb();
   alert(ok?'연결됨 · 구글 로그인':('연결 실패\n'+(FB.err||'')));
 };
-$('fbLogin').onclick=async()=>{
+if($('fbLogin'))$('fbLogin').onclick=async()=>{
   if(FB.user)return FB.signOut();
   try{ await FB.signIn(); }catch(e){ alert('로그인 실패\n'+(e.message||e)); }
 };
-$('fbSync').onclick=async()=>{
+if($('fbSync'))$('fbSync').onclick=async()=>{
   try{ const n=await FB.sync(); alert(n?`클라우드에서 ${n}건 가져옴`:'최신 상태'); }
   catch(e){ alert('동기화 실패\n'+(e.message||e)); }
 };
@@ -8584,7 +8578,7 @@ function renderHome(){
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
       <div class="hname"><b>가지런<span class="hada">하다</span></b><i class="hver">v${APPVER}</i></div>${odoHTML()}</div>`;
   /* 연속 배지는 위 날짜 줄로 — 로고 줄이 흔들리지 않게 */
-  try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}일 연속`:''; tl.title='일정을 지킨 날이 이어진 수 — 쉬는 날을 쉰 것도 지킨 날로 세요'; } }catch(e){}
+  try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}일`:''; tl.title='일정을 지킨 날이 이어진 수(연속) — 쉬는 날을 쉰 것도 지킨 날로 세요'; tl.setAttribute('aria-label',st+'일 연속 지킴'); } }catch(e){}
 
   /* 홈 v2 — 순서: 알림 → 프리런 줄(늘 맨 위) → 오늘 카드 → 다음 훈련 한 줄 → 아이콘 타일(나머지는 전부 타일 → 시트) */
   try{ glogCheck(); }catch(e){}
@@ -12544,7 +12538,7 @@ function mineSheetHTML(){ const D=mineData(), r=D.r, src={measured:'실측',obse
     <div class="mc-zone"><div class="mc-zb">${zb}<b style="left:${X(D.cap)}%"></b></div>
       <div class="mc-zl"><span>${ZONES.kind==='hrr'?`안정 ${ZONES.rhr}`:''}</span><span class="cap" style="left:${X(D.cap)}%">쉬운 날 상한 ${D.cap}</span><span>최대 ${HRMAX} <small>${src}</small></span></div></div>
     <div class="mc-grid">
-      <div><i>뛰는 날</i><b>주 ${D.days.length}회</b><em>${D.days.join('·')} · 빠른 날 ${D.hard}회</em></div>
+      <div><i>뛰는 날</i><b>주 ${D.days.length}회</b><em>${D.days.join('·')}<br>빠른 날 ${D.hard}회</em></div>
       <div><i>케이던스</i><b>${D.cad||'—'}<small> spm</small></b><em>${D.O.cad?'직접':'최근 기록'}</em></div>
       <div><i>보폭</i><b>${D.stride?D.stride.toFixed(2):'—'}<small> m</small></b><em>이지 속도 기준</em></div></div>
     <div class="mc-foot">자동 · ✎ 수정</div></div>`; }
