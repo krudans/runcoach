@@ -1911,7 +1911,7 @@ details.noti .sigc{margin:6px 0}
 .gt-leg{display:flex;gap:12px;font-size:10.5px;color:var(--ink-3);margin-top:4px;justify-content:flex-end}.gt-leg i{display:inline-block;width:14px;height:0;border-top:2px dashed #2EAD7A;vertical-align:middle;margin-right:4px}.gt-leg i.me{border-top:3px solid var(--accent)}.gt-leg i.nd{border-top:1px dotted var(--ink-3)}
 .gc-sub{font-size:12.5px;color:var(--ink-2);margin:4px 0 2px}
 .gc-dd{margin-top:4px}.gc-dd>summary{list-style:none;text-align:center;font-size:12.5px;font-weight:800;color:var(--accent);padding:8px;cursor:pointer}.gc-dd>summary::-webkit-details-marker{display:none}.gc-dd>summary::after{content:' ▾'}.gc-dd[open]>summary::after{content:' ▴'}
-.gc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}.gc-foot .gc-more{width:auto;margin:0}
+.gc-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:8px}.gc-foot .gc-more{width:auto;margin:0}
 .rs-snap{display:flex;flex-direction:column;gap:8px;margin-top:10px}.rs-snap .btn{margin:0}
 .gc-ttl{font-size:12.5px;font-weight:800;color:var(--accent);letter-spacing:.2px;margin:0 0 10px}
 .gc-top{display:flex;align-items:center;gap:12px}.gc-ic{flex:none;width:44px;height:44px;border-radius:14px;background:var(--panel-2);display:grid;place-items:center;font-size:22px}
@@ -2289,7 +2289,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.01';
+const APPVER='20.02';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2564,7 +2564,7 @@ function recalcProfile(){
     const h=PROF.vhist||[], last=h.find(x=>x.d===PROF.race.at);
     if(!last||Math.abs(last.v-VDOT)>0.01){
       PROF.vhist=h.filter(x=>x.d!==PROF.race.at);
-      PROF.vhist.push({d:PROF.race.at,v:+VDOT.toFixed(2),src:PROF.race.kind,m:PROF.race.m,sec:PROF.race.sec,asc:PROF.race.asc||null,manual:!!PROF.race.manual});
+      PROF.vhist.push({d:PROF.race.at,v:+VDOT.toFixed(2),src:PROF.race.kind,from:PROF.race.src||null,m:PROF.race.m,sec:PROF.race.sec,asc:PROF.race.asc||null,manual:!!PROF.race.manual});
       PROF.vhist.sort((a,b)=>a.d<b.d?-1:1); try{ for(const k in THR_AT)delete THR_AT[k]; }catch(e){} } }
   Z     = zonesOf(VDOT);
   /* 쉬운 날은 전부 Daniels E 범위 안에서 — 근거 대장 #18.
@@ -2904,7 +2904,7 @@ function vTrend(){
   return {rate:Math.max(0,(b.v-a.v)/wk), n:h.length, wk:+wk.toFixed(1)};
 }
 /* 실력 그래프의 점 — 전력으로 뛴 기록(TT·대회·혼자 전력)만. 평소 훈련·추정·직접 고친 기준·뺀 점은 넣지 않는다 */
-function fitPoints(){ return (PROF.vhist||[]).filter(x=>x&&x.v&&x.d&&['tt','race','solo'].includes(x.src)&&!x.manual&&!x.off).sort((a,b)=>a.d<b.d?-1:1); }
+function fitPoints(){ return (PROF.vhist||[]).filter(x=>x&&x.v&&x.d&&(x.src==='tt'||x.from==='rlog')&&!x.manual&&!x.off).sort((a,b)=>a.d<b.d?-1:1); }
 function vhistAdd(v,src){
   for(const k in THR_AT)delete THR_AT[k];
   PROF.vhist=(PROF.vhist||[]).filter(x=>x.d!==todayStr());
@@ -6977,7 +6977,7 @@ function obFinish(){
   PROF=Object.assign({},PROF,{ nick:String(d.nick||PROF.nick||'').trim(), by:d.by||PROF.by||null, birth:d.birth||(d.by?`${d.by}-07-01`:null), sex:d.sex||null, age:ageOf(d.birth||(d.by?`${d.by}-07-01`:null))||d.age, w:d.w, rhr:d.rhr||null,
     hrmaxSrc: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? 'measured' : 'estimated',
     hrmax: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? PROF.hrmax : estHrMax(d.age),
-    race: d.rd&&d.rt ? {m:d.rd,sec:d.rt,kind:d.rk||'race',at:(PROF.race&&PROF.race.m===d.rd&&PROF.race.sec===d.rt&&d.rw==null)?(PROF.race.at||todayStr()):addDays(todayStr(),-7*(+d.rw||0))} : PROF.race });   /* '언제'(주 단위)를 기록 날짜에 반영 — 오늘로 적으면 옛 기록이 지금 실력이 된다 */
+    race: d.rd&&d.rt ? {m:d.rd,sec:d.rt,kind:d.rk||'race',src:d.rsrc||'survey',at:(PROF.race&&PROF.race.m===d.rd&&PROF.race.sec===d.rt&&d.rw==null)?(PROF.race.at||todayStr()):addDays(todayStr(),-7*(+d.rw||0))} : PROF.race });   /* '언제'(주 단위)를 기록 날짜에 반영 — 오늘로 적으면 옛 기록이 지금 실력이 된다 */
   DEV.store.set('prof',PROF); if(d.rd&&d.rt)rlogSync(PROF.race);
   recalcProfile(); recalcTypes(); BLOCK=loadPlan();
   DEV.store.set('onboarded',true);
@@ -7066,7 +7066,7 @@ function obImportDone(got){
   const cand=use.filter(r=>r.km>=4.5&&r.paceAvg).sort((a,b)=>a.paceAvg-b.paceAvg)[0];
   if(cand&&!OB.d.rt){
     const m=cand.km>=19?21097:cand.km>=9?10000:5000;
-    OB.d.rd=m; OB.d.rt=Math.round(cand.paceAvg*m/1000); OB.d.rk='solo';
+    OB.d.rd=m; OB.d.rt=Math.round(cand.paceAvg*m/1000); OB.d.rk='solo'; OB.d.rsrc='gpx';   /* 가장 빠른 달리기로 채운 값 — 전력 측정이 아니라 시작 기준 */
   }
   obPaint();
   const nt=$('obGpxNote');
@@ -8553,7 +8553,7 @@ function rlogOpen(add){
   requestAnimationFrame(()=>sh.classList.add('up')); }
 function rlogClose(){ const sh=$('rlSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 function rlogUse(it){ /* 이 기록을 실력 기준으로 — 설정의 '다시 계산'과 같은 길 */
-  PROF=Object.assign({},PROF,{race:{m:it.m,sec:it.sec,kind:it.kind,asc:it.asc||null,at:it.date}}); DEV.store.set('prof',PROF);
+  PROF=Object.assign({},PROF,{race:{m:it.m,sec:it.sec,kind:it.kind,asc:it.asc||null,at:it.date,src:it.src==='manual'?'rlog':'survey'}}); DEV.store.set('prof',PROF);
   recalcProfile(); recalcTypes();
   try{ if(PLAN&&PLAN.sessions&&PLAN.sessions.length) applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true})); else BLOCK=loadPlan(); }catch(e){}
   if(typeof paintProf==='function')try{ paintProf(); }catch(e){} }
@@ -8708,7 +8708,6 @@ function wireHome(sess,idx){
   m.querySelectorAll('[data-qact]').forEach(b=>b.onclick=()=>{ const k=b.dataset.qact;
     m.querySelectorAll('[data-qact]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-checked',x===b); });
     const g=$('qgGo'); if(g){ g.dataset.act=k; g.textContent={run:'달리기 시작',walk:'걷기 시작',bike:'자전거 시작',hike:'등산 기록 시작'}[k]+' ▶'; } });
-  m.querySelectorAll('[data-mygoal]').forEach(b=>b.onclick=()=>openMyGoal());
   const np=$('notiPerm'); if(np)np.onclick=async()=>{ try{ const r=await Notification.requestPermission(); if(r==='granted'){ DEV.store.set('notiSeen',{}); toast('알림창 표시'); } }catch(e){} renderHome(); };
   const hg=$('hGoal'); if(hg)hg.onclick=()=>goalStart();
   const hg2=$('homeGoal2'); if(hg2)hg2.onclick=()=>goalStart();
@@ -10215,7 +10214,7 @@ function mileCard(opt){ opt=opt||{};
   const M=mileage(), open=opt.open||MILE_OPEN, pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
   const years=Object.keys(M.byYear).sort().reverse();
   return `<div class="lcard mile${open?' open':''}" id="mileCard">
-    <button type="button" class="mile-hd" data-mileopen="1"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>내가 달린 총 거리</i><em class="mile-chev" aria-label="${open?'접기':'펼치기'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${open?'M6 15l6-6 6 6':'M6 9l6 6 6-6'}"/></svg></em></button>
+    ${opt.open?`<div class="mile-hd"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>내가 달린 총 거리</i></div>`:`<button type="button" class="mile-hd" data-mileopen="1"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>내가 달린 총 거리</i><em class="mile-chev" aria-label="${open?'접기':'펼치기'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${open?'M6 15l6-6 6 6':'M6 9l6 6 6-6'}"/></svg></em></button>`}
     <div class="mile-more"${open?'':' hidden'}>
     <div class="mile-row"><span><i>달리기</i><b class="num">${fmtMile(M.runKm)}</b><em>${M.n}회 · ${fmtHM(M.runSec)}</em></span><span><i>대회</i><b class="num">${fmtMile(M.race.km)}</b><em>${M.race.n}회</em></span><span><i>올해</i><b class="num">${fmtMile(M.year)}</b><em>이달 ${fmtMile(M.month)} · 이번 주 ${fmtMile(M.week)}</em></span></div>
     ${years.length||M.unknown?`<div class="mile-years">${years.map(yy=>`<div><b>${yy}</b><span class="num">${fmtMile(M.byYear[yy].km)} km</span><i>${M.byYear[yy].n?`${M.byYear[yy].n}회`:''}${M.byYear[yy].race?` · 대회 ${M.byYear[yy].race}`:''}${M.byYear[yy].prev?` · 이전 ${fmtMile(M.byYear[yy].prev)}`:''}</i></div>`).join('')}${M.unknown?`<div><b>모름</b><span class="num">${fmtMile(M.unknown)} km</span><i>연도 모름 · 이전 마일리지</i></div>`:''}</div>`:''}
@@ -12621,7 +12620,8 @@ function goalRoad(M,big,split){
   let st='', warn='';
   if(goalSec){
     const nowS=M.now, d=nowS!=null?goalSec-nowS:null;
-    const src=measured&&r?`${r.at?mdw(r.at.slice(0,10))+' ':''}${r.kind==='tt'||r.kind==='TT'?'TT ':''}${r.m>=42000?'풀':r.m>=21000?'하프':(r.m/1000)+'km'} ${fmtClock(r.sec)}`:'';
+    const fitR=!!(r&&(r.kind==='tt'||r.src==='rlog')&&!r.manual);   /* TT·직접 올린 대회 기록이면 실력 확인, 아니면 시작 때 넣은 기록(임시) */
+    const src=measured&&r?`${fitR&&r.at?mdw(r.at.slice(0,10))+' ':''}${r.kind==='tt'?'TT ':fitR?'대회 ':'입력한 기록 '}${r.m>=42000?'풀':r.m>=21000?'하프':(r.m/1000)+'km'} ${fmtClock(r.sec)}${fitR?'':' · TT 전 임시'}`:'';
     st=`<div class="gr-st">
       <div><i>예상 기록</i><b>${nowS!=null?fmtClock(nowS):'측정 전'}</b><em>${src?`근거 ${src}`:'TT 후 표시'}</em></div>
       <div><i>목표</i><b>${fmtClock(goalSec)}</b><em>${d==null?'':d>=0?`예상 ${fmtClock(d)} 빠름`:`${fmtClock(-d)} 줄여야 함`}</em></div></div>${fitListHTML(g)}`;
@@ -12678,7 +12678,7 @@ function goalRoad(M,big,split){
 /* 이번 주 측정 진행 — 조건에 맞는 1km 구간이 몇 개 쌓였나 (3개면 그 주의 점이 찍힌다) */
 function aeroCount(a){ const W=aeroSplits(Date.parse(weekMonday(todayStr())+'T00:00:00')-1); return (W[weekMonday(todayStr())]||[]).length; }
 /* 실력 확인 기록 — 전력으로 뛴 TT·대회만. 점마다 원래 기록과 그 기록으로 본 예상 기록, 잘못된 점은 빼기 */
-function fitListHTML(g){ const L=fitPoints(); if(!L.length||!(g&&g.m))return `<div class="fp-hd"><b>실력 확인 기록</b><i>TT·대회 기록이 생기면 여기에 쌓여요</i></div>`;
+function fitListHTML(g){ const L=fitPoints(); if(!L.length||!(g&&g.m))return `<div class="fp-hd"><b>실력 확인 기록</b><i>아직 없어요 · 일정의 TT를 뛰면 여기에 쌓여요</i></div>`;
   const KL={tt:'TT',race:'대회',solo:'혼자 전력'};
   return `<div class="fp-hd"><b>실력 확인 기록</b><i>전력으로 뛴 TT·대회만 · 평소 훈련은 넣지 않아요</i></div><ul class="fp-list">${L.slice(-6).reverse().map(x=>`<li><b>${x.d.slice(2).replace(/-/g,'.')}</b><span>${KL[x.src]||''}${x.m&&x.sec?` ${gdLabel(x.m)} ${fmtClock(x.sec)}`:''}</span><em>→ ${gdLabel(g.m)} ${fmtClock(Math.round(raceTime(PROF.race&&x.d===PROF.race.at?VDOT:x.m&&x.sec?profVdot({race:{m:x.m,sec:x.sec,kind:x.src,asc:x.asc}}):x.v,g.m)*60))}</em>${PROF.race&&x.d===PROF.race.at?'<u class="fp-now">지금 기준</u>':`<button type="button" data-fpoff="${x.d}">빼기</button>`}</li>`).join('')}</ul>`; }
 function goalTrend(M,big){
@@ -12738,7 +12738,7 @@ function goalCard(compact){
       <div class="gc-top"><span class="gc-ic">${M.ico}</span><div class="gc-t">${M.dateLab?`<em>${M.dateLab}까지</em>`:''}<b>${M.title}</b></div></div>
       ${R.main}
       <details class="gc-dd"><summary>더 보기</summary>${R.extra}${goalGauge(M)}${M.sub?`<div class="gc-sub">${M.sub}</div>`:''}${goalSetChips(M)}${M.status?`<div class="gc-st">${M.status}</div>`:''}${tiles}${how}
-      <div class="gc-foot"><button type="button" class="gc-more" data-mygoal="1">상세 ›</button>${snapBtn('.mygoal','goal','달리기 목표')}</div></details></section>`; }
+      <div class="gc-foot">${snapBtn('.mygoal','goal','달리기 목표')}</div></details></section>`; }
   /* 자세히 — 주간 거리 막대 · 측정 추이 · 재는 법 · 결정 사유 */
   const mx=Math.max(1,...M.wkKm);
   /* 주간 막대 — 계획(옅은 막대)과 실제로 뛴 거리(진한 막대)를 같이. 예전엔 계획만 그려서 며칠을 뛰어도 막대가 그대로였다 */
@@ -12797,6 +12797,8 @@ function goalEditSave(box){ const g=(PLAN&&PLAN.goal)||GOAL; if(!g||!g.aero)retu
   if(PLAN){ PLAN.goal=ng; DEV.store.set('plan',PLAN); }
   try{ AERO_PREVIEW=null; recalcProfile(); recalcTypes(); BLOCK=loadPlan(); }catch(e){}
   toast('목표 수정 완료'); try{ renderHome(); }catch(e){} openMyGoal(); }
+/* '목표 고치기' — 홈·목표 칸 시트 어디서 눌러도 같은 화면으로 (시트 안 버튼은 따로 연결이 안 돼 눌러도 반응이 없었다) */
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-mygoal]'); if(!b)return; try{ tileClose(); }catch(err){} try{ document.querySelectorAll('.msheet').forEach(s=>s.hidden=true); }catch(err){} openMyGoal(); });
 document.addEventListener('click',e=>{ const f=e.target.closest('[data-fpoff]'); if(!f)return;
   if(!confirm(`${f.dataset.fpoff} 기록을 실력 그래프에서 뺄까요?\n(기록 목록에는 남아요)`))return;
   PROF=Object.assign({},PROF,{vhist:(PROF.vhist||[]).map(x=>x.d===f.dataset.fpoff?Object.assign({},x,{off:true}):x)}); DEV.store.set('prof',PROF);
