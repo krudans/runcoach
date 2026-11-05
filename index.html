@@ -2337,6 +2337,20 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* 가운데 카드가 낮으면 덜 중요한 것부터 접는다 — 설명 줄 → 단위 줄 여백 → 상태 알약 크기 */
 @container (max-height:300px){ #run .rmain .say{display:none} #run .rmain .pill{margin-top:8px} }
 @container (max-height:200px){ #run .rmain .k{font-size:12px} #run .rmain .u{font-size:13px;margin-top:0} #run .rmain .pill{font-size:15px;padding:5px 16px;margin-top:6px} }
+
+/* v20.12 쉬는 날 카드 — 훈련일 카드와 같은 틀 + 할 일 아이콘 한 줄 */
+.he.rest .he-line b{color:var(--ok-ink)}
+.rmis{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:2px;margin:12px 0 2px}
+.rmi{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--ink-2);text-align:center;line-height:1.25;cursor:pointer;min-width:0}
+.rmi input{position:absolute;opacity:0;pointer-events:none}
+.rmi u{width:40px;height:40px;border-radius:50%;border:1.5px solid #CDB9E2;background:var(--panel);display:grid;place-items:center;text-decoration:none}
+.rmi u svg{width:20px;height:20px;stroke:var(--accent)}
+.rmi.on{color:var(--ok-ink);font-weight:500}.rmi.on u{background:var(--ok-ink);border-color:var(--ok-ink)}.rmi.on u svg{stroke:#fff}
+.rmi input:focus-visible+u{outline:2px solid var(--accent);outline-offset:2px}
+.rmi span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rst-det{list-style:none;margin:8px 0 0;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;font-size:13px}
+.rst-det li{padding:5px 0;border-top:1px solid var(--line)}.rst-det li:first-child{border-top:0}
+.rst-det em{font-style:normal;font-size:12px;font-weight:700;color:var(--ok-ink);margin-left:6px}.rst-det small{display:block;font-size:12px;color:var(--ink-3)}
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2353,7 +2367,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.11';
+const APPVER='20.12';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8528,7 +8542,9 @@ function restKind(ds){
   if(rd&&ds<=rd&&Date.parse(rd)-Date.parse(ds)<=6*864e5)return {k:'race',lab:'쉬는 날 · 대회 주',why:`대회 ${rd.slice(5).replace('-','.')}`};
   const pv=planOn(addDays(ds,-1)), nx=planOn(addDays(ds,1));
   const longs=BLOCK.filter(x=>x.type==='long').map(sKm), bigL=g.m>=42000?28:Math.round(Math.max(0,...longs)*0.9);
-  if(pv&&(HARD_T.includes(pv.type)||pv.type==='long'))return {k:'recov',lab:'쉬는 날 · 회복',why:`어제 ${PSHORT[pv.type]||pv.type}`};
+  /* '회복'은 어제 실제로 뛴 기록이 있을 때만 — 계획만 보고 '어제 TT'라 하면 안 뛴 날에도 그렇게 말한다 */
+  const yRun=RUNS.find(r=>isRun(r)&&ldate(r.date).slice(0,10)===addDays(ds,-1)&&(r.planId===(pv&&pv.d)||HARD_T.includes(r.type)||r.type==='long'||(r.dist||0)>=12000));
+  if(pv&&(HARD_T.includes(pv.type)||pv.type==='long')&&yRun)return {k:'recov',lab:'쉬는 날 · 회복',why:`어제 ${PSHORT[yRun.type]||PSHORT[pv.type]||pv.type}`};
   if(nx&&(nx.type==='tt'||(nx.type==='long'&&sKm(nx)>=bigL)))return {k:'prep',lab:'쉬는 날 · 준비',why:`내일 ${nx.type==='tt'?'TT':'긴 날 '+fmtKm1(sKm(nx))+'km'}`};
   if(rd&&addDays(ds,1)===rd)return {k:'prep',lab:'쉬는 날 · 준비',why:'내일 대회'};
   return {k:'str',lab:'쉬는 날 · 근력',why:'근력 30분'};
@@ -8536,10 +8552,10 @@ function restKind(ds){
 const STR_EX_SHORT={str:['스쿼트','런지','데드리프트','종아리','브릿지','플랭크'],core:['플랭크','사이드 플랭크','버드독','고관절']};
 const STR_EX={str:['스쿼트 10','런지 8/다리','루마니안 데드리프트 8','종아리 15','힙 브릿지 12','플랭크 30초'],core:['플랭크','사이드 플랭크','버드독','고관절 열기']};
 function restMissions(k){
-  const norun={k:'norun',t:'뛰지 않기',g:'C'}, rhr={k:'rhr',t:'아침 안정 심박 측정',g:'D'}, sleep={k:'sleep',t:'수면 7시간 이상',g:'B'}, walk={k:'walk',t:'가볍게 걷기 20분 (선택)',g:'C',pts:0};
-  if(k==='str')  return [Object.assign({pts:40},norun),{k:'str',t:'근력 운동 — 6동작 × 3세트',g:'B',pts:30,go:'str',ex:STR_EX.str,min:20},Object.assign({pts:15},rhr),Object.assign({pts:15},sleep),walk];
+  const norun={k:'norun',t:'뛰지 않기',s:'뛰지 않기',g:'C'}, rhr={k:'rhr',t:'아침 안정 심박 측정',s:'안정 심박',g:'D'}, sleep={k:'sleep',t:'수면 7시간 이상',s:'수면 7시간',g:'B'}, walk={k:'walk',t:'가볍게 걷기 20분 (선택)',s:'걷기 20분',g:'C',pts:0};
+  if(k==='str')  return [Object.assign({pts:40},norun),{k:'str',t:'근력 운동 — 6동작 × 3세트',s:'근력 20분',g:'B',pts:30,go:'str',ex:STR_EX.str,min:20},Object.assign({pts:15},rhr),Object.assign({pts:15},sleep),walk];
   if(k==='race') return [Object.assign({pts:60},norun),Object.assign({pts:20},rhr),Object.assign({pts:20},sleep),walk];
-  if(k==='recov'||k==='prep') return [Object.assign({pts:50},norun),{k:'core',t:'코어·가동성 10분',g:'B',pts:10,go:'core',ex:STR_EX.core,min:8},Object.assign({pts:20},rhr),Object.assign({pts:20},sleep),walk];
+  if(k==='recov'||k==='prep') return [Object.assign({pts:50},norun),{k:'core',t:'코어·가동성 10분',s:'코어 10분',g:'B',pts:10,go:'core',ex:STR_EX.core,min:8},Object.assign({pts:20},rhr),Object.assign({pts:20},sleep),walk];
   return [Object.assign({pts:0},norun),Object.assign({pts:0},rhr),Object.assign({pts:0},sleep),walk];
 }
 var MISSIONS=restMissions('str');   /* 옛 코드 호환 */
@@ -8882,6 +8898,7 @@ function wireHome(sess,idx){
     if((k==='str'||k==='core')&&c.checked){ const v=+prompt('얼마나 힘들었나요? 1(아주 편함)~10(한계)','5'); if(v>=1&&v<=10){ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].rpe=v; } }
     setMis(t,k,c.checked); renderHome(); });
   const rc=$('restClose'); if(rc)rc.onclick=()=>{ const t=todayStr(); RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].closed=true; DEV.store.set('restlog',RESTLOG); const R=restScore(t); toast(R?`휴식 마감 · ${R.score}점`:'휴식 마감'); renderHome(); };
+  const rd=$('restDet'); if(rd)rd.onclick=()=>{ const b=$('restDetBox'); b.hidden=!b.hidden; };
   const ro=$('restReopen'); if(ro)ro.onclick=()=>{ const t=todayStr(); if(RESTLOG[t])RESTLOG[t].closed=false; DEV.store.set('restlog',RESTLOG); renderHome(); };
 }
 
@@ -8964,19 +8981,26 @@ function basisLine(sess){
     ${b.easy.warn?`<span class="w">${b.easy.warn}</span>`:''}</div>`;
 }
 function restCard(t){
+  /* 쉬는 날 카드 — 훈련일 카드(he)와 같은 틀: 아이콘·이름·제목·설명 / 오른쪽 버튼 / 아래 링크 3개.
+     그 사이에 할 일을 동그란 아이콘 한 줄로(누르면 체크). 점수 막대는 두지 않는다 — 점수는 설명 줄에 숫자로. */
   const K=restKind(t), M=restMissions(K.k), m=restMis(t), R=restScore(t), closed=!!(RESTLOG[t]&&RESTLOG[t].closed);
-  const nx=BLOCK.find(x=>x.d.slice(0,10)>t&&x.type!=='off');
-  const scored=K.k!=='plain';
-  const rows=M.map(x=>`<label class="mrow${x.go?' has-go':''}"><input type="checkbox" data-mis="${x.k}"${m[x.k]?' checked':''}${closed?' disabled':''}>
-      <span><b>${x.t}</b>${x.ex?`<small class="mex">${(STR_EX_SHORT[x.go]||[]).join(' · ')}</small>`:''}</span>${x.pts?`<em class="mpts">+${x.pts}</em>`:''}${x.go?`<button type="button" class="mgo" data-stgo="${x.go}">▶</button>`:''}</label>`).join('');
-  return `<div class="tcard rest${closed?' closed':''}" style="background:${LOOK.off.bg}">${symSVG('off')}<div class="tin">
-    <div class="ttop"><span class="tchip">${dowOf(t)}요일 · ${K.lab}${K.why?` — ${K.why}`:''}</span></div>
-    <div class="rst-hd"><b class="ttl">${closed?'휴식 완료 ✓':scored?'쉬는 날도 훈련':'쉬는 날'}</b></div>
-    <div class="mis">${rows}</div>
-    ${scored?`<div class="rst-ft"><i class="rst-bar"><em style="width:${R.score}%"></em></i><span class="rst-sc"><b class="num">${R.score}</b><small>/100</small></span>${closed?`<button type="button" class="mclose re" id="restReopen">다시 열기</button>`:`<button type="button" class="mclose" id="restClose">오늘 마감</button>`}</div>`:
-      closed?`<div class="rst-ft"><span class="mis-done">기록됨 · 약속 연속 유지</span><button type="button" class="mclose re" id="restReopen">다시 열기</button></div>`:`<div class="rst-ft"><span class="mis-hint">플랜 밖 쉬는 날 — 기록만</span><button type="button" class="mclose" id="restClose">마감</button></div>`}
-  </div></div>
-  `;   /* 다음 훈련은 홈의 '다음 훈련' 카드가 맡는다 · '그래도 뛰기'는 맨 위 프리런 줄 */
+  const scored=K.k!=='plain', nDone=M.filter(x=>m[x.k]).length;
+  const RI={norun:'<path d="M5 5l14 14"/><circle cx="13" cy="4.5" r="1.6"/><path d="M9 20l3-6 3 2v4M8 11l3-3 3 3"/>',core:'<path d="M3 16h18M6 16l3-6h6l3 6"/>',str:'<path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>',rhr:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',sleep:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',walk:'<circle cx="12" cy="4.5" r="1.8"/><path d="M12 7v6l-3 7M12 13l3 7M9 10l3-2 3 2"/>'};
+  const icons=M.map(x=>`<label class="rmi${m[x.k]?' on':''}"><input type="checkbox" data-mis="${x.k}"${m[x.k]?' checked':''}${closed?' disabled':''}><u><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RI[x.k]||''}</svg></u><span>${x.s||x.t}</span></label>`).join('');
+  const go=M.find(x=>x.go);
+  const why=[K.lab.replace(/^쉬는 날 · /,''),K.why].filter(Boolean).join(' — ');
+  const line=scored?`할 일 ${nDone}/${M.length} · <b class="num">${R.score}</b>점${closed?' · 마감':''}`:(closed?'기록됨 · 약속 연속 유지':'플랜 밖 쉬는 날 — 기록만');
+  const det=M.map(x=>`<li><b>${x.t}</b>${x.pts?`<em>+${x.pts}</em>`:''}${x.ex?`<small>${x.ex.join(' · ')}</small>`:''}</li>`).join('');
+  return `<section class="hero he rest" style="--k1:#9C8AD8;--k2:#4A2370" aria-label="오늘 쉬는 날">
+    <div class="he-row"><span class="he-ic" style="background:${LOOK.off.bg}">${symSVG('off')}</span>
+      <div class="he-info"><div class="he-top"><em>오늘 · 쉬는 날</em></div>
+        <b>${closed?'휴식 완료':scored?'쉬는 날도 훈련':'쉬는 날'}</b>${why&&scored?`<i class="he-what">${why}</i>`:''}
+        <span class="he-line">${line}</span></div>
+      ${closed?`<button class="he-go done" id="restReopen">${ic('check',16)}다시 열기</button>`:`<button class="he-go" id="restClose">${ic('check',16)}${scored?'오늘 마감':'마감'}</button>`}</div>
+    <div class="rmis" style="--n:${M.length}">${icons}</div>
+    <div class="hero-links"><button type="button" id="restDet">상세</button>${go?`<button type="button" data-stgo="${go.go}">▶ ${go.k==='core'?'코어':'근력'} 따라하기</button>`:''}${snapBtn('.hero','rest','오늘 쉬는 날')}</div>
+    <ul class="rst-det" id="restDetBox" hidden>${det}</ul>
+  </section>`;   /* 다음 훈련은 홈의 '다음 훈련' 카드가 맡는다 · '그래도 뛰기'는 맨 위 프리런 줄 */
 }
 
 /* ───────── 홈 맨 위 — 나의 목표 · 지금 어디까지 ─────────
@@ -9157,8 +9181,11 @@ function weekStrip0(){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람)
     return {d,s,rk,km:s?(s.dist||0):0,ran:dayKm(d),load:Math.round(dayLoad(d)),st:dayStatus(d),sc:sc&&!restOpen?sc.score:null}; });
   const sumL=days.reduce((a,x)=>a+x.load,0), prevL=[0,1,2,3,4,5,6].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
   /* 계획된 날의 예상 점수 — 계획 페이스·거리로 rTSS를 미리 계산해 '얼마짜리 훈련인지' 보여준다 */
-  const planLoad=s=>{ if(!s||!s.segs||!Z||!Z.T)return 0; const its=planItems(s,ADJ[s.type]||0); return Math.round(its.reduce((a,x)=>{ const sec=x.dur||0, pace=x.p?(x.p[0]+x.p[1])/2:0; if(!sec||!pace)return a; const IF=Z.T/pace; return a+sec*IF*IF/3600*100; },0)); };
-  days.forEach(x=>{ x.plan=x.s?planLoad(x.s):0; });
+  /* 지난 날의 예상 점수는 그날 역치로 — 지금 역치로 매기면 같은 날 '계획 51 · 실제 40'처럼 기준이 다른 두 숫자가 나왔다.
+     그날 뛴 기록이 있으면 기록에 박아 둔 역치(base.T), 없으면 그 날짜의 실력 기록(thrAt). 오늘·앞날은 지금 기준 */
+  const thrOn=d=>{ if(d>=t)return Z.T; const r=RUNS.find(r=>isRun(r)&&ldate(r.date).slice(0,10)===d&&r.base&&r.base.T&&r.base.tv===2); return r&&!ovGet().T?r.base.T:thrAt(d); };
+  const planLoad=(s,d)=>{ if(!s||!s.segs||!Z||!Z.T)return 0; const T=thrOn(d)||Z.T, its=planItems(s,ADJ[s.type]||0); return Math.round(its.reduce((a,x)=>{ const sec=x.dur||0, pace=x.p?(x.p[0]+x.p[1])/2:0; if(!sec||!pace)return a; const IF=T/pace; return a+sec*IF*IF/3600*100; },0)); };
+  days.forEach(x=>{ x.plan=x.s?planLoad(x.s,x.d):0; });
   /* 날마다 100% = 그날 계획. 뛴 날은 (실제 부하 ÷ 계획 부하)%, 계획 없는 날(프리런)은 부하 숫자 그대로 */
   const mx=Math.max(40,...days.map(x=>Math.max(x.load,x.plan)));
   const cells=days.map(x=>{ const col=x.s?hexes((LOOK[x.s.type]||LOOK.free).bg)[0]:'var(--line)';
