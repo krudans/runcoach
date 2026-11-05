@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>가지런 · 계정과 데이터 삭제</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="gaji-icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4EFF8;--panel:#FFFFFF;--line:#E5DCEE;--ink:#2A1638;--ink-2:#5E4A6E;--ink-3:#72637F;--accent:#5B2D86;--warn:#C2410C;--ok:#0B7A68}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',system-ui,sans-serif;line-height:1.7;font-size:15px}
+main{max-width:640px;margin:0 auto;padding:28px 16px 60px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}.brand img{width:36px;height:36px}.brand b{font-size:15px}
+h1{font-size:24px;line-height:1.35;margin:0 0 8px}
+.lead{color:var(--ink-2);margin:0 0 22px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 8px}
+ol{margin:0;padding-left:20px}li{margin:4px 0}
+.muted{color:var(--ink-3);font-size:13px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 6px}
+input,textarea{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+button{margin-top:14px;width:100%;border:0;border-radius:12px;padding:13px;font:inherit;font-weight:800;font-size:15px;background:var(--warn);color:#fff;cursor:pointer}
+button[disabled]{opacity:.5}
+.msg{margin-top:10px;font-size:14px;min-height:20px}
+table{width:100%;border-collapse:collapse;font-size:14px}td{padding:7px 0;border-top:1px solid var(--line);vertical-align:top}td:first-child{width:38%;color:var(--ink-2);font-weight:700}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><img src="gaji-icon.svg" alt=""><b>가지런 · GAJI RUN</b></div>
+  <h1>계정과 데이터 삭제</h1>
+  <p class="lead">가지런 계정과 그 계정의 데이터를 지우는 방법이에요. 앱에서 바로 지울 수 있고, 앱을 지웠다면 아래에서 요청할 수 있어요.</p>
+
+  <section>
+    <h2>앱에서 바로 지우기</h2>
+    <ol>
+      <li>가지런 앱을 열고 <b>설정</b>으로 가요.</li>
+      <li>맨 아래 <b>고급</b>을 펼쳐요.</li>
+      <li><b>계정 초기화 — 모든 데이터 삭제</b>를 누르고 두 번 확인해요.</li>
+    </ol>
+    <p class="muted">바로 지워지고 되돌릴 수 없어요.</p>
+  </section>
+
+  <section>
+    <h2>지워지는 것</h2>
+    <table>
+      <tr><td>지워져요</td><td>달리기·걷기 기록(경로 포함), 목표·일정, 설정, 별명, 태어난 해·성별·체중·심박, 동의 기록, 구글 로그인 계정 연결, 사용 현황(기기 종류·앱 버전)</td></tr>
+      <tr><td>남을 수 있어요</td><td>'의견 보내기'로 보낸 글은 답변과 처리 기록을 위해 받은 날부터 1년 보관한 뒤 지워요. 요청하면 바로 지워요.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>앱 없이 삭제 요청하기</h2>
+    <p class="muted" style="margin:0">가지런에 로그인했던 구글 이메일이나 별명을 적어 주세요. 확인 후 7일 안에 지우고, 이메일을 적었다면 그 주소로 알려 드려요.</p>
+    <form id="f" novalidate>
+      <label for="em">구글 이메일 (로그인했다면)</label>
+      <input id="em" type="email" autocomplete="email" placeholder="example@gmail.com">
+      <label for="nk">별명</label>
+      <input id="nk" type="text" maxlength="24" placeholder="앱에서 쓰던 별명">
+      <label for="memo">남길 말 (선택)</label>
+      <textarea id="memo" rows="3" maxlength="500"></textarea>
+      <button type="submit" id="go">삭제 요청 보내기</button>
+      <div class="msg" id="msg" role="status"></div>
+    </form>
+  </section>
+
+  <p class="muted"><a href="privacy.html">개인정보처리방침</a></p>
+</main>
+<script>
+const FSR='https://firestore.googleapis.com/v1/projects/runcoach-120ff/databases/(default)/documents', FSKEY='AIzaSyDlSwvduhTI3Locdls_wYFn70OtTkPoK8g';
+const $=id=>document.getElementById(id);
+$('f').onsubmit=async e=>{ e.preventDefault();
+  const em=$('em').value.trim(), nk=$('nk').value.trim(), memo=$('memo').value.trim(), msg=$('msg');
+  if(!em&&!nk){ msg.style.color='var(--warn)'; msg.textContent='이메일이나 별명 중 하나는 적어 주세요.'; return; }
+  if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ msg.style.color='var(--warn)'; msg.textContent='이메일 주소를 다시 확인해 주세요.'; return; }
+  $('go').disabled=true; msg.style.color=''; msg.textContent='보내는 중…';
+  const text=`[계정 삭제 요청]\n별명: ${nk||'—'}\n${memo?'남긴 말: '+memo:''}`.trim();
+  const fields={text:{stringValue:text},kind:{stringValue:'delete'},at:{timestampValue:new Date().toISOString()},appVer:{stringValue:'web-delete'}};
+  if(em)fields.email={stringValue:em};
+  try{ const r=await fetch(`${FSR}/feedback?key=${FSKEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+    if(!r.ok)throw new Error(r.status);
+    msg.style.color='var(--ok)'; msg.textContent='요청을 받았어요. 7일 안에 처리할게요.'; $('f').reset(); }
+  catch(err){ $('go').disabled=false; msg.style.color='var(--warn)'; msg.textContent='보내지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'; }
+};
+</script>
+</body>
+</html>
