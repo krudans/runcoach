@@ -2290,7 +2290,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.04';
+const APPVER='20.05';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2668,7 +2668,7 @@ function termSeg(g){ if(!g)return g; if(SEGFIX[g.nm])g.nm=tm(SEGFIX[g.nm]);
 function termSess(x){ if(!x)return x;
   /* 받아 적은 훈련 제목 — 종류 이름이 빠졌거나(예: '1km × 5 · 4'25"') 속도가 붙어 있으면 맞춘다. 속도는 아랫줄에 따로 나온다 */
   if(x.type&&GL[x.type]&&x.t){ let t=String(x.t).replace(/\s*·\s*\d+'\d\d"$/,'').replace(/\s+\d+'\d\d"로$/,''); if(/^\d/.test(t))t=tm(x.type)+' '+t; x.t=t; }
-  x.t=totalFirst(termify(x.t),x.dist); (x.segs||[]).forEach(termSeg); return x; }
+  x.t=x.type==='tt'?termify(x.t):totalFirst(termify(x.t),x.dist);   /* TT는 'TT 3km'(힘껏 뛰는 거리)로 — 전체 거리는 아랫줄 */ (x.segs||[]).forEach(termSeg); return x; }
 /* 그날 전체 거리를 제목 맨 앞에 — '템포런 1.5km × 2'가 아니라 '템포런 6.5km · 1.5km × 2' (웜업·쿨다운 포함 합계). 일정이 나오는 모든 곳이 이 제목을 쓴다 */
 function totalFirst(t,km){ t=String(t||''); if(!(+km>0))return t;
   const m=t.match(/^([^\d]*?)\s*(\d+(?:\.\d+)?)\s*(km|m)(?![a-z])/); if(!m)return t;
@@ -7086,13 +7086,14 @@ function obImportDone(got){
    첫 주 첫날에 2km만 전력으로 뛰게 하고, 그 기록으로 전부 다시 계산한다.
    ══════════════════════════════════════════════════════════════════════ */
 const TTNAME='힘껏 2km (TT)';
-const isTTseg=nm=>nm===TTNAME||nm==='전력 2km';
+const ttSegName=km=>`힘껏 ${fmtKm1(km)}km (TT)`;
+const isTTseg=nm=>/^힘껏 [\d.]+km \(TT\)$/.test(String(nm||''))||nm==='전력 2km';
 const needTest=()=>!(PROF.race&&PROF.race.sec&&PROF.race.kind!=='est');   /* 편한 페이스에서 거꾸로 낸 값(est)은 측정이 아니다 */
 function testRun(ttKm){
   const tt=ttKm||2, wu=tt>=5?2.5:1.5, cd=tt>=5?1.5:1;
   return {type:'tt',dist:wu+tt+cd,ttKm:tt,
     segs:[{to:wu,nm:tm('warm'),pace:PACE.warmIn,tol:'ceil'},
-          {to:wu+tt,nm:TTNAME,pace:null,tol:null,hard:true,ptxt:'힘껏'},
+          {to:wu+tt,nm:ttSegName(tt),pace:null,tol:null,hard:true,ptxt:'힘껏'},
           {to:wu+tt+cd,nm:tm('cool'),pace:PACE.coolOut,tol:null}],
     note:`측정 · 중간 ${tt}km 힘껏 고르게. `+
          `${tt}km로 VDOT·목표 속도 재설정 · 앞뒤 천천히`};
@@ -11747,10 +11748,11 @@ document.addEventListener('click',e=>{
 (function stMount(){ const c=$('cStretch'); if(c)c.innerHTML=stretchCard('dyn',{compact:true,id:'cStr'}); const s=$('sStretch'); if(s)s.innerHTML=stretchCard('stat',{compact:true,id:'sStr'}); })();
 
 /* ═════════════════════ 플랜 — 주 단위 카드 · 요일별 줄 · 세부 수정 ═════════════════════ */
-const PE_TYPES=['easy','recovery','long','threshold','interval','goalpace'].map(k=>[k,tm(k)]);
+const PE_TYPES=['easy','recovery','long','threshold','interval','goalpace','tt','free'].map(k=>[k,tm(k)]);
 function peTitle(type,km,n,len){ const L=kmLab(len||1);
   return type==='easy'?`천천히 ${km}km`:type==='recovery'?`회복조깅 ${km}km`:type==='long'?`길게 ${km}km`
-    :type==='threshold'?`벅차게 ${L} × ${n}`:type==='interval'?`빠르게 ${L} × ${n}`:type==='goalpace'?`목표 속도 ${L} × ${n}`:`${km}km`; }
+    :type==='threshold'?`벅차게 ${L} × ${n}`:type==='interval'?`빠르게 ${L} × ${n}`:type==='goalpace'?`목표 속도 ${L} × ${n}`
+    :type==='tt'?`TT ${fmtKm1(len||5)}km`:type==='free'?`${tm('free')} ${km}km`:`${km}km`; }
 function peGoalPace(){ const g=(PLAN&&PLAN.goal)||GOAL||{}; if(PLAN&&PLAN.ladder&&g.m)return PLAN.ladder/(g.m/1000);
   return g.perKm||(g.sec&&g.m?g.sec/(g.m/1000):Math.round(PACE.T)); }
 /* 종류 · 거리 · 횟수 · 길이로 세션을 다시 만든다 */
@@ -11761,6 +11763,8 @@ function peBuild(ds,wk,type,km,n,len){
   else if(type==='threshold'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(2,n,len,r)); s=thresh(t,2,n,len,sessTgt('threshold'),0.35,120); }
   else if(type==='interval'){ const t=Math.max(km,fit(2,n,len,0.5)); s=interval(t,2,n,len,sessTgt('interval'),0.5,null); }
   else if(type==='goalpace'){ const r=restKm(120,PACE.recJog), t=Math.max(km,fit(1.5,n,len,r)); s=goalPaceRun(t,len,n,peGoalPace()); }
+  else if(type==='tt'){ s=testRun([2,3,5].includes(+len)?+len:5); }
+  else if(type==='free'){ s={type:'free',dist:km,segs:[{to:km,nm:tm('free'),pace:null,tol:null}]}; }   /* 거리(또는 시간)만 — 목표 속도·판정 없음. 속도를 정해 뛰는 날은 이지런·템포런 등 그 종류로 */
   return termSess(Object.assign({d:ds,wk,t:peTitle(type,s.dist,n,len)},s));
 }
 const PE={d:null,wk:1,type:'easy',km:6,n:4,len:1,date:null,isNew:false,byTime:false};
@@ -11775,7 +11779,7 @@ function peSave(fn){ const L=peStore();
   renderPlan(); try{ renderHome(); }catch(e){} }
 function openPlanEdit(d,newDate,wk){
   if(d){ const s=BLOCK.find(x=>x.d===d); if(!s)return;
-    Object.assign(PE,{d,wk:s.wk,type:PE_TYPES.some(t=>t[0]===s.type)?s.type:'easy',km:DIST[d]||s.dist||6,n:s.reps||4,len:s.repLen||1,date:d.slice(0,10),isNew:false}); }
+    Object.assign(PE,{d,wk:s.wk,type:PE_TYPES.some(t=>t[0]===s.type)?s.type:'easy',km:DIST[d]||s.dist||6,n:s.reps||4,len:s.type==='tt'?(s.ttKm||5):(s.repLen||1),date:d.slice(0,10),isNew:false}); }
   else Object.assign(PE,{d:null,wk:wk||1,type:'easy',km:6,n:4,len:1,date:newDate,isNew:true});
   const sh=$('peSheet'); sh.hidden=false; peRender(); requestAnimationFrame(()=>sh.classList.add('up')); }
 /* '오늘 뭘 하나'에서 고쳤으면 그 화면은 옛 일정이다 — 고친 뒤 바뀐 날을 다시 연다 */
@@ -11784,8 +11788,8 @@ function peClose(){ const sh=$('peSheet'); sh.classList.remove('up'); setTimeout
 function peRender(){
   const hard=['threshold','interval','goalpace'].includes(PE.type), col=(TYPES[PE.type]||{}).col||'#5B2D86';
   const mon=weekMonday(PE.date), days=[0,1,2,3,4,5,6].map(i=>addDays(mon,i)), t=todayStr();
-  const lens=PE.type==='interval'?[0.4,0.6,0.8,1,1.2,1.6]:PE.type==='threshold'?[1,1.5,2,3]:[1,2,3];
-  if(hard&&!lens.includes(PE.len))PE.len=lens[Math.min(lens.length-1,Math.floor(lens.length/2))];
+  const lens=PE.type==='interval'?[0.4,0.6,0.8,1,1.2,1.6]:PE.type==='threshold'?[1,1.5,2,3]:PE.type==='tt'?[2,3,5]:[1,2,3];
+  if((hard||PE.type==='tt')&&!lens.includes(PE.len))PE.len=PE.type==='tt'?5:lens[Math.min(lens.length-1,Math.floor(lens.length/2))];
   const prev=planOn(addDays(PE.date,-1)), next=planOn(addDays(PE.date,1)), H=['interval','threshold','goalpace','tt','long'];
   const warn=hard&&((prev&&prev.d!==PE.d&&H.includes(prev.type))||(next&&next.d!==PE.d&&H.includes(next.type)))?'연속 힘든 날 → 띄우기':'';
   const s=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len), orig=PE.d&&(peStore()||[]).find(x=>x.d===PE.d);
@@ -11794,7 +11798,9 @@ function peRender(){
       <div><b>${ESC(String(s.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${s.dist}km · ${summary(s)}</i></div></div>
     <div class="pe-lab">종류</div>
     <div class="pe-chips">${PE_TYPES.map(([k,n])=>`<button type="button" data-pet="${k}" class="${PE.type===k?'on':''}" style="--tc:${(TYPES[k]||{}).col}"><i></i>${n}</button>`).join('')}</div>
-    ${hard?`<div class="pe-lab">${PE.type==='threshold'?'세트':'회차'}</div>
+    ${PE.type==='tt'?`<div class="pe-lab">TT 거리 <small style="font-weight:600;color:var(--ink-3)">· 앞뒤 천천히 + 가운데 힘껏 · 평지·같은 코스</small></div>
+      <div class="pe-chips sm">${lens.map(l=>`<button type="button" data-pel="${l}" class="${PE.len===l?'on':''}">${l}km</button>`).join('')}</div>`
+    :hard?`<div class="pe-lab">${PE.type==='threshold'?'세트':'회차'}</div>
       <div class="pe-step"><button type="button" data-pen="-1">−</button><b class="num">${PE.n}<small>번</small></b><button type="button" data-pen="1">+</button></div>
       <div class="pe-lab">1회 길이</div>
       <div class="pe-chips sm">${lens.map(l=>`<button type="button" data-pel="${l}" class="${PE.len===l?'on':''}">${kmLab(l)}</button>`).join('')}</div>`
@@ -11817,7 +11823,7 @@ function peRender(){
     <button type="button" class="btn" id="peOk" style="margin:14px 0 0">${PE.isNew?'추가':'저장'}</button>
     <div class="pe-row2">${PE.isNew?'':`<button type="button" id="peDel">쉬기 (삭제)</button>`}${orig&&orig.orig?`<button type="button" id="peUndo">원래대로</button>`:''}</div>`;
 }
-function peApply(){
+function peApply(){ peReadInputs();
   { const x=PE.d&&BLOCK.find(y=>y.d===PE.d); if(x&&x.role==='줄이는 주'&&PE.km>sKm(x)+0.01&&!confirm(`${x.dist}km → ${PE.km}km 시 효과↓(관행 C). 늘릴까요?`))return; }
   const L=peStore(); const ns=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len);
   if(!L){ /* 예시 일정 — 받아적기 덮어쓰기로 저장 */
@@ -11916,10 +11922,16 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#peDel'))return peDelete();
   if(e.target.closest('#peUndo'))return peUndo();
 });
+/* 칸에 입력하는 동안 PE에 바로 넣고 미리 보기만 고친다 — 다 그리면 저장 버튼이 바뀌어 첫 탭이 사라졌다 */
+function peReadInputs(){ const k=$('peKm'); if(k){ const v=parseFloat(k.value); if(v>=2&&v<=45)PE.km=Math.round(v*2)/2; }
+  const h=$('peH'), m=$('peMin'); if(h||m){ const sec=((+(h||{}).value||0)*60+(+(m||{}).value||0))*60; if(sec>0)PE.km=Math.max(2,Math.min(45,Math.round(sec/peMainPace(PE.type)*2)/2)); } }
+function pePreview(){ try{ const s=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len), b=document.querySelector('.pe-prev b'), i=document.querySelector('.pe-prev i'), est=document.querySelector('.pe-est b');
+  if(b)b.textContent=String(s.t).replace(/\s*\([^)]*\)/g,''); if(i)i.textContent=`${s.dist}km · ${summary(s)}`; if(est)est.textContent=$('peKm')?fmtHM(peEstSec(PE.type,PE.km)):`${PE.km}km`; }catch(e){} }
+document.addEventListener('input',e=>{ if(['peKm','peH','peMin'].includes(e.target.id)){ peReadInputs(); pePreview(); } });
 document.addEventListener('change',e=>{
-  if(e.target.id==='peKm'){ const v=parseFloat(e.target.value); if(v>=2&&v<=45){ PE.km=Math.round(v*2)/2; } peRender(); }
+  if(e.target.id==='peKm'){ const v=parseFloat(e.target.value); if(v>=2&&v<=45){ PE.km=Math.round(v*2)/2; } pePreview(); return; }
   if(e.target.id==='peH'||e.target.id==='peMin'){ const sec=((+($('peH')||{}).value||0)*60+(+($('peMin')||{}).value||0))*60;
-    if(sec>0){ PE.km=Math.max(2,Math.min(45,Math.round(sec/peMainPace(PE.type)*2)/2)); } peRender(); }
+    if(sec>0){ PE.km=Math.max(2,Math.min(45,Math.round(sec/peMainPace(PE.type)*2)/2)); } pePreview(); }
 });
 /* ═══ 일정 점검 — 경고·설명은 '화면에 보이는 그 일정'(직접 고친 거리 포함 + 미리 보기)에서 다시 센다.
    만들 때의 예상 숫자를 그대로 적으면, 고치거나 다시 짠 뒤 화면 숫자와 어긋난다 ═══ */
