@@ -821,6 +821,17 @@ details.noti .sigc{margin:6px 0}
 .hero-basis{margin-left:auto}.hero-basis>summary{list-style:none;font-size:11.5px;font-weight:700;color:var(--accent);background:var(--bg);border-radius:999px;padding:5px 10px;cursor:pointer}
 .hero-basis>summary::-webkit-details-marker{display:none}
 .hero-basis p{position:absolute;right:0;top:30px;z-index:3;width:240px;margin:0;background:var(--ink);color:#fff;font-size:12px;line-height:1.55;border-radius:12px;padding:10px 12px}
+.hero.he{padding:12px 14px 6px;border-radius:22px}
+.he-row{display:flex;align-items:center;gap:12px}
+.he-ic{flex:none;width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center}.he-ic svg{width:26px;height:26px}
+.he-info{flex:1;min-width:0}
+.he-top{display:flex;align-items:center;gap:6px;min-width:0}.he-top em{font-style:normal;font-size:11px;font-weight:900;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.he .hero-basis{margin-left:0}.he .hero-basis>summary{font-size:10.5px;padding:2px 8px;background:rgba(255,255,255,.7)}
+.he-info>b{display:block;font-size:18px;font-weight:900;line-height:1.3;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}.he-info>b small{font-size:12px;font-weight:700;color:var(--ink-3)}
+.he-what{display:block;font-style:normal;font-size:12px;font-weight:800;color:var(--ink-2)}
+.he-line{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.he-go{flex:none;display:flex;align-items:center;gap:5px;height:42px;padding:0 16px;border:none;border-radius:21px;background:var(--accent);color:#fff;font:inherit;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(91,45,134,.28)}.he-go.done{background:#fff;color:var(--accent);box-shadow:none;border:1.5px solid var(--accent)}
+.he .hero-links{margin-top:8px;padding-top:6px;border-top:1px solid rgba(91,45,134,.14);justify-content:space-around}
 .hero-km{display:flex;align-items:baseline;gap:5px;margin-top:8px;min-width:0}.hero-km em{font-style:normal;font-size:14px;font-weight:800;color:var(--ink-2);margin-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero-km b{font-size:40px;font-weight:900;line-height:.95;letter-spacing:-1.5px;color:var(--ink)}
 .hero-km span{font-size:14px;font-weight:800;color:var(--ink-2)}
@@ -1335,7 +1346,6 @@ details.noti .sigc{margin:6px 0}
     <div id="alProps"></div>
     <div class="lbl" style="margin:20px 0 9px">지난 결정</div>
     <div id="alDone"></div>
-    <div class="card tight" style="margin-top:18px;display:flex;align-items:center;gap:12px"><div class="meta" style="flex:1 1 0;min-width:0;margin:0;line-height:1.6">폰 캘린더 → 아침 알림</div><button type="button" class="btn sm ghost" id="btnIcs" style="margin:0;flex:0 0 auto;width:auto;white-space:nowrap;padding-left:14px;padding-right:14px">캘린더 추가</button></div>
   </div>
 </div>
 
@@ -1358,7 +1368,7 @@ details.noti .sigc{margin:6px 0}
       <div class="mi-row"><label for="pBy">태어난 해</label><div class="mi-v"><select id="pBy"></select><span class="meta" id="pAgeNow"></span></div></div>
       <div class="mi-row"><label>성별</label><div class="mi-v"><div class="tagrow" id="pSex" style="margin:0"><button class="tag" data-v="m">남</button><button class="tag" data-v="f">여</button><button class="tag" data-v="x">선택 안 함</button></div></div></div>
       <div class="mi-row"><label for="pW">체중</label><div class="mi-v"><input type="number" id="pW" inputmode="decimal" placeholder="선택"><span class="meta">kg</span></div></div>
-      <div class="mi-row"><label for="pRHR">안정 심박</label><div class="mi-v"><input type="number" id="pRHR" inputmode="numeric" placeholder="모르면 비움"><span class="meta">bpm</span></div></div>
+      <div class="mi-row"><label for="pRHR">안정 심박</label><div class="mi-v"><input type="number" id="pRHR" inputmode="numeric" placeholder="모르면 비움"><span class="meta">bpm</span><span class="meta" id="pRHRNote" style="flex-basis:100%;font-size:12px;line-height:1.5"></span></div></div>
       <div class="mi-row"><label>개인정보 동의</label><div class="mi-v"><span id="pConsent" class="meta"></span></div></div>
       <button class="btn sm" id="pInfoSave" style="margin:12px 0 0;width:100%">내 정보 저장</button>
     </div>
@@ -2286,7 +2296,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.93';
+const APPVER='19.94';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5698,7 +5708,8 @@ ${trk}
 };
 
 /* ───────── 캘린더(.ics) — 아침 쪽지 ───────── */
-$('btnIcs').onclick=()=>{
+/* 알림의 '캘린더 추가'는 뺐다(필요 없다는 요청) — 버튼이 없으면 건너뛴다 */
+if($('btnIcs'))$('btnIcs').onclick=()=>{
   const esc=t=>String(t).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
   const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
   /* 거리 바꾸기(DIST)가 반영된 세션으로 — BLOCK 원본을 쓰면 캘린더만 옛 거리 */
@@ -6198,6 +6209,7 @@ function paintProf(){
   { const y=$('pBy'); if(y){ const Y=+todayStr().slice(0,4); if(!y.options.length)y.innerHTML='<option value="">선택</option>'+Array.from({length:Y-14-1939},(_,i)=>Y-14-i).map(v=>`<option value="${v}">${v}년</option>`).join('');
       y.value=String(PROF.by||(PROF.birth?String(PROF.birth).slice(0,4):'')); } }
   if(document.activeElement!==$('pW'))$('pW').value=PROF.w||''; if(document.activeElement!==$('pRHR'))$('pRHR').value=PROF.rhr||'';
+  { const n=$('pRHRNote'); if(n){ const src=restHrSrc(); n.textContent=src==='측정'?`직접 넣는 값 · 지금은 최근 아침 측정 평균 ${restHr()} 사용`:src==='설정'?`직접 넣는 값 · 지금 ${restHr()} 사용`:'직접 넣는 값 · 비우면 60으로 계산 · 아침에 누운 채 1분 재면 정확해요'; } }
   const ag=ageOf(PROF.birth)||PROF.age;
   $('pAgeNow').textContent = ag ? `만 ${ag}세` : '';
   { const c=DEV.store.get('consent',null), el=$('pConsent'); if(el)el.innerHTML=c&&c.at?`${String(c.at).slice(0,10).replace(/-/g,'.')} 동의 · 고지 ${ESC(c.ver||'')}<br>철회하려면 고급 › 계정 초기화`:'아직 동의 안 함 — 다음에 앱을 열면 물어봐요'; }
@@ -8570,7 +8582,7 @@ function renderHome(){
   $('hHead').innerHTML = `<div class="hbrand"><span class="happ">${brandSVG({bg:'#2A1638',body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'})}</span>
       <div class="hname"><b>가지런<span class="hada">하다</span></b><i class="hver">v${APPVER}</i></div>${odoHTML()}</div>`;
   /* 연속 배지는 위 날짜 줄로 — 로고 줄이 흔들리지 않게 */
-  try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}`:''; } }catch(e){}
+  try{ const tl=$('tlStreak'); if(tl){ tl.hidden=!(st>=2); tl.innerHTML=st>=2?`<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>${st}일 연속`:''; tl.title='일정을 지킨 날이 이어진 수 — 쉬는 날을 쉰 것도 지킨 날로 세요'; } }catch(e){}
 
   /* 홈 v2 — 순서: 알림 → 프리런 줄(늘 맨 위) → 오늘 카드 → 다음 훈련 한 줄 → 아이콘 타일(나머지는 전부 타일 → 시트) */
   try{ glogCheck(); }catch(e){}
@@ -8760,17 +8772,15 @@ function todayCard(sess,idx){
   const [k1,k2]=hexes((LOOK[sess.type]||LOOK.free).bg);
   const hz=T.hrZone&&T.hrZone[1]&&T.primary==='hr'?T.hrZone[1]:null;
   const b=['recovery','easy','long'].includes(sess.type)?coachBasis():null;
-  return `<section class="hero" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
-    <div class="hero-top"><span class="hero-today">오늘 훈련</span><span class="hero-chip"><i></i>${g0.e}${sess.role?' · '+ESC(sess.role):''}</span>
-      ${b?`<details class="hero-basis"><summary>${b.easy.src==='D'?'개인 기준':b.easy.conf?'기록으로 확인':'임시 기준'}</summary><p>${b.easy.note}${b.easy.warn?'<br>'+b.easy.warn:''}</p></details>`:''}</div>
-    <div class="hero-km"><b class="num">${sess.dist}</b><span>km${edited?' · 바꿈':''}</span>${what?`<em>${what}</em>`:''}</div>
-    <div class="hero-stats">
-      <span><i>시간</i><b class="num">${mins?mins+'분':'—'}</b></span>
-      <span class="pc"><i>페이스</i><b class="num">${pace}</b></span>
-      <span><i>심박</i><b class="num">${hz?hz+'↓ '+zLab(hz-1):'—'}</b></span>
-    </div>
-    ${heroShape(sess,k1,k2)}
-    <button class="hero-go${done?' done':''}" id="goToday">${done?ic('check',18)+'완료 · 다시':ic('play',18)+'실시간 코칭 시작'}</button>
+  /* 오늘 훈련 — 목록형(다음 훈련과 같은 결) · 보라 배경. 예전 카드의 60% 안팎 높이 */
+  /* '개인 기준/임시 기준' 표시는 홈에서 뺐다 — 기준은 '훈련 기준' 타일과 계획 화면에서 본다 */
+  const line=[mins?mins+'분':'',pace&&pace!=='—'?pace:'',hz?'심박 '+hz+'↓':''].filter(Boolean).join(' · ');
+  return `<section class="hero he" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
+    <div class="he-row"><span class="he-ic" style="background:${(LOOK[sess.type]||LOOK.free).bg}">${symSVG(sess.type)}</span>
+      <div class="he-info"><div class="he-top"><em>오늘 훈련${sess.role?' · '+ESC(sess.role):''}</em></div>
+        <b>${ESC(g0.e)} <span class="num">${sess.dist}km</span>${edited?'<small> · 바꿈</small>':''}</b>${what?`<i class="he-what">${what}</i>`:''}
+        <span class="he-line num">${line||'&nbsp;'}</span></div>
+      <button class="he-go${done?' done':''}" id="goToday">${done?ic('check',16)+'다시':ic('play',16)+'시작'}</button></div>
     <div class="hero-links"><button type="button" id="todayDet">계획</button><button type="button" id="distEdit">거리 변경</button>${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">확인</button></div>
   </section>`;
