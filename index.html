@@ -2281,7 +2281,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.91';
+const APPVER='19.92';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6619,7 +6619,7 @@ function obTags(key,multi){
     `<button type="button" class="obopt${OB.d[key]===x.v?' on':''}" data-v="${x.v}">${x.l}</button>`
   ).join('')+`</div>`;
 }
-const CONSENT_VER='2026-11-05-2';   /* 고지를 바꾸면 올린다 — 기존 사용자에게 한 번 다시 묻는다 */
+const CONSENT_VER='2026-11-05-3';   /* 고지를 바꾸면 올린다 — 기존 사용자에게 한 번 다시 묻는다 */
 /* 확인 시트 — prompt/confirm 대신. 약속(Promise)으로 true/false */
 function askSheet(o){ return new Promise(res=>{ let sh=$('askSheet'); if(!sh){ sh=document.createElement('div'); sh.id='askSheet'; sh.className='msheet'; sh.hidden=true; document.body.appendChild(sh); }
   sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="${ESC(o.title||'확인')}"><div class="ms-hd"><b>${ESC(o.title||'확인')}</b><button type="button" data-ask="0" aria-label="닫기">✕</button></div>
@@ -6677,6 +6677,7 @@ const OBSTEP=[
         <p><b>수집 항목</b> 별명 · 태어난 해 · 성별 · 체중/안정 심박(입력 시) · 달리기 기록(거리·시간·페이스·심박·경로) · 기기 종류·앱 버전 · 구글 로그인 시 이메일</p>
         <p><b>이용 목적</b> 훈련 기준(심박·페이스) 계산, 기록 보관과 통계, 앱 사용 현황 파악과 공지</p>
         <p><b>보관 위치·기간</b> 기본은 이 폰 안에만 저장. 구글 계정으로 로그인하면 Firebase(구글 클라우드)에 동기화. 계정을 지울 때까지 보관하고, 지우면 바로 삭제</p>
+        <p><b>자동 삭제</b> 앱을 <b>1년 이상 쓰지 않으면</b> 서버에 있는 사용 현황(기기 종류·앱 버전·이용 기록 요약)을 자동으로 지워요. 보낸 문의 글도 받은 날부터 1년이 지나면 자동으로 지워요</p>
         <p><b>처리 위탁</b> Google(Firebase) — 데이터 저장·로그인. 서버가 해외에 있을 수 있어요</p>
         <p><b>제공</b> 제3자에게 제공하지 않음. 별명은 중복 확인을 위해 서버에 저장</p>
         <p><b>동의 철회·삭제</b> 설정 › 고급 › 계정 초기화. 앱을 지웠다면 <a href="delete.html" target="_blank" rel="noopener">삭제 요청 페이지</a>에서 요청. 철회하면 앱을 쓸 수 없어요</p>
