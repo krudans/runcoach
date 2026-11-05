@@ -2308,6 +2308,9 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
 /* 카드 = 흰 바탕 + 1px 선 + 모서리 14 (기준) — 선 없이 그림자로만 떠 있던 카드들 */
 .cfac,.cset,.db-pts,.gd-it,.hc,.lcard,.plh,.rcard,.rnum,.setlink{border:1px solid var(--line)}
 .hc,.lcard{border-radius:14px}
+/* 홈 아이콘 칸 셋째 줄(작은 설명) 없앰 — 잘려 '…'로만 보이고, 내용은 칸을 누르면 나온다 */
+.htile i{display:none}
+.htile{padding:12px 2px 12px}
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2324,7 +2327,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.08';
+const APPVER='20.09';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
