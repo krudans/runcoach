@@ -2281,7 +2281,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.88';
+const APPVER='19.89';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3981,7 +3981,11 @@ async function keepAwake(){
   if(EXITING||document.hidden)return;
   try{ if(WAKE&&!WAKE.released)return; WAKE=await DEV.wake.on(); }catch(e){}
 }
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ keepAwake();
+/* 앱을 열거나 다시 볼 때, 켜 둔 동안엔 30분마다 — 다른 폰에서 바뀐 것을 받아오고 못 올린 것을 올린다 (달리는 중엔 하지 않는다) */
+function autoSync(){ try{ if(typeof FB==='undefined'||!FB.user||FB.busy||(typeof S!=='undefined'&&S.running))return;
+  if(Date.now()-(FB.last||0)<5*60e3)return; FB.sync().catch(()=>{}); }catch(e){} }
+setInterval(()=>{ if(!document.hidden)autoSync(); },30*60e3);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ keepAwake(); autoSync();
   if(BT.want&&!BT.dev){ BT.tries=0; BT.retry(); } } });
 keepAwake();
 /* 기기 용량이 부족해도 기록이 먼저 지워지지 않도록 영구 보관을 요청해 둔다 */
@@ -6412,7 +6416,9 @@ const FB={
     o.email=(FB.user&&FB.user.email)||null;
     /* 관리자 통계용 요약 — 기록 전체를 읽지 않아도 회원별 기록 수·거리를 볼 수 있게 */
     try{ const t7=addDays(todayStr(),-6), R=RUNS.filter(isRun); o.appVer=APPVER;
-      o.stat={runs:R.length,km:+R.reduce((a,r)=>a+(+r.km||0),0).toFixed(1),km7:+R.filter(r=>ldate(r.date).slice(0,10)>=t7).reduce((a,r)=>a+(+r.km||0),0).toFixed(1),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null}; }catch(e){}
+      o.stat={runs:R.length,km:+R.reduce((a,r)=>a+(+r.km||0),0).toFixed(1),km7:+R.filter(r=>ldate(r.date).slice(0,10)>=t7).reduce((a,r)=>a+(+r.km||0),0).toFixed(1),lastRun:R.length?ldate(R[R.length-1].date).slice(0,10):null};
+      const mon=weekMonday(todayStr()); o.stat.kmWk=+R.filter(r=>weekMonday(ldate(r.date).slice(0,10))===mon).reduce((a,r)=>a+(+r.km||0),0).toFixed(1);
+      try{ o.stat.mile=Math.round(mileage().total); }catch(e){} }catch(e){}
     await r.set(o,{merge:true});
     DEV.store.set('upd',o.updatedAt);
     const db=firebase.firestore();
@@ -6461,8 +6467,12 @@ const FB={
         FB.err=null; FB.last=Date.now();
         if(got){ afterRunsChanged(); }
         return got;
-      }catch(e){ FB.err=e.message||String(e); throw e; }
-      finally{ FB.busy=false; FB._p=null; paintFb(); }
+      }catch(e){ FB.err=e.message||String(e);
+        /* 실패하면 2분 뒤 혼자 다시 — 사용자가 '동기화'를 누르지 않아도 되게 (연달아 실패하면 최대 30분 간격) */
+        FB._fails=(FB._fails||0)+1; clearTimeout(FB._rt);
+        FB._rt=setTimeout(()=>{ if(FB.user)FB.sync().catch(()=>{}); },Math.min(30,2*FB._fails)*60e3);
+        throw e; }
+      finally{ FB.busy=false; FB._p=null; paintFb(); if(!FB.err)FB._fails=0; }
     })();
     return FB._p;
   }
