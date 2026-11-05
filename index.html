@@ -2351,6 +2351,42 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .rst-det{list-style:none;margin:8px 0 0;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;font-size:13px}
 .rst-det li{padding:5px 0;border-top:1px solid var(--line)}.rst-det li:first-child{border-top:0}
 .rst-det em{font-style:normal;font-size:12px;font-weight:700;color:var(--ok-ink);margin-left:6px}.rst-det small{display:block;font-size:12px;color:var(--ink-3)}
+
+/* v20.13 훈련 기준 바뀜 시트 */
+.ms-card.bs{background:var(--panel);padding-top:18px}
+.bs-eb{font-size:12px;font-weight:700;color:var(--accent)}
+.bs-h{font-size:20px;font-weight:700;margin:2px 0 4px}
+.bs-sub{font-size:13px;color:var(--ink-2);margin:0}
+.bs-run{display:flex;align-items:center;gap:12px;background:var(--panel-2);border-radius:14px;padding:12px 14px;margin:14px 0 0}
+.bs-run i{width:40px;height:40px;border-radius:10px;flex:none;display:grid;place-items:center}.bs-run i svg{width:24px;height:24px}
+.bs-run b{display:block;font-size:16px}.bs-run span{font-size:12px;color:var(--ink-3)}
+.bs-run strong{margin-left:auto;font-size:20px;font-weight:700}
+.bs-warn{font-size:12px;color:var(--warn-ink,#8A5A00);background:var(--warn-bg,#FFF1DA);border-radius:10px;padding:6px 10px;margin:8px 0 0}
+.bs-lv{display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 0 2px}
+.bs-lv small{font-size:12px;color:var(--ink-3)}
+.bs-lv .bs-v{font-size:32px;font-weight:700;color:var(--accent);display:inline-flex}
+.bs-lv .bs-old{font-size:16px;color:var(--ink-3);text-decoration:line-through}
+.bs-lv:not(.go) .bs-old,.bs-lv:not(.go) .bs-arr{display:none}
+.bs-dv{font-size:13px;font-weight:700;border-radius:999px;padding:2px 10px;opacity:0;transform:scale(.6);transition:.3s cubic-bezier(.3,1.6,.5,1)}
+.bs-dv.show{opacity:1;transform:none}
+.bs-dv.up,.bs-d.up{background:var(--ok-bg);color:var(--ok-ink)}.bs-dv.dn,.bs-d.dn{background:var(--bad-bg);color:var(--bad-ink)}.bs-dv.same,.bs-d.same{background:var(--panel-2);color:var(--ink-3)}
+.bs-crit{text-align:center;font-size:12px;color:var(--ink-3);line-height:1.5;margin:0 0 12px}.bs-crit b{color:var(--ink-2);font-weight:500}
+.bs-rows{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.bs-r{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line)}.bs-r:first-child{border-top:0}
+.bs-k{flex:1;min-width:0}.bs-k b{display:block;font-size:14px}.bs-k span{font-size:12px;color:var(--ink-3)}
+.bs-val{font-size:16px;font-weight:700;display:inline-flex;white-space:nowrap}
+.bs-d{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;opacity:0;transform:scale(.6);transition:.3s cubic-bezier(.3,1.6,.5,1);white-space:nowrap}
+.bs-d.show{opacity:1;transform:none}
+.bs-r.flash{animation:bsfl .6s ease-out}@keyframes bsfl{0%{background:var(--ok-bg)}100%{background:transparent}}
+.sl{display:inline-block;height:1.25em;overflow:hidden;vertical-align:bottom}
+.sl>span{display:flex;flex-direction:column;transition:transform 1.1s cubic-bezier(.15,.9,.25,1.08)}
+.sl em{font-style:normal;height:1.25em;line-height:1.25em;text-align:center}
+.bs-btns{display:flex;gap:6px;margin-top:16px}
+.bs-btns button{flex:1;height:48px;border-radius:999px;border:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;padding:0 6px}
+.bs-no{background:var(--panel-2);color:var(--ink-2)}.bs-yes{flex:1.5!important;background:var(--accent);color:#fff;box-shadow:var(--sh-btn)}.bs-yes.ok{background:var(--ok-ink)}
+.bs-msg{margin-top:14px;background:var(--panel-2);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--ink-2)}.bs-msg b{display:block;font-size:16px;color:var(--ink);margin-bottom:2px}
+.bs-note{font-size:12px;color:var(--ink-3);margin:10px 2px 0;line-height:1.6}
+@media (prefers-reduced-motion:reduce){.sl>span{transition:none}}
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2367,7 +2403,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.12';
+const APPVER='20.13';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4312,7 +4348,7 @@ function renderAlerts(){
       if(k==='miss'){ const m=missedDay(); if(m)openMissed(m); }
       else if(k==='tmiss'){ const m=todayUndone(); if(m)openMissed(m); }
       else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
-      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); };
+      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); };
     ph.appendChild(b); });
   /* 지난 결정 — 예전 플랜의 '결정 기록' 탭을 여기로 합쳤다 */
   renderDecLog($('alDone'));
@@ -5774,14 +5810,8 @@ $('btnSave').onclick=()=>{
   }catch(e){ console.error(e); }
   if(FREE_INSTEAD&&S.result.type==='free'){ S.result.planId=FREE_INSTEAD; S.result.instead=true; FREE_INSTEAD=null; DEV.store.set('runs',RUNS); }
   /* 테스트 러닝이면 그 기록으로 실력을 확정하고 일정을 다시 만든다 */
-  const tr=(typeof applyTest==='function')?applyTest(S.result):null;
-  if(tr){
-    alert(`테스트 기록 ${tr.km}km ${fmtClock(tr.sec)}.\n\n`+
-      `이 기록 → 속도 설정\n`+
-      `${tm('easy')} ${fmtPace(PACE.easy[0])}~${fmtPace(PACE.easy[1])} · 템포 ${fmtPace(sessTgt('threshold'))} · ${tm('interval')} ${fmtPace(sessTgt('interval'))}\n\n`+
-      `남은 일정 재작성`);
-    go('plan'); return;
-  }
+  const bc=basisFromTT(S.result);   /* TT면 결과 시트 — 적용·나중에·적용 안 함 */
+  if(bc){ if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); go('home'); setTimeout(()=>basisOpen(bc),250); return; }
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
   if(S.result.tooShort){ go('home'); toast('너무 짧음 · 훈련 제외'); return; }
   if(S.result.extraKm>=0.5){ const ex=extraInfo(S.result); if(ex&&ex.over>=0.5)setTimeout(()=>toast(`계획 +${S.result.extraKm.toFixed(1)}km — 홈 제안 확인`),900); }
@@ -7253,36 +7283,119 @@ function testRun(ttKm){
     note:`측정 · 중간 ${tt}km 힘껏 고르게. `+
          `${tt}km로 VDOT·목표 속도 재설정 · 앞뒤 천천히`};
 }
-/* 테스트를 끝내면 실력이 갱신되고 일정이 그 실력으로 다시 만들어진다 */
-function applyTest(r){
+/* ══════════════════════════════════════════════════════════════════════
+   훈련 기준 바뀜 — TT·대회 기록 → 실력 점수 → 결과 시트
+   예전엔 확인창(전력이었나요? / 3% 느린데 반영할까요?) 뒤에 조용히 바뀌었다.
+   이제 한 시트에서: 지금 점수·바뀔 점수(+/−)·판정 기준·바뀌는 속도를 보여 주고
+   [나중에 → 알림에 남김] [적용 안 함 → 지금 기준 유지] [적용하기 → 숫자가 슬롯처럼 돌며 바뀜] 중 고른다.
+   ══════════════════════════════════════════════════════════════════════ */
+/* TT 기록 → 후보. 실력 계산에 못 쓰는 기록(너무 짧음·범위 밖)은 null */
+function basisFromTT(r){
   if(!r||r.type!=='tt')return null;
   const sg=(r.segments||[]).find(x=>isTTseg(x.nm));
   const km=sg?sg.km:r.km, sec=sg?sg.sec:r.sec;
-  if(!(km>=1.5)||!(sec>=210))return null;   /* Daniels VDOT 공식의 유효 범위는 3.5분 이상 — 1.5km·3:30 미만 TT는 쓰지 않는다 */
-  const m=Math.round(km*1000), vd=vdotOf(m,sec/60);
-  if(!isFinite(vd)||vd<18||vd>85)return null;
-  const before=VDOT;
-  /* 전력이었나 — 심박이 있으면 TT 구간 최고 심박이 최대의 88% 이상인지, 없으면 한 번 묻는다 */
-  { const top=sg&&sg.hrTop||null;
-    if(!top&&!confirm(`TT ${fmtKm1(km)}km ${fmtClock(sec)}\n\n전력으로 뛰었나요?\n(전력이 아니면 실력에 반영하지 않아요)`))return null;
-    if(top&&top<HRMAX*0.88&&!confirm(`TT 구간 최고 심박 ${top} — 최대 심박 ${HRMAX}의 ${Math.round(top/HRMAX*100)}%예요.\n\n전력이었나요? (아니면 실력에 반영하지 않아요)`))return null; }
-  /* 나쁜 날 — 지난 실력보다 3% 넘게 느리면(하루 차이는 보통 1% 안팎) 반영할지 묻는다 */
-  { const was=raceTime(before,m)*60; if(sec>was*1.03&&!needTest()&&!confirm(`지난 실력으로 예상한 ${fmtClock(was)}보다 ${Math.round((sec/was-1)*100)}% 느려요.\n\n더위·언덕·컨디션 탓이면 반영하지 않는 게 좋아요.\n이 기록을 실력으로 쓸까요?`))return null; }
-  const oldTT=BLOCK.find(x=>x.type==='tt')||null;   /* 오늘 잰 날은 일정에 남겨둔다 */
-  PROF=Object.assign({},PROF,{race:{m,sec:Math.round(sec),kind:'tt',asc:(!sg&&r.asc>0)?Math.round(r.asc):null,at:todayStr()}});
+  if(!(km>=1.5)||!(sec>=210))return null;   /* Daniels VDOT 공식의 유효 범위는 3.5분 이상 */
+  const m=Math.round(km*1000), v=vdotOf(m,sec/60);
+  if(!isFinite(v)||v<18||v>85)return null;
+  const c={src:'tt',m,sec:Math.round(sec),kind:'tt',asc:(!sg&&r.asc>0)?Math.round(r.asc):null,at:ldate(r.date).slice(0,10)||todayStr(),hrTop:(sg&&sg.hrTop)||null};
+  c.vx=profVdot({race:c}); c.v=+c.vx.toFixed(1); return c;   /* 점수는 적용될 때와 같은 계산(혼자 TT 3% 보정·언덕 보정 포함) */
+}
+/* 대회 기록(러닝일지) → 후보 */
+function basisFromRace(it){
+  if(!it||!it.m||!it.sec)return null; const v=vdotOf(it.m,it.sec/60); if(!isFinite(v))return null;
+  const c={src:'race',m:it.m,sec:it.sec,kind:it.kind,asc:it.asc||null,at:it.date,from:it.src==='manual'?'rlog':'survey',rid:it.id,name:it.name||''};
+  c.vx=profVdot({race:c}); c.v=+c.vx.toFixed(1); return c;
+}
+/* 점수 v일 때의 대표 속도 — recalcProfile과 같은 규칙(직접 정한 값·심박으로 배운 이지 속도 포함) */
+function basisVals(v,now){
+  const g=(PLAN&&PLAN.goal)||GOAL||{}, gm=g.m||42195;
+  if(now) return {E:Math.round(PACE.easy[0]),T:Math.round(Z.T),I:Math.round(Z.I),P:Math.round(raceTime(VDOT,gm)*60),gm};
+  const zf=zonesOf(v), o=ovGet(); let e=zf.E[0];
+  if(LEARN&&LEARN.paceAtCap&&LEARN.paceAtCap>e+3){ const hmOk=!!(o.hrmax||PROF.hrmaxSrc==='measured'||(PROF.hrmaxObs&&PROF.hrmaxObs>=estHrMax(PROF.age))); e=Math.min(LEARN.paceAtCap,hmOk?zf.E[1]+150:zf.E[1]+45); }
+  if(o.E&&o.E[0])e=o.E[0];
+  return {E:Math.round(e),T:Math.round(o.T||zf.T),I:Math.round(o.I||zf.I),P:Math.round(raceTime(v,gm)*60),gm};
+}
+/* 적용 — 예전 applyTest·rlogUse와 같은 길: 기준 기록 교체 → 다시 계산 → 남은 일정 다시 짬(요일·틀 유지) */
+function basisCommit(c){
+  const oldTT=c.src==='tt'?(BLOCK.find(x=>x.type==='tt'&&x.d.slice(0,10)===c.at)||null):null;   /* 오늘 잰 TT 날은 일정에 남겨둔다 */
+  PROF=Object.assign({},PROF,{race:c.src==='tt'?{m:c.m,sec:c.sec,kind:'tt',asc:c.asc,at:c.at}:{m:c.m,sec:c.sec,kind:c.kind,asc:c.asc,at:c.at,src:c.from}});
   DEV.store.set('prof',PROF);
   recalcProfile(); recalcTypes();
-  if(PLAN&&PLAN.goal!==undefined) applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true}));
-  else { BLOCK=loadPlan(); renderHome(); }
-  if(oldTT){
-    const i=BLOCK.findIndex(x=>x.d===oldTT.d); if(i>=0)BLOCK[i]=oldTT;
-    if(PLAN&&PLAN.sessions){ const j=PLAN.sessions.findIndex(x=>x.d===oldTT.d);
-      if(j>=0){ PLAN.sessions[j]=oldTT; DEV.store.set('plan',PLAN); } }
-    renderHome();
-  }
-  if(typeof paintProf==='function')try{paintProf();}catch(e){}
-  return {vd:+VDOT.toFixed(1), before:+before.toFixed(1), km:+km.toFixed(2), sec:Math.round(sec)};
+  try{ if(PLAN&&PLAN.sessions&&PLAN.sessions.length) applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true})); else BLOCK=loadPlan(); }catch(e){ console.warn('basis replan',e); }
+  if(oldTT){ const i=BLOCK.findIndex(x=>x.d===oldTT.d); if(i>=0)BLOCK[i]=oldTT;
+    if(PLAN&&PLAN.sessions){ const j=PLAN.sessions.findIndex(x=>x.d===oldTT.d); if(j>=0){ PLAN.sessions[j]=oldTT; DEV.store.set('plan',PLAN); } } }
+  FUT_C=null; DEV.store.del?DEV.store.del('basisPend'):DEV.store.set('basisPend',null);
+  if(typeof paintProf==='function')try{ paintProf(); }catch(e){}
 }
+const basisPend=()=>{ try{ const p=DEV.store.get('basisPend',null); return p&&p.m&&p.sec?p:null; }catch(e){ return null; } };
+/* 슬롯 숫자 — 칸마다 0~9를 몇 바퀴 돈 뒤 새 숫자에 멈춘다. 처음엔 지금 숫자를 보여준다 */
+function slotNum(oldS,newS){
+  oldS=String(oldS); newS=String(newS); if(oldS.length!==newS.length)oldS=newS.replace(/\d/g,'0');
+  return [...newS].map((ch,i)=>{ if(!/\d/.test(ch))return `<span class="sl-fx">${ch}</span>`;
+    const o=/\d/.test(oldS[i])?+oldS[i]:0, n=+ch, laps=o===n&&oldS===newS?0:2+(i%3), seq=[];
+    for(let k=0;k<laps*10+((n-o+10)%10)+1;k++)seq.push((o+k)%10);
+    return `<span class="sl" aria-hidden="true" data-n="${seq.length-1}"><span>${seq.map(x=>`<em>${x}</em>`).join('')}</span></span>`; }).join('');
+}
+let BS_AC=null;
+function bsTick(t,f){ try{ if(DEV.sound===false)return; BS_AC=BS_AC||new (window.AudioContext||window.webkitAudioContext)(); const o=BS_AC.createOscillator(),g=BS_AC.createGain(); o.type='square'; o.frequency.value=f; const t0=BS_AC.currentTime+t; g.gain.setValueAtTime(.04,t0); g.gain.exponentialRampToValueAtTime(.0001,t0+.03); o.connect(g).connect(BS_AC.destination); o.start(t0); o.stop(t0+.04); }catch(e){} }
+/* 결과 시트 — opts.after: 닫힌 뒤 할 일(저장 직후면 홈) */
+function basisOpen(c,opts){
+  if(!c)return; opts=opts||{};
+  const first=needTest(), v0=+VDOT.toFixed(1), v1=c.v, dv=+(v1-v0).toFixed(1), up=dv>=0;
+  const A=basisVals(v0,true), B=basisVals(c.vx||v1,false), gl=A.gm>=42000?'풀코스':A.gm>=21000?'하프':rlLab(A.gm);
+  const dsec=(a,b)=>Math.abs(Math.round(a-b));
+  const rows=[['이지런',`심박 ${Math.round(easyCapOv()||z2Top(HRMAX))} 아래 · 빠른 끝`,fmtPace(A.E),fmtPace(B.E),A.E-B.E,'초'],
+    [tm('threshold'),'30분 버틸 수 있는 속도',fmtPace(A.T),fmtPace(B.T),A.T-B.T,'초'],
+    [tm('interval'),'3~5분 힘껏',fmtPace(A.I),fmtPace(B.I),A.I-B.I,'초'],
+    [`예상 ${gl}`,'빠른 쪽 기록',fmtClock(A.P),fmtClock(B.P),A.P-B.P,'']];
+  const chip=d=>{ if(Math.abs(d)<1)return '<span class="bs-d same">그대로</span>'; const f=d>0, a=Math.abs(d);
+    const t=a>=60?`${Math.floor(a/60)}분${a%60?' '+(a%60)+'초':''}`:`${a}초`; return `<span class="bs-d ${f?'up':'dn'}">${t} ${f?'빨라짐':'느려짐'}</span>`; };
+  const hr=c.hrTop?`최고 심박 ${c.hrTop} · 최대의 ${Math.round(c.hrTop/HRMAX*100)}%`:'';
+  const warn=c.src==='tt'&&(!c.hrTop?'심박 기록 없음 — 전력으로 뛰었을 때만 적용하세요':c.hrTop<HRMAX*0.88?'최고 심박이 낮아요 — 전력이 아니었다면 적용 안 함':'');
+  const title=first?(up?'첫 측정 · 실력이 올랐어요':'첫 측정 · 입력한 기록보다 느려요'):up?'실력이 올랐어요':'지난번보다 느렸어요';
+  const sub=first?'입력한 기록 대신 이 측정으로 훈련 기준을 맞출까요?':up?'이 기록으로 훈련 기준을 새로 맞출까요?':'더위·언덕·컨디션 탓이면 적용하지 않는 게 좋아요.';
+  const nm=c.src==='tt'?`TT ${fmtKm1(c.m/1000)}km`:(c.name?ESC(c.name):`대회 ${rlLab(c.m)}`);
+  const ic=c.src==='tt'?LOOK.tt.bg:'linear-gradient(150deg,#E8A23A,#C2410C)';
+  let sh=$('basisSheet'); if(!sh){ sh=document.createElement('div'); sh.id='basisSheet'; sh.className='msheet'; sh.hidden=true; document.body.appendChild(sh); }
+  sh.innerHTML=`<div class="ms-card bs" role="dialog" aria-label="${title}">
+    <div class="bs-eb">${c.src==='tt'?'TT 결과':'대회 기록'} · ${c.at.slice(5).replace('-','.')}</div>
+    <h2 class="bs-h">${title}</h2><p class="bs-sub">${sub}</p>
+    <div class="bs-run"><i style="background:${ic}">${symSVG(c.src==='tt'?'tt':'race')}</i><div><b>${nm}</b><span>${hr||(c.src==='tt'?'':'날짜를 넣어 올린 기록')}</span></div><strong class="num">${fmtClock(c.sec)}</strong></div>
+    ${warn?`<p class="bs-warn">${warn}</p>`:''}
+    <div class="bs-lv"><small>실력 점수</small><span class="bs-old num">${v0.toFixed(1)}</span><span class="bs-arr">→</span><span class="bs-v num" role="img" aria-label="${v1.toFixed(1)}">${slotNum(v0.toFixed(1),v1.toFixed(1))}</span><span class="bs-dv ${Math.abs(dv)<0.05?'same':dv>0?'up':'dn'}">${Math.abs(dv)<0.05?'그대로':(dv>0?'+':'−')+Math.abs(dv).toFixed(1)}</span></div>
+    <p class="bs-crit"><b>판정</b> 전력 TT·대회의 거리+시간 → VDOT 공식<br>입력만 한 기록·평소 훈련 제외 · 1점 ≈ 풀코스 4분</p>
+    <div class="bs-rows">${rows.map(r=>`<div class="bs-r"><div class="bs-k"><b>${r[0]}</b><span>${r[1]}</span></div><span class="bs-val num" role="img" aria-label="${r[3]}">${slotNum(r[2],r[3])}</span>${chip(r[4])}</div>`).join('')}</div>
+    <div class="bs-btns" id="bsBtns"><button type="button" class="bs-no" data-bs="later">나중에</button><button type="button" class="bs-no" data-bs="skip">적용 안 함</button><button type="button" class="bs-yes" data-bs="apply">${up?'적용하기':'그래도 적용'}</button></div>
+    <p class="bs-note">적용하면 남은 플랜의 속도가 새 기준으로 바뀌어요. 운동 요일·긴 날 같은 틀과 지난 기록은 그대로예요.</p></div>`;
+  sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
+  const close=()=>{ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); sh.onclick=null; };
+  const msg=(h,t)=>{ $('bsBtns').outerHTML=`<div class="bs-msg"><b>${h}</b>${t}</div><div class="bs-btns"><button type="button" class="bs-yes" data-bs="ok">확인</button></div>`; };
+  let applied=false, busy=false;
+  sh.onclick=e=>{ if(busy)return; const b=e.target.closest('[data-bs]'); if(!b){ if(e.target===sh){ close(); if(opts.after)opts.after(); } return; }
+    const k=b.dataset.bs;
+    if(k==='ok'){ close(); if(applied){ go('plan'); try{ renderPlan(); }catch(e){} toast('새 기준 적용 · 남은 일정 다시 짬'); } else if(opts.after)opts.after(); return; }
+    if(k==='later'){ DEV.store.set('basisPend',c); msg('알림에 넣었어요','위쪽 종(알림)에 \'새 훈련 기준 대기 중\'으로 남아요. 눌러서 언제든 이 화면으로 돌아올 수 있어요. 그 전까지는 지금 기준 그대로예요.'); try{ renderHome(); }catch(e){} return; }
+    if(k==='skip'){ DEV.store.set('basisPend',null); const L=DEV.store.get('basisSkip',[])||[]; L.push({at:todayStr(),m:c.m,sec:c.sec,v:c.v,src:c.src}); DEV.store.set('basisSkip',L.slice(-20));
+      if(c.rid)sigMark('basis:'+c.rid+':'+(PROF.race&&PROF.race.at));
+      msg('지금 기준으로 계속해요',`훈련 속도는 그대로예요. ${c.src==='tt'?'이 TT 기록은 러닝일지에 남아요.':'이 대회 기록은 러닝일지에 남고, 거기서 다시 기준으로 쓸 수 있어요.'}`); try{ renderHome(); }catch(e){} return; }
+    if(k==='apply'){ busy=true; basisCommit(c); applied=true; basisSpin(sh,up,()=>{ busy=false; }); try{ renderHome(); }catch(e){} }
+  };
+}
+/* 타르르르 — 칸마다 조금씩 늦게 멈춤 + 틱 소리 + 짧은 진동 → 줄마다 +/− 표시 */
+function basisSpin(sh,up,done){
+  const B=$('bsBtns'); B.querySelectorAll('button').forEach(x=>x.disabled=true); B.querySelector('.bs-yes').textContent='바꾸는 중…';
+  sh.querySelector('.bs-lv').classList.add('go');
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  [...sh.querySelectorAll('.sl')].forEach((s,i)=>{ const st=s.firstElementChild, h=s.getBoundingClientRect().height, n=+s.dataset.n;
+    st.style.transitionDuration=reduce?'0s':(0.9+i*0.07)+'s'; requestAnimationFrame(()=>st.style.transform=`translateY(${-n*h}px)`); });
+  if(!reduce){ for(let k=0;k<26;k++)bsTick(Math.pow(k/26,1.7)*1.9,520+(k%3)*40); try{ navigator.vibrate&&navigator.vibrate([12,40,12,40,12,60,12,90,20]); }catch(e){} }
+  const rows=[...sh.querySelectorAll('.bs-r')], T0=reduce?0:900, step=reduce?0:260;
+  setTimeout(()=>sh.querySelector('.bs-dv').classList.add('show'),T0-200);
+  rows.forEach((r,i)=>setTimeout(()=>{ r.classList.add('flash'); const d=r.querySelector('.bs-d'); if(d)d.classList.add('show'); if(!reduce)bsTick(0,up?880:440); },T0+i*step));
+  setTimeout(()=>{ B.outerHTML=`<div class="bs-btns"><button type="button" class="bs-yes ok" data-bs="ok">확인 · 새 일정 보기</button></div>`; if(!reduce)bsTick(0,up?1046:392); done&&done(); },T0+rows.length*step+300);
+}
+/* 예전 이름 — 다른 곳에서 부르면 시트를 연다 */
+function applyTest(r){ const c=basisFromTT(r); if(c)basisOpen(c); return null; }
 
 /* ══════════════════════════════════════════════════════════════════════
    목표 속도로 뛰는 날 — 지금 실력이 아니라 가고 싶은 기록에서 나온 속도
@@ -8713,8 +8826,8 @@ function rlogOpen(add){
   $('rlSave').onclick=()=>{ const t=rlT(), m=+$('rlDist').value, d=$('rlDate').value||todayStr();
     if(!(t>60))return alert('분·초 입력 (예: 45분 46초)');
     const it=rlogAdd({date:d,name:$('rlName').value,m,sec:t,kind:$('rlKind').value,src:'manual'});
-    if($('rlUse').checked&&it){ rlogUse(it); }
-    toast('기록 저장됨'); rlogOpen(false); renderHome(); };
+    const useIt=$('rlUse').checked&&it;
+    toast('기록 저장됨'); rlogOpen(false); renderHome(); if(useIt)setTimeout(()=>basisOpen(basisFromRace(it)),250); };
   b.querySelectorAll('[data-rldel]').forEach(x=>x.onclick=()=>{ if(!confirm('이 기록 삭제?'))return; RLOG=RLOG.filter(r=>r.id!==x.dataset.rldel); rlogSave(); rlogOpen(false); renderHome(); });
   $('rlClose').onclick=rlogClose; sh.onclick=e=>{ if(e.target===sh)rlogClose(); };
   requestAnimationFrame(()=>sh.classList.add('up')); }
@@ -8728,7 +8841,7 @@ function rlogSync(r,name){ /* 입력한 기록은 대회 기록 목록에 넣지
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-redit]'); if(b)openRunEdit(b.dataset.redit); });
 document.addEventListener('click',e=>{ const u=e.target.closest('[data-basis-use]'), k=e.target.closest('[data-basis-keep]'); if(!u&&!k)return;
   const id=(u||k).dataset[u?'basisUse':'basisKeep'], it=RLOG.find(x=>x.id===id); if(!it)return;
-  if(u){ rlogUse(it); toast(`${rlLab(it.m)} ${fmtClock(it.sec)}로 재계산 · 과거 유지`); } else { sigMark('basis:'+id+':'+(PROF.race&&PROF.race.at)); toast('기준 유지'); }
+  if(u){ basisOpen(basisFromRace(it)); return; } else { sigMark('basis:'+id+':'+(PROF.race&&PROF.race.at)); toast('기준 유지'); }
   try{ renderPlan(); }catch(e){} try{ renderHome(); }catch(e){} });
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-rl]'); if(!b)return; if(e.target.closest('[data-snap]'))return; rlogOpen(b.dataset.rl==='add'); });
 (function rlogBoot(){ try{ if(!RLOG.length&&PROF&&PROF.race&&PROF.race.sec)rlogSync(PROF.race); }catch(e){} })();
@@ -8743,6 +8856,7 @@ function homeSignals(){
   const ms=missedDay(); if(ms)sig.push(['miss',`${dowOf(ms.ds)}요일 ${ms.s.t} 누락`,'넘기기 · 옮기기']);
   const ex=extraPending(); if(ex)sig.push(['extra',`계획보다 ${ex.r.extraKm.toFixed(1)}km 초과`,`이번 주 ${fmtKm1(ex.proj)}km(+${ex.pct}%) — 일정 결정`]);
   const open=PROPS.filter(x=>!x.done); open.forEach(p=>sig.push(['prop',p.title,'답하기',p]));
+  { const bp=basisPend(); if(bp)sig.push(['basis',`새 훈련 기준 대기 중 · 실력 점수 ${bp.v.toFixed(1)}`,'적용 · 적용 안 함 선택']); }
   if(typeof reviewDue==='function'&&reviewDue())sig.push(['review','지난주 결산','지난주 점검 → 이번 주']);
   }catch(e){ console.warn('homeSignals',e); }
   return sig; }
@@ -8873,7 +8987,7 @@ function wireHome(sess,idx){
     else if(k==='tmiss'){ const x=todayUndone(); if(x)openMissed(x); }
     else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
     else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift();
-    else if(k==='prop')go('alerts'); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); });
+    else if(k==='prop')go('alerts'); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); });
   m.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ try{ DEV.store.set('lastAct',b.dataset.act); }catch(e){} startAct(b.dataset.act); });
   m.querySelectorAll('[data-qact]').forEach(b=>b.onclick=()=>{ const k=b.dataset.qact;
     m.querySelectorAll('[data-qact]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-checked',x===b); });
