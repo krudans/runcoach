@@ -2289,7 +2289,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.02';
+const APPVER='20.03';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9560,7 +9560,7 @@ function renderResult(host,r,s,opt){
       bullets+(segs||splits?`<details class="rv-tbl"${bullets?'':' open'}><summary>표로 보기</summary><div class="rcard rtabs">${segs&&splits?`<div class="rtb"><button type="button" class="on" data-rt="seg">구간</button><button type="button" data-rt="km">1km</button></div>`:''}${segs?`<div data-rtp="seg">${sgf}<div class="sgh"><span>구간</span><span>km</span><span>시간</span><span>페이스</span><span>심박</span><span>spm</span><span>차이</span></div>${segs}</div>`:''}${splits?`<div data-rtp="km"${segs?' hidden':''}>${splits}</div>`:''}</div></details>`:'')):'';
   host.innerHTML=`
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
-    <h2 class="rt">${ESC(r.title||T.nm||'')}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
+    <h2 class="rt">${ESC(runTitle(r))}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
     ${hasMap?`<div class="rmapbox"><div class="rmap"></div><div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div>
       <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div></div>`:'<div class="rmap" hidden></div>'}
@@ -10086,7 +10086,7 @@ function openTimeDec(){
 /* ══════════ 러닝 일지 — 한눈에 · 몸 상태 · 실력 · 제안 · 목록 ══════════
    모든 비교는 '평소 범위'로. 그래프마다 몇 번의 기록으로 본 것인지 붙인다.
    기록이 모자라면 결론 대신 "N번 더 뛰면 보여요". */
-let LOGTAB='list', LOGPER='month', LOGFLT='all', CALOFF=0, LOGY='', LOGM='';   /* 목록: 연도·월 선택 ('' = 전체) */
+let LOGN=20, LOGTAB='list', LOGPER='month', LOGFLT='all', CALOFF=0, LOGY='', LOGM='';   /* 목록: 연도·월 선택 ('' = 전체) */
 var MILE_OPEN=false;   /* 마일리지 카드 펼침 — 기본은 한 줄 */
 const LTABS=[['list','목록'],['sum','한눈에'],['body','몸 상태'],['skill','실력']];   /* '제안' 탭(호흡 실험·시간대·케이던스)은 실력 탭 아래로 */
 const TCOL={interval:'#E35A32',rep:'#E35A32',threshold:'#F0A030',goalpace:'#7355D6',mpace:'#7355D6',long:'#2F7FD0',easy:'#2E9E6A',recovery:'#9C8AD8',tt:'#D32F45',free:'#5F7A6E',stride:'#3E8FBF',hill:'#B05C1C'};
@@ -10105,9 +10105,10 @@ function renderLog(){
   host.innerHTML=logPage(); wireLog(host);
 }
 function wireLog(host){
-  host.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{ LOGPER=b.dataset.per; renderLog(); });
+  host.querySelectorAll('[data-per]').forEach(b=>b.onclick=()=>{ LOGPER=b.dataset.per; LOGN=20; renderLog(); });
+  host.querySelectorAll('[data-logmore]').forEach(b=>b.onclick=()=>{ const y=scrollY; LOGN+=20; renderLog(); scrollTo(0,y); });
   host.querySelectorAll('[data-calm]').forEach(b=>b.onclick=()=>{ const v=b.dataset.calm; CALOFF=v==='0'?0:CALOFF+(+v); renderLog(); });
-  host.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{ LOGFLT=b.dataset.flt; renderLog(); });
+  host.querySelectorAll('[data-flt]').forEach(b=>b.onclick=()=>{ LOGFLT=b.dataset.flt; LOGN=20; renderLog(); });
   host.querySelectorAll('[data-ly]').forEach(b=>b.onclick=()=>{ LOGY=b.dataset.ly; LOGM=''; renderLog(); });
   host.querySelectorAll('[data-lm]').forEach(b=>b.onclick=()=>{ LOGM=b.dataset.lm; renderLog(); });
   host.querySelectorAll('[data-rid]').forEach(b=>b.onclick=()=>openRunView(b.dataset.rid));
@@ -10463,23 +10464,18 @@ function openCadDec(){
 }
 
 /* ── 목록 ── */
+function runTitle(r){ const T=TYPES[r&&r.type]||{}; let t=String(termify((r&&r.title)||T.nm||'')).replace(/\s*\([^)]*\)/g,'').replace(/\s+/g,' ').trim();
+  const m=t.match(/^(.+?)\s+\d+(?:\.\d+)?km(?:\s*·\s*(.+))?$/); if(m)t=m[2]?`${m[1]} ${m[2]}`:m[1]; return t||T.nm||''; }
 function logList(){
   const F=[['all','전체'],['run','달리기'],['plan','훈련만'],['free','프리런'],['walk','걷기'],['bike','자전거'],['hike','등산']];
   let items=RUNS.map(r=>({r,k:'run'})).concat(ACTS.map(a=>({r:a,k:a.act})));
   Object.keys(RESTLOG).forEach(d=>{ const m=RESTLOG[d].m||{}; if(Object.values(m).some(Boolean))items.push({r:{date:d+'T23:00:00',rest:true,m},k:'rest'}); });
   items=items.filter(x=>LOGFLT==='all'||(LOGFLT==='run'&&x.k==='run')||(LOGFLT==='plan'&&x.k==='run'&&x.r.type!=='free')||(LOGFLT==='free'&&x.k==='run'&&x.r.type==='free')||x.k===LOGFLT)
     .sort((a,b)=>Date.parse(b.r.date)-Date.parse(a.r.date));
-  /* 연도·월 — 기록이 있는 연도만, 월은 고른 연도에 기록이 있는 달만 */
-  const ymOf=x=>ldate(x.r.date).slice(0,7);
-  const years=[...new Set(items.map(x=>ymOf(x).slice(0,4)))].sort().reverse();
-  if(LOGY&&!years.includes(LOGY)){ LOGY=''; LOGM=''; }
-  const months=LOGY?[...new Set(items.filter(x=>ymOf(x).slice(0,4)===LOGY).map(x=>+ymOf(x).slice(5,7)))].sort((a,b)=>a-b):[];
-  if(LOGM&&!months.includes(+LOGM))LOGM='';
-  const total=items.length;
-  if(LOGY)items=items.filter(x=>ymOf(x).slice(0,4)===LOGY&&(!LOGM||+ymOf(x).slice(5,7)===+LOGM));
-  const ymBar=years.length?`<div class="flt ym"><button class="${LOGY===''?'on':''}" data-ly="">전체</button>${years.map(y=>`<button class="${LOGY===y?'on':''}" data-ly="${y}">${y}</button>`).join('')}</div>
-    ${LOGY?`<div class="flt ym mo"><button class="${LOGM===''?'on':''}" data-lm="">${LOGY} 전체</button>${months.map(m=>`<button class="${+LOGM===m?'on':''}" data-lm="${m}">${m}월</button>`).join('')}</div>`:''}`:'';
-  const rows=items.slice(0,120).map(({r,k})=>{
+  /* 기록이 아무리 많아도 — 위에서 고른 기간(이번 주·이번 달·3달·전체)의 기록만, 20개씩 '더 보기' */
+  { const [a,b]=perRange(); items=items.filter(x=>{ const d=ldate(x.r.date).slice(0,10); return d>=a&&d<=b; }); }
+  const total=items.length, shown=Math.min(total,LOGN), ymBar='';
+  const rows=items.slice(0,shown).map(({r,k})=>{
     const d=new Date(r.date), when=`${d.getMonth()+1}/${d.getDate()} ${dowOf(ldate(r.date).slice(0,10))}`;
     if(k==='rest') return `<div class="li"><div class="map rest">☾</div><div class="m"><b>쉬는 날</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#9C8AD8">${tm('off')}</span>${r.m.norun?'<span class="chip g">참음 ✓</span>':''}</div>
       <div class="s">${MISSIONS.filter(x=>r.m[x.k]).map(x=>x.t.split(' (')[0]).join(' · ')}</div></div></div>`;
@@ -10491,12 +10487,12 @@ function logList(){
     const chip=r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
     const sp=paceBars(r);
     return `<div class="li" data-rid="${r.rid}"><div class="map">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
-      <div class="m"><b>${ESC(r.title||T.nm)}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg">${(r.title||T.nm)===T.nm?'':`<span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>`}${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
+      <div class="m"><b>${ESC(runTitle(r))}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg">${runTitle(r).startsWith(T.nm||'@')?'':`<span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>`}${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
       <div class="s">${fmtKm1(r.km)}km · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}${r.hrAvg?' · ♥'+r.hrAvg:''}</div></div><div class="sp">${sp}</div></div>`; }).join('');
   return `<div class="flt">${F.map(f=>`<button class="${LOGFLT===f[0]?'on':''}" data-flt="${f[0]}">${f[1]}</button>`).join('')}</div>${ymBar}
-    <div class="lcard" style="padding:4px 12px">${rows||'<div class="empty">기록 없음</div>'}</div>
-    ${LOGY?`<div class="small">${LOGY}년${LOGM?' '+LOGM+'월':''} ${items.length}건 / 전체 ${total}건</div>`:''}
-    <div class="small">눌러 지도·구간·공유</div>`;
+    <div class="lcard" style="padding:4px 12px">${rows||`<div class="empty">${perRange()[2]} 기록 없음</div>`}</div>
+    ${total>shown?`<button type="button" class="btn ghost" data-logmore="1" style="margin:8px 0 0">더 보기 · ${total-shown}개 남음</button>`:''}
+    <div class="small">${perRange()[2]} ${total}개 · 눌러 지도·구간·공유</div>`;
 }
 
 
