@@ -2290,7 +2290,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.05';
+const APPVER='20.06';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2650,7 +2650,7 @@ const tm=k=>GL[k]?GL[k].e:k;      /* 러너 용어 그대로 */
 const tmd=k=>GL[k]?GL[k].d:'';                         /* 한 줄 설명 */
 /* 제목 앞머리를 용어집 표기로 바꾼다 — 이미 저장된 일정도 이걸로 고쳐 읽는다 */
 const TERMIFY=[[/^빠르게 (?!\()/,'interval'],[/^벅차게 (?!\()/,'threshold'],[/^길게 (?!\()/,'long'],
-  [/^천천히 (?!\()/,'easy'],[/^회복조깅 (?!\()/,'recovery'],[/^목표 속도로 (?!\()/,'goalpace'],
+  [/^천천히 (?!\()/,'easy'],[/^회복조깅 (?!\()/,'recovery'],[/^목표 속도로? (?!\()/,'goalpace'],
   [/^롱런 /,'long'],[/^인터벌 /,'interval']];
 function termify(t){
   if(!t)return t;
@@ -2663,6 +2663,7 @@ function termify(t){
 const SEGFIX={'웜업':'warm','도입':'warm','출발':'warm','쿨다운':'cool','회복 조깅':'rest',
   '유지':'recovery','롱런':'long','천천히 (이지)':'easy'};
 function termSeg(g){ if(!g)return g; if(SEGFIX[g.nm])g.nm=tm(SEGFIX[g.nm]);
+  if(g.hard&&/^\d+(세트|구간)$/.test(String(g.nm||'')))g.nm=String(g.nm).replace(/(세트|구간)$/,'회차');   /* 반복 한 번 = 회차 (예전 저장분 세트·구간도) */
   const m=String(g.nm||'').match(/^(준비|마무리|사이 쉬기)(?: \([^)]*\))?$/); if(m)g.nm=tm({'준비':'warm','마무리':'cool','사이 쉬기':'rest'}[m[1]]);
   else g.nm=String(g.nm||'').replace(/^[가-힣 ]+? \(([^)]+)\)$/,(x,y)=>{ const k=Object.keys(GL).find(k=>GL[k].t===y); return k?GL[k].e:y; }); return g; }
 function termSess(x){ if(!x)return x;
@@ -2826,7 +2827,7 @@ function repsBuild(total,wu,n,len,tgt,recDist,recSec,label){
   return {segs,reps:n,repTarget:tgt,repLen:len,qvol:n*len,bout:len*tgt};
 }
 const interval=(t,wu,n,len,tgt,rd,rs)=>({type:'interval',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'회차')});
-const thresh  =(t,wu,n,len,tgt,rd,rs)=>({type:'threshold',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'세트')});
+const thresh  =(t,wu,n,len,tgt,rd,rs)=>({type:'threshold',dist:t,...repsBuild(t,wu,n,len,tgt,rd,rs,'회차')});
 
 /* ───────── 심폐 강화 블록 ─────────
    반복 목표는 절대 페이스가 아니라 존 상대값이다. VDOT가 바뀌면 같이 움직인다. */
@@ -4088,7 +4089,7 @@ function segBar(sess){
     bars+=`<i style="width:${w.toFixed(2)}%;height:${h}%;background:${c}"></i>`;
   });
   const hard=sess.segs.filter(g=>g.hard).length;
-  names = hard ? [`${tm('warm')} ${sess.segs[0].to}km`, `${hard}회 @ ${fmtPace(sess.repTarget+(ADJ[sess.type]||0))}`, tm('cool')]
+  names = hard ? [`${tm('warm')} ${sess.segs[0].to}km`, `회차 ${fmtPace(sess.repTarget+(ADJ[sess.type]||0))} × ${hard}`, tm('cool')]
                : [sess.segs[0].nm, sess.segs[sess.segs.length-1].nm];
   return `<div class="segbar">${bars}</div><div class="seglab">`+
     names.map(n=>`<span>${n}</span>`).join('')+`</div>`;
@@ -4129,7 +4130,7 @@ function renderRunTab(){
     return; }
   h.innerHTML=`<div class="hero-day" style="--day:${T.col};margin:12px 16px 0"><div class="inner">
       <div class="kind"><s></s>${T.nm} · ${sess.dist}km</div>
-      <div class="tgt" style="margin-top:9px">${sess.reps?`${sess.reps}회 @ ${fmtPace(sess.repTarget+(ADJ[sess.type]||0))}`:rangeText(mainSeg(sess).pace)}${sess.ceiling?` · 상한 ${fmtPace(sess.ceiling)}`:''}</div>
+      <div class="tgt" style="margin-top:9px">${sess.reps?`회차 ${fmtPace(sess.repTarget+(ADJ[sess.type]||0))}`:rangeText(mainSeg(sess).pace)}${sess.ceiling?` · 상한 ${fmtPace(sess.ceiling)}`:''}</div>
       ${segBar(sess)}
       <button class="gobtn" id="rtGo">시작</button>
     </div></div>`;
@@ -4245,7 +4246,7 @@ $('setBack').onclick=()=>go('home');
 /* 숫자만 굵게 — 속도·거리·심박·시간이 설명 글 속에서 바로 보이게 */
 function boldNums(t){ return String(t||'').replace(/(\d+'\d{2}"(?:~\d+'\d{2}")?|\d+(?:\.\d+)?\s?km|\d+(?:\.\d+)?m\b|♥\s?\d{2,3}(?:~\d{2,3})?|\b\d+:\d{2}(?::\d{2})?\b|\bZ[1-5]|\d+회|\d+분)/g,'<b>$1</b>'); }
 const summary=s=>{ if(s&&s.rw)return s.rw.sum; const T=TYPES[s.type]||{}, z=T.hrZone&&T.hrZone[1]&&!T.noHR?` · ${s.reps?'Z'+hrZoneIx(T.hrZone[1]-1):'Z'+hrZoneIx(T.hrZone[1]-1)+'↓'}`:''; if(s.mpFinish){ const L=(s.segs||[]).find(g=>!g.hard&&!isCool(g)&&g.to>2)||mainSeg(s), M=(s.segs||[]).find(g=>g.hard); return `${rangeText(L.pace)}${z} → 후반 ${s.mpFinish}km ${M?fmtPace((M.pace[0]+M.pace[1])/2):''} 목표 속도`; }   /* 존 표시는 앞부분(LSD)에만 — 후반 목표 속도 구간은 Z2가 아니다 */
-  return (s.reps?`${s.reps}회 @ ${fmtPace(s.repTarget+(ADJ[s.type]||0))}`:rangeText(mainSeg(s).pace))+z; };
+  return (s.reps?`회차 ${fmtPace(s.repTarget+(ADJ[s.type]||0))}`:rangeText(mainSeg(s).pace))+z; };   /* 거리·횟수는 제목에 — 여기선 속도·심박만 */
 
 /* ───────── 조정 제안 (합의) ───────── */
 function renderProps(){
@@ -4588,7 +4589,7 @@ function buildRail(){
   const tot=durs.reduce((a,b)=>a+b,0);
   const cum=[]; durs.reduce((a,d)=>{const v=a+d;cum.push(v);return v;},0);
   S.rail={durs,tot,cum};
-  const short=g=>/웜업|준비/.test(g.nm)?'웜업':/쿨다운|마무리/.test(g.nm)?'쿨다운':/레스트|사이 쉬기|회복 조깅/.test(g.nm)?'레스트':g.hard?(g.rep?String(g.rep):'')+(/세트/.test(g.nm)?'세트':/구간/.test(g.nm)?'':'회차'):String(g.nm).replace(/\s*\([^)]*\)/g,'').slice(0,4);
+  const short=g=>/웜업|준비/.test(g.nm)?'웜업':/쿨다운|마무리/.test(g.nm)?'쿨다운':/레스트|사이 쉬기|회복 조깅/.test(g.nm)?'레스트':g.hard?(g.rep?String(g.rep):'')+'회차':String(g.nm).replace(/\s*\([^)]*\)/g,'').slice(0,4);
   $('rTrack').innerHTML=segs.map((g,i)=>`<div class="rm-seg${g.hard?' hard':''}" data-i="${i}" style="flex:${Math.max(0.6,durs[i]/tot*10).toFixed(2)}"><i></i><b>${segs.length<=9?(durs[i]/tot<0.1?String(short(g)).slice(0,1):short(g)):(g.hard?(g.rep||'')+'':'')}</b></div>`).join('');
   /* 1km마다 — 총 거리만큼 칸 */
   const n=Math.max(1,Math.ceil((sess.dist||0)-0.02));
@@ -4951,7 +4952,7 @@ function onTick(){
           : '심박이 높아요. 호흡을 고르세요.', true, false);
     }
     if(hrOver&&repInfoOnly){ /* 세트 중 심박 초과는 화면에 참고로만 — 속도 판정을 덮지 않는다 */
-      S.repHrNote=tg.hard?`심박 ${S.hr.bpm} — 세트 중엔 속도 기준`:isCool(tg)?`심박 ${S.hr.bpm} — 쿨다운 천천히`:`심박 ${S.hr.bpm} — 세트 사이엔 속도만`; }
+      S.repHrNote=tg.hard?`심박 ${S.hr.bpm} — 회차 중엔 속도 기준`:isCool(tg)?`심박 ${S.hr.bpm} — 쿨다운 천천히`:`심박 ${S.hr.bpm} — ${tm('rest')}엔 속도만`; }
     else if(hrOver&&S.hrHoldSec>=10){ state='hr'; pill=`심박 ${S.hr.bpm} · 상한 ${HZ[1]}`;
       const zn=hrZone(S.hr.bpm);
       say = hrPrimary
@@ -7135,7 +7136,7 @@ function applyTest(r){
 function goalPaceRun(total,repKm,n,perKm){
   const rest=restKm(120,PACE.recJog);
   const wu=Math.max(1.5,Math.floor((total-repKm*n-rest*(n-1))*0.5*2)/2);
-  return {type:'goalpace',dist:total,...repsBuild(total,wu,n,repKm,Math.round(perKm),0.4,120,'구간')};
+  return {type:'goalpace',dist:total,...repsBuild(total,wu,n,repKm,Math.round(perKm),0.4,120,'회차')};
 }
 /* 반복 횟수·길이를 줄인다. 상한을 넘는 세션은 경고하지 않고 조용히 줄인다. */
 function shrinkReps(s,n,len){
@@ -7144,7 +7145,7 @@ function shrinkReps(s,n,len){
   const i=rec?s.segs.indexOf(rec):-1;
   const rd=i>0?Math.max(0.2,+(rec.to-s.segs[i-1].to).toFixed(2)):0.5;
   const rs=rec&&rec.end==='time'?rec.sec:null;
-  const lb=/세트/.test(s.segs[1].nm)?'세트':/구간/.test(s.segs[1].nm)?'구간':'회차';
+  const lb='회차';
   const L=len||s.repLen;
   Object.assign(s,repsBuild(s.dist,wu,n,L,s.repTarget,rd,rs,lb));
   s.repLen=L;
@@ -9465,14 +9466,14 @@ function promiseRows(r,s){
   }
   const z=r.zones||[], zt=z.reduce((a,b)=>a+b,0);
   const hardFr=(r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec);
-  if(zt>300&&T.judgeBy==='spread'&&(z[3]+z[4])/zt>hardFr+0.15) rows.push(['힘듦(Z4) 이상 시간',`${Math.round((z[3]+z[4])/zt*100)}% — 세트 ${Math.round((r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec)*100)}%`,'bad']);
+  if(zt>300&&T.judgeBy==='spread'&&(z[3]+z[4])/zt>hardFr+0.15) rows.push(['힘듦(Z4) 이상 시간',`${Math.round((z[3]+z[4])/zt*100)}% — 회차 ${Math.round((r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec)*100)}%`,'bad']);
   if(zt>300&&['easy','recovery','long'].includes(r.type)){ const hi=(z[3]+z[4])/zt;
     /* 쉬운 날 — Z4 이상이 20% 넘으면 그게 먼저다. 그때 'Z3 적었음'을 좋은 점으로 내세우면 거꾸로 읽힌다 */
     if(hi>=0.2) rows.push(['힘듦(Z4) 이상 시간',`${Math.round(hi*100)}% — 쉬운 날 기준 Z2 이하`,'bad']);
     else rows.push(['보통(Z3) 시간',`${Math.round(z[2]/zt*100)}%`,z[2]/zt>0.3?'bad':'ok']); }
   return {rows,kind};
 }
-const VERD={rwkept:['완주 — 가지런했습니다','ok'],rwshort:['중도 종료 — 다음 반영','mid'],rwpain:['통증 → 다음 단계↓','mid'],short0:['짧아 판정 없음','mid'],kept:['가지런했습니다 — 약속대로','ok'],softfast:['세트 가지런 · 빠름','mid'],fast:['거리 지킴 · 속도 초과','bad'],spread:['뒤 회차 늦어짐','bad'],
+const VERD={rwkept:['완주 — 가지런했습니다','ok'],rwshort:['중도 종료 — 다음 반영','mid'],rwpain:['통증 → 다음 단계↓','mid'],short0:['짧아 판정 없음','mid'],kept:['가지런했습니다 — 약속대로','ok'],softfast:['회차 가지런 · 빠름','mid'],fast:['거리 지킴 · 속도 초과','bad'],spread:['뒤 회차 늦어짐','bad'],
   slow:['회차 목표 미달','mid'],off:['구간 속도 미달','mid'],short:['거리 미달','mid'],hr:['심박 초과','mid'],easyreps:['고르고 가볍게 끝남','ok']};
 
 /* ───────── 결과 화면 ─────────
@@ -9573,7 +9574,7 @@ function renderResult(host,r,s,opt){
       <div class="rleg" hidden><span><i style="background:#0E9B72"></i>이지</span><span><i style="background:#E35A32"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:#CF3B36"></i>상한보다 빠름</span><span>① km</span></div></div>`:'<div class="rmap" hidden></div>'}
     ${SEC(vc,'오늘 결과','',hero)}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
-    ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 존</summary>':''}
+    ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 심박 존</summary>':''}
     ${segSec}
     <div class="rsZones"></div>
     ${loadCard(r)?SEC('rec','훈련 부하','',loadCard(r)):''}
@@ -10788,7 +10789,7 @@ function pdOverview(s,its){
   const hard=its.filter(x=>x.g.hard), tot=its.length?its[its.length-1].t1:0;
   const hp=hard.length&&hard[0].p?rangeText(hard[0].p):'';
   const T=TYPES[s.type]||{};
-  const rule = s.type==='threshold'&&hard.length ? `${hard.length}세트 ${hp} — 초반 과속 금지`
+  const rule = s.type==='threshold'&&hard.length ? `${hard.length}회 ${hp} — 초반 과속 금지`
     : s.type==='interval'&&hard.length ? `${hard.length}회 ${hp} — 끝까지 고르게`
     : (s.type==='goalpace'||s.type==='mpace')&&hard.length ? `목표 ${hp} 익힘 · 과속 금지`
     : s.type==='recovery' ? (T.hrZone&&T.hrZone[1]?`♥ ${T.hrZone[1]} 아래 · 숨이 차지 않게`:'숨이 차지 않게')
@@ -10818,8 +10819,8 @@ function pdDetail(s,its,j){
   /* 요령 하나 */
   const tip = k==='warm' ? (nxt&&nxt.g.hard?'마지막 200m만 올리기':'느린 쪽에서 시작')
     : k==='fast'&&hardIx===0 ? '처음 300m 참기 — 느린 쪽'
-    : k==='fast'&&hardIx===nHard-1 ? '앞 세트 속도 · 자세 유지'
-    : k==='fast' ? '앞 세트와 같은 속도'
+    : k==='fast'&&hardIx===nHard-1 ? '앞 회차 속도 · 자세 유지'
+    : k==='fast' ? '앞 회차와 같은 속도'
     : k==='rest' ? '멈추지 말고 천천히 — 걸어도 OK'
     : k==='cool' ? '느린 쪽 · 끝나고 2~3분 걷기'
     : s.type==='recovery' ? '숨이 차면 걷기' : s.type==='long' ? '처음 3km 느리게' : '대화가 끊기면 늦추기';
@@ -11264,7 +11265,7 @@ function renderGuide(){
     rep:['REPETITION','레페티션','#D9572B','짧게 아주 빠르게','1~2분 질주·휴식 반복 → 지구력↑',['아주 빠르게','힘 빼고','완전 휴식'],'러닝 이코노미 · 스피드 · 다리 반응'],
     stride:['STRIDES','스트라이드','#2C8FC0','20초 가속','쉬운 날 끝 짧은 가속',['20초','가볍게 빠르게','걸으며 회복'],'폼·케이던스 · 신경 자극'],
     tt:['TIME TRIAL','TT','#CF3B36','실력 측정일','2km 힘껏 → 속도 재계산',['앞뒤는 천천히','가운데만 힘껏','4주마다'],'현재 실력 확인 · 훈련 속도 재계산'],
-    goalpace:['GOAL PACE','페이스주','#6E4BB0','대회 속도 익히기','목표 속도 구간 반복',['목표 속도','고르게','대회 느낌'],'대회 속도 감각 · 페이스 유지력'],
+    goalpace:['GOAL PACE','페이스주','#6E4BB0','대회 속도 익히기','목표 속도 반복',['목표 속도','고르게','대회 느낌'],'대회 속도 감각 · 페이스 유지력'],
     buildup:['BUILD-UP RUN','빌드업 런','#1E8E7E','천천히 시작 → 점점 빠르게','천천히 → 점점 빠르게 · 뒷심↑ · 과속 방지',['천천히 시작','점점 빠르게','후반 가속'],'뒷심 · 페이스 조절 감각']
   };
   const tcard=(k,mine,body)=>{ const m=TM[k]; if(!m)return ''; const c=m[2];
@@ -11280,7 +11281,7 @@ function renderGuide(){
   const types=[
     tr('easy','대화 가능 속도',pr(PACE.easy),
       `<div class="gd-row">${rpe(3)}<span>대화 가능</span></div>`+
-      kv([['속도',`E 범위 ${pr(PACE.easy)} · 허용 ±15초`],['심박',hz('easy')+' (존2)'],['판정','구간의 80% 이상이 범위 안']])+
+      kv([['속도',`E 범위 ${pr(PACE.easy)} · 허용 ±15초`],['심박',hz('easy')+' (Z2)'],['판정','구간의 80% 이상이 범위 안']])+
       fx(`목표 = E<br>준비 1km = E 범위의 느린 절반, 허용 ±20초`)+src(T('easy').src)),
     tr('recovery','이지런보다 느리게',pr(PACE.rec),
       `<div class="gd-row">${rpe(2)}<span>콧노래 가능</span></div>`+
@@ -11293,17 +11294,17 @@ function renderGuide(){
       src(T('long').src)),
     tr('threshold','1시간 역치 속도 20분',fp(PACE.T),
       `<div class="gd-row">${rpe(7)}<span>짧은 문장만</span></div>`+
-      kv([['속도',`목표 ${pr(sessRange('threshold'))} (T ${fp(PACE.T)} ±3초) · 판정은 범위 밖 5초까지 통과`],['구성','2km·1.5km·1km × 2~4세트, 사이 2분 천천히'],['양','주간 거리의 10% 이내'],
-          ['심박',hz('threshold')+' (존4)'],['판정',`세트 간 속도 차이 ≤ ${th.spread}초`]])+
-      fx(`빠른 Q = 주 km × 0.1<br>세트 수 = clamp(빠른 양 ÷ 세트 길이, 2, 4)`)+src(T('threshold').src)),
+      kv([['속도',`목표 ${pr(sessRange('threshold'))} (T ${fp(PACE.T)} ±3초) · 판정은 범위 밖 5초까지 통과`],['구성','2km·1.5km·1km × 2~4회, 사이 2분 천천히'],['양','주간 거리의 10% 이내'],
+          ['심박',hz('threshold')+' (Z4)'],['판정',`회차 간 속도 차이 ≤ ${th.spread}초`]])+
+      fx(`빠른 Q = 주 km × 0.1<br>반복 횟수 = clamp(빠른 양 ÷ 1회 길이, 2, 4)`)+src(T('threshold').src)),
     tr('interval','숨이 턱까지, 3~5분씩',fp(PACE.I),
       `<div class="gd-row">${rpe(8)}<span>몇 단어만</span></div>`+
       kv([['속도',`목표 ${pr(sessRange('interval'))} (I ${fp(PACE.I)} ±3초) · 판정은 범위 밖 5초까지 통과`],['한 번 길이',`240초 ÷ I 속도 = ${(Math.min(1.6,Math.max(0.4,240/Z.I))).toFixed(2)}km (0.4~1.6)`],
-          ['횟수','min(10km, 주간 × 8%) ÷ 길이 → 2~6번'],['사이','0.5km 천천히 · 판정 안 함'],['심박',hz('interval')+' (존5)'],['판정',`회차 차이(최고−최저) ≤ ${th.spread}초`]])+
+          ['반복 횟수','min(10km, 주간 × 8%) ÷ 1회 길이 → 2~6회'],['사이','0.5km 천천히 · 판정 안 함'],['심박',hz('interval')+' (Z5)'],['판정',`회차 간 속도 차이(최고−최저) ≤ ${th.spread}초`]])+
       fx(`길이 = clamp(240 ÷ I, 0.4, 1.6) km<br>차이 = max(회차 속도) − min(회차 속도)`)+src(T('interval').src)),
     tr('rep','1~2분 아주 빠르게',fp(PACE.R),
       `<div class="gd-row">${rpe(9)}<span>아주 빠르게, 힘 빼고</span></div>`+
-      kv([['속도',`R ${fp(PACE.R)}`],['양','주간 거리의 5% · 최대 8km'],['심박','안 봄 — 오르기 전 끝남'],['판정',`회차 간 차이 ≤ ${th.spread}초`]])+src(T('rep').src)),
+      kv([['속도',`R ${fp(PACE.R)}`],['양','주간 거리의 5% · 최대 8km'],['심박','안 봄 — 오르기 전 끝남'],['판정',`회차 간 속도 차이 ≤ ${th.spread}초`]])+src(T('rep').src)),
     tr('stride','20초 가볍게 빠르게','10~20초',
       `<div class="gd-row">${rpe(8)}<span>빠르게, 힘 빼고</span></div>`+
       kv([['구성','10~20초 × 여러 번 · 걷기로 완전 회복'],['속도·심박','안 봄 — 100m는 GPS 측정 불가'],['판정','횟수·폼'],['일정','자동 일정 미포함']])+src(T('stride').src)),
@@ -11313,7 +11314,7 @@ function renderGuide(){
       fx(`새 VDOT = vdotOf(중앙 거리, 중앙 시간)`)+src('함수 applyTest · 혼자 잰 TT 0.97 보정 없음')),
     tr('goalpace','대회 속도 익히기','목표÷거리',
       `<div class="gd-row">${rpe(7)}<span>대회 느낌</span></div>`+
-      kv([['속도','목표 기록 ÷ 대회 거리'],['구성','2km × n, 2~3주차'],['판정',`회차 간 차이 ≤ ${th.spread}초`]])+src(T('goalpace').src)),
+      kv([['속도','목표 기록 ÷ 대회 거리'],['구성','2km × n, 2~3주차'],['판정',`회차 간 속도 차이 ≤ ${th.spread}초`]])+src(T('goalpace').src)),
     tcard('buildup','자동 일정 미포함',null)
   ];
 
@@ -11354,7 +11355,7 @@ function renderGuide(){
       fx(`3회↑<br>차이 = 중앙값<br>상한 넘음 = 상위 25% 지점 + 3% (5~25%)<br>심박 넘음 = 상위 25% 지점 + 5% (10~35%)`)+
       note('GPS·흔들림 허용분')+src('함수 judgeTh')),
     item('aero',ic('aero'),'편한 달리기 능력','같은 심박에 더 빠르게 · 같은 속도에 낮은 심박','',
-      kv([['기준 심박',`쉬운 날 상한 ${TYPES.easy.hrZone[1]}${easyCapOv()?' (직접)':` (${ZONES.kind==='hrr'?'여유 심박 70%':'최대 심박 80%'} = 존2 윗선)`}`],['속도 모드','기준 심박 속도 → −15초'],['심박 모드','기준 속도±12초 심박 → −6']])+
+      kv([['기준 심박',`쉬운 날 상한 ${TYPES.easy.hrZone[1]}${easyCapOv()?' (직접)':` (${ZONES.kind==='hrr'?'여유 심박 70%':'최대 심박 80%'} = Z2 윗선)`}`],['속도 모드','기준 심박 속도 → −15초'],['심박 모드','기준 속도±12초 심박 → −6']])+
       src('함수 aeroSuggest · 최근 42일 · 첫 1km 뺌'))
   ];
   /* ── 러닝 용어 표 — 아이콘 · 용어 · 뜻 · 활용 팁 · 내 값 ── */
@@ -11459,9 +11460,9 @@ function renderGuide(){
     stride:{man:!!(O.stride||GW_MAN.stride), mine:myStride?`평균 ${myStride.toFixed(2)}m`:'—', auto:autoNote(strideAuto()?`평균 보폭 ${strideAuto().toFixed(2)}m — 최근 10번 달리기 평균 (속도 ÷ 케이던스)`:'케이던스 기록 3번부터 자동'), form:fld('stride','평균 보폭',O.stride||myStride||'','m','1.00')+autoNote('표시용 · 코칭 미사용')},
     hr:{man:!!(O.hrmax||GW_MAN.hr), mine:`최대 ${HRMAX}`, auto:autoNote(`자동 최대 ${SUG.hrmax} · ${HRSRC[hsrc==='manual'?(PROF.hrmaxSrc==='measured'&&PROF.hrmax?'measured':(PROF.hrmaxObs&&PROF.hrmaxObs>=estHrMax(PROF.age))?'observed':'estimated'):hsrc]}`), form:fld('hrmax','최대 심박',O.hrmax||HRMAX,'bpm','185')},
     thr:{man:!!(O.T||GW_MAN.thr), mine:`템포 ${fp(PACE.T)} · ♥${TYPES.threshold.hrZone[0]}~${TYPES.threshold.hrZone[1]}`,
-      auto:autoNote(`템포 = 1시간 한계 속도 + 8초 = ${fp(SUG.T)}<br>심박 = 존4 ${ZONES[3][0]}~${ZONES[3][1]} (${ZONES.kind==='hrr'?'여유 심박 80~90%':'최대 심박 88~92%'} · Daniels, B)`), form:fld('T','템포 페이스',mmss(PACE.T),'/km')},
-    zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`존2 ${ZONES[1][0]}~${ZONES[1][1]}${(()=>{ const c=easyCapOv(); return c&&c!==ZONES[1][1]?` · 이지 상한 ${c}${c>HRMAX*0.82?' ⚠':''}`:''; })()}`,
-      auto:autoNote(`존2 상한 = ${ZONES.kind==='hrr'?`안정 ${ZONES.rhr} + (최대 ${HRMAX} − 안정) × 0.70`:`최대 심박 ${HRMAX} × 0.80`} = ${SUG.easyCap}${(()=>{ const c=easyCapOv(), a=aeroGoal(); return c&&c>HRMAX*0.82?`<br><b>⚠ 쉬운 날 상한 ${c}</b> (${!ovGet().easyCap&&a?'목표 설정값':'직접 입력값'}) — 최대 ${Math.round(c/HRMAX*100)}%(88%↑ = 역치) · 권장 ~80%(${SUG.easyCap}) (Daniels E 65~79%, B)`:''; })()}`), form:fld('easyCap','존2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
+      auto:autoNote(`템포 = 1시간 한계 속도 + 8초 = ${fp(SUG.T)}<br>심박 = Z4 ${ZONES[3][0]}~${ZONES[3][1]} (${ZONES.kind==='hrr'?'여유 심박 80~90%':'최대 심박 88~92%'} · Daniels, B)`), form:fld('T','템포 페이스',mmss(PACE.T),'/km')},
+    zone:{man:!!(O.easyCap||GW_MAN.zone), mine:`Z2 ${ZONES[1][0]}~${ZONES[1][1]}${(()=>{ const c=easyCapOv(); return c&&c!==ZONES[1][1]?` · 이지 상한 ${c}${c>HRMAX*0.82?' ⚠':''}`:''; })()}`,
+      auto:autoNote(`Z2 상한 = ${ZONES.kind==='hrr'?`안정 ${ZONES.rhr} + (최대 ${HRMAX} − 안정) × 0.70`:`최대 심박 ${HRMAX} × 0.80`} = ${SUG.easyCap}${(()=>{ const c=easyCapOv(), a=aeroGoal(); return c&&c>HRMAX*0.82?`<br><b>⚠ 쉬운 날 상한 ${c}</b> (${!ovGet().easyCap&&a?'목표 설정값':'직접 입력값'}) — 최대 ${Math.round(c/HRMAX*100)}%(88%↑ = 역치) · 권장 ~80%(${SUG.easyCap}) (Daniels E 65~79%, B)`:''; })()}`), form:fld('easyCap','Z2 상한 (편한 심박)',O.easyCap||ZONES[1][1],'bpm','145')}
   };
   let lrT=null, wkT=0; try{ const L=lr&&loadOf(lr); lrT=L&&L.tss!=null?L.tss:null; const t7=addDays(todayStr(),-6);
     wkT=runs.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=t7).reduce((a,r)=>{ const q=loadOf(r); return a+(q&&q.tss!=null?q.tss:0); },0); }catch(e){}
@@ -11750,9 +11751,9 @@ document.addEventListener('click',e=>{
 /* ═════════════════════ 플랜 — 주 단위 카드 · 요일별 줄 · 세부 수정 ═════════════════════ */
 const PE_TYPES=['easy','recovery','long','threshold','interval','goalpace','tt','free'].map(k=>[k,tm(k)]);
 function peTitle(type,km,n,len){ const L=kmLab(len||1);
-  return type==='easy'?`천천히 ${km}km`:type==='recovery'?`회복조깅 ${km}km`:type==='long'?`길게 ${km}km`
-    :type==='threshold'?`벅차게 ${L} × ${n}`:type==='interval'?`빠르게 ${L} × ${n}`:type==='goalpace'?`목표 속도 ${L} × ${n}`
-    :type==='tt'?`TT ${fmtKm1(len||5)}km`:type==='free'?`${tm('free')} ${km}km`:`${km}km`; }
+  /* 이름은 용어집(tm) 하나에서 — 일정·오늘·수정 화면이 같은 이름을 쓴다 */
+  return ['threshold','interval','goalpace'].includes(type)?`${tm(type)} ${L} × ${n}`
+    :type==='tt'?`${tm('tt')} ${fmtKm1(len||5)}km`:GL[type]?`${tm(type)} ${km}km`:`${km}km`; }
 function peGoalPace(){ const g=(PLAN&&PLAN.goal)||GOAL||{}; if(PLAN&&PLAN.ladder&&g.m)return PLAN.ladder/(g.m/1000);
   return g.perKm||(g.sec&&g.m?g.sec/(g.m/1000):Math.round(PACE.T)); }
 /* 종류 · 거리 · 횟수 · 길이로 세션을 다시 만든다 */
@@ -11795,13 +11796,13 @@ function peRender(){
   const s=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len), orig=PE.d&&(peStore()||[]).find(x=>x.d===PE.d);
   $('peBody').innerHTML=`
     <div class="pe-prev" style="--tc:${col}"><span class="pe-shape">${guideShape(PE.type==='goalpace'?'goalpace':PE.type,col)}</span>
-      <div><b>${ESC(String(s.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${s.dist}km · ${summary(s)}</i></div></div>
+      <div><b>${ESC(String(s.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${summary(s)}</i></div></div>
     <div class="pe-lab">종류</div>
     <div class="pe-chips">${PE_TYPES.map(([k,n])=>`<button type="button" data-pet="${k}" class="${PE.type===k?'on':''}" style="--tc:${(TYPES[k]||{}).col}"><i></i>${n}</button>`).join('')}</div>
     ${PE.type==='tt'?`<div class="pe-lab">TT 거리 <small style="font-weight:600;color:var(--ink-3)">· 앞뒤 천천히 + 가운데 힘껏 · 평지·같은 코스</small></div>
       <div class="pe-chips sm">${lens.map(l=>`<button type="button" data-pel="${l}" class="${PE.len===l?'on':''}">${l}km</button>`).join('')}</div>`
-    :hard?`<div class="pe-lab">${PE.type==='threshold'?'세트':'회차'}</div>
-      <div class="pe-step"><button type="button" data-pen="-1">−</button><b class="num">${PE.n}<small>번</small></b><button type="button" data-pen="1">+</button></div>
+    :hard?`<div class="pe-lab">반복 횟수</div>
+      <div class="pe-step"><button type="button" data-pen="-1">−</button><b class="num">${PE.n}<small>회</small></b><button type="button" data-pen="1">+</button></div>
       <div class="pe-lab">1회 길이</div>
       <div class="pe-chips sm">${lens.map(l=>`<button type="button" data-pel="${l}" class="${PE.len===l?'on':''}">${kmLab(l)}</button>`).join('')}</div>`
     :`<div class="pe-lab">설정 방식</div>
@@ -11821,7 +11822,7 @@ function peRender(){
     <label class="pe-other">다른 날짜 <input type="date" id="peDate" value="${PE.date}" min="${t}"></label>
     ${warn?`<p class="pe-warn">⚠ ${warn}</p>`:''}
     <button type="button" class="btn" id="peOk" style="margin:14px 0 0">${PE.isNew?'추가':'저장'}</button>
-    <div class="pe-row2">${PE.isNew?'':`<button type="button" id="peDel">쉬기 (삭제)</button>`}${orig&&orig.orig?`<button type="button" id="peUndo">원래대로</button>`:''}</div>`;
+    <div class="pe-row2">${PE.isNew?'':`<button type="button" id="peDel">${tm('off')}로 바꾸기</button>`}${orig&&orig.orig?`<button type="button" id="peUndo">원래대로</button>`:''}</div>`;
 }
 function peApply(){ peReadInputs();
   { const x=PE.d&&BLOCK.find(y=>y.d===PE.d); if(x&&x.role==='줄이는 주'&&PE.km>sKm(x)+0.01&&!confirm(`${x.dist}km → ${PE.km}km 시 효과↓(관행 C). 늘릴까요?`))return; }
@@ -11926,7 +11927,7 @@ document.addEventListener('click',e=>{
 function peReadInputs(){ const k=$('peKm'); if(k){ const v=parseFloat(k.value); if(v>=2&&v<=45)PE.km=Math.round(v*2)/2; }
   const h=$('peH'), m=$('peMin'); if(h||m){ const sec=((+(h||{}).value||0)*60+(+(m||{}).value||0))*60; if(sec>0)PE.km=Math.max(2,Math.min(45,Math.round(sec/peMainPace(PE.type)*2)/2)); } }
 function pePreview(){ try{ const s=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len), b=document.querySelector('.pe-prev b'), i=document.querySelector('.pe-prev i'), est=document.querySelector('.pe-est b');
-  if(b)b.textContent=String(s.t).replace(/\s*\([^)]*\)/g,''); if(i)i.textContent=`${s.dist}km · ${summary(s)}`; if(est)est.textContent=$('peKm')?fmtHM(peEstSec(PE.type,PE.km)):`${PE.km}km`; }catch(e){} }
+  if(b)b.textContent=String(s.t).replace(/\s*\([^)]*\)/g,''); if(i)i.textContent=summary(s); if(est)est.textContent=$('peKm')?fmtHM(peEstSec(PE.type,PE.km)):`${PE.km}km`; }catch(e){} }
 document.addEventListener('input',e=>{ if(['peKm','peH','peMin'].includes(e.target.id)){ peReadInputs(); pePreview(); } });
 document.addEventListener('change',e=>{
   if(e.target.id==='peKm'){ const v=parseFloat(e.target.value); if(v>=2&&v<=45){ PE.km=Math.round(v*2)/2; } pePreview(); return; }
@@ -12213,7 +12214,7 @@ function paRender(){ const has=!!peStore(), T=PA.type, L=T?paTargets(T):[], hard
       <button type="button" class="btn" id="paDayOk" style="margin:12px 0 0">저장 · 남은 일정 이동</button></div>
 <div class="pa-sec"><div class="pa-h">③ 같은 훈련 일괄 수정</div>
       ${types.length?`<div class="pe-chips sm">${types.map(([k,n])=>`<button type="button" data-pat="${k}" class="${T===k?'on':''}" style="--tc:${(TYPES[k]||{}).col}"><i></i>${k==='long'?'LSD':n} ${paTargets(k).length}</button>`).join('')}</div>
-      ${T?(hard?`<div class="pe-lab">반복 횟수 — 남은 ${L.length}번</div><div class="pe-step"><button type="button" data-padn="-1">−1번</button><b class="num" style="min-width:70px;text-align:center">${PA.dn>0?'+':''}${PA.dn}번</b><button type="button" data-padn="1">+1번</button></div>`
+      ${T?(hard?`<div class="pe-lab">반복 횟수 — 남은 ${L.length}회</div><div class="pe-step"><button type="button" data-padn="-1">−1회</button><b class="num" style="min-width:70px;text-align:center">${PA.dn>0?'+':''}${PA.dn}회</b><button type="button" data-padn="1">+1회</button></div>`
         :`<div class="pe-lab">거리 — 남은 ${L.length}번</div><div class="pe-step"><button type="button" data-padk="-1">−1</button><button type="button" data-padk="-0.5">−0.5</button><b class="num" style="min-width:64px;text-align:center">${PA.dk>0?'+':''}${PA.dk}km</b><button type="button" data-padk="0.5">+0.5</button><button type="button" data-padk="1">+1</button></div>
           <label class="pe-other">또는 일괄 <input type="number" inputmode="decimal" step="0.5" min="2" max="45" id="paSet" value="${PA.setKm}" placeholder="예: 14"> km</label>`)
         +`<div class="pa-list">${prev}</div>
