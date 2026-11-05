@@ -2128,6 +2128,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .log-ana>summary{cursor:pointer;list-style:none}.log-ana>summary::-webkit-details-marker{display:none}.log-ana>summary::after{content:'▾';margin-left:auto;color:var(--ink-3)}.log-ana[open]>summary::after{content:'▴'}
 .fp-hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;margin:12px 0 0}.fp-hd b{font-size:13px}.fp-hd i{font-style:normal;font-size:11.5px;color:var(--ink-3)}
 .fp-list{list-style:none;margin:8px 0 0;padding:0}.fp-list li{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}.fp-list b{font-variant-numeric:tabular-nums;min-width:58px}.fp-list span{flex:1;color:var(--ink-2)}.fp-list em{font-style:normal;font-weight:800;font-variant-numeric:tabular-nums}.fp-now{text-decoration:none;font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap}.fp-list button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 9px;font:inherit;font-size:11.5px;color:var(--ink-3)}
+.pd-unp{background:#FDE7C8!important;color:#8A4B00!important;cursor:pointer}
 .pg-card{background:var(--panel);border-radius:20px;padding:16px 8px 14px;margin:12px 0}
 .pg-hd{padding:0 6px 12px}.pg-hd b{display:block;font-size:16px;font-weight:900;letter-spacing:-.2px}.pg-hd span{font-size:12px;color:var(--ink-3);font-weight:700}
 .pg-wrap{overflow-x:auto}.pg{width:100%;border-collapse:separate;border-spacing:3px 4px;table-layout:fixed;min-width:330px}
@@ -2289,7 +2290,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.03';
+const APPVER='20.04';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2664,7 +2665,10 @@ const SEGFIX={'웜업':'warm','도입':'warm','출발':'warm','쿨다운':'cool'
 function termSeg(g){ if(!g)return g; if(SEGFIX[g.nm])g.nm=tm(SEGFIX[g.nm]);
   const m=String(g.nm||'').match(/^(준비|마무리|사이 쉬기)(?: \([^)]*\))?$/); if(m)g.nm=tm({'준비':'warm','마무리':'cool','사이 쉬기':'rest'}[m[1]]);
   else g.nm=String(g.nm||'').replace(/^[가-힣 ]+? \(([^)]+)\)$/,(x,y)=>{ const k=Object.keys(GL).find(k=>GL[k].t===y); return k?GL[k].e:y; }); return g; }
-function termSess(x){ if(!x)return x; x.t=totalFirst(termify(x.t),x.dist); (x.segs||[]).forEach(termSeg); return x; }
+function termSess(x){ if(!x)return x;
+  /* 받아 적은 훈련 제목 — 종류 이름이 빠졌거나(예: '1km × 5 · 4'25"') 속도가 붙어 있으면 맞춘다. 속도는 아랫줄에 따로 나온다 */
+  if(x.type&&GL[x.type]&&x.t){ let t=String(x.t).replace(/\s*·\s*\d+'\d\d"$/,'').replace(/\s+\d+'\d\d"로$/,''); if(/^\d/.test(t))t=tm(x.type)+' '+t; x.t=t; }
+  x.t=totalFirst(termify(x.t),x.dist); (x.segs||[]).forEach(termSeg); return x; }
 /* 그날 전체 거리를 제목 맨 앞에 — '템포런 1.5km × 2'가 아니라 '템포런 6.5km · 1.5km × 2' (웜업·쿨다운 포함 합계). 일정이 나오는 모든 곳이 이 제목을 쓴다 */
 function totalFirst(t,km){ t=String(t||''); if(!(+km>0))return t;
   const m=t.match(/^([^\d]*?)\s*(\d+(?:\.\d+)?)\s*(km|m)(?![a-z])/); if(!m)return t;
@@ -7776,7 +7780,7 @@ function parsePaste(txt){
     if(!tgt)o.segs.forEach(g=>{if(g.hard){g.pace=null;g.tol=null;}});
     const lab=rep.km>=1?rep.km+'km':Math.round(rep.km*1000)+'m';
     return {ok:true,warn,
-      sess:{type:tgt?'interval':'free',dist:total,t:`${lab} × ${n}${tgt?' · '+fmtPace(tgt):''}`,
+      sess:{type:tgt?'interval':'free',dist:total,t:`${tgt?tm('interval')+' ':''}${lab} × ${n}`,
             ...o, pasted:true, raw:String(txt).trim()}};
   }
   /* ── 한 번에 쭉 뛰는 훈련 ── */
@@ -7793,7 +7797,7 @@ function parsePaste(txt){
     if(wuKm)segs.push({to:wuKm,nm:tm('warm'),pace:PACE.warmIn,tol:'ceil'});
     segs.push({to:+(wuKm+km).toFixed(2),nm:'본 구간',pace:[tgt-3,tgt+3],tol:5,hard:true});
     if(cdKm)segs.push({to:total,nm:tm('cool'),pace:PACE.coolOut,tol:null});
-    return {ok:true,warn,sess:{type:'goalpace',dist:total,t:`${km}km ${fmtPace(tgt)}로`,
+    return {ok:true,warn,sess:{type:'goalpace',dist:total,t:`${tm('goalpace')} ${km}km`,
       segs,reps:1,repTarget:tgt,repLen:km,qvol:km,bout:km*tgt,pasted:true,raw:String(txt).trim()}};
   }
   warn.push('속도 무관 · 천천히');
@@ -7931,9 +7935,11 @@ function psRender(){
      <div class="oblab" style="margin-top:16px">넣을 날짜</div>
      <input type="date" id="psDate" value="${today}">
      <button class="btn" id="psSave" style="margin-top:12px">일정에 추가</button>
-     <div class="meta" style="margin-top:8px;line-height:1.7">일정 가림 · 복구: <b>받아적은 것 지우기</b></div>`;
+     <div class="meta" style="margin-top:8px;line-height:1.7">그날 일정 대신 들어가요 · 원래대로: 플랜 목록의 <b>되돌리기</b></div>`;
   $('psSave').onclick=()=>{
     const ds=$('psDate').value||today;
+    if(($('psIn').value||'').trim()===PS_EG){ alert('예시 그대로는 일정에 넣지 않아요.\n내 훈련 내용으로 고친 뒤 다시 변환해 주세요.'); return; }
+    const was=planOn(ds); if(was&&was.type!=='off'&&!confirm(`${ds.slice(5).replace('-','.')} ${String(was.t||'').replace(/\s*\([^)]*\)/g,'')}을(를)\n받아 적은 훈련으로 바꿀까요?\n(플랜 목록의 '되돌리기'로 원래대로)`))return;
     setCustom(ds,s);
     go('plan');
   };
@@ -7951,8 +7957,8 @@ function psPlanRender(r){ const o=$('psOut');
     <div class="note" style="margin:10px 0 0;font-size:12px">기록 유지 · '되돌리기' 가능</div>
     <button class="btn" id="psPlanOk" style="margin-top:12px">이 플랜으로</button>`;
   $('psPlanOk').onclick=()=>{ applyImported(r); go('plan'); }; }
-$('psEg').onclick=()=>{ $('psIn').value='워밍업 2km, 1km 5번 4:25, 2분 걷기';
-  PSRES=parsePaste($('psIn').value); psRender(); };
+const PS_EG='워밍업 2km, 1km 5번 4:25, 2분 걷기';
+$('psEg').onclick=()=>{ $('psIn').value=PS_EG; PSRES=null; psRender(); $('psIn').focus(); toast('예시예요 — 내 훈련으로 고친 뒤 변환'); };
 $('psBack').onclick=()=>go('plan');
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -11817,6 +11823,7 @@ function peApply(){
   if(!L){ /* 예시 일정 — 받아적기 덮어쓰기로 저장 */
     if(PE.d&&PE.d.slice(0,10)!==PE.date){ clearCustom(PE.d.slice(0,10)); }
     setCustom(PE.date,ns); peClose(); renderPlan(); return; }
+  try{ [PE.date,PE.d&&PE.d.slice(0,10)].filter(Boolean).forEach(d=>{ if(CUSTOM&&CUSTOM[d]){ delete CUSTOM[d]; } }); DEV.store.set('custom',CUSTOM); }catch(e){}
   peSave(list=>{
     const i=PE.d?list.findIndex(x=>x.d===PE.d):-1, old=i>=0?list[i]:null;
     if(old&&!old.orig) ns.orig=JSON.parse(JSON.stringify(Object.assign({},old,{orig:undefined})));
@@ -11875,7 +11882,7 @@ function planListHTML(){
         const st=did?`<em class="pd-st ok">✓${Math.abs(freeKm-km)>=0.5?` ${fmtKm1(freeKm)}km`:''}</em>`:miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" data-pgo="${i}"><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
-            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:#F9DEDA;color:#9A2A1F">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
+            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:#F9DEDA;color:#9A2A1F">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
           ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:''}</div>`; }).join(''); }).join('');
     const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
     const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
@@ -11891,6 +11898,7 @@ function planListHTML(){
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest('#plan,#peSheet'))return;
+  const up=e.target.closest('[data-unpaste]'); if(up){ e.stopPropagation(); if(confirm('받아 적은 훈련을 지우고 원래 일정으로 되돌릴까요?')){ clearCustom(up.dataset.unpaste); renderPlan(); toast('원래 일정으로 되돌렸어요'); } return; }
   const g=e.target.closest('[data-pgo]'); if(g)return openConfirm(+g.dataset.pgo);
   const ph=e.target.closest('.pw.pw-f>header'); if(ph){ const sec=ph.parentElement, m=sec.dataset.pwm; const f=sec.classList.toggle('fold'); if(f)PWOPEN.delete(m); else PWOPEN.add(m); return; }
   const ed=e.target.closest('[data-ped0]'); if(ed)return openPlanEdit(ed.dataset.ped0);
