@@ -2281,7 +2281,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='19.90';
+const APPVER='19.91';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6628,6 +6628,8 @@ function askSheet(o){ return new Promise(res=>{ let sh=$('askSheet'); if(!sh){ s
   sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
   const done=v=>{ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); sh.onclick=null; res(v); };
   sh.onclick=e=>{ const b=e.target.closest('[data-ask]'); if(b)return done(b.dataset.ask==='1'); if(e.target===sh)done(false); }; }); }
+/* 만 14세 미만 — 보호자 동의 절차 대신 만 14세가 되면 가입하도록 안내한다 */
+function u14Sheet(){ askSheet({title:'만 14세부터 쓸 수 있어요',html:`가지런은 달리기 기록과 심박 같은 건강 정보를 다뤄서 <b>만 14세 이상</b>만 가입할 수 있어요.<br><br>만 14세가 되면 그때 가입해서 함께 달려요.`,yes:'알겠어요',no:'닫기'}); }
 const nickKey=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,'');
 /* 별명 중복 확인 — 서버의 nicks/{별명} 문서. 내 기기(iid)나 내 계정(uid)이 가진 별명이면 통과. 인터넷이 없으면 확인 못 함(그대로 진행) */
 async function nickCheck(){ const d=OB.d, nick=String(d.nick||'').trim(), key=nickKey(nick), note=$('obNickNote');
@@ -6663,7 +6665,7 @@ const OBSTEP=[
       <input type="text" id="obNick" maxlength="12" placeholder="2~12자 · 다른 사람과 겹치면 안 돼요" value="${ESC(lock?PROF.nick:(d.nick||''))}" autocomplete="nickname"${lock?' readonly':''}>
       <div class="meta" id="obNickNote" style="margin-top:6px;min-height:18px">${lock?'별명은 한 번 정하면 바꿀 수 없어요 (설정 › 계정 초기화로만)':'한 번 정하면 바꿀 수 없어요'}</div>
       <div class="oblab">태어난 해 <span class="obreq">필수</span></div>
-      <select id="obBy"><option value="">선택</option>${Array.from({length:Y-14-1939},(_,i)=>Y-14-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}</select>
+      <select id="obBy"><option value="">선택</option>${Array.from({length:Y-14-1939},(_,i)=>Y-14-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}<option value="u14"${d.by==='u14'?' selected':''}>${Y-13}년 이후</option></select>
       <div class="meta" style="margin-top:6px">최대심박 추정(208 − 0.7 × 나이)에 씁니다 · 만 14세 이상만 쓸 수 있어요</div>
       <div class="oblab">성별 <span class="obreq">필수</span></div>
       <div class="tagrow" id="obSex0" style="margin:0">
@@ -6691,20 +6693,20 @@ const OBSTEP=[
 `; },
   wire(){ const n=$('obNick'); n.oninput=()=>{ OB.d.nick=n.value; OB.d.nickOk=null; $('obNickNote').textContent=''; };
     n.onchange=()=>nickCheck();
-    $('obBy').onchange=e=>{ OB.d.by=+e.target.value||null; };
+    $('obBy').onchange=e=>{ const v=e.target.value; OB.d.by=v==='u14'?'u14':(+v||null); if(v==='u14')u14Sheet(); };
     $('obSex0').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return; OB.d.sex=b.dataset.v; $('obSex0').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); };
     $('obAgree').onchange=e=>{ OB.d.agree=e.target.checked; };
     $('obAge14').onchange=e=>{ OB.d.age14=e.target.checked; };
     $('obHealth').onchange=e=>{ OB.d.health=e.target.checked; }; },
-  read(){ const n=$('obNick'); if(n)OB.d.nick=n.value; const b=$('obBy'); if(b)OB.d.by=+b.value||null; const a=$('obAgree'); if(a)OB.d.agree=a.checked; const g=$('obAge14'); if(g)OB.d.age14=g.checked; const h=$('obHealth'); if(h)OB.d.health=h.checked; },
+  read(){ const n=$('obNick'); if(n)OB.d.nick=n.value; const b=$('obBy'); if(b)OB.d.by=b.value==='u14'?'u14':(+b.value||null); const a=$('obAgree'); if(a)OB.d.agree=a.checked; const g=$('obAge14'); if(g)OB.d.age14=g.checked; const h=$('obHealth'); if(h)OB.d.health=h.checked; },
   async ok(){ const d=OB.d, nick=String(d.nick||'').trim();
     if(nick.length<2||nick.length>12)return {m:'별명은 2~12자',f:'obNick'};
     if(!/^[가-힣A-Za-z0-9_\-. ]+$/.test(nick))return {m:'별명은 한글·영문·숫자만',f:'obNick'};
     if(!d.by)return {m:'태어난 해를 골라 주세요',f:'obBy'};
     if(!d.sex)return {m:'성별을 골라 주세요',f:'obSex0'};
+    if(d.by==='u14'||(d.by&&+todayStr().slice(0,4)-d.by<14)){ u14Sheet(); return {m:'만 14세가 되면 그때 가입해 주세요',f:'obBy'}; }
     if(!d.agree)return {m:'개인정보 동의가 필요해요',f:'obAgree'};
-    if(!d.age14)return {m:'만 14세 이상만 쓸 수 있어요',f:'obAge14'};
-    if(d.by&&+todayStr().slice(0,4)-d.by<14)return {m:'만 14세 이상만 쓸 수 있어요',f:'obBy'};
+    if(!d.age14)return {m:'만 14세 이상인지 확인해 주세요',f:'obAge14'};
     if(!d.health)return {m:'건강 정보 동의가 필요해요',f:'obHealth'};
     const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick;
     if(lock){ d.nick=PROF.nick; return true; }
