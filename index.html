@@ -2322,6 +2322,21 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
 .hrow:first-child{border-top:0}.hrow:active{background:var(--panel-2)}
 .hrow svg{width:22px;height:22px;flex:none;color:var(--tc)}.hrow-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px}.hrow-t b{font-size:14px;font-weight:700;flex:none}.hrow-t i{font-style:normal;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hrow strong{font-size:14px;font-weight:700;color:var(--tc);white-space:nowrap}.hrow-go{color:var(--ink-3);font-size:14px;margin-left:2px}
+
+/* v20.11 달리기 화면 깨짐 막기 — 폰 글자 크기 자동 키움 끔, 두 번 탭 확대 끔, 넘치면 가운데 정렬 대신 위부터 */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+#run{touch-action:manipulation;overflow:hidden}
+#run .rmid{overflow:hidden;container-type:size}
+#run .rmain{justify-content:safe center;min-height:0;overflow:hidden}
+#run .rmain .v{font-size:min(clamp(72px,26vw,108px),13vh,46cqh);white-space:nowrap}
+#run .rmain .pill{font-size:clamp(16px,2.6vh,20px);padding:clamp(8px,1.4vh,12px) 22px;margin-top:clamp(8px,2vh,18px);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#run .rmain .say{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#run .rmain .say[hidden]{display:none}
+#run .cell .v{font-size:clamp(16px,2.6vh,20px)}
+@media (max-height:640px){ #run .pz{width:72px;height:72px} }
+/* 가운데 카드가 낮으면 덜 중요한 것부터 접는다 — 설명 줄 → 단위 줄 여백 → 상태 알약 크기 */
+@container (max-height:300px){ #run .rmain .say{display:none} #run .rmain .pill{margin-top:8px} }
+@container (max-height:200px){ #run .rmain .k{font-size:12px} #run .rmain .u{font-size:13px;margin-top:0} #run .rmain .pill{font-size:15px;padding:5px 16px;margin-top:6px} }
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2338,7 +2353,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.10';
+const APPVER='20.11';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4006,6 +4021,8 @@ const TABOF={share:'log',rview:'log',dec:'home',tplan:'home',run:'home',confirm:
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
   try{ if(typeof MUS!=='undefined')setTimeout(()=>MUS.paint(),0); }catch(e){}
   CURVIEW=id;
+  /* 달리는 중엔 화면 확대를 막는다 — 빗방울·주머니 터치로 두 번 탭되면 화면이 커진 채 깨졌다 */
+  try{ const vp=document.querySelector('meta[name=viewport]'); if(vp)vp.content='width=device-width,initial-scale=1'+(id==='run'?',maximum-scale=1,user-scalable=no':''); if(id==='run')window.scrollTo(0,0); }catch(e){}
   document.body.classList.toggle('nonav',id==='onb'||id==='intro'||id==='goal');
   document.body.classList.toggle('nohead',['onb','intro','goal','run','sum','runview','selftest'].includes(id));
   try{ if(!document.body.classList.contains('nohead')&&!$('hOdo')&&$('hHead')&&!$('hHead').innerHTML)renderHome(); }catch(e){}
@@ -4589,6 +4606,7 @@ async function startRun(){
   const ok=await countdown(5,`${s.t} · ${T.nm||''}`);
   try{ if(warm!=null)DEV.geo.stop(warm); }catch(e){}
   if(!ok)return;
+  S._fin=null; liveClear();
   Object.assign(S,{session:{...s,segs:(s.segs||[]).map(g=>({...g}))},T,adj,
     opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked},
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
@@ -5331,6 +5349,7 @@ $('btnPause').onclick=()=>{
   $('rCtl').classList.toggle('one',!S.paused);
   endHold();
   if(S.paused){S._p=Date.now(); S.anchor=null; S.smooth=null; S.win=[];
+    liveSave();
     DEV.speak('일시정지했습니다. 종료는 종료 버튼을 3초 누르세요.',true);}
   else{S.pausedAt+=(Date.now()-S._p)/1000;S.win=[];DEV.speak('재개합니다',true);}
 };
@@ -5413,6 +5432,7 @@ function finish(completed){
       hr:hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null,hrTop:hs.length?Math.max(...hs):null,hrLow:hs.length?Math.min(...hs):null,hrEnd:hs.length?hs[hs.length-1]:null,drop:null,cad:null}); }
   else closeSegAt();
   renderSummary(completed);
+  S._fin={completed:!!completed}; liveSave();
   DEV.speak(completed?`완료. ${(S.dist/1000).toFixed(1)}킬로미터, ${fmtTimeVoice(S.elapsed)}. 수고하셨습니다.`:'세션을 종료했습니다.',true);
 
   show('sum');
@@ -5710,7 +5730,7 @@ $('sWeather').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   $('sWeather').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.w===weatherVal));};
 $('btnSave').onclick=()=>{
   if(!S.result)return;
-  S.result._saved=true;
+  S.result._saved=true; liveClear(); S._fin=null;
   Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,talk:talkVal,note:$('sNote').value.trim()},S.result.rw?{feel:feelVal,pain:painVal}:{});
   if(!S.result.rid)S.result.rid=newRid(S.result);
   if(S.result.act&&S.result.act!=='run'){
@@ -5757,7 +5777,73 @@ $('btnSave').onclick=()=>{
   go('home');
   toast(pr.kind==='kept'?`약속대로 — 약속 ${st}번 연속`:'기록 저장됨');
 };
-$('btnDone').onclick=()=>go('home');
+/* ───────── 달리는 중 자동 저장 · 다시 열면 복구 ─────────
+   기록은 '기록 저장'을 눌러야 남았다 — 그 전에 앱이 꺼지거나(비·주머니 터치·폰이 정리) 화면을 닫으면 통째로 날아갔다.
+   10초마다 · 일시정지할 때 · 화면이 꺼지거나 다른 앱으로 갈 때 · 종료 직후 이 폰에 따로 적어 둔다.
+   '기록 저장' 또는 확인을 거친 '저장 없이 닫기'에서만 지운다. */
+const LIVE_SKIP=new Set(['watchId','tick','wake','dev']);
+function liveSave(){
+  if(!S.t0||!(S.running||S._fin))return;
+  let s; try{ s=JSON.stringify(S,(k,v)=>LIVE_SKIP.has(k)?undefined:v); }catch(e){ return; }
+  const put=x=>{ try{ localStorage.setItem('rc_live',JSON.stringify({v:1,at:Date.now(),ix:pendingIx,s:x})); return true; }catch(e){ return false; } };
+  if(put(s))return;
+  /* 자리가 모자라면 궤적을 줄여서라도 남긴다 */
+  try{ const o=JSON.parse(s); if(o.pts&&o.pts.length>400)o.pts=simplify(o.pts,400); put(JSON.stringify(o)); }catch(e){}
+}
+function liveGet(){ try{ const o=JSON.parse(localStorage.getItem('rc_live')||'null'); return o&&o.s?o:null; }catch(e){ return null; } }
+function liveClear(){ try{ localStorage.removeItem('rc_live'); }catch(e){} }
+setInterval(()=>{ if(S.running&&!S.paused)liveSave(); },10000);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden)liveSave(); });
+window.addEventListener('pagehide',liveSave);
+/* 앱을 다시 열었을 때 — 끝내지 못한 기록이 있으면 묻는다 */
+async function liveCheck(){
+  const L=liveGet(); if(!L||S.running)return;
+  let o; try{ o=JSON.parse(L.s); }catch(e){ liveClear(); return; }
+  const km=(o.dist||0)/1000, el=o.elapsed||0;
+  if(km<0.05&&el<60){ liveClear(); return; }
+  const when=new Date(o.t0||L.at), hm=`${when.getMonth()+1}.${when.getDate()} ${String(when.getHours()).padStart(2,'0')}:${String(when.getMinutes()).padStart(2,'0')}`;
+  const ok=await askSheet({title:'저장 안 된 기록이 있어요',
+    html:`<b>${ESC((o.session&&o.session.t)||'달리기')}</b> · ${hm} 시작<br><span class="num">${km.toFixed(2)}km · ${fmtClock(Math.round(el))}</span><br><span class="meta">${o._fin?'끝난 뒤 저장 전에 앱이 닫혔어요. 결과 화면으로 돌아가 저장할 수 있어요.':'앱이 닫히기 직전까지 저장됐어요. 일시정지 상태로 이어서 뛰거나 바로 종료해 저장할 수 있어요.'}</span>`,
+    yes:o._fin?'결과 화면 열기':'이어서 기록',no:'버리기'});
+  if(!ok){
+    const sure=await askSheet({title:'정말 버릴까요?',danger:true,text:`${km.toFixed(2)}km 기록이 지워지고 되돌릴 수 없어요.`,yes:'버리기',no:'취소'});
+    if(sure){ liveClear(); return; }
+    return liveCheck();
+  }
+  liveResume(o,L.ix);
+}
+function liveResume(o,ix){
+  for(const k of Object.keys(S))delete S[k];
+  Object.assign(S,o);
+  if(typeof ix==='number')pendingIx=ix;
+  if(S.hr)S.hr.dev=null;
+  if(S._fin){ S.running=false; renderSummary(!!S._fin.completed); show('sum'); return; }
+  /* 이어서 — 꺼져 있던 동안은 멈춘 것으로. 다시 시작하면 그 자리부터 잰다 */
+  S.running=true; S.paused=true; S._p=Date.now();
+  S.pausedAt=(Date.now()-S.t0)/1000-(S.elapsed||0);
+  S.anchor=null; S.smooth=null; S.win=[]; S.gpsGap=null;
+  try{ renderLaps(); paintLapChips(); buildRail(); }catch(e){ console.warn('live rail',e); }
+  runPage(1); $('run').dataset.state='ok';
+  setPauseIcon(true); $('btnStop').hidden=false; $('rCtl').classList.remove('one'); endHold();
+  HERO=null; setHero(); show('run');
+  (async()=>{ try{ if(S.opts&&S.opts.wake)S.wake=await DEV.wake.on(); }catch(e){} })();
+  try{ if(S.opts&&S.opts.cad)DEV.motion.start(onMotion); }catch(e){}
+  S.watchId=DEV.geo.start(onPos,onPosErr);
+  /* 멈춘 상태에선 시간만 그려서 큰 숫자가 0으로 남는다 — 소리 없이 한 번만 전부 그린다 */
+  { const sp=DEV.speak, bz=DEV.buzz; DEV.speak=()=>{}; DEV.buzz=()=>{}; S.paused=false; try{ onTick(); }catch(e){} S.paused=true; S.win=[]; DEV.speak=sp; DEV.buzz=bz; }
+  S.tick=setInterval(onTick,500);
+  DEV.speak('저장된 기록을 불러왔습니다. 재개를 누르면 이어서 기록합니다.',true);
+  liveSave();
+}
+/* 저장 없이 닫기 — 한 번 더 묻는다 */
+$('btnDone').onclick=async()=>{
+  if(S.result&&!S.result._saved){
+    const km=(S.result.km||0);
+    const ok=await askSheet({title:'저장하지 않고 닫을까요?',danger:true,text:`${km.toFixed(2)}km 기록이 지워지고 되돌릴 수 없어요.`,yes:'저장 없이 닫기',no:'돌아가기'});
+    if(!ok)return;
+  }
+  liveClear(); S._fin=null; go('home');
+};
 $('btnGpx').onclick=()=>{
   if(!S.pts||!S.pts.length)return alert('좌표 없음');
   const trk=S.pts.map(p=>`<trkpt lat="${p.lat.toFixed(6)}" lon="${p.lon.toFixed(6)}">`+
@@ -10972,6 +11058,7 @@ function goalBadge(){
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
   else if(!DEV.store.get('consent',null)||DEV.store.get('consent',{}).ver!==CONSENT_VER){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 고지가 바뀌면 한 번 다시 */
   splashRun();
+  setTimeout(()=>{ try{ liveCheck(); }catch(e){ console.warn('live',e); } },1300);   /* 끝내지 못한 기록 복구 */
   setTimeout(()=>{ try{ noticeLoad(); }catch(e){} try{ bannerLoad(); }catch(e){} try{ usagePing(); }catch(e){} const u=$('usageOpt'); if(u)u.checked=usageOn(); },1500);   /* 공지·사용 현황 — 화면이 뜬 뒤 조용히 */
 })();
 /* 시작 화면 — 브랜드 한 장: 가지런 · 실시간 코칭 프로그램 · 가지런하다 */
@@ -12971,13 +13058,19 @@ async function snapCard(el,name,title){
   src.querySelectorAll(SNAP_HIDE).forEach(x=>x.style.display='none'); clone.querySelectorAll(SNAP_HIDE).forEach(x=>x.style.display='none');
   const probe=document.createElement('div'); probe.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; probe.appendChild(src); document.body.appendChild(probe);
   src.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); src.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
+  /* 화면용 아래 여백(아래 메뉴 자리)은 그림에선 빈 곳일 뿐 — 줄인다 */
+  { const pb=parseFloat(getComputedStyle(src).paddingBottom)||0; if(pb>16){ src.style.paddingBottom='12px'; clone.style.paddingBottom='12px'; } }
   /* 빈 곳 없는 9:16 — 내용 폭을 바꿔 보며(글줄·칸이 다시 흐른다) 실제로 잘라 본 뒤, 쪽들이 가장 꽉 차는 폭을 고른다 */
   let best=null; { const base=W, lo=Math.max(280,Math.round(base*0.7)), hi=Math.round(base*1.45);
     const ws=[]; for(let w=lo; w<=hi; w+=10)ws.push(w); if(!ws.includes(base))ws.push(base);
     const trunc=()=>{ let c=0; src.querySelectorAll('*').forEach(e=>{ if(e.scrollWidth>e.clientWidth+1&&getComputedStyle(e).textOverflow==='ellipsis')c++; }); return c; };
-    probe.style.width=base+'px'; const t0=trunc();
-    for(const w of ws){ probe.style.width=w+'px'; const h=src.offsetHeight||1, ch=snapCH(w); let cuts=snapCuts(src,h,ch), n=cuts.length-1;
-      if(w<base&&trunc()>t0)continue;   /* 좁혀서 글자가 '…'로 잘리면 그 폭은 안 쓴다 */
+    /* 글줄 수 — 좁혀서 한 줄이던 글이 두 줄로 꺾이면(예: '5km 빠르게') 그 폭은 안 쓴다 */
+    const lines=()=>{ let c=0; const tw=document.createTreeWalker(src,NodeFilter.SHOW_TEXT), rg=document.createRange(); while(tw.nextNode()){ const t=tw.currentNode; if(!t.textContent.trim())continue; rg.selectNodeContents(t); c+=rg.getClientRects().length; } return c; };
+    probe.style.width=base+'px'; const t0=trunc(), L0=lines(), h0=src.offsetHeight||1;
+    /* 한 쪽에 들어가는 짧은 카드는 폭을 바꾸지 않는다 — 빈 곳은 쪽 높이를 줄여서 없앤다 */
+    if(h0<=snapCH(base))best={w:base,sc:1,cuts:[0,h0],h:h0};
+    else for(const w of ws){ probe.style.width=w+'px'; const h=src.offsetHeight||1, ch=snapCH(w); let cuts=snapCuts(src,h,ch), n=cuts.length-1;
+      if(w<base&&(trunc()>t0||lines()>L0))continue;   /* 좁혀서 글자가 '…'로 잘리거나 줄이 꺾이면 그 폭은 안 쓴다 */
       /* 마지막 쪽만 비지 않게 — 같은 쪽 수 안에서 쪽마다 고르게 나눈다(남는 곳은 위아래로 나눠 가운데 둔다) */
       if(n>1){ for(let f=1.02; f<1.6; f+=0.03){ const c2=snapCuts(src,h,Math.min(ch,h/n*f)); if(c2.length-1===n){ cuts=c2; break; } } }
       const last=Math.min(...cuts.slice(1).map((c,i)=>c-cuts[i]))/ch, fill=h/(n*ch);
@@ -12996,8 +13089,11 @@ async function snapCard(el,name,title){
   const cuts=best.cuts;
   const N=cuts.length-1, bg=getComputedStyle(document.body).backgroundColor||'#F4EFF8', stamp=todayStr().replace(/-/g,'.'), files=[];
   const FK='"Noto Sans KR",system-ui,sans-serif', FO='"Outfit","Noto Sans KR",system-ui,sans-serif';
-  for(let i=0;i<N;i++){ const sy=cuts[i], ey=cuts[i+1], hh=ey-sy, cv=document.createElement('canvas'); cv.width=PW*k; cv.height=PH*k; const x=cv.getContext('2d'); x.scale(k,k);
-    x.fillStyle=bg; x.fillRect(0,0,PW,PH);
+  for(let i=0;i<N;i++){ const sy=cuts[i], ey=cuts[i+1], hh=ey-sy, cv=document.createElement('canvas');
+    /* 한 장짜리 짧은 카드는 9:16을 고집하지 않고 내용 높이에 맞춘다 — 아래가 텅 빈 그림이 됐다 */
+    const fit=N===1&&hh<CH, PHi=fit?HEAD+hh+16:PH;
+    cv.width=PW*k; cv.height=PHi*k; const x=cv.getContext('2d'); x.scale(k,k);
+    x.fillStyle=bg; x.fillRect(0,0,PW,PHi);
     /* 머리줄 — 왼쪽 브랜드, 오른쪽 제목·날짜 */
     try{ drawBrand(x,ML,12,26,'#2A1638','#FDFBF6'); }catch(e){}
     x.textBaseline='alphabetic'; x.textAlign='left';
@@ -13006,7 +13102,7 @@ async function snapCard(el,name,title){
     x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 13px '+FK; x.fillText(title||'',PW-MR,25);
     x.fillStyle='#72637F'; x.font='700 10px '+FO; x.fillText(stamp,PW-MR,37);
     /* 내용 — 폭을 골라 쪽에 꽉 차게 맞췄다. 조금 남으면 위아래 가운데 */
-    const top=HEAD+Math.max(0,Math.round((CH-hh)/2));
+    const top=fit?HEAD:HEAD+Math.max(0,Math.round((CH-hh)/2));
     x.save(); x.beginPath(); x.rect(ML,top,W,hh); x.clip(); x.drawImage(img,0,sy,W,hh,ML,top,W,hh); x.restore();
     /* 아래 — 쪽 점(●○○) */
     if(N>1){ const dw=6, gap=8, tw=N*dw+(N-1)*gap; let dx=ML+W/2-tw/2; const dy=PH-FOOT/2;
