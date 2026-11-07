@@ -1680,7 +1680,7 @@ details.noti .sigc{margin:6px 0}
 
   <div class="lockmask" id="lockMask" hidden>
     <div class="chip">화면 잠김</div>
-    <button class="ub holdbtn" id="btnUnlock"><i></i><b>길게 눌러 잠금 해제</b></button>
+    <button class="ub holdbtn" id="btnUnlock"><i></i><b>화면 잠김 · 길게 눌러 해제</b></button>
   </div>
 
   <div class="rpage" id="rPage2" hidden>
@@ -2391,6 +2391,12 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* v20.14 작은 경로 칸 지도 바탕 */
 .kmini{width:100%;height:100%;pointer-events:none}
 .kdot{display:block;width:10px;height:10px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+
+/* v20.15 화면 잠금 — 위 '화면 잠김' 알약이 진행 막대 글자를, 아래 해제 버튼이 메뉴 글자를 가렸다.
+   잠그면 아래 조작 버튼 자리를 비우고 그 자리에 해제 버튼 하나만 둔다(잠김 표시도 그 버튼에) */
+.lockmask .chip{display:none}
+#run.locked .rctl{visibility:hidden}
+.lockmask .ub{bottom:calc(78px + 56px + env(safe-area-inset-bottom,0px))}
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2407,7 +2413,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.14';
+const APPVER='20.15';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5427,7 +5433,7 @@ function startHold(e){
    잠그면 숫자는 그대로 보이고 손가락만 막는다. 풀 때는 1.5초 길게. */
 let LOCKED=false, ulT=null, ulAt=0;
 function setLock(v){
-  LOCKED=v; $('lockMask').hidden=!v;
+  LOCKED=v; $('lockMask').hidden=!v; $('run').classList.toggle('locked',!!v);
   $('btnLock').setAttribute('aria-label', v?'화면 잠금 해제':'화면 잠금');
   DEV.buzz(v?[40,60,40]:30);
   if(v)DEV.speak('화면을 잠갔습니다',true);
