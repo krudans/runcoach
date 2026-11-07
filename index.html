@@ -12,14 +12,14 @@
 <meta name="apple-mobile-web-app-title" content="가지런">
 <meta name="description" content="가지런하다 — 실시간 코칭 프로그램. 내가 정한 강도·거리·시간에 맞춰 달리는 중에 안내합니다.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="가지런 · GAJI RUN">
+<meta property="og:title" content="가지런">
 <meta property="og:description" content="가지런하다 — 실시간 코칭 프로그램">
 <meta property="og:image" content="https://krudans.github.io/runcoach/gaji-og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://krudans.github.io/runcoach/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>가지런 · GAJI RUN</title>
+<title>가지런</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap"
@@ -1273,7 +1273,7 @@ details.noti .sigc{margin:6px 0}
 <body>
 <div id="splash" role="img" aria-label="가지런하다 · 실시간 코칭 프로그램">
   <div class="sp-c"><span class="brandmark" data-bm="light"></span><b>가지런하다</b><em>실시간 코칭 프로그램</em></div>
-  <div class="sp-ft">가지런 · GAJI RUN</div>
+  <div class="sp-ft">가지런</div>
 </div>
 <script>
 /* 실제로 보이는 화면 높이를 --appH로 — 전체 화면 페이지(온보딩·목표·달리기)의 아래 버튼이 시스템 버튼에 가리지 않게 */
@@ -1447,7 +1447,7 @@ details.noti .sigc{margin:6px 0}
     <div class="meta" style="margin-top:6px;line-height:1.6">기록·설정·별명·동의가 모두 지워지고 처음 화면부터 다시 시작합니다. 구글로 동기화한 데이터도 함께 지웁니다.</div>
   </div></details>
 
-  <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">가지런 · GAJI RUN <b id="verNow">—</b></div>
+  <div style="text-align:center;font-size:11px;color:var(--ink-3);margin:22px 0 4px">가지런 <b id="verNow">—</b></div>
 </div></div>
 <div class="view" id="confirm">
   <div class="bar"><button class="sub" id="backPick">← 목록</button>
@@ -1556,7 +1556,7 @@ details.noti .sigc{margin:6px 0}
 </style>
 <div class="view" id="intro">
   <div class="ipad">
-    <div class="itop"><span class="brandmark" data-bm="light"></span><span><b>가지런</b><i>GAJI RUN <span id="verIntro" style="opacity:.55;letter-spacing:.1em"></span></i></span></div>
+    <div class="itop"><span class="brandmark" data-bm="light"></span><span><b>가지런</b><i><span id="verIntro" style="opacity:.55;letter-spacing:.1em"></span></i></span></div>
     <div class="ibig">가지런하다</div>
     <div class="isub"><span class="ichip">실시간 코칭 프로그램</span><br>정한 강도·거리·시간대로</div>
     <div class="ilines">
@@ -2397,6 +2397,31 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .lockmask .chip{display:none}
 #run.locked .rctl{visibility:hidden}
 .lockmask .ub{bottom:calc(78px + 56px + env(safe-area-inset-bottom,0px))}
+
+/* v20.16 예상 기록 전망 */
+.ol-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;margin-bottom:12px}
+.ol-hd{display:flex;align-items:baseline;justify-content:space-between}.ol-hd b{font-size:16px;font-weight:700}.ol-hd span{font-size:12px;color:var(--ink-3)}
+.ol-now{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 6px}
+.ol-now>div{background:var(--panel-2);border-radius:10px;padding:8px 10px}
+.ol-now i{display:block;font-style:normal;font-size:12px;color:var(--ink-3)}.ol-now b{display:block;font-size:20px;font-weight:700;color:var(--ink);line-height:1.3}
+.ol-now em{display:inline-block;font-style:normal;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;margin-top:2px}
+.ol-now em.ok{background:var(--ok-bg);color:var(--ok-ink)}.ol-now em.mid{background:var(--warn-bg);color:var(--warn-ink)}.ol-now em.bad{background:var(--bad-bg);color:var(--bad-ink)}
+.ol-svg{display:block;width:100%;height:auto}
+.ol-grid{stroke:var(--line);stroke-width:1}.ol-tk{font-size:11px;fill:var(--ink-3);font-family:var(--num)}.ol-tk.b{fill:var(--accent);font-weight:700}
+.ol-band{fill:var(--info-bg);stroke:none}
+.ol-goal{stroke:var(--warn-ink);stroke-width:1.25;stroke-dasharray:4 4}.ol-gl{font-size:11px;font-weight:700;fill:var(--warn-ink)}
+.ol-line{fill:none;stroke:var(--ink-3);stroke-width:1.5}
+.ol-wh{stroke:var(--ink-2);stroke-width:2;stroke-linecap:round}.ol-wh.now{stroke:var(--accent);stroke-width:3}
+.ol-pt{fill:var(--panel);stroke:var(--ink-2);stroke-width:2}.ol-pt.now{fill:var(--accent);stroke:var(--panel);stroke-width:2}
+.ol-today{stroke:var(--accent);stroke-width:1;stroke-dasharray:2 3;opacity:.6}
+.ol-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:4px}
+.ol-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}.ol-leg i.d{background:var(--accent);border-radius:50%}.ol-leg i.b{background:var(--info-bg);border:1px solid var(--line)}
+.ol-note{font-size:11px;color:var(--ink-3);margin:6px 0 0;line-height:1.5}
+.ol-empty{font-size:13px;color:var(--ink-2);margin:8px 0}
+
+/* v20.16 저장 그림 빈자리 채우기 */
+.snap-fill{margin-top:12px}.snap-fill .sf-hd{font-size:14px;font-weight:700;color:var(--ink-2);margin:0 2px 6px}
+.snap-fill .ol-card{margin-bottom:0}
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2413,7 +2438,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.15';
+const APPVER='20.16';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5905,7 +5930,7 @@ $('btnGpx').onclick=()=>{
     `<time>${new Date(p.t).toISOString()}</time></trkpt>`).join('\n');
   DEV.saveFile(`run_${S.session.d==='free'?todayStr():S.session.d.slice(0,10)}.gpx`,
 `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="GAJI RUN" xmlns="http://www.topografix.com/GPX/1/1">
+<gpx version="1.1" creator="가지런" xmlns="http://www.topografix.com/GPX/1/1">
 <trk><name>${ESC(runName()+' · '+S.session.t)}</name><trkseg>
 ${trk}
 </trkseg></trk></gpx>`,'application/gpx+xml');
@@ -5943,8 +5968,8 @@ if($('btnIcs'))$('btnIcs').onclick=()=>{
   const fold=l=>{ if(ob(l)<=75)return l; const out=[]; let cur='',n=0;
     for(const ch of l){ const k=ob(ch); if(n+k>(out.length?74:75)){ out.push(cur); cur=''; n=0; } cur+=ch; n+=k; }
     out.push(cur); return out.join('\r\n '); };
-  DEV.saveFile('gajirun_block.ics',
-    ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//GAJIRUN//KR','CALSCALE:GREGORIAN',ev,'END:VCALENDAR'].join('\r\n').split('\r\n').map(fold).join('\r\n'),
+  DEV.saveFile(`가지런_훈련일정_${stampFile()}.ics`,
+    ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//가지런//KR','CALSCALE:GREGORIAN',ev,'END:VCALENDAR'].join('\r\n').split('\r\n').map(fold).join('\r\n'),
     'text/calendar');
   alert('캘린더 파일 저장\n열면 캘린더 추가 · 전날 밤 알림');
 };
@@ -6097,7 +6122,7 @@ $('btnReDist').onclick=()=>{
 $('bkExport').onclick=()=>{
   const out={app:'runcoach',ver:4,at:new Date().toISOString(),data:{}};
   BK_KEYS.forEach(k=>{ const v=localStorage.getItem('rc_'+k); if(v!=null)out.data[k]=JSON.parse(v); });
-  DEV.saveFile(`gajirun-backup-${todayStr()}.json`,JSON.stringify(out),'application/json');
+  DEV.saveFile(`가지런_백업_${stampFile()}.json`,JSON.stringify(out),'application/json');
 };
 $('bkImport').onclick=()=>$('bkFile').click();
 $('bkFile').onchange=async e=>{
@@ -8794,6 +8819,47 @@ function rlBetter(){ try{ const b=PROF.race; if(!b||!b.at||!b.sec)return null; c
   const near=RLOG.filter(x=>x.kind!=='solo'&&Math.abs(Date.parse(x.date)-Date.parse(b.at))<=56*864e5&&!(x.date===b.at&&x.sec===b.sec)&&rlV(x)>bv+0.5).sort((a,c)=>rlV(c)-rlV(a))[0];
   return near&&!sigSeen('basis:'+near.id+':'+b.at,3650)?{x:near,bv,xv:rlV(near)}:null; }catch(e){ return null; } }
 function rlogPB(){ const pb={}; RLOG.filter(x=>x.kind!=='solo').forEach(x=>{ const k=rlDist(x.m); if(!pb[k]||x.sec<pb[k].sec)pb[k]=x; }); return pb; }
+/* ───────── 예상 기록 전망 그래프 (v20.16) ─────────
+   예전 '러닝일지 › 실력'에 있던 전망 그래프를 최고 기록 화면 맨 위로 되살림.
+   점 = 검증된 기록(TT·대회)으로 잰 그때의 예상 범위, 진한 점 = 지금, 띠 = 대회일까지 오를 수 있는 범위(Daniels 4~6주에 1점, C).
+   예상 범위는 목표 카드와 같은 계산(predRange) — 같은 숫자가 화면마다 다르게 나오지 않게 */
+function outlookChart(){
+  const g=(PLAN&&PLAN.goal)||GOAL||{}, m=g.m||42195, gs=g.final||g.sec||null, lab=gdLabel(m);
+  const pts=fitPoints().map(x=>({d:x.d.slice(0,10),P:predRange(x.v,m)}));
+  const fp=fitPoints(), lastV=fp.length?fp[fp.length-1].v:null;
+  if(pts.length&&lastV!=null&&Math.abs(lastV-VDOT)<0.05)pts[pts.length-1].now=1;   /* 마지막 기록이 지금 기준이면 그 점이 '지금' */
+  else if(raceVerified(PROF.race))pts.push({d:todayStr(),P:predRange(VDOT,m),now:1});
+  else if(pts.length)pts[pts.length-1].now=1;
+  if(!pts.length) return `<section class="ol-card"><div class="ol-hd"><b>${lab} 전망</b>${gs?`<span>목표 ${fmtClock(gs)}</span>`:''}</div>
+    <p class="ol-empty">TT나 대회 기록이 생기면 예상 기록과 대회일까지의 전망이 여기에 그려져요.</p>
+    <button type="button" class="btn sm" data-ttplan>TT 일정 잡기</button></section>`;
+  const nowP=pts.find(p=>p.now)||pts[pts.length-1];
+  const gd=g.date?String(g.date).slice(0,10):addDays(todayStr(),84), wks=Math.max(1,daysLeft(gd)/7);
+  const fut={d:gd,lo:predRange(VDOT+RATE_HI*wks,m).lo,hi:predRange(VDOT+RATE_LO*wks,m).hi};
+  const t=d=>Date.parse(d+'T12:00:00')/864e5, d0=Math.min(t(pts[0].d),t(todayStr())-14), d1=Math.max(t(gd),t(todayStr())+7);
+  const W=340,H=210,PL=52,PR=14,PT=16,PB=30, X=d=>PL+(t(d)-d0)/(d1-d0)*(W-PL-PR);
+  const vals=[fut.lo,fut.hi].concat(pts.flatMap(p=>[p.P.lo,p.P.hi])).concat(gs?[gs]:[]);
+  const mn=Math.min(...vals)-90, mx=Math.max(...vals)+90, Y=v=>PT+(v-mn)/(mx-mn)*(H-PT-PB);   /* 빠를수록 위 */
+  const tk=[mn+90,(mn+mx)/2,mx-90];
+  const xn=X(todayStr()), md=d=>`${+d.slice(5,7)}.${+d.slice(8,10)}`;
+  const reach=gs?(fut.lo<=gs?(fut.hi<=gs?'ok':'mid'):'bad'):'';
+  const svg=`<svg viewBox="0 0 ${W} ${H}" class="ol-svg" role="img" aria-label="${lab} 예상 기록 전망">
+    ${tk.map(v=>`<line x1="${PL}" x2="${W-PR}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" class="ol-grid"/><text x="${PL-6}" y="${(Y(v)+4).toFixed(1)}" class="ol-tk" text-anchor="end">${fmtHMr(v)}</text>`).join('')}
+    <path d="M${X(nowP.d).toFixed(1)},${Y(nowP.P.lo).toFixed(1)} L${X(gd).toFixed(1)},${Y(fut.lo).toFixed(1)} L${X(gd).toFixed(1)},${Y(fut.hi).toFixed(1)} L${X(nowP.d).toFixed(1)},${Y(nowP.P.hi).toFixed(1)} Z" class="ol-band"/>
+    ${gs?`<line x1="${PL}" x2="${W-PR}" y1="${Y(gs).toFixed(1)}" y2="${Y(gs).toFixed(1)}" class="ol-goal"/><text x="${W-PR}" y="${(Y(gs)-6).toFixed(1)}" text-anchor="end" class="ol-gl">목표 ${fmtHMr(gs)}</text>`:''}
+    ${pts.length>1?`<polyline points="${pts.map(p=>`${X(p.d).toFixed(1)},${Y((p.P.lo+p.P.hi)/2).toFixed(1)}`).join(' ')}" class="ol-line"/>`:''}
+    ${pts.map(p=>`<line x1="${X(p.d).toFixed(1)}" x2="${X(p.d).toFixed(1)}" y1="${Y(p.P.lo).toFixed(1)}" y2="${Y(p.P.hi).toFixed(1)}" class="ol-wh${p.now?' now':''}"/><circle cx="${X(p.d).toFixed(1)}" cy="${Y((p.P.lo+p.P.hi)/2).toFixed(1)}" r="${p.now?5.5:4}" class="ol-pt${p.now?' now':''}"/>`).join('')}
+    <line x1="${xn.toFixed(1)}" x2="${xn.toFixed(1)}" y1="${PT}" y2="${H-PB}" class="ol-today"/>
+    ${xn-X(pts[0].d)>44?`<text x="${X(pts[0].d).toFixed(1)}" y="${H-10}" class="ol-tk" text-anchor="middle">${md(pts[0].d)}</text>`:''}
+    <text x="${xn.toFixed(1)}" y="${H-10}" class="ol-tk b" text-anchor="middle">오늘</text>
+    <text x="${W-PR}" y="${H-10}" class="ol-tk" text-anchor="end">${g.date?'대회 ':''}${md(gd)}</text>
+  </svg>`;
+  return `<section class="ol-card"><div class="ol-hd"><b>${lab} 전망</b>${gs?`<span>목표 ${fmtClock(gs)}</span>`:''}</div>
+    <div class="ol-now"><div><i>지금 예상</i><b class="num">${predText(nowP.P)}</b></div><div><i>${g.date?'대회일':'12주 뒤'} 예상</i><b class="num">${fmtHMr(fut.lo)}~${fmtHMr(fut.hi)}</b>${reach?`<em class="${reach}">${reach==='ok'?'목표 안':reach==='mid'?'목표 가능권':'목표 밖'}</em>`:''}</div></div>
+    ${svg}
+    <div class="ol-leg"><span><i class="d"></i>검증된 기록(TT·대회)</span><span><i class="b"></i>오를 수 있는 범위 ${GRB('C')}</span></div>
+    <p class="ol-note">세로선 = 그 기록으로 본 예상 범위 · 띠 = 4~6주에 실력 점수 1점씩 오를 때(Daniels) · 검증된 기록 ${fitPoints().length}개</p></section>`;
+}
 function rlogCard(){ /* 홈 — 거리별 최고 기록 네 칸 + 마지막 대회 */
   const pb=rlogPB(), last=RLOG.filter(x=>x.kind!=='solo').slice(-1)[0];
   const solo=m=>RLOG.filter(x=>x.kind==='solo'&&rlDist(x.m)===m).sort((a,b)=>a.sec-b.sec)[0];
@@ -8974,7 +9040,7 @@ function tileOpen(k){
   if(k==='body') body=logBody();
   else if(k==='goal') body=goalCard(true)+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="plan">플랜 전체 보기</button><button type="button" class="btn ghost" data-mygoal="1">목표 고치기</button></div>`;
   else if(k==='week') body=weekStrip();
-  else if(k==='rec') body=rlogCard();
+  else if(k==='rec') body=outlookChart()+rlogCard();
   else if(k==='mile') body=mileCard({open:true});
   else if(k==='warm') body=exerciseSheet();
   else if(k==='race') body=`<div id="tileRaces" class="rc-host"></div>`;
@@ -10081,7 +10147,7 @@ function paintShare(){
     const im=new Image(); im.onload=()=>{ SH.opt.photo=im; paintShare(); }; im.src=URL.createObjectURL(f); };
   const jpg=SH.tpl!=='sticker';   /* 스티커는 투명 배경이라 PNG, 나머지는 JPG */
   const blob=()=>new Promise(res=>jpg?$('shCv').toBlob(res,'image/jpeg',0.92):$('shCv').toBlob(res,'image/png'));
-  const fname=()=>`gajirun_${ldate(SH.r.date).slice(0,10)}_${SH.tpl}.${jpg?'jpg':'png'}`;
+  const fname=()=>`가지런_${SH.tpl}_${stampFile()}.${jpg?'jpg':'png'}`;
   $('shSave').onclick=async()=>{ const bl=await blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fname(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); toast(jpg?'JPG 저장됨':'PNG 저장됨'); };
   $('shSend').onclick=async()=>{ const bl=await blob(); const f=new File([bl],fname(),{type:jpg?'image/jpeg':'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:'가지런'}); }catch(e){} }
@@ -10858,7 +10924,7 @@ function renderReview(mon){
   wireDec(host,o,(opt)=>{ if(!opt){ goalStart(); return; } if(CURVIEW==='review'){ DEV.store.set('rvSeen',mon); renderHome(); go(PLAN?'plan':'home'); } });
 }
 
-/* ══════════ 브랜드 — 가지런 · GAJI RUN (로고 A · LANE) ══════════
+/* ══════════ 브랜드 — 가지런 (로고 A · LANE) ══════════
    앞으로 기운 가지 실루엣 + 같은 간격의 레인 세 줄 + 각진 꼭지.
    색: 가지색(#2A1638) · 자두(#5B2D86) · 세이지(#8DB89A) · 미색(#F4F0EA) */
 const BR_BODY='M50 22C58 22 62 30 62 38C62 46 72 54 72 70C72 85 62 93 50 93C38 93 28 85 28 70C28 54 38 46 38 38C38 30 42 22 50 22Z';
@@ -13195,7 +13261,7 @@ function snapInline(src,dst){
   for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
 }
 /* 내용을 담은 버튼(일정 한 줄·오늘 그림·결정 기록 줄)은 지우지 않고 div로 바꿔 둔다 — 버튼을 통째로 지우던 탓에 주차 이미지에 훈련이 하나도 안 찍혔다 */
-var SNAP_M={l:14,r:34,head:50,foot:26};   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다 */
+var SNAP_M={l:14,r:46,head:50,foot:26};   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다 */
 function snapCH(w){ return Math.round((w+SNAP_M.l+SNAP_M.r)*16/9)-SNAP_M.head-SNAP_M.foot; }
 var SNAP_KEEP='button.gw-r,button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
 function snapKeep(root){ root.querySelectorAll(SNAP_KEEP).forEach(b=>{ const d=document.createElement('div'); d.className=b.className; d.setAttribute('style',b.getAttribute('style')||''); d.innerHTML=b.innerHTML; b.replaceWith(d); }); }
@@ -13223,6 +13289,17 @@ function snapCuts(root,h,ch){
     cuts.push(y); at=y; }
   cuts.push(h); return cuts;
 }
+/* 저장 파일 이름 — 날짜·시·분까지(같은 날 여러 번 저장해도 겹치지 않게): 2026-11-07_2103 */
+function stampFile(){ const d=new Date(), p=n=>String(n).padStart(2,'0'); return `${todayStr()}_${p(d.getHours())}${p(d.getMinutes())}`; }
+/* 저장 그림 빈자리 채우기 — 저장하는 화면마다 함께 보면 좋은 것. 높이가 들어가는 것만 위에서부터 */
+function snapFills(name){ const F=[];
+  const wk=()=>{ try{ const h=weekStrip(); return h?`<div class="sf-hd">이번 주</div>${h}`:''; }catch(e){ return ''; } };
+  const ol=()=>{ try{ return outlookChart(); }catch(e){ return ''; } };
+  if(name==='result'||name==='review'){ F.push(ol(),wk()); }
+  else if(name==='plan'||name==='week'||name==='today'){ F.push(wk(),ol()); }
+  else if(name==='race'){ F.push(ol()); }
+  else F.push(wk(),ol());
+  return F.filter(Boolean); }
 async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
   let W=el.offsetWidth; const H=el.offsetHeight, clone=el.cloneNode(true);
@@ -13262,6 +13339,13 @@ async function snapCard(el,name,title){
       const sc=fill-(last<0.5?(0.5-last)*0.6:0)-(w>base?0.3:0.15)*Math.abs(Math.log(w/base));
       if(!best||sc>best.sc)best={w,sc,cuts,h}; }
     W=best.w; probe.style.width=W+'px'; wrap.style.width=W+'px'; }
+  /* 여러 쪽인데 마지막 쪽이 4분의 1 넘게 비면 — 관련 카드(전망 그래프·이번 주 등)로 채운다. 저장 그림에만 들어가고 화면엔 없다 */
+  if(best.cuts.length>2){ const CHw=snapCH(W);
+    for(const f of snapFills(name)){ if(!f)continue; const lastH=best.h-best.cuts[best.cuts.length-2], free=CHw-lastH; if(free<CHw*0.25)break;
+      const mk=()=>{ const d=document.createElement('div'); d.className='snap-fill'; d.innerHTML=f; d.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); return d; };
+      const a=mk(); src.appendChild(a); const hh=src.offsetHeight-best.h;
+      if(hh>free-4){ a.remove(); continue; }
+      const b=mk(); clone.appendChild(b); kFix(a); best.h=src.offsetHeight; best.cuts[best.cuts.length-1]=best.h; } }
   snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
   const h2=best.h; probe.remove();
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(clone)}</div></foreignObject></svg>`;
@@ -13282,8 +13366,7 @@ async function snapCard(el,name,title){
     /* 머리줄 — 왼쪽 브랜드, 오른쪽 제목·날짜 */
     try{ drawBrand(x,ML,12,26,'#2A1638','#FDFBF6'); }catch(e){}
     x.textBaseline='alphabetic'; x.textAlign='left';
-    x.fillStyle='#2A1638'; x.font='800 15px '+FK; x.fillText('가지런',ML+32,25);
-    x.fillStyle='#72637F'; x.font='700 9px '+FO; x.fillText('GAJI RUN',ML+32,37);
+    x.fillStyle='#2A1638'; x.font='800 16px '+FK; x.fillText('가지런',ML+32,31);   /* 영문 이름은 쓰지 않는다 — 한글 이름만 */
     x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 13px '+FK; x.fillText(title||'',PW-MR,25);
     x.fillStyle='#72637F'; x.font='700 10px '+FO; x.fillText(stamp,PW-MR,37);
     /* 내용 — 폭을 골라 쪽에 꽉 차게 맞췄다. 조금 남으면 위아래 가운데 */
@@ -13293,14 +13376,14 @@ async function snapCard(el,name,title){
     if(N>1){ const dw=6, gap=8, tw=N*dw+(N-1)*gap; let dx=ML+W/2-tw/2; const dy=PH-FOOT/2;
       for(let j=0;j<N;j++){ x.fillStyle=j===i?'#5B2D86':'rgba(91,45,134,.22)'; x.beginPath(); x.arc(dx+dw/2,dy,j===i?3.5:2.5,0,Math.PI*2); x.fill(); dx+=dw+gap; } }
     /* 쪽 번호 탭 — 오른쪽 가장자리 한가운데, 한 장짜리는 안 붙인다 */
-    if(N>1){ const tw=30, th=74, tx=PW-tw, ty=Math.round(PH/2-th/2), r=14;
+    if(N>1){ const tw=42, th=100, tx=PW-tw, ty=Math.round(PH/2-th/2), r=18;   /* 크게 — 썸네일에서도 읽히게 */
       x.fillStyle='#5B2D86'; x.beginPath(); x.moveTo(PW,ty); x.lineTo(tx+r,ty); x.quadraticCurveTo(tx,ty,tx,ty+r); x.lineTo(tx,ty+th-r); x.quadraticCurveTo(tx,ty+th,tx+r,ty+th); x.lineTo(PW,ty+th); x.closePath(); x.fill();
-      x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle'; x.font='900 26px '+FO; x.fillText(String(i+1),tx+tw/2+1,ty+28);
-      x.fillStyle='rgba(255,255,255,.7)'; x.font='800 11px '+FO; x.fillText('/'+N,tx+tw/2+1,ty+54); }
+      x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle'; x.font='900 36px '+FO; x.fillText(String(i+1),tx+tw/2+1,ty+38);
+      x.fillStyle='rgba(255,255,255,.7)'; x.font='800 16px '+FO; x.fillText('/'+N,tx+tw/2+1,ty+74); }
     x.textAlign='left'; x.textBaseline='alphabetic';
     const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지 생성 실패'); return; } files.push(bl); }
   /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다. 여러 쪽이면 차례대로(이름에 쪽 번호) */
-  for(let i=0;i<files.length;i++){ const fn=`gajirun_${name}_${todayStr()}${N>1?`_${String(i+1).padStart(2,'0')}of${N}`:''}.jpg`;
+  for(let i=0;i<files.length;i++){ const fn=`가지런_${String(title||name).replace(/[\s·/\\:]+/g,'')}_${stampFile()}${N>1?`_${i+1}-${N}`:''}.jpg`;
     const a=document.createElement('a'); a.href=URL.createObjectURL(files[i]); a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),6000);
     if(i<files.length-1)await new Promise(r=>setTimeout(r,450)); }
   window.__snapPages=files;   /* 검사용 */
