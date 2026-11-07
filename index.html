@@ -968,6 +968,27 @@ details.noti .sigc{margin:6px 0}
 .rleg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--ink-3);margin-top:6px}.rleg i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:4px;vertical-align:2px}
 /* 결과 화면 — 지도 맨 위, 숫자는 한 카드에 빽빽하게 */
 .rmapbox{position:relative;margin-top:10px}.rmapbox .rmap{margin-top:0;height:230px;border-radius:20px}.rmapbox .mapsw{position:absolute;top:10px;left:10px;margin:0;background:var(--panel);box-shadow:var(--sh);z-index:2}.rmapbox .rleg{margin:6px 4px 0}
+/* 기록 경로 — 바퀴 고르기 · 크게 보기 (v20.17) */
+.rroute .rmapbox .rmap{height:250px}
+.mapx{position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border-radius:12px;border:none;background:var(--panel);box-shadow:var(--sh);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.lapbar{margin:8px 0 0}
+.lapch{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.lapch::-webkit-scrollbar{display:none}
+.lapch button{flex:none;position:relative;min-width:54px;padding:6px 8px 8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:1px;font:inherit;color:var(--ink)}
+.lapch button b{font-size:14px;font-weight:800;line-height:1.15}.lapch button b small{font-size:9px;font-weight:700;color:var(--ink-3);margin-left:2px}
+.lapch button i{font-style:normal;font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.lapch button u{position:absolute;left:12px;right:12px;bottom:3px;height:3px;border-radius:2px}
+.lapch button.best i{color:var(--fast);font-weight:800}
+.lapch button.on{background:var(--ink);border-color:var(--ink);color:#fff}.lapch button.on i,.lapch button.on b small{color:rgba(255,255,255,.82)}
+.lapinfo{font-size:12.5px;color:var(--ink-2);margin:2px 4px 0;line-height:1.55}.lapinfo span{color:var(--ink-3);font-size:11.5px}
+#mapFull{position:fixed;inset:0;z-index:9500;background:var(--bg);display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#mapFull[hidden]{display:none}
+.mf-top{display:flex;align-items:center;gap:10px;padding:10px 14px}.mf-top b{font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mf-top span{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.mf-x{width:40px;height:40px;flex:none;border:none;border-radius:12px;background:var(--panel);box-shadow:var(--sh);color:var(--ink);display:flex;align-items:center;justify-content:center}
+#mapFull .rmapbox{flex:1;margin:0 10px;min-height:0;display:flex}#mapFull .rmapbox .rmap{flex:1;height:auto;overflow:auto}
+#mapFull .lapbar,#mapFull .rleg{margin-left:14px;margin-right:14px}#mapFull .rleg{margin-bottom:12px}
+.mf-zoom{position:absolute;right:10px;bottom:14px;z-index:2;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;box-shadow:var(--sh)}
+.mf-zoom button{width:46px;height:46px;border:none;background:var(--panel);font-family:inherit;font-size:26px;font-weight:600;line-height:1;color:var(--ink)}.mf-zoom button+button{border-top:1px solid var(--line)}
+body.mf-on{overflow:hidden}
 .rnum{background:var(--panel);border-radius:14px;padding:8px 4px 6px}.rnum .r1{display:grid;grid-template-columns:1fr 1fr 1fr}.rnum .r1>div,.rnum .r2>div{text-align:center;min-width:0}.rnum .r1>div+div,.rnum .r2>div+div{border-left:1px solid var(--line)}
 .rnum .r1 b{display:block;font-size:24px;font-weight:700;line-height:1.1;letter-spacing:-.3px}.rnum .r1 i{font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700}
 .rnum .r2{display:grid;grid-template-columns:repeat(4,1fr);margin-top:7px;padding-top:7px;border-top:1px solid var(--line)}.rnum .r2 b{display:block;font-size:14px;font-weight:700;line-height:1.1}.rnum .r2 i{font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;padding:0 2px}
@@ -1497,6 +1518,8 @@ details.noti .sigc{margin:6px 0}
   <div class="ms-hd"><b>기록 수정</b><button type="button" id="reClose" aria-label="닫기">✕</button></div><div id="reBody"></div></div></div>
 <div class="msheet" id="rlSheet" hidden><div class="ms-card" role="dialog" aria-label="대회 기록">
   <div class="ms-hd"><b>대회 기록</b><button type="button" id="rlClose" aria-label="닫기">✕</button></div><div id="rlBody"></div></div></div>
+<div class="msheet" id="manSheet" hidden><div class="ms-card" role="dialog" aria-label="기록 직접 넣기">
+  <div class="ms-hd"><b>기록 직접 넣기</b><button type="button" id="manClose" aria-label="닫기">✕</button></div><div id="manBody"></div></div></div>
 <div class="msheet" id="musSheet" hidden><div class="ms-card" role="dialog" aria-label="음악">
   <div class="ms-hd"><b>음악</b><button type="button" id="musClose" aria-label="닫기">✕</button></div>
   <div id="musBody"></div><div class="mus-busy" id="musBusy" hidden></div></div></div>
@@ -1902,6 +1925,7 @@ details.noti .sigc{margin:6px 0}
 .rl-v{flex:none;text-align:right}.rl-v b{display:block;font-family:var(--num);font-size:14px}.rl-v i{display:block;font-style:normal;font-size:11px;color:var(--ink-3)}.rl-v em{display:inline-block;font-style:normal;font-size:11px;font-weight:700;color:var(--ok-ink);background:var(--ok-bg);border-radius:999px;padding:1px 6px;margin-top:2px}
 .rl-v em.base{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);margin-left:3px}
 .rl-x{flex:none;border:0;background:none;color:var(--ink-3);font-size:16px;cursor:pointer;padding:4px}
+.man-plan{display:flex;align-items:center;gap:10px;margin:4px 0 12px}.man-plan i{flex:none;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff}.man-plan i svg{width:20px;height:20px}.man-plan b{display:block;font-size:15px}.man-plan span{font-size:12px;color:var(--ink-3)}
 .rl-form{display:flex;flex-direction:column;gap:10px;margin-top:6px}.rl-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-3);font-weight:700}
 .rl-form input,.rl-form select{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--panel);min-width:0;width:100%;box-sizing:border-box}
 .rl-hms{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.rl-hms span{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:0 8px 0 0}.rl-hms span input{border:0;background:none;padding:10px 8px;text-align:right;font-family:var(--num);font-weight:700}.rl-hms i{font-style:normal;font-size:12px;color:var(--ink-3);flex:none}
@@ -2438,7 +2462,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.16';
+const APPVER='20.17';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3987,7 +4011,7 @@ function sessionOf(i){
 function hrJudged(r){ const T=TYPES[r&&r.type]||{}; if(SURVEY&&SURVEY.f&&SURVEY.f.med)return false;   /* 베타차단제 등 — 심박으로 판정하지 않는다(ACSM: RPE 처방) */
   return !!(r&&T.primary==='hr'&&r.hrAvg&&r.hrOverRatio!=null&&r.hrCap&&!r.hrSuspect); }   /* 뛰는 중에 믿지 않기로 한 심박(튐·잠금)으로는 판정하지 않는다 */
 function runPass(r){
-  if(!r||!r.type)return null;
+  if(!r||!r.type||r.manual)return null;
   if(r.rw)return r.rw.done&&!r.pain;
   const T=TYPES[r.type]||{};
   if(r.distRatio!=null&&r.distRatio<0.25)return null;      /* 거의 기록이 없으면 판정 불가 */
@@ -4134,6 +4158,7 @@ let EXITING=false;
 const BACKTO={confirm:'runtab',settings:'home',alerts:'home',sum:'log',
   paste:'plan',review:'home'};
 function appBack(){
+  { const mf=$('mapFull'); if(mf&&!mf.hidden&&mf._close){ mf._close(); return; } }
   if(typeof LOCKED!=='undefined'&&LOCKED){ DEV.buzz(50); return; }
   if(S.running&&CURVIEW==='run'){ DEV.buzz(50); return; }
   if(CURVIEW==='intro'){ DEV.buzz(50); return; }
@@ -8907,6 +8932,40 @@ function rlogOpen(add){
   b.querySelectorAll('[data-rldel]').forEach(x=>x.onclick=()=>{ if(!confirm('이 기록 삭제?'))return; RLOG=RLOG.filter(r=>r.id!==x.dataset.rldel); rlogSave(); rlogOpen(false); renderHome(); });
   $('rlClose').onclick=rlogClose; sh.onclick=e=>{ if(e.target===sh)rlogClose(); };
   requestAnimationFrame(()=>sh.classList.add('up')); }
+/* ───────── 기록 직접 넣기 — 지난 계획 날을 뛰었는데 기록이 날아갔을 때(비·배터리·앱 꺼짐) ─────────
+   마일리지와 그날 훈련 완료에는 들어간다. 확인할 수 없는 기록이라 약속 판정·훈련 기준(실력 점수)·속도 학습에는 쓰지 않는다 */
+function manOpen(pid){
+  const sx=BLOCK.find(x=>x.d===pid); if(!sx)return;
+  const sh=$('manSheet'), b=$('manBody'), ds=sx.d.slice(0,10), T=TYPES[sx.type]||{}, km=DIST[sx.d]||sx.dist||0;
+  const hrs=RUNS.map(r=>r.hour!=null?r.hour:new Date(r.date).getHours()).filter(x=>x>=0), hh=hrs.length?hrs.sort((a,c)=>a-c)[hrs.length>>1]:7;
+  b.innerHTML=`<div class="man-plan"><i style="background:${(LOOK[sx.type]||LOOK.free).bg}">${symSVG(sx.type)}</i><div><b>${+ds.slice(5,7)}.${+ds.slice(8,10)} ${dowOf(ds)} · ${ESC(termify(sx.t||T.nm||''))}</b><span>계획 ${fmtKm1(km)}km</span></div></div>
+    <div class="rl-form">
+      <div class="rl-row"><label>시작 시각<input type="time" id="manTm" value="${pad(hh)}:00"></label><label>거리 (km)<input type="number" id="manKm" inputmode="decimal" step="0.01" min="0.5" max="100" value="${km?(+km).toFixed(2):''}"></label></div>
+      <label>걸린 시간<div class="rl-hms"><span><input type="number" id="manH" inputmode="numeric" min="0" max="9" placeholder="0"><i>시간</i></span><span><input type="number" id="manM" inputmode="numeric" min="0" max="59" placeholder="25"><i>분</i></span><span><input type="number" id="manS" inputmode="numeric" min="0" max="59" placeholder="30"><i>초</i></span></div></label>
+      <label>평균 심박 (선택)<input type="number" id="manHr" inputmode="numeric" min="60" max="230" placeholder="예: 165"></label>
+      <label>메모 (선택)<input type="text" id="manNote" maxlength="80" placeholder="예: 비 와서 기록이 끊김 · 거리는 시계 기준"></label>
+      <div class="meta" id="manOut"></div>
+      <div class="note gray" style="margin:0">직접 넣은 기록은 <b>러닝 마일리지</b>와 <b>이날 훈련 완료</b>에 들어가요. 확인할 수 없는 기록이라 약속 판정과 <b>훈련 기준(실력 점수)</b>에는 쓰지 않아요${sx.type==='tt'?' — 기준은 다음 TT에서 바뀌어요':''}.</div>
+      <button type="button" class="btn" id="manSave" style="margin:0">기록 저장</button></div>`;
+  const sec=()=>(+$('manH').value||0)*3600+(+$('manM').value||0)*60+(+$('manS').value||0);
+  const paint=()=>{ const t=sec(), k=+$('manKm').value, o=$('manOut'); if(!(t>60&&k>0)){ o.textContent=''; return; }
+    const pc=t/k; o.innerHTML=`<b>${fmtClock(t)}</b> · 1km ${fmtPace(pc)}`+(pc<150||pc>1200?' <span style="color:var(--alarm)">— 거리·시간 확인</span>':''); };
+  ['manH','manM','manS','manKm'].forEach(id=>$(id).oninput=paint);
+  $('manSave').onclick=()=>{ const t=sec(), k=+$('manKm').value, tm=$('manTm').value||'07:00';
+    if(!(k>=0.5))return toast('거리를 넣어 주세요');
+    if(!(t>=120))return toast('걸린 시간을 넣어 주세요');
+    const pc=t/k; if(pc<150||pc>1200)return toast('1km '+fmtPace(pc)+' — 거리·시간 확인');
+    const dt=new Date(ds+'T'+tm+':00'), hr=+$('manHr').value;
+    const r={rid:'man-'+Date.now(),date:dt.toISOString(),km:+k.toFixed(2),sec:t,dur:t,type:sx.type,planId:sx.d,planKm:km||null,title:sx.t||'',act:'run',
+      paceAvg:Math.round(pc),hrAvg:hr>=60&&hr<=230?Math.round(hr):null,hour:dt.getHours(),note:String($('manNote').value||'').trim().slice(0,80),
+      src:'manual',manual:true,track:[],_saved:true};
+    RUNS.push(r); RUNS.sort((a,c)=>String(a.date).localeCompare(String(c.date))); DEV.store.set('runs',RUNS);
+    if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
+    manClose(); toast(`${+ds.slice(5,7)}.${+ds.slice(8,10)} 기록 저장 · 마일리지 +${fmtKm1(r.km)}km`);
+    try{ renderHome(); }catch(e){} try{ if(typeof renderPlan==='function')renderPlan(); }catch(e){} };
+  $('manClose').onclick=manClose; sh.onclick=e=>{ if(e.target===sh)manClose(); };
+  sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up')); }
+function manClose(){ const sh=$('manSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 function rlogClose(){ const sh=$('rlSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 function rlogUse(it){ /* 이 기록을 실력 기준으로 — 설정의 '다시 계산'과 같은 길 */
   PROF=Object.assign({},PROF,{race:{m:it.m,sec:it.sec,kind:it.kind,asc:it.asc||null,at:it.date,src:it.src==='manual'?'rlog':'survey'}}); DEV.store.set('prof',PROF);
@@ -9732,55 +9791,159 @@ function staticMap(tr,segs,mono,W,H,o){ o=o||{}; return new Promise(res=>{ try{
   Promise.all(jobs).then(r=>{ clearTimeout(timer); if(!r.some(Boolean))return res(null);
     const X=p=>wx(p.lon,z)-x0, Y=p=>wy(p.lat,z)-y0, pc=p=>mono?(p.over?'#CF3B36':mono):ptColor(p,segs);
     g.lineCap='round'; g.lineJoin='round';
-    const stroke=(w,c)=>{ let cur=[tr[0]], col=c||pc(tr[0]); const fl=()=>{ if(cur.length<2)return; g.beginPath(); cur.forEach((p,i)=>i?g.lineTo(X(p),Y(p)):g.moveTo(X(p),Y(p))); g.strokeStyle=c||col; g.lineWidth=w; g.stroke(); };
-      for(let i=1;i<tr.length;i++){ const cc=c||pc(tr[i]); cur.push(tr[i]); if(cc!==col){ fl(); cur=[tr[i]]; col=cc; } } fl(); };
-    const sw=o.sw||5; stroke(sw+3,'rgba(255,255,255,.85)'); stroke(sw);
-    if(o.marks!==false){ const cm=trackCum(tr); let km=1; g.font='bold 10px system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle';
-      for(let i=1;i<tr.length;i++) if(cm[i]/1000>=km){ g.beginPath(); g.arc(X(tr[i]),Y(tr[i]),8,0,7); g.fillStyle='#fff'; g.fill(); g.strokeStyle='#3A4A44'; g.lineWidth=1.5; g.stroke(); g.fillStyle='#16211D'; g.fillText(km,X(tr[i]),Y(tr[i])+.5); km++; } }
-    if(o.ends!==false){ [[tr[0],'#0E9B72'],[tr[tr.length-1],'#16211D']].forEach(([p,c])=>{ g.beginPath(); g.arc(X(p),Y(p),o.er||7,0,7); g.fillStyle=c; g.fill(); g.strokeStyle='#fff'; g.lineWidth=3; g.stroke(); }); }
+    const LP=o.laps||null, sel=LP&&o.sel!=null?o.sel:null, Q=tr.map(p=>[X(p),Y(p)]), cm=LP?LP.cm:trackCum(tr), rg=sel!=null?LP.laps[sel]:[0,tr.length-1];
+    routeLines(Q,cm,LP,sel,i=>pc(tr[i]),1,o.sw||5,true).forEach(l=>{ g.beginPath(); l.pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])); g.strokeStyle=l.col; g.globalAlpha=l.op!=null?l.op:1; g.lineWidth=l.w; g.stroke(); }); g.globalAlpha=1;
+    if(o.marks!==false){ g.font='bold 10px system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+      kmMarks(cm,LP,sel).forEach(({i,km})=>{ const [x,y]=Q[i]; g.beginPath(); g.arc(x,y,8,0,7); g.fillStyle='#fff'; g.fill(); g.strokeStyle='#3A4A44'; g.lineWidth=1.5; g.stroke(); g.fillStyle='#16211D'; g.fillText(km,x,y+.5); }); }
+    if(o.ends!==false){ [[Q[rg[0]],'#0E9B72'],[Q[rg[1]],'#16211D']].forEach(([q,c])=>{ g.beginPath(); g.arc(q[0],q[1],o.er||7,0,7); g.fillStyle=c; g.fill(); g.strokeStyle='#fff'; g.lineWidth=3; g.stroke(); }); }
     if(W>=160){ g.font='9px system-ui,sans-serif'; g.textAlign='right'; g.textBaseline='bottom'; g.fillStyle='rgba(255,255,255,.8)'; const t='© OpenStreetMap contributors', tw=g.measureText(t).width; g.fillRect(W-tw-8,H-14,tw+8,14); g.fillStyle='#555'; g.fillText(t,W-4,H-2); }
     try{ res(cv.toDataURL('image/png')); }catch(e){ res(null); } }); }catch(e){ res(null); } }); }
+/* ───────── 바퀴 — 같은 길을 여러 번 돈 기록(공원 한 바퀴 × N) ─────────
+   전에는 바퀴가 한 줄로 겹쳐 마지막 바퀴 색만 보였다(구간 ↔ 페이스를 바꿔도 그대로처럼 보임).
+   가장 자주 지나간 점을 기준으로 바퀴를 나누고, 전체 보기에선 바퀴마다 화면 몇 px씩 옆으로 비켜 그린다
+   (간격은 화면 기준 — 확대해도 같은 간격). 바퀴를 누르면 그 바퀴만 굵게, 나머지는 옅게. */
+function trackXY(tr){ const kx=Math.cos(tr[0].lat*Math.PI/180)*111320; return tr.map(p=>[(p.lon-tr[0].lon)*kx,(p.lat-tr[0].lat)*110574]); }
+function lapsOf(tr){
+  if(!tr||tr.length<30)return null;
+  const cm=trackCum(tr), L=cm[cm.length-1]; if(L<1200)return null;
+  const P=trackXY(tr), R2=35*35, d2=(a,b)=>(a[0]-b[0])**2+(a[1]-b[1])**2;
+  const hitsAt=a=>{ const h=[]; let last=-1e9;
+    for(let i=0;i<tr.length;i++){ if(cm[i]-last<300||d2(P[a],P[i])>R2)continue;
+      let j=i; while(j+1<tr.length&&d2(P[a],P[j+1])<=d2(P[a],P[j]))j++; h.push(j); last=cm[j]; i=j; }
+    return h; };
+  let best=null, nx=0;
+  for(let a=0;a<tr.length;a++){ if(cm[a]<nx)continue; nx=cm[a]+40; const h=hitsAt(a); if(h.length>=3&&(!best||h.length>best.length))best=h; }
+  if(!best)return null;
+  const h0=hitsAt(0); if(h0.length>=3&&h0.length>=best.length-1)best=h0;   /* 출발점이 바퀴 위면 출발점부터 센다 */
+  const laps=[]; for(let k=1;k<best.length;k++)laps.push([best[k-1],best[k]]);
+  const len=laps.map(([a,b])=>cm[b]-cm[a]), med=len.slice().sort((x,y)=>x-y)[len.length>>1];
+  if(med<300||len.some(x=>x>med*1.6||x<med*0.6))return null;   /* 길이가 들쭉날쭉하면 바퀴가 아니다 */
+  const n=tr.length-1, last=best[best.length-1]; let post=n;
+  if(cm[n]-cm[last]>=150){ laps.push([last,n,1]); } else post=last;   /* 남은 조각이 150m↑면 '덜 돈 바퀴' */
+  return {laps,pre:best[0],post,cm,med};
+}
+const LOOPC=new WeakMap();
+function lapsCached(tr){ if(!tr)return null; if(!LOOPC.has(tr))LOOPC.set(tr,lapsOf(tr)); return LOOPC.get(tr); }
+function lapGap(N){ return Math.max(2.6,Math.min(5,36/N)); }
+/* 경로 한 조각을 진행 방향의 왼쪽으로 off만큼 비킨 좌표 (앞뒤 30m로 방향을 잡아 GPS 흔들림에 덜 꺾인다) */
+function offsetPts(Q,cm,a,b,off){
+  if(!off)return Q.slice(a,b+1);
+  const out=[]; let lo=a, hi=a;
+  for(let i=a;i<=b;i++){ while(lo<i&&cm[i]-cm[lo]>30)lo++; if(hi<i)hi=i; while(hi<b&&cm[hi]-cm[i]<30)hi++;
+    const p0=Q[lo===i&&i>a?i-1:lo], p1=Q[hi===i&&i<b?i+1:hi], dx=p1[0]-p0[0], dy=p1[1]-p0[1], n=Math.hypot(dx,dy)||1;
+    out.push([Q[i][0]-dy/n*off,Q[i][1]+dx/n*off]); }
+  return out; }
+/* 그릴 선 목록 — 카카오 지도·SVG 그림·저장 이미지가 같은 규칙을 쓴다.
+   Q: 평면 좌표, u: 화면 1px이 Q에서 얼마인지, sw: 기본 굵기(px). 돌려주는 굵기는 px */
+function routeLines(Q,cm,LP,sel,cf,u,sw,casing){
+  const out=[], n=Q.length-1;
+  const runs=(a,b,pts,w)=>{ let s=0,col=cf(a); for(let i=a+1;i<=b;i++){ const c=cf(i); if(c!==col||i===b){ out.push({pts:pts.slice(s,i-a+1),w,col}); s=i-a; col=c; } } };
+  if(!LP){ if(casing)out.push({pts:Q,w:sw+3,col:'#fff',op:.9}); runs(0,n,Q,sw); return out; }
+  if(sel==null){ const N=LP.laps.length, gap=lapGap(N), w=Math.max(1.8,gap*.7);
+    if(LP.pre>0)runs(0,LP.pre,Q.slice(0,LP.pre+1),w);
+    LP.laps.forEach(([a,b],j)=>runs(a,b,offsetPts(Q,cm,a,b,(j-(N-1)/2)*gap*u),w));
+    if(LP.post<n)runs(LP.post,n,Q.slice(LP.post),w);
+    return out; }
+  const [a,b]=LP.laps[sel], q=Q.slice(a,b+1);
+  out.push({pts:Q,w:2,col:'#6B7470',op:.3},{pts:q,w:sw+3,col:'#fff',op:.95}); runs(a,b,q,sw); return out;
+}
+/* km 표시 — 바퀴 전체 보기에선 겹쳐 쌓이므로 빼고, 한 바퀴를 고르면 그 바퀴 안의 km만 */
+function kmMarks(cm,LP,sel){ let a=0,b=cm.length-1; if(LP){ if(sel==null)return []; [a,b]=LP.laps[sel]; }
+  const out=[]; let km=Math.floor(cm[a]/1000)+1; for(let i=Math.max(1,a);i<=b;i++) if(cm[i]/1000>=km){ out.push({i,km}); km++; } return out; }
+/* 바퀴별 숫자 — 거리 · 시간 · 페이스 · 평균 심박 */
+function lapStats(tr,LP){ return LP.laps.map(([a,b,part],j)=>{ const m=LP.cm[b]-LP.cm[a], dt=isFinite(tr[b].t)&&isFinite(tr[a].t)?tr[b].t-tr[a].t:null;
+  const hs=tr.slice(a,b+1).map(p=>p.hr).filter(x=>x>40); return {j,m,dt,pace:dt&&m>50&&dt/(m/1000)>120&&dt/(m/1000)<1500?dt/(m/1000):null,hr:hs.length?Math.round(hs.reduce((s,x)=>s+x,0)/hs.length):null,part:!!part}; }); }
+
 /* 경로 그림(SVG) — 카카오가 없을 때, 그리고 목록 썸네일 */
 function routeSVG(tr,segs,o){
   o=o||{}; const W=o.w||600,H=o.h||380,PAD=o.pad||22;
   if(!tr||tr.length<3)return '';
-  const lats=tr.map(p=>p.lat),lons=tr.map(p=>p.lon);
+  const LP=o.laps||null, sel=LP&&o.sel!=null?o.sel:null, rg=sel!=null?LP.laps[sel]:[0,tr.length-1], fit=tr.slice(rg[0],rg[1]+1);
+  const lats=fit.map(p=>p.lat),lons=fit.map(p=>p.lon);
   const la0=Math.min(...lats),la1=Math.max(...lats),lo0=Math.min(...lons),lo1=Math.max(...lons);
   const kx=Math.cos((la0+la1)/2*Math.PI/180);
   const sx=Math.max((lo1-lo0)*kx,1e-6), sy=Math.max(la1-la0,1e-6);
   const sc=Math.min((W-PAD*2)/sx,(H-PAD*2)/sy), ox=(W-sx*sc)/2, oy=(H-sy*sc)/2;
   const X=p=>ox+(p.lon-lo0)*kx*sc, Y=p=>H-(oy+(p.lat-la0)*sc);
-  let out='', cur=[tr[0]], col=o.mono||ptColor(tr[0],segs);
-  const flush=()=>{ if(cur.length>1)out+=`<path d="${cur.map((p,i)=>(i?'L':'M')+X(p).toFixed(1)+','+Y(p).toFixed(1)).join('')}" fill="none" stroke="${col}" stroke-width="${o.sw||5}" stroke-linecap="round" stroke-linejoin="round"/>`; };
-  for(let i=1;i<tr.length;i++){ const c=o.mono||ptColor(tr[i],segs); cur.push(tr[i]); if(c!==col){ flush(); cur=[tr[i]]; col=c; } }
-  flush();
-  if(o.marks!==false){ const cm=trackCum(tr); let k=1;
-    for(let i=1;i<tr.length;i++) if(cm[i]/1000>=k){ out+=`<g><circle cx="${X(tr[i]).toFixed(1)}" cy="${Y(tr[i]).toFixed(1)}" r="10" fill="#fff" stroke="#3A4A44" stroke-width="1.5"/><text x="${X(tr[i]).toFixed(1)}" y="${(Y(tr[i])+3.6).toFixed(1)}" font-size="10" font-weight="800" text-anchor="middle" fill="#2A1638">${k}</text></g>`; k++; } }
-  if(o.ends!==false){ const st=tr[0],en=tr[tr.length-1];
-    out+=`<circle cx="${X(st).toFixed(1)}" cy="${Y(st).toFixed(1)}" r="8" fill="#0E9B72" stroke="#fff" stroke-width="3"/><circle cx="${X(en).toFixed(1)}" cy="${Y(en).toFixed(1)}" r="8" fill="#16211D" stroke="#fff" stroke-width="3"/>`; }
+  const Q=tr.map(p=>[X(p),Y(p)]), cm=LP?LP.cm:trackCum(tr), u=o.u||W/360;   /* 큰 그림은 화면 약 360px 폭 */
+  const pth=l=>`<path d="${l.pts.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+','+q[1].toFixed(1)).join('')}" fill="none" stroke="${l.col}" stroke-width="${(l.w*(o.big?u:1)).toFixed(1)}"${l.op!=null?` stroke-opacity="${l.op}"`:''} stroke-linecap="round" stroke-linejoin="round"/>`;
+  let out=routeLines(Q,cm,LP,sel,i=>o.mono||ptColor(tr[i],segs),u,o.sw||5,!!o.big).map(pth).join('');
+  if(o.marks!==false) kmMarks(cm,LP,sel).forEach(({i,km})=>{ out+=`<g><circle cx="${Q[i][0].toFixed(1)}" cy="${Q[i][1].toFixed(1)}" r="10" fill="#fff" stroke="#3A4A44" stroke-width="1.5"/><text x="${Q[i][0].toFixed(1)}" y="${(Q[i][1]+3.6).toFixed(1)}" font-size="10" font-weight="800" text-anchor="middle" fill="#2A1638">${km}</text></g>`; });
+  if(o.ends!==false){ const st=Q[rg[0]],en=Q[rg[1]];
+    out+=`<circle cx="${st[0].toFixed(1)}" cy="${st[1].toFixed(1)}" r="8" fill="#0E9B72" stroke="#fff" stroke-width="3"/><circle cx="${en[0].toFixed(1)}" cy="${en[1].toFixed(1)}" r="8" fill="#16211D" stroke="#fff" stroke-width="3"/>`; }
   return `<svg viewBox="0 0 ${W} ${H}" class="${o.cls||''}" role="img" aria-label="경로">${out}</svg>`;
 }
-async function paintMap(host,tr,segs,mono){
-  if(!host)return; host._tr=tr; host._segs=segs; host._mono=mono;
+/* 큰 지도 — o: {laps, sel, full(크게 보기: 움직이고 확대), onTap(작은 지도 누르면)} */
+async function paintMap(host,tr,segs,mono,o){
+  o=o||{}; if(!host)return; host._tr=tr; host._segs=segs; host._mono=mono; host._laps=o.laps||null; host._sel=o.sel; host._map=null;
+  const tok=host._tok=(host._tok||0)+1;
   if(!tr||tr.length<3){ host.innerHTML='<div class="nomap">경로 기록 없음</div>'; return; }
-  host.innerHTML=routeSVG(tr,segs,mono?{cls:'rsvg',mono}:{cls:'rsvg'}); host._svg=host.innerHTML;
-  const k=await loadKakao(); if(!k||!host.isConnected)return;
+  const LP=o.laps||null, sel=LP&&o.sel!=null?o.sel:null;
+  host.innerHTML=routeSVG(tr,segs,{cls:'rsvg',mono,laps:LP,sel,big:1,sw:4}); host._svg=host.innerHTML;
+  if(!o.full&&o.onTap)host.firstChild.onclick=o.onTap;
+  const k=await loadKakao(); if(!k||!host.isConnected||host._tok!==tok)return;
   try{
     host.innerHTML=''; const box=document.createElement('div'); box.className='kmap'; host.appendChild(box);
-    const map=new k.maps.Map(box,{center:new k.maps.LatLng(tr[0].lat,tr[0].lon),level:5});
-    const bounds=new k.maps.LatLngBounds();
-    const pc=p=>mono?(p.over?'#CF3B36':mono):ptColor(p,segs);
-    let cur=[tr[0]], col=pc(tr[0]);
-    const flush=()=>{ if(cur.length>1)new k.maps.Polyline({map,path:cur.map(p=>new k.maps.LatLng(p.lat,p.lon)),strokeWeight:6,strokeColor:col,strokeOpacity:.95}); };
-    tr.forEach(p=>bounds.extend(new k.maps.LatLng(p.lat,p.lon)));
-    for(let i=1;i<tr.length;i++){ const c=pc(tr[i]); cur.push(tr[i]); if(c!==col){ flush(); cur=[tr[i]]; col=c; } }
-    flush();
-    const cm=trackCum(tr); let km=1;
-    for(let i=1;i<tr.length;i++) if(cm[i]/1000>=km){ new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[i].lat,tr[i].lon),content:`<div class="kmk">${km}</div>`,yAnchor:.5}); km++; }
-    new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[0].lat,tr[0].lon),content:'<div class="kst">출발</div>',yAnchor:1.2});
-    map.setBounds(bounds);
-  }catch(e){ host.innerHTML=routeSVG(tr,segs,{cls:'rsvg'}); }
+    const full=!!o.full;
+    const map=new k.maps.Map(box,{center:new k.maps.LatLng(tr[0].lat,tr[0].lon),level:5,draggable:full,scrollwheel:full,disableDoubleClick:!full,disableDoubleClickZoom:!full,keyboardShortcuts:false});
+    map.setZoomable(full); host._map=map;
+    const lat0=tr[0].lat, lon0=tr[0].lon, kx=Math.cos(lat0*Math.PI/180)*111320, LL=q=>new k.maps.LatLng(lat0+q[1]/110574,lon0+q[0]/kx);
+    const Q=trackXY(tr), cm=LP?LP.cm:trackCum(tr), cf=i=>{ const p=tr[i]; return mono?(p.over?'#CF3B36':mono):ptColor(p,segs); };
+    const mpp=()=>{ try{ const pj=map.getProjection(), a=pj.coordsFromContainerPoint(new k.maps.Point(0,0)), b=pj.coordsFromContainerPoint(new k.maps.Point(100,0));
+      const v=haversine({lat:a.getLat(),lon:a.getLng()},{lat:b.getLat(),lon:b.getLng()})/100; if(v>0)return v; }catch(e){} return Math.pow(2,map.getLevel()-3); };
+    let lines=[];
+    const draw=()=>{ lines.forEach(l=>l.setMap(null));
+      lines=routeLines(Q,cm,LP,sel,cf,mpp(),4,true).map(l=>new k.maps.Polyline({map,path:l.pts.map(LL),strokeWeight:l.w,strokeColor:l.col,strokeOpacity:l.op!=null?l.op:.95})); };
+    const rg=sel!=null?LP.laps[sel]:[0,tr.length-1], b=new k.maps.LatLngBounds();
+    for(let i=rg[0];i<=rg[1];i++)b.extend(new k.maps.LatLng(tr[i].lat,tr[i].lon));
+    kmMarks(cm,LP,sel).forEach(({i,km})=>new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[i].lat,tr[i].lon),content:`<div class="kmk">${km}</div>`,yAnchor:.5}));
+    new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[rg[0]].lat,tr[rg[0]].lon),content:`<div class="kst">${sel!=null?`${sel+1}바퀴 시작`:'출발'}</div>`,yAnchor:1.2});
+    new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[rg[1]].lat,tr[rg[1]].lon),content:'<i class="kdot" style="background:#16211D"></i>',xAnchor:.5,yAnchor:.5});
+    map.setBounds(b,full?40:16,full?24:16,full?40:16,full?24:16);
+    draw(); if(LP&&sel==null)k.maps.event.addListener(map,'zoom_changed',draw);   /* 바퀴 간격은 화면 px 기준 → 확대할 때마다 다시 */
+    if(!full&&o.onTap)k.maps.event.addListener(map,'click',o.onTap);
+  }catch(e){ console.warn('paintMap',e); host.innerHTML=host._svg; }
 }
+/* 기록 화면의 경로 — 지도 + 구간/페이스 + 바퀴 고르기 + 색 설명. 작은 지도와 '크게 보기'가 같은 함수 */
+const SEG_LEG=[['#0E9B72','이지'],['#E35A32','인터벌·템포'],['#8FB8D8','레스트'],['#CF3B36','상한보다 빠름']];
+function routeBoxHTML(full){
+  return `<div class="rmapbox${full?' mf-map':''}"><div class="rmap"></div><div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div>
+    ${full?'<div class="mf-zoom"><button type="button" data-z="-1" aria-label="확대">+</button><button type="button" data-z="1" aria-label="축소">−</button></div>':'<button type="button" class="mapx" data-mapx aria-label="지도 크게 보기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button>'}</div>
+    <div class="lapbar" hidden></div><div class="rleg"></div>`; }
+function routeWire(root,r,st,full){
+  const mh=root.querySelector('.rmap'), sw=root.querySelector('.mapsw'), lg=root.querySelector('.rleg'), lb=root.querySelector('.lapbar');
+  const pcd=paceColored(r.track,r.splits), LP=lapsCached(r.track), LS=LP?lapStats(r.track,LP):null;
+  const fullOK=LS?LS.filter(x=>!x.part&&x.pace):[], fast=fullOK.length?fullOK.reduce((m,x)=>x.pace<m.pace?x:m):null;
+  if(!pcd.lo)st.mode='seg'; if(LP&&st.sel!=null&&st.sel>=LP.laps.length)st.sel=null;
+  const pcol=v=>{ const f=Math.max(0,Math.min(1,(pcd.hi-v)/Math.max(10,pcd.hi-pcd.lo))); return PACE_COLS[Math.round(f*(PACE_COLS.length-1))]; };
+  const paint=()=>{ const pace=st.mode==='pace'&&!!pcd.lo;
+    sw.hidden=!pcd.lo; sw.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.mm===st.mode));
+    paintMap(mh,pace?pcd.tr:r.track,r.segments,null,{laps:LP,sel:st.sel,full,onTap:full?null:()=>routeFull(r,st,paint)});
+    if(pace) lg.innerHTML=`<span class="pgl">더 느림 ${fmtPace(pcd.hi)}</span><span class="pgr">${PACE_COLS.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="pgl">${fmtPace(pcd.lo)} 더 빠름</span>`;
+    else { const has=new Set(r.track.map(p=>ptColor(p,r.segments)));
+      lg.innerHTML=SEG_LEG.filter(([c])=>has.has(c)).map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')+(LP&&st.sel==null?'':'<span>① km</span>'); }
+    if(!LP){ lb.hidden=true; return; }
+    const s=st.sel!=null?LS[st.sel]:null;
+    lb.hidden=false;
+    lb.innerHTML=`<div class="lapch" role="group" aria-label="바퀴 고르기"><button type="button" data-lap="all" class="${s?'':'on'}"><b>전체</b><i>${LP.laps.length}바퀴</i></button>${LS.map(x=>`<button type="button" data-lap="${x.j}" class="${s&&s.j===x.j?'on':''}${fast&&fast.j===x.j?' best':''}"><b>${x.j+1}${x.part?'<small>덜</small>':''}</b><i>${x.part?(x.m/1000).toFixed(1)+'km':x.pace?fmtPace(x.pace):(x.m/1000).toFixed(2)+'km'}</i>${pace&&x.pace?`<u style="background:${pcol(x.pace)}"></u>`:''}</button>`).join('')}</div>
+      <div class="lapinfo">${s?`<b>${s.j+1}바퀴${s.part?' (덜 돈 바퀴)':''}</b> · ${(s.m/1000).toFixed(2)}km${s.dt?` · ${fmtClock(s.dt)}`:''}${s.pace?` · 1km ${fmtPace(s.pace)}`:''}${s.hr?` · 평균 심박 ${s.hr}`:''}`
+        :`<b>${LS.filter(x=>!x.part).length}바퀴</b>${LS.some(x=>x.part)?` + ${(LS[LS.length-1].m/1000).toFixed(1)}km`:''} · 한 바퀴 약 ${(LP.med/1000).toFixed(2)}km${fast?` · 가장 빠른 바퀴 <b>${fast.j+1}</b> (${fmtPace(fast.pace)})`:''}<br><span>선 한 줄 = 한 바퀴 · 바퀴를 누르면 따로 봐요</span>`}</div>`;
+    const on=lb.querySelector('.lapch .on'); if(on&&on.scrollIntoView&&st.sel!=null)try{ on.scrollIntoView({block:'nearest',inline:'center'}); }catch(e){} };
+  sw.querySelectorAll('button').forEach(b=>b.onclick=()=>{ st.mode=b.dataset.mm; try{ localStorage.setItem('mapMode',st.mode); }catch(e){} paint(); });
+  lb.onclick=e=>{ const c=e.target.closest('[data-lap]'); if(!c)return; const v=c.dataset.lap; st.sel=v==='all'||st.sel===+v?null:+v; paint(); };
+  const x=root.querySelector('[data-mapx]'); if(x)x.onclick=()=>routeFull(r,st,paint);
+  root.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{ const m=mh._map, d=+b.dataset.z;
+    if(m){ m.setLevel(Math.max(1,m.getLevel()+d),{animate:true}); return; }
+    const sv=mh.querySelector('svg'); if(!sv)return; const z=Math.max(1,Math.min(6,(mh._z||1)*(d<0?1.5:1/1.5))); mh._z=z; sv.style.width=sv.style.height=(z*100)+'%'; });
+  paint(); return paint; }
+/* 크게 보기 — 화면 가득, 손가락으로 움직이고 두 손가락·+/−로 확대 */
+function routeFull(r,st,onClose){
+  let ov=$('mapFull'); if(!ov){ ov=document.createElement('div'); ov.id='mapFull'; document.body.appendChild(ov); }
+  ov.innerHTML=`<div class="mf-top"><button type="button" class="mf-x" aria-label="닫기"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b>${ESC(runTitle(r))}</b><span>${(+r.km||0).toFixed(2)}km</span></div>${routeBoxHTML(true)}`;
+  ov.hidden=false; document.body.classList.add('mf-on');
+  ov._close=()=>{ ov.hidden=true; ov.innerHTML=''; document.body.classList.remove('mf-on'); ov._close=null; if(onClose)onClose(); };
+  ov.querySelector('.mf-x').onclick=ov._close;
+  routeWire(ov,r,st,true); }
 
 
 /* ───────── 작은 경로 그림에도 지도 바탕 — 홈 결과 카드·훈련 돌아보기·러닝일지 목록 ─────────
@@ -9960,8 +10123,7 @@ function renderResult(host,r,s,opt){
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(runTitle(r))}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
-    ${hasMap?`<div class="rmapbox"><div class="rmap"></div><div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div>
-      <div class="rleg" hidden><span><i style="background:var(--ok)"></i>이지</span><span><i style="background:var(--fast)"></i>인터벌·템포</span><span><i style="background:#8FB8D8"></i>레스트</span><span><i style="background:var(--alarm)"></i>상한보다 빠름</span><span>① km</span></div></div>`:'<div class="rmap" hidden></div>'}
+    ${hasMap?`<div class="rroute">${routeBoxHTML()}</div>`:'<div class="rmap" hidden></div>'}
     ${SEC(vc,'오늘 결과','',hero)}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
     ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 심박 존</summary>':''}
@@ -9976,16 +10138,8 @@ function renderResult(host,r,s,opt){
         <div class="rs-snap">${snapBtn('#'+host.id,'result','훈련 결과','wide')}<button class="btn ghost" data-rs="share">꾸며서 공유</button></div>`;
   { const zh=host.querySelector('.rsZones'); const tmp=document.createElement('div'); paintZones(tmp,r.zones,T,r.zoneB);
     if(!tmp.hidden&&tmp.innerHTML){ const card=tmp.querySelector('.card'); zh.innerHTML=SEC('body','심박 존','',`<div class="rv-zw">${rvDonut(r.zones)}<div class="rv-zr">${card?card.innerHTML:tmp.innerHTML}</div></div>`); } else zh.hidden=true; }
-  /* 지도 — 구간 색 / 페이스 색 */
-  { const mh=host.querySelector('.rmap'), pcd=paceColored(r.track,r.splits), lg=host.querySelector('.rleg'), sw=host.querySelector('.mapsw');
-    const setMode=m=>{ try{ localStorage.setItem('mapMode',m); }catch(e){}
-      if(sw)sw.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.mm===m));
-      if(m==='pace'&&pcd.lo){ paintMap(mh,pcd.tr,r.segments); if(lg){ lg.hidden=false; lg.innerHTML=`<span class="pgl">더 느림 ${fmtPace(pcd.hi)}</span><span class="pgr">${PACE_COLS.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="pgl">${fmtPace(pcd.lo)} 더 빠름</span>`; } }
-      else { paintMap(mh,r.track,r.segments); if(lg){ lg.hidden=false; lg.innerHTML=lg.dataset.seg; } } };
-    if(lg)lg.dataset.seg=lg.innerHTML;
-    if(sw){ if(!pcd.lo)sw.hidden=true; sw.querySelectorAll('button').forEach(b=>b.onclick=()=>setMode(b.dataset.mm)); }
-    let m0='seg'; try{ m0=localStorage.getItem('mapMode')||'seg'; }catch(e){}
-    setMode(pcd.lo?m0:'seg'); }
+  /* 지도 — 구간 색 / 페이스 색 · 바퀴 · 크게 보기 */
+  { const rb=host.querySelector('.rroute'); if(rb){ let m0='seg'; try{ m0=localStorage.getItem('mapMode')||'seg'; }catch(e){} routeWire(rb,r,{mode:m0,sel:null},false); } }
   /* 제목 · 메모 바로 고치기 */
   host.querySelectorAll('[data-rtedit]').forEach(b=>b.onclick=()=>openRunEdit(r.rid));
   /* 구간 표 거르기 */
@@ -10882,7 +11036,7 @@ function logList(){
         <div class="m"><b>${a.nm}</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#8C6D46">${a.nm}</span><span class="chip n">판정 없음</span></div>
         <div class="s">${fmtClock(r.sec)} · ${k==='hike'?'오르막 +'+(r.asc||0)+'m':r.km.toFixed(1)+'km'}</div></div></div>`; }
     const T=TYPES[r.type]||{}, v=runPass(r), pr=promiseRows(r,{dist:r.planKm||(r.distRatio?r.km/r.distRatio:0),ceiling:r.ceiling});
-    const chip=r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
+    const chip=r.manual?'<span class="chip n">직접 입력</span>':r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
     const sp=paceBars(r);
     return `<div class="li" data-rid="${r.rid}"><div class="map" data-maprid="${ESC(r.rid||'')}">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
       <div class="m"><b>${ESC(runTitle(r))}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg">${runTitle(r).startsWith(T.nm||'@')?'':`<span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>`}${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
@@ -12281,7 +12435,7 @@ function planListHTML(){
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" data-pgo="${i}"><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
             <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
-          ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:''}</div>`; }).join(''); }).join('');
+          ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:miss?`<button type="button" class="pd-add" data-pman="${sx.d}" aria-label="기록 직접 넣기">+</button>`:''}</div>`; }).join(''); }).join('');
     const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
     const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
     return `<section class="pw pw-f${cur?' cur':''}${past?' past':''}${pwFold(mon,cur)?' fold':''}" id="pw${wk}" data-pwm="${mon}">
@@ -12296,6 +12450,7 @@ function planListHTML(){
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest('#plan,#peSheet'))return;
+  { const pm=e.target.closest('[data-pman]'); if(pm)return manOpen(pm.dataset.pman); }
   const up=e.target.closest('[data-unpaste]'); if(up){ e.stopPropagation(); if(confirm('받아 적은 훈련을 지우고 원래 일정으로 되돌릴까요?')){ clearCustom(up.dataset.unpaste); renderPlan(); toast('원래 일정으로 되돌렸어요'); } return; }
   const g=e.target.closest('[data-pgo]'); if(g)return openConfirm(+g.dataset.pgo);
   const ph=e.target.closest('.pw.pw-f>header'); if(ph){ const sec=ph.parentElement, m=sec.dataset.pwm; const f=sec.classList.toggle('fold'); if(f)PWOPEN.delete(m); else PWOPEN.add(m); return; }
@@ -13307,7 +13462,7 @@ async function snapCard(el,name,title){
   /* 지도: 큰 지도(.rmap)와 썸네일(data-maprid) 모두 — 저장용 지도 그림(타일+경로)으로 바꾼다. 못 그리면 경로 그림만 */
   const MSEL='.rmap,[data-maprid]', mHosts=[...el.querySelectorAll(MSEL)];
   const mPng=await Promise.all(mHosts.map(h=>{ const r=h.dataset.maprid?(RUNS.concat(typeof ACTS!=='undefined'?ACTS:[])).find(x=>x.rid===h.dataset.maprid):null, tr=h._tr||(r&&r.track), segs=h._tr?h._segs:(r&&r.segments), mono=h._tr?h._mono:null;
-    const small=!!h.dataset.maprid; return tr&&tr.length>3?staticMap(tr,segs,mono,Math.max(60,h.offsetWidth||300),Math.max(60,h.offsetHeight||200),small?{pad:8,sw:4,marks:false,er:5}:{}):Promise.resolve(null); }));
+    const small=!!h.dataset.maprid; return tr&&tr.length>3?staticMap(tr,segs,mono,Math.max(60,h.offsetWidth||300),Math.max(60,h.offsetHeight||200),small?{pad:8,sw:4,marks:false,er:5}:{laps:h._laps,sel:h._sel,sw:4}):Promise.resolve(null); }));
   const kFix=root=>[...root.querySelectorAll(MSEL)].forEach((m,i)=>{ const h=mHosts[i]; if(!h)return;
     if(mPng[i])m.innerHTML=`<img src="${mPng[i]}" alt="" style="width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit">`;
     else if(m.querySelector('.kmap,.kmini')){ if(h._svg)m.innerHTML=h._svg; else m.querySelector('.kmap,.kmini').remove(); } });
