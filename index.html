@@ -2340,7 +2340,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* v20.12 쉬는 날 카드 — 훈련일 카드와 같은 틀 + 할 일 아이콘 한 줄 */
 .he.rest .he-line b{color:var(--ok-ink)}
-.rmis{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:2px;margin:12px 0 2px}
+.rst-ics{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:2px;margin:12px 0 2px}
 .rmi{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--ink-2);text-align:center;line-height:1.25;cursor:pointer;min-width:0}
 .rmi input{position:absolute;opacity:0;pointer-events:none}
 .rmi u{width:40px;height:40px;border-radius:50%;border:1.5px solid #CDB9E2;background:var(--panel);display:grid;place-items:center;text-decoration:none}
@@ -2387,6 +2387,10 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .bs-msg{margin-top:14px;background:var(--panel-2);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--ink-2)}.bs-msg b{display:block;font-size:16px;color:var(--ink);margin-bottom:2px}
 .bs-note{font-size:12px;color:var(--ink-3);margin:10px 2px 0;line-height:1.6}
 @media (prefers-reduced-motion:reduce){.sl>span{transition:none}}
+
+/* v20.14 작은 경로 칸 지도 바탕 */
+.kmini{width:100%;height:100%;pointer-events:none}
+.kdot{display:block;width:10px;height:10px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2403,7 +2407,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.13';
+const APPVER='20.14';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9111,7 +9115,7 @@ function restCard(t){
         <b>${closed?'휴식 완료':scored?'쉬는 날도 훈련':'쉬는 날'}</b>${why&&scored?`<i class="he-what">${why}</i>`:''}
         <span class="he-line">${line}</span></div>
       ${closed?`<button class="he-go done" id="restReopen">${ic('check',16)}다시 열기</button>`:`<button class="he-go" id="restClose">${ic('check',16)}${scored?'오늘 마감':'마감'}</button>`}</div>
-    <div class="rmis" style="--n:${M.length}">${icons}</div>
+    <div class="rst-ics" style="--n:${M.length}">${icons}</div>
     <div class="hero-links"><button type="button" id="restDet">상세</button>${go?`<button type="button" data-stgo="${go.go}">▶ ${go.k==='core'?'코어':'근력'} 따라하기</button>`:''}${snapBtn('.hero','rest','오늘 쉬는 날')}</div>
     <ul class="rst-det" id="restDetBox" hidden>${det}</ul>
   </section>`;   /* 다음 훈련은 홈의 '다음 훈련' 카드가 맡는다 · '그래도 뛰기'는 맨 위 프리런 줄 */
@@ -9706,6 +9710,33 @@ async function paintMap(host,tr,segs,mono){
   }catch(e){ host.innerHTML=routeSVG(tr,segs,{cls:'rsvg'}); }
 }
 
+
+/* ───────── 작은 경로 그림에도 지도 바탕 — 홈 결과 카드·훈련 돌아보기·러닝일지 목록 ─────────
+   세션 결과(카카오 지도)와 달리 작은 칸은 경로 선만 있어 '지도 안 나옴'으로 보였다.
+   [data-maprid] 칸이 화면에 들어오면 같은 카카오 지도를 움직이지 않는 그림으로 깐다(누르면 원래대로 결과가 열림).
+   지도를 못 불러오면(오프라인·키 문제) 지금의 경로 그림을 그대로 둔다. */
+const MINI_IO=('IntersectionObserver' in window)?new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ MINI_IO.unobserve(e.target); miniMap(e.target); } }),{rootMargin:'120px'}):null;
+async function miniMap(el){
+  if(!el||el._mm)return; el._mm=1;
+  const rid=el.dataset.maprid, r=rid&&RUNS.find(x=>String(x.rid)===rid); const tr=r&&r.track;
+  if(!tr||tr.length<4)return;
+  const k=await loadKakao(); if(!k||!el.isConnected)return;
+  try{
+    const svg=el.innerHTML, box=document.createElement('div'); box.className='kmini'; el.innerHTML=''; el.appendChild(box);
+    const map=new k.maps.Map(box,{center:new k.maps.LatLng(tr[0].lat,tr[0].lon),level:5,draggable:false,scrollwheel:false,disableDoubleClick:true,disableDoubleClickZoom:true,keyboardShortcuts:false});
+    map.setZoomable(false);
+    const small=el.clientWidth<70, b=new k.maps.LatLngBounds(), segs=r.segments, mono=small?(TCOL[r.type]||'#2E9E6A'):null, pc=p=>mono||ptColor(p,segs);
+    tr.forEach(p=>b.extend(new k.maps.LatLng(p.lat,p.lon)));
+    let cur=[tr[0]], col=pc(tr[0]); const W=small?3:4;
+    const fl=()=>{ if(cur.length>1)new k.maps.Polyline({map,path:cur.map(p=>new k.maps.LatLng(p.lat,p.lon)),strokeWeight:W,strokeColor:col,strokeOpacity:.95}); };
+    for(let i=1;i<tr.length;i++){ const c=pc(tr[i]); cur.push(tr[i]); if(c!==col){ fl(); cur=[tr[i]]; col=c; } } fl();
+    if(!small){ [[tr[0],'#0E9B72'],[tr[tr.length-1],'#16211D']].forEach(([p,c])=>new k.maps.CustomOverlay({map,position:new k.maps.LatLng(p.lat,p.lon),content:`<i class="kdot" style="background:${c}"></i>`,xAnchor:.5,yAnchor:.5})); }
+    map.setBounds(b,small?4:10,small?4:10,small?4:10,small?4:10);
+    el._svg=svg;
+  }catch(e){ console.warn('miniMap',e); }
+}
+function miniMaps(root){ (root||document).querySelectorAll('[data-maprid]').forEach(el=>{ if(el._mm||el._mmq)return; el._mmq=1; if(MINI_IO)MINI_IO.observe(el); else miniMap(el); }); }
+new MutationObserver(ms=>{ if(ms.some(m=>m.addedNodes.length))miniMaps(); }).observe(document.body,{childList:true,subtree:true});
 /* ───────── 약속 ↔ 결과 ───────── */
 /* 회차 목표 — 기록 당시 구간 계획(plan)에 저장된 값. 뛴 뒤 ADJ를 바꿔도 지난 기록의 목표가 흔들리면 안 된다 */
 function repTargetOf(r,s){ const g=(r&&r.segments||[]).find(x=>x.hard&&Array.isArray(x.plan)&&x.plan.length>=2); if(g)return Math.round(midPace(g.plan)); return s&&s.repTarget?(s.repTarget+(ADJ[(r&&r.type)||s.type]||0)):null; }
@@ -10775,13 +10806,13 @@ function logList(){
     if(k==='rest') return `<div class="li"><div class="map rest">☾</div><div class="m"><b>쉬는 날</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#9C8AD8">${tm('off')}</span>${r.m.norun?'<span class="chip g">참음 ✓</span>':''}</div>
       <div class="s">${MISSIONS.filter(x=>r.m[x.k]).map(x=>x.t.split(' (')[0]).join(' · ')}</div></div></div>`;
     if(k!=='run'){ const a=ACTK[k]||ACTK.walk;
-      return `<div class="li" data-rid="${r.rid}"><div class="map">${routeSVG(r.track,null,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:'#8C6D46'})}</div>
+      return `<div class="li" data-rid="${r.rid}"><div class="map" data-maprid="${ESC(r.rid||'')}">${routeSVG(r.track,null,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:'#8C6D46'})}</div>
         <div class="m"><b>${a.nm}</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#8C6D46">${a.nm}</span><span class="chip n">판정 없음</span></div>
         <div class="s">${fmtClock(r.sec)} · ${k==='hike'?'오르막 +'+(r.asc||0)+'m':r.km.toFixed(1)+'km'}</div></div></div>`; }
     const T=TYPES[r.type]||{}, v=runPass(r), pr=promiseRows(r,{dist:r.planKm||(r.distRatio?r.km/r.distRatio:0),ceiling:r.ceiling});
     const chip=r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
     const sp=paceBars(r);
-    return `<div class="li" data-rid="${r.rid}"><div class="map">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
+    return `<div class="li" data-rid="${r.rid}"><div class="map" data-maprid="${ESC(r.rid||'')}">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
       <div class="m"><b>${ESC(runTitle(r))}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg">${runTitle(r).startsWith(T.nm||'@')?'':`<span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>`}${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
       <div class="s">${fmtKm1(r.km)}km · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}${r.hrAvg?' · ♥'+r.hrAvg:''}</div></div><div class="sp">${sp}</div></div>`; }).join('');
   return `<div class="flt">${F.map(f=>`<button class="${LOGFLT===f[0]?'on':''}" data-flt="${f[0]}">${f[1]}</button>`).join('')}</div>${ymBar}
@@ -13173,10 +13204,17 @@ function snapCuts(root,h,ch){
     if(d>24&&d<ch*0.45)mark(bad[0],a,b);
     /* 제목 줄 바로 아래서는 자르지 않는다 — 제목만 앞 쪽에 남는 고아 방지 */
     if(d<90&&(/^H[1-6]$/i.test(e.tagName)||/(^|\s)(ps-h|rh|sec-hd|lbl|pg-hd|gc-lab|ws-h|gd-hero|tc-hd|mc-top|fu-hd)(\s|$)/.test(e.className||''))){ mark(bad[0],a,b+90); mark(bad[1],a,b+90); mark(bad[2],a,b+60); } });
+  /* 카테고리(카드) 단위로 나눈다 — 먼저 카드 경계에서만 자르고, 카드 하나가 한 쪽보다 클 때만 그 카드 안에서 자른다.
+     예전엔 쪽을 최대한 채우려고 아무 데서나 잘라 '구간' 표가 두 쪽에 걸쳤다 */
+  let blk=root; while(blk.children.length===1&&blk.children[0].children.length)blk=blk.children[0];
+  const bnd=[...new Set([...blk.children].map(e=>{ const r=e.getBoundingClientRect(); return r.height>0.5?Math.round(r.top-cr.top-6):null; }).filter(v=>v!=null&&v>0&&v<h))].sort((a,b)=>a-b);
   const cuts=[0]; let at=0;
   while(h-at>ch){ const hi=Math.floor(at+ch); let y=null;
-    for(const [t,from] of [[0,0.7],[1,0.7],[2,0.7],[0,0.4],[1,0.4],[2,0.3]]){ for(let z=hi;z>=at+ch*from;z--){ if(!bad[t][z]){y=z;break;} } if(y!=null)break; }
-    if(y==null)y=hi; cuts.push(y); at=y; }
+    for(const b of bnd){ if(b>at+24&&b<=hi)y=b; }
+    if(y==null){
+      for(const [t,from] of [[0,0.7],[1,0.7],[2,0.7],[0,0.4],[1,0.4],[2,0.3]]){ for(let z=hi;z>=at+ch*from;z--){ if(!bad[t][z]){y=z;break;} } if(y!=null)break; }
+      if(y==null)y=hi; }
+    cuts.push(y); at=y; }
   cuts.push(h); return cuts;
 }
 async function snapCard(el,name,title){
@@ -13189,7 +13227,7 @@ async function snapCard(el,name,title){
     const small=!!h.dataset.maprid; return tr&&tr.length>3?staticMap(tr,segs,mono,Math.max(60,h.offsetWidth||300),Math.max(60,h.offsetHeight||200),small?{pad:8,sw:4,marks:false,er:5}:{}):Promise.resolve(null); }));
   const kFix=root=>[...root.querySelectorAll(MSEL)].forEach((m,i)=>{ const h=mHosts[i]; if(!h)return;
     if(mPng[i])m.innerHTML=`<img src="${mPng[i]}" alt="" style="width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit">`;
-    else if(m.querySelector('.kmap')){ if(h._svg)m.innerHTML=h._svg; else m.querySelector('.kmap').remove(); } });
+    else if(m.querySelector('.kmap,.kmini')){ if(h._svg)m.innerHTML=h._svg; else m.querySelector('.kmap,.kmini').remove(); } });
   kFix(clone);
   const wrap=document.createElement('div'); wrap.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;`; wrap.appendChild(clone); document.body.appendChild(wrap);
   snapKeep(clone); clone.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); clone.querySelectorAll('details:not(.hero-basis)').forEach(d=>d.open=true); clone.querySelectorAll('details.hero-basis').forEach(d=>d.open=false);
@@ -13243,7 +13281,7 @@ async function snapCard(el,name,title){
     x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 13px '+FK; x.fillText(title||'',PW-MR,25);
     x.fillStyle='#72637F'; x.font='700 10px '+FO; x.fillText(stamp,PW-MR,37);
     /* 내용 — 폭을 골라 쪽에 꽉 차게 맞췄다. 조금 남으면 위아래 가운데 */
-    const top=fit?HEAD:HEAD+Math.max(0,Math.round((CH-hh)/2));
+    const top=HEAD;   /* 위에서부터 — 가운데 정렬은 쪽 위쪽이 텅 비어 깨진 그림처럼 보였다 */
     x.save(); x.beginPath(); x.rect(ML,top,W,hh); x.clip(); x.drawImage(img,0,sy,W,hh,ML,top,W,hh); x.restore();
     /* 아래 — 쪽 점(●○○) */
     if(N>1){ const dw=6, gap=8, tw=N*dw+(N-1)*gap; let dx=ML+W/2-tw/2; const dy=PH-FOOT/2;
