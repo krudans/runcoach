@@ -801,6 +801,29 @@ details.noti .sigc{margin:6px 0}
 .gs-more .hc{margin:10px 0 0;padding:12px;background:var(--bg);box-shadow:none}
 /* 이번 주 */
 .wstrip{margin:10px 16px 0;padding:12px 14px 10px;background:var(--panel);border-radius:20px}
+/* 이번 주 크게 보기 (v20.18) */
+.wk-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:2px 0 6px}
+.wk-kpi{background:var(--bg);border-radius:14px;padding:9px 10px 8px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.wk-kpi>i{font-style:normal;font-size:11px;font-weight:700;color:var(--ink-3)}.wk-kpi>b{font-size:20px;font-weight:800;line-height:1.15;white-space:nowrap}.wk-kpi>b small{font-size:11px;font-weight:700;color:var(--ink-3)}
+.wk-kpi>em{font-style:normal;font-size:10.5px;color:var(--ink-3);line-height:1.3}.wk-kpi>em b{font-weight:800;color:var(--ink-2)}.wk-kpi>em b.up{color:var(--bad-ink)}
+.wk-kbar{display:block;height:4px;border-radius:2px;background:var(--panel-2);overflow:hidden;margin:3px 0 1px}.wk-kbar u{display:block;height:100%;background:#1E9B5C;border-radius:2px}
+.wk-km{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:2px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:var(--ink-3)}.wk-km b{color:var(--ink);font-weight:800}.wk-km i{font-style:normal;opacity:.6}
+.ws-more{margin-top:10px}.ws-more .ws-h{margin-bottom:6px}
+.wl{display:flex;flex-direction:column}
+.wl-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-top:1px solid var(--line)}.wl-row:first-child{border-top:0}
+.wl-row.tap{cursor:pointer}.wl-row.now{background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:12px;padding-left:8px;padding-right:8px;border-top-color:transparent}.wl-row.now+.wl-row{border-top-color:transparent}
+.wl-row.fut .wl-tx b{color:var(--ink-2)}
+.wl-d{flex:none;width:30px;display:flex;flex-direction:column;align-items:center;line-height:1.15}.wl-d b{font-size:13px}.wl-d i{font-style:normal;font-size:10.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.wl-ic{flex:none;width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-style:normal}.wl-ic svg{width:17px;height:17px}.wl-ic.rest{background:var(--panel-2);color:var(--ink-3);font-size:14px}
+.wl-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.wl-tx b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wl-tx i{font-style:normal;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.wl-sc{flex:none;font-size:16px;font-weight:800}.wl-sc small{font-size:10px;margin-left:1px}.wl-sc.sc-ok{color:var(--ok-ink)}.wl-sc.sc-mid{color:var(--warn-ink)}.wl-sc.sc-bad{color:var(--bad-ink)}
+.wl-miss{flex:none;border:0;border-radius:10px;background:color-mix(in srgb,var(--bad-ink) 12%,transparent);color:var(--bad-ink);font:inherit;font-size:12px;font-weight:700;padding:6px 9px}.wl-miss u{text-decoration:none;color:var(--accent);margin-left:4px}
+.wl-now,.wl-soon{flex:none;font-style:normal;font-size:12px;font-weight:700;color:var(--accent)}.wl-soon{color:var(--ink-3)}
+.wk-ch{width:100%;height:auto;display:block}
+.wk-leg{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--ink-3);margin-top:2px}.wk-leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}.wk-leg i.dash{background:repeating-linear-gradient(90deg,var(--ink-3) 0 4px,transparent 4px 7px)}
+.wk-zb{position:relative;display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin:4px 0 8px}.wk-zb i{display:block;height:100%}.wk-zb u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);transform:translateX(-1px)}
+.wk-zl{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2)}.wk-zl i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}.wk-zl b{font-weight:800}
+.ws-how{margin:10px 16px 4px;font-size:12px;color:var(--ink-3)}.ws-how summary{cursor:pointer;font-weight:700;color:var(--ink-2)}.ws-how div{margin-top:6px;line-height:1.6}
 .ws-prog{position:relative;height:8px;border-radius:4px;background:var(--panel-2);margin:8px 0 10px;overflow:visible}.ws-prog i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#1E9B5C,#5B2D86)}.ws-prog em{position:absolute;right:0;top:-18px;font-style:normal;font-size:11px;font-weight:700;color:var(--bad-ink)}
 .ws-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.ws-h>b{font-size:14px;font-weight:700}.ws-h span>b{font-size:24px;font-weight:700;color:var(--ink)}.ws-sub{font-size:11px;color:var(--ink-3);font-weight:700;margin-top:-2px}
 .ws-h>b{font-size:13px;font-weight:700;color:var(--ink-2)}.ws-h span{font-size:12px;color:var(--ink-3)}.ws-h span b{font-size:16px;color:var(--ink);font-weight:700}
@@ -2462,7 +2485,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.17';
+const APPVER='20.18';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9098,7 +9121,7 @@ function tileOpen(k){
   let body='';
   if(k==='body') body=logBody();
   else if(k==='goal') body=goalCard(true)+`<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-tilego="plan">플랜 전체 보기</button><button type="button" class="btn ghost" data-mygoal="1">목표 고치기</button></div>`;
-  else if(k==='week') body=weekStrip();
+  else if(k==='week') body=weekStrip({full:1});
   else if(k==='rec') body=outlookChart()+rlogCard();
   else if(k==='mile') body=mileCard({open:true});
   else if(k==='warm') body=exerciseSheet();
@@ -9108,6 +9131,8 @@ function tileOpen(k){
   try{ wireHome(null,-1); }catch(e){}
   if(k==='body'){ try{ wireLog($('tileBody')); }catch(e){} }
   if(k==='race'){ try{ renderRaces($('tileRaces')); }catch(e){} }
+  if(k==='week'){ const b=$('tileBody'); b.querySelectorAll('[data-wkrun]').forEach(x=>x.onclick=e=>{ if(e.target.closest('[data-pman]'))return; tileClose(); openRunView(x.dataset.wkrun); });
+    b.querySelectorAll('[data-pman]').forEach(x=>x.onclick=e=>{ e.stopPropagation(); tileClose(); manOpen(x.dataset.pman); }); }
 }
 function tileClose(){ const sh=$('tileSheet'); if(!sh)return; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-tile]'); if(t)return tileOpen(t.dataset.tile);
@@ -9421,8 +9446,8 @@ function dayScore(d){ /* 그날 점수 — 계획과 짝이 맞는 기록 우선
   const s=b?Object.assign({},b,{dist:d0||DIST[b.d]||b.dist,ceiling:r.ceiling||b.ceiling}):{dist:d0,ceiling:r.ceiling,repTarget:null};
   return runScore(r,s); }
 /* ───────── 이번 주 — 7일 막대. 높이 = 그날 점수, 색 = 훈련 종류 ───────── */
-function weekStrip(){ try{ return weekStrip0(); }catch(e){ console.warn('weekStrip',e); return ''; } }
-function weekStrip0(){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람) 요일 그래프는 늘 보인다 — 한 점수만 */
+function weekStrip(o){ try{ return weekStrip0(o||{}); }catch(e){ console.warn('weekStrip',e); return ''; } }
+function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람) 요일 그래프는 늘 보인다 — 한 점수만 */
   const t=todayStr(), mon=weekMonday(t), prevMon=addDays(mon,-7);
   const dayLoad=d=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d).reduce((a,r)=>{ const L=loadOf(r); return a+(L&&L.tss!=null?L.tss:0); },0)+restLoad(d);   /* rTSS + 근력 sRPE */
   const days=[0,1,2,3,4,5,6].map(i=>{ const d=addDays(mon,i), ix=BLOCK.length?BLOCK.findIndex(x=>x.d.slice(0,10)===d&&x.type!=='off'):-1, s=ix>=0?sessionOf(ix):null;
@@ -9450,7 +9475,8 @@ function weekStrip0(){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람)
   const dIx=Math.max(0,Math.min(6,Math.round((Date.parse(t)-Date.parse(weekMonday(t)))/864e5))), doneToday=days[dIx]&&days[dIx].load>0;
   const upto=doneToday?dIx:dIx-1, prevUpto=upto<0?0:[...Array(upto+1).keys()].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
   const sumUpto=upto<0?0:days.slice(0,upto+1).reduce((a,x)=>a+x.load,0);
-  const diff=(upto>=0&&prevUpto>0)?Math.round((sumUpto-prevUpto)/prevUpto*100):null;
+  /* 지난주가 거의 비어 있으면(첫 주·쉰 주) % 비교는 뜻이 없다(+710% 같은 숫자) — 지난주 같은 요일까지 부하 60↑일 때만 */
+  const diff=(upto>=0&&prevUpto>=60)?Math.round((sumUpto-prevUpto)/prevUpto*100):null;
   /* 100점 만점 = 이번 주 계획 전부. 한 날은 실제 부하(뛴 날)와 계획 부하(안 뛴 날) 중 하나로 센다 */
   /* 주 달성률 = 이번 주 계획한 훈련의 점수 합 ÷ (계획 횟수 × 100). 아직 안 온 날·놓친 날은 0 → 주가 갈수록 100%에 다가간다 */
   /* 계획 훈련 + 과정 휴식(회복·준비·근력·대회 주)이 분모. 그냥 쉬는 날(플랜 밖)은 뺀다 */
@@ -9458,12 +9484,71 @@ function weekStrip0(){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람)
   const wkPct=nP?Math.round(got/(nP*100)*100):null; WEEK_PCT={pct:wkPct,done:doneN,n:nRun};
   const todaySc=days[dIx]&&days[dIx].sc;
   const cmp=prevL?`부하 ${sumL} · 지난주 ${Math.round(prevL)}${diff!=null?` (같은 요일까지 ${diff>0?'+':''}${diff}%)`:''}`:`부하 ${sumL}`;
-  return `<section class="wstrip" aria-label="이번 주 훈련">
+  if(!o.full) return `<section class="wstrip" aria-label="이번 주 훈련">
     <div class="ws-h"><b>이번 주 달성</b><span class="num">${wkPct!=null?`<b>${wkPct}</b>%`:'<b>—</b>'}</span></div>
     <div class="ws-sub">${nP?`훈련 ${nRun}회 중 ${doneN}회${nP>nRun?` · ${tm('off')} ${nP-nRun}일`:''}${todaySc!=null?` · 오늘 ${todaySc}점`:''} · `:''}${cmp}</div>
     ${wkPct!=null?`<div class="ws-prog"><i style="width:${Math.min(100,wkPct)}%"></i></div>`:''}
     <div class="ws-days">${cells}</div>
     <div class="ws-note">뛴 날 100점 = 거리 40 · 강도 40 · 고르게 20 · 쉬는 날 100점 = 뛰지 않기·근력·심박·수면 · 주 100% = 훈련과 쉬는 날 모두${BLOCK.length?' · 옅은 막대 = 아직':''}${diff!=null&&diff>30?' · 부하가 지난주보다 30% 넘게 많음':''}</div></section>`;
+  /* ── 크게 보기(홈 '이번 주' 줄을 눌렀을 때) — 숫자 3개 · 요일 막대 · 날마다 · 누적 부하 · 강도 나눔 · 점수 기준 ── */
+  const kmDone=days.reduce((a,x)=>a+x.ran,0), kmPlan=days.reduce((a,x)=>a+(x.s?(+x.km||0):0),0), kmLeft=days.filter(x=>x.s&&x.d>=t&&!(x.ran>0)).reduce((a,x)=>a+(+x.km||0),0);
+  const kpi=(lab,val,sub,pct)=>`<div class="wk-kpi"><i>${lab}</i><b class="num">${val}</b>${pct!=null?`<span class="wk-kbar"><u style="width:${Math.max(0,Math.min(100,pct)).toFixed(0)}%"></u></span>`:''}<em>${sub}</em></div>`;
+  const lSub=diff!=null?`지난주 이맘때 ${Math.round(prevUpto)} · <b class="${diff>30?'up':''}">${diff>0?'+':''}${diff}%</b>`:prevL?`지난주 ${Math.round(prevL)} · 비교 기록 적음`:'지난주 기록 없음';
+  const head=`<section class="wstrip" aria-label="이번 주 훈련">
+    <div class="ws-h"><b>이번 주 달성</b><span class="num">${wkPct!=null?`<b>${wkPct}</b>%`:'<b>—</b>'}</span></div>
+    ${wkPct!=null?`<div class="ws-prog"><i style="width:${Math.min(100,wkPct)}%"></i></div>`:''}
+    <div class="wk-kpis">${kpi('달린 거리',`${fmtKm1(kmDone)}<small>${kmPlan?` / ${fmtKm1(kmPlan)}km`:'km'}</small>`,kmPlan?(kmLeft>0?`남은 계획 ${fmtKm1(kmLeft)}km`:'계획 거리 끝'):'계획 없음',kmPlan?kmDone/kmPlan*100:null)}
+      ${kpi('훈련',`${doneN}<small> / ${nRun}회</small>`,nP>nRun?`+ ${tm('off')} ${nP-nRun}일`:'계획한 날',nRun?doneN/nRun*100:null)}
+      ${kpi('훈련 부하',`${sumL}`,lSub,null)}</div>
+    <div class="ws-days">${cells}</div>
+    <div class="wk-km">${days.map(x=>`<span>${x.ran>0?`<b>${fmtKm1(x.ran)}</b>`:x.s?`<i>${fmtKm1(+x.km||0)}</i>`:'—'}</span>`).join('')}</div>
+    <div class="ws-note">막대 높이 = 그날 점수 · 색 = 훈련 종류 · 숫자 = km (옅은 숫자 = 계획)</div></section>`;
+  /* 날마다 */
+  const dRuns=d=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d);
+  const rows=days.map(x=>{ const rs=dRuns(x.d), ran=rs.length>0, md=`${+x.d.slice(5,7)}.${+x.d.slice(8,10)}`, now=x.d===t;
+    const restDay=!x.s, nm=x.s?termify(x.s.t||(TYPES[x.s.type]||{}).nm||''):(x.rk?x.rk.lab:'쉬는 날');
+    const ic=x.s?`<i class="wl-ic" style="background:${(LOOK[x.s.type]||LOOK.free).bg}">${symSVG(x.s.type)}</i>`:`<i class="wl-ic rest">☾</i>`;
+    let sub='', right='', act='';
+    if(ran){ const km=rs.reduce((a,r)=>a+(+r.km||0),0), sec=rs.reduce((a,r)=>a+(+r.sec||0),0), hr=rs.find(r=>r.hrAvg), man=rs.some(r=>r.manual);
+      sub=`${fmtKm1(km)}km · ${fmtClock(sec)} · 1km ${fmtPace(sec/Math.max(.01,km))}${hr?` · ♥${hr.hrAvg}`:''}${man?' · 직접 입력':''}`; act=` data-wkrun="${ESC(rs[rs.length-1].rid)}"`; }
+    else if(x.s){ sub=`계획 ${fmtKm1(+x.km||0)}km${x.plan?` · 부하 약 ${x.plan}`:''}`; }
+    else sub=x.rk&&x.rk.k!=='plain'?restMissions(x.rk.k).filter(m=>m.pts).map(m=>m.t).slice(0,3).join(' · '):'플랜 밖 쉬는 날';
+    const band=x.sc!=null?(x.sc>=80?'ok':x.sc>=50?'mid':'bad'):'';
+    if(x.sc!=null) right=`<b class="wl-sc sc-${band}">${x.sc}<small>점</small></b>`;
+    else if(x.s&&!ran&&x.d<t) right=`<button type="button" class="wl-miss" data-pman="${x.s.d}">놓침 <u>+ 기록</u></button>`;
+    else if(now) right='<em class="wl-now">오늘</em>';
+    else if(x.d===addDays(t,1)) right='<em class="wl-soon">내일</em>';
+    return `<div class="wl-row${now?' now':''}${x.d>t?' fut':''}${act?' tap':''}"${act}><span class="wl-d"><b>${dowOf(x.d)}</b><i>${md}</i></span>${ic}<span class="wl-tx"><b>${ESC(nm)}</b><i>${sub}</i></span>${right}</div>`; }).join('');
+  const list=`<section class="wstrip ws-more"><div class="ws-h"><b>날마다</b><span>뛴 날을 누르면 기록</span></div><div class="wl">${rows}</div></section>`;
+  /* 누적 부하 — 이번 주 실제 · 계획 · 지난주 (같은 눈금 하나) */
+  const cum=a=>{ let c=0; return a.map(v=>c+=v); };
+  const prevDays=[0,1,2,3,4,5,6].map(i=>dayLoad(addDays(prevMon,i))), lastIx=days.findIndex(x=>x.d===t);
+  const plan=cum(days.map(x=>x.s?(x.d<t&&x.load>0?x.load:x.plan):x.load)), act=cum(days.map(x=>x.load)).slice(0,(lastIx<0?6:lastIx)+1), prv=cum(prevDays);
+  const ymax=Math.max(50,...plan,...act,...prv)*1.08, W=340,H=136,L=10,R=74,T=12,B=22, X=i=>L+i*(W-L-R)/6, Y=v=>T+(H-T-B)*(1-v/ymax);
+  const pl=(a,c,w,da)=>a.length>1?`<polyline points="${a.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${da?` stroke-dasharray="${da}"`:''}/>`:'';
+  const lab=(a,c,txt,dy)=>a.length?`<text x="${(X(a.length-1)+6).toFixed(1)}" y="${(Y(a[a.length-1])+4+(dy||0)).toFixed(1)}" font-size="10.5" font-weight="700" fill="${c}">${txt} ${Math.round(a[a.length-1])}</text>`:'';
+  const ends=[[plan,'계획'],[prv,'지난주']].map(([a,n])=>Y(a[6])), dyP=Math.abs(ends[0]-ends[1])<12?(ends[0]<ends[1]?-6:6):0;
+  const chart=`<svg viewBox="0 0 ${W} ${H}" class="wk-ch" role="img" aria-label="누적 훈련 부하">
+    ${[0.5,1].map(f=>`<line x1="${L}" x2="${W-R}" y1="${Y(ymax/1.08*f).toFixed(1)}" y2="${Y(ymax/1.08*f).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`).join('')}
+    ${pl(prv,'#C9BEDA',2)}${pl(plan,'var(--ink-3)',1.6,'4 4')}${pl(act,'#5B2D86',2.6)}
+    ${act.length?`<circle cx="${X(act.length-1).toFixed(1)}" cy="${Y(act[act.length-1]).toFixed(1)}" r="4" fill="#5B2D86" stroke="var(--panel)" stroke-width="2"/>`:''}
+    ${lab(plan,'var(--ink-3)','계획',dyP)}${lab(prv,'#9C8FB0','지난주',-dyP)}${act.length&&act.length<7?`<text x="${X(act.length-1).toFixed(1)}" y="${(Y(act[act.length-1])-9).toFixed(1)}" font-size="11" font-weight="800" fill="#5B2D86" text-anchor="middle">${Math.round(act[act.length-1])}</text>`:lab(act,'#5B2D86','이번 주',0)}
+    ${days.map((x,i)=>`<text x="${X(i).toFixed(1)}" y="${H-6}" font-size="10.5" text-anchor="middle" fill="${x.d===t?'#5B2D86':'var(--ink-3)'}" font-weight="${x.d===t?800:500}">${dowOf(x.d)}</text>`).join('')}</svg>`;
+  const loadSec=`<section class="wstrip ws-more"><div class="ws-h"><b>쌓인 훈련 부하</b><span>rTSS · 근력 포함</span></div>${chart}
+    <div class="wk-leg"><span><i style="background:#5B2D86"></i>이번 주</span><span><i class="dash"></i>계획대로 하면</span><span><i style="background:#C9BEDA"></i>지난주</span></div>
+    <div class="ws-note">${plan[6]?`계획대로 마치면 이번 주 부하 ${Math.round(plan[6])}${prv[6]>=60?` — 지난주(${Math.round(prv[6])})의 ${Math.round(plan[6]/prv[6]*100)}%`:''}.`:''} 한 주에 10%(많아야 30%) 넘게 늘리지 않는 게 부상 위험을 줄여요.</div></section>`;
+  /* 강도 나눔 — 이번 주 심박 존 시간. 쉬운(1~2) : 중간(3) : 힘든(4~5), 길게 뛰는 사람은 쉬운 쪽 약 80% (80/20, Seiler) */
+  const zs=[0,0,0,0,0]; days.forEach(x=>dRuns(x.d).forEach(r=>(r.zones||[]).forEach((v,i)=>{ if(i<5)zs[i]+=+v||0; })));
+  const zt=zs.reduce((a,b)=>a+b,0);
+  let zSec='';
+  if(zt>=600){ const g=[[zs[0]+zs[1],'쉬운 (존 1~2)',ZCOL[1]],[zs[2],'중간 (존 3)',ZCOL[2]],[zs[3]+zs[4],'힘든 (존 4~5)',ZCOL[3]]].map(([v,n,c])=>({v,n,c,p:Math.round(v/zt*100)}));
+    const easyP=g[0].p, msg=easyP>=75?'쉬운 강도가 충분해요':easyP>=60?'쉬운 강도가 조금 모자라요 — 이지·LSD는 심박 상한을 지켜 보세요':'힘든 쪽이 많아요 — 이지·LSD 날 심박 상한을 지켰는지 확인해 보세요';
+    zSec=`<section class="wstrip ws-more"><div class="ws-h"><b>강도 나눔</b><span>심박 존 시간 ${fmtClock(zt)}</span></div>
+      <div class="wk-zb">${g.filter(x=>x.v>0).map(x=>`<i style="flex:${x.v};background:${x.c}"></i>`).join('')}<u style="left:80%"></u></div>
+      <div class="wk-zl">${g.map(x=>`<span><i style="background:${x.c}"></i>${x.n} <b>${x.p}%</b></span>`).join('')}</div>
+      <div class="ws-note"><b>${msg}</b> · 눈금 = 쉬운 80% (80/20 · Seiler)</div></section>`; }
+  const how=`<details class="ws-how"><summary>점수 매기는 법</summary><div>뛴 날 100점 = 거리 40 · 강도 40 · 고르게 20<br>쉬는 날 100점 = 뛰지 않기 · 근력 · 안정 심박 · 수면<br>주 달성 = 훈련과 쉬는 날 점수의 합 ÷ (계획한 날 × 100) — 아직 안 온 날은 0점이라 주말로 갈수록 올라가요</div></details>`;
+  return head+list+loadSec+zSec+how;
 }
 /* 목표 계단 (예전 카드 — 지금은 안 쓴다) */
 function goalCardOld(){
