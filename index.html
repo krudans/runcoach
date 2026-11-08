@@ -2505,7 +2505,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.21';
+const APPVER='20.22';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13634,7 +13634,7 @@ function openMyGoal(){
    보이는 카드를 그대로 PNG로 만든다. 외부 라이브러리 없이: DOM 복제 → 계산된 스타일 인라인 → SVG foreignObject → 캔버스.
    아래에 가지런 로고 줄을 붙이고, 폰이면 공유창(navigator.share), 아니면 파일 저장. */
 const SNAP_HIDE='.mygoal summary,.gs-more>summary,.rv-tbl>summary,.rtb';   /* 지우면 details가 'Details' 기본 글자를 띄운다 — 숨기기만 */
-const SNAP_SKIP='button,.pw-cv,.pw-sum,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
+const SNAP_SKIP='button,.lapinfo span,.lapinfo br,.pw-cv,.pw-sum,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
 function snapInline(src,dst){
   const cs=getComputedStyle(src); let css='';
   for(let i=0;i<cs.length;i++){ const k=cs[i]; if(/^(transition|animation|cursor|pointer-events|-webkit-tap)/.test(k))continue; css+=`${k}:${cs.getPropertyValue(k)};`; }
@@ -13643,7 +13643,7 @@ function snapInline(src,dst){
   for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
 }
 /* 내용을 담은 버튼(일정 한 줄·오늘 그림·결정 기록 줄)은 지우지 않고 div로 바꿔 둔다 — 버튼을 통째로 지우던 탓에 주차 이미지에 훈련이 하나도 안 찍혔다 */
-var SNAP_M={l:14,r:46,head:50,foot:26};   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다 */
+var SNAP_M={l:46,r:46,head:50,foot:26};   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다. 왼쪽=오른쪽(쪽 번호 탭 폭만큼) → 내용·글·칸은 가운데, 탭만 오른쪽 끝(책 라벨) */
 function snapCH(w){ return Math.round((w+SNAP_M.l+SNAP_M.r)*16/9)-SNAP_M.head-SNAP_M.foot; }
 var SNAP_KEEP='button.gw-r,button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
 function snapKeep(root){ root.querySelectorAll(SNAP_KEEP).forEach(b=>{ const d=document.createElement('div'); d.className=b.className; d.setAttribute('style',b.getAttribute('style')||''); d.innerHTML=b.innerHTML; b.replaceWith(d); }); }
