@@ -2505,7 +2505,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.22';
+const APPVER='20.23';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13643,7 +13643,8 @@ function snapInline(src,dst){
   for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
 }
 /* 내용을 담은 버튼(일정 한 줄·오늘 그림·결정 기록 줄)은 지우지 않고 div로 바꿔 둔다 — 버튼을 통째로 지우던 탓에 주차 이미지에 훈련이 하나도 안 찍혔다 */
-var SNAP_M={l:46,r:46,head:50,foot:26};   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다. 왼쪽=오른쪽(쪽 번호 탭 폭만큼) → 내용·글·칸은 가운데, 탭만 오른쪽 끝(책 라벨) */
+var SNAP_M={l:46,r:46,head:50,foot:30};
+const HADA_C='#5B2D86';   /* 앱 머리 '하다'(.hada = --plum, 굵기 500)와 같게 */   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다. 왼쪽=오른쪽(쪽 번호 탭 폭만큼) → 내용·글·칸은 가운데, 탭만 오른쪽 끝(책 라벨) */
 function snapCH(w){ return Math.round((w+SNAP_M.l+SNAP_M.r)*16/9)-SNAP_M.head-SNAP_M.foot; }
 var SNAP_KEEP='button.gw-r,button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
 function snapKeep(root){ root.querySelectorAll(SNAP_KEEP).forEach(b=>{ const d=document.createElement('div'); d.className=b.className; d.setAttribute('style',b.getAttribute('style')||''); d.innerHTML=b.innerHTML; b.replaceWith(d); }); }
@@ -13748,15 +13749,18 @@ async function snapCard(el,name,title){
     /* 머리줄 — 왼쪽 브랜드, 오른쪽 제목·날짜 */
     try{ drawBrand(x,ML,12,26,'#2A1638','#FDFBF6'); }catch(e){}
     x.textBaseline='alphabetic'; x.textAlign='left';
-    x.fillStyle='#2A1638'; x.font='800 16px '+FK; x.fillText('가지런',ML+32,31);   /* 영문 이름은 쓰지 않는다 — 한글 이름만 */
+    /* 모든 쪽 같은 머리줄 — 로고 + 가지런하다(앱 머리와 같은 두 색) + 버전 · 오른쪽 화면 이름·날짜 */
+    x.font='800 16px '+FK; x.fillStyle='#2A1638'; x.fillText('가지런',ML+32,31); const w1=x.measureText('가지런').width;
+    x.fillStyle=HADA_C; x.font='500 16px '+FK; x.fillText('하다',ML+32+w1+1,31); const w2=x.measureText('하다').width;
+    x.fillStyle='#9A8CA8'; x.font='700 10px '+FO; x.fillText('v'+APPVER,ML+32+w1+w2+6,31);
     x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 13px '+FK; x.fillText(title||'',PW-MR,25);
     x.fillStyle='#72637F'; x.font='700 10px '+FO; x.fillText(stamp,PW-MR,37);
     /* 내용 — 폭을 골라 쪽에 꽉 차게 맞췄다. 조금 남으면 위아래 가운데 */
     const top=HEAD;   /* 위에서부터 — 가운데 정렬은 쪽 위쪽이 텅 비어 깨진 그림처럼 보였다 */
     x.save(); x.beginPath(); x.rect(ML,top,W,hh); x.clip(); x.drawImage(img,0,sy,W,hh,ML,top,W,hh); x.restore();
-    /* 아래 — 쪽 점(●○○) */
-    if(N>1){ const dw=6, gap=8, tw=N*dw+(N-1)*gap; let dx=ML+W/2-tw/2; const dy=PH-FOOT/2;
-      for(let j=0;j<N;j++){ x.fillStyle=j===i?'#5B2D86':'rgba(91,45,134,.22)'; x.beginPath(); x.arc(dx+dw/2,dy,j===i?3.5:2.5,0,Math.PI*2); x.fill(); dx+=dw+gap; } }
+    /* 모든 쪽 같은 바닥줄 — '실시간 코칭 프로그램'(시작 화면과 같은 말). 쪽 표시는 오른쪽 탭 하나로(점은 겹쳐서 뺐다) */
+    x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='#9A8CA8'; x.font='700 10.5px '+FK; x.fillText('실시간 코칭 프로그램',ML+W/2,PH-FOOT/2);
+    x.textBaseline='alphabetic';
     /* 쪽 번호 탭 — 오른쪽 가장자리 한가운데, 한 장짜리는 안 붙인다 */
     if(N>1){ const tw=42, th=100, tx=PW-tw, ty=Math.round(PH/2-th/2), r=18;   /* 크게 — 썸네일에서도 읽히게 */
       x.fillStyle='#5B2D86'; x.beginPath(); x.moveTo(PW,ty); x.lineTo(tx+r,ty); x.quadraticCurveTo(tx,ty,tx,ty+r); x.lineTo(tx,ty+th-r); x.quadraticCurveTo(tx,ty+th,tx+r,ty+th); x.lineTo(PW,ty+th); x.closePath(); x.fill();
