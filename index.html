@@ -819,6 +819,7 @@ details.noti .sigc{margin:6px 0}
 .wl-sc{flex:none;font-size:16px;font-weight:800}.wl-sc small{font-size:10px;margin-left:1px}.wl-sc.sc-ok{color:var(--ok-ink)}.wl-sc.sc-mid{color:var(--warn-ink)}.wl-sc.sc-bad{color:var(--bad-ink)}
 .wl-miss{flex:none;border:0;border-radius:10px;background:color-mix(in srgb,var(--bad-ink) 12%,transparent);color:var(--bad-ink);font:inherit;font-size:12px;font-weight:700;padding:6px 9px}.wl-miss u{text-decoration:none;color:var(--accent);margin-left:4px}
 .wl-now,.wl-soon{flex:none;font-style:normal;font-size:12px;font-weight:700;color:var(--accent)}.wl-soon{color:var(--ink-3)}
+.pm-now{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:2px 0 8px}.pm-now>div{background:var(--bg);border-radius:14px;padding:8px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}.pm-now i{font-style:normal;font-size:11px;font-weight:700;color:var(--ink-3)}.pm-now b{font-size:22px;font-weight:800;line-height:1.15}.pm-now em{font-style:normal;font-size:10.5px;color:var(--ink-3);line-height:1.3}
 .wk-ch{width:100%;height:auto;display:block}
 .wk-leg{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--ink-3);margin-top:2px}.wk-leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px}.wk-leg i.dash{background:repeating-linear-gradient(90deg,var(--ink-3) 0 4px,transparent 4px 7px)}
 .wk-zb{position:relative;display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin:4px 0 8px}.wk-zb i{display:block;height:100%}.wk-zb u{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);transform:translateX(-1px)}
@@ -2494,7 +2495,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.19';
+const APPVER='20.20';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9572,26 +9573,43 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
     else if(x.d===addDays(t,1)) right='<em class="wl-soon">내일</em>';
     return `<div class="wl-row${now?' now':''}${x.d>t?' fut':''}${act?' tap':''}"${act}><span class="wl-d"><b>${dowOf(x.d)}</b><i>${md}</i></span>${ic}<span class="wl-tx"><b>${ESC(nm)}</b><i>${sub}</i></span>${right}</div>`; }).join('');
   const list=`<section class="wstrip ws-more"><div class="ws-h"><b>날마다</b><span>뛴 날을 누르면 기록</span></div><div class="wl">${rows}</div></section>`;
-  /* 누적 부하 — 이번 주 실제 · 계획 · 지난주 (같은 눈금 하나) */
-  const cum=a=>{ let c=0; return a.map(v=>c+=v); };
-  const prevDays=[0,1,2,3,4,5,6].map(i=>dayLoad(addDays(prevMon,i))), lastIx=days.findIndex(x=>x.d===t);
-  const plan=cum(days.map(x=>x.s?(x.d<t&&x.load>0?x.load:x.plan):x.load)), act=cum(days.map(x=>x.load)).slice(0,(lastIx<0?6:lastIx)+1), prv=cum(prevDays);
-  const ymax=Math.max(50,...plan,...act,...prv)*1.08, W=340,H=136,L=10,R=74,T=12,B=22, X=i=>L+i*(W-L-R)/6, Y=v=>T+(H-T-B)*(1-v/ymax);
-  const pl=(a,c,w,da)=>a.length>1?`<polyline points="${a.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${da?` stroke-dasharray="${da}"`:''}/>`:'';
-  /* 오른쪽 끝 이름표 — 같은 끝에 모이면(일요일엔 이번 주·계획이 같은 점) 13px씩 벌리고, 이번 주와 계획이 거의 같으면 계획 이름표는 뺀다 */
-  const full7=act.length===7, endL=[]; if(full7)endL.push({a:act,c:'#5B2D86',t:'이번 주'});
-  if(!(full7&&Math.abs(plan[6]-act[6])<=Math.max(3,act[6]*.03)))endL.push({a:plan,c:'var(--ink-3)',t:'계획'}); endL.push({a:prv,c:'#9C8FB0',t:'지난주'});
-  endL.forEach(e=>e.y=Y(e.a[6])+4); endL.sort((p,q)=>p.y-q.y); for(let i=1;i<endL.length;i++)if(endL[i].y-endL[i-1].y<13)endL[i].y=endL[i-1].y+13;
-  const over=endL.length?endL[endL.length-1].y-(H-B+2):0; if(over>0)endL.forEach(e=>e.y-=over);
-  const chart=`<svg viewBox="0 0 ${W} ${H}" class="wk-ch" role="img" aria-label="누적 훈련 부하">
-    ${[0.5,1].map(f=>`<line x1="${L}" x2="${W-R}" y1="${Y(ymax/1.08*f).toFixed(1)}" y2="${Y(ymax/1.08*f).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`).join('')}
-    ${pl(prv,'#C9BEDA',2)}${pl(plan,'var(--ink-3)',1.6,'4 4')}${pl(act,'#5B2D86',2.6)}
-    ${act.length?`<circle cx="${X(act.length-1).toFixed(1)}" cy="${Y(act[act.length-1]).toFixed(1)}" r="4" fill="#5B2D86" stroke="var(--panel)" stroke-width="2"/>`:''}
-    ${endL.map(e=>`<text x="${(X(6)+8).toFixed(1)}" y="${e.y.toFixed(1)}" font-size="10.5" font-weight="${e.t==='이번 주'?800:700}" fill="${e.c}">${e.t} ${Math.round(e.a[6])}</text>`).join('')}${act.length&&!full7?`<text x="${X(act.length-1).toFixed(1)}" y="${(Y(act[act.length-1])-9).toFixed(1)}" font-size="11" font-weight="800" fill="#5B2D86" text-anchor="middle">${Math.round(act[act.length-1])}</text>`:''}
-    ${days.map((x,i)=>`<text x="${X(i).toFixed(1)}" y="${H-6}" font-size="10.5" text-anchor="middle" fill="${x.d===t?'#5B2D86':'var(--ink-3)'}" font-weight="${x.d===t?800:500}">${dowOf(x.d)}</text>`).join('')}</svg>`;
-  const loadSec=`<section class="wstrip ws-more"><div class="ws-h"><b>쌓인 훈련 부하</b><span>rTSS · 근력 포함</span></div>${chart}
-    <div class="wk-leg"><span><i style="background:#5B2D86"></i>이번 주</span><span><i class="dash"></i>계획대로 하면</span><span><i style="background:#C9BEDA"></i>지난주</span></div>
-    <div class="ws-note">${(()=>{ const v=full7?act[6]:plan[6]; return v?`${full7?'이번 주 부하':'계획대로 마치면 이번 주 부하'} ${Math.round(v)}${prv[6]>=60?` — 지난주(${Math.round(prv[6])})의 ${Math.round(v/prv[6]*100)}%`:''}.`:''; })()} 한 주에 10%(많아야 30%) 넘게 늘리지 않는 게 부상 위험을 줄여요.</div></section>`;
+  /* 끝 이름표 숫자 = 오늘 값과 같아야 한다 — 계획 점선이 이어지면 숫자는 빼고 이름만(위 칸이 오늘 숫자) */
+  /* 체력 · 피로 · 컨디션 — 날마다 부하(rTSS+근력)를 지수 평균: 체력 = 42일, 피로 = 7일, 컨디션 = 어제까지 체력 − 피로
+     (Banister 체력-피로 모델 · TrainingPeaks PMC 방식 C). 주간 누적선은 월요일마다 0에서 다시 올라 '지금 몸에 걸린 부하'를 못 보여 줬다.
+     오늘 뒤 이번 주 날은 계획 부하로 이어 그린 점선(계획대로 하면) */
+  const firstRun=RUNS.filter(r=>isRun(r)).map(r=>ldate(r.date).slice(0,10)).sort()[0]||t;
+  const start=[firstRun,addDays(t,-150)].sort()[1], endD=addDays(mon,6), kC=1-Math.exp(-1/42), kA=1-Math.exp(-1/7);
+  const pm=[]; let C=0,A=0;
+  for(let d=start;d<=endD;d=addDays(d,1)){ const fut=d>t, x=fut?days.find(y=>y.d===d):null, ld=fut?(x&&x.s?x.plan:0):dayLoad(d);
+    const tsb=C-A; C+=(ld-C)*kC; A+=(ld-A)*kA; pm.push({d,ld,C,A,tsb,fut}); }
+  const ti=pm.findIndex(p=>p.d===t), now=pm[ti]||pm[pm.length-1], wk1=pm[Math.max(0,ti-7)]||pm[0];
+  const ramp=now.C-wk1.C, hist=Math.round((Date.parse(t)-Date.parse(start))/864e5);
+  const view=pm.slice(Math.max(0,pm.length-49)), n=view.length;
+  const ymax=Math.max(30,...view.map(p=>Math.max(p.C,p.A)))*1.1, W=340,H=128,LM=10,RM=64,TM=12,BM=18, X=i=>LM+i*(W-LM-RM)/Math.max(1,n-1), Y=v=>TM+(H-TM-BM)*(1-v/ymax);
+  const seg=(key,col,w,fut)=>{ const pts=view.map((p,i)=>[i,p]).filter(([i,p])=>fut?(p.fut||(view[i+1]&&view[i+1].fut)):!p.fut); return pts.length>1?`<polyline points="${pts.map(([i,p])=>X(i).toFixed(1)+','+Y(p[key]).toFixed(1)).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${fut?' stroke-dasharray="3 4" opacity=".7"':''}/>`:''; };
+  const iT=view.findIndex(p=>p.d===t), CC='#5B2D86', AC='#D9487A';
+  const endL=[{v:view[n-1].C,c:CC,t:'체력'},{v:view[n-1].A,c:AC,t:'피로'}].map(e=>Object.assign(e,{y:Y(e.v)+4})).sort((p,q)=>p.y-q.y); if(endL[1].y-endL[0].y<13)endL[1].y=endL[0].y+13;
+  const ticks=view.map((p,i)=>[i,p]).filter(([i,p])=>new Date(p.d+'T12:00').getDay()===1);
+  const chartTop=`<svg viewBox="0 0 ${W} ${H}" class="wk-ch" role="img" aria-label="체력과 피로">
+    ${[0.5,1].map(f=>`<line x1="${LM}" x2="${W-RM}" y1="${Y(ymax/1.1*f).toFixed(1)}" y2="${Y(ymax/1.1*f).toFixed(1)}" stroke="var(--line)"/>`).join('')}
+    ${iT>=0?`<line x1="${X(iT).toFixed(1)}" x2="${X(iT).toFixed(1)}" y1="${TM-4}" y2="${H-BM}" stroke="var(--ink-3)" stroke-dasharray="2 3"/><text x="${X(iT).toFixed(1)}" y="${TM-5}" font-size="9.5" text-anchor="middle" fill="var(--ink-3)">오늘</text>`:''}
+    ${seg('A',AC,2,0)}${seg('C',CC,2.6,0)}${seg('A',AC,2,1)}${seg('C',CC,2.6,1)}
+    ${endL.map(e=>`<text x="${(X(n-1)+7).toFixed(1)}" y="${e.y.toFixed(1)}" font-size="10.5" font-weight="800" fill="${e.c}">${e.t}${view[n-1].fut?'':' '+Math.round(e.v)}</text>`).join('')}
+    ${ticks.map(([i,p])=>`<text x="${X(i).toFixed(1)}" y="${H-4}" font-size="9.5" text-anchor="middle" fill="var(--ink-3)">${+p.d.slice(5,7)}.${+p.d.slice(8,10)}</text>`).join('')}</svg>`;
+  /* 컨디션 막대 — 0 위 = 가벼움, 0 아래 = 피로 쌓임. 색은 구간 */
+  const tb=view.map(p=>p.tsb), tsM=Math.max(15,...tb.map(Math.abs))*1.1, H2=58, Y2=v=>H2/2-(H2/2-6)*v/tsM, bw=Math.max(1.5,(W-LM-RM)/n-1.5);
+  const tcol=v=>v>5?'#1E9B5C':v>=-10?'#A79DB5':v>=-30?'#3D7FD0':'#D9487A';
+  const chartTsb=`<svg viewBox="0 0 ${W} ${H2}" class="wk-ch" role="img" aria-label="컨디션"><line x1="${LM}" x2="${W-RM}" y1="${Y2(0)}" y2="${Y2(0)}" stroke="var(--ink-3)" stroke-width="1"/>
+    ${view.map((p,i)=>{ const y0=Y2(0), y1=Y2(p.tsb); return `<rect x="${(X(i)-bw/2).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1,Math.abs(y1-y0)).toFixed(1)}" rx="1" fill="${tcol(p.tsb)}" opacity="${p.fut?.4:1}"/>`; }).join('')}
+    <text x="${(X(n-1)+7).toFixed(1)}" y="${(Y2(view[n-1].tsb)+4).toFixed(1)}" font-size="10.5" font-weight="800" fill="${view[n-1].fut?'var(--ink-3)':tcol(view[n-1].tsb)}">컨디션${view[n-1].fut?'':' '+(view[n-1].tsb>0?'+':'')+Math.round(view[n-1].tsb)}</text></svg>`;
+  const ts=now.tsb, state=ts>5?['가벼운 상태','피로가 적게 쌓였어요 — 대회나 TT 직전에 좋은 상태']:ts>=-10?['균형','훈련과 회복이 비슷하게 가고 있어요']:ts>=-30?['훈련이 쌓이는 중','체력이 오르는 구간이에요 — 잠과 쉬운 날을 챙기세요']:['피로가 많음','쉬운 날을 더 쉽게, 하루 쉬기도 생각해 보세요'];
+  const loadSec=`<section class="wstrip ws-more"><div class="ws-h"><b>체력 · 피로 · 컨디션</b><span>오늘 기준</span></div>
+    <div class="pm-now"><div><i>체력</i><b class="num" style="color:${CC}">${Math.round(now.C)}</b><em>최근 6주 하루 평균${ramp?` · 1주 ${ramp>0?'+':''}${ramp.toFixed(1)}`:''}</em></div>
+      <div><i>피로</i><b class="num" style="color:${AC}">${Math.round(now.A)}</b><em>최근 7일 하루 평균</em></div>
+      <div><i>컨디션</i><b class="num" style="color:${tcol(ts)}">${ts>0?'+':''}${Math.round(ts)}</b><em>${state[0]}</em></div></div>
+    ${chartTop}${chartTsb}
+    <div class="wk-leg"><span><i style="background:${CC}"></i>체력</span><span><i style="background:${AC}"></i>피로</span><span><i class="dash"></i>계획대로 하면</span></div>
+    <div class="ws-note"><b>${state[1]}</b><br>컨디션 = 어제까지 체력 − 피로 · +5 위 가벼움 · −10~+5 균형 · −10~−30 훈련 중 · −30 아래 피로 많음 (TrainingPeaks 방식, 참고)${hist<42?` · 기록이 6주 쌓이기 전이라 체력이 실제보다 낮게 나와요`:''}</div></section>`;
   /* 강도 나눔 — 이번 주 심박 존 시간. 쉬운(1~2) : 중간(3) : 힘든(4~5), 길게 뛰는 사람은 쉬운 쪽 약 80% (80/20, Seiler) */
   const zs=[0,0,0,0,0]; days.forEach(x=>dRuns(x.d).forEach(r=>(r.zones||[]).forEach((v,i)=>{ if(i<5)zs[i]+=+v||0; })));
   const zt=zs.reduce((a,b)=>a+b,0);
