@@ -1883,6 +1883,15 @@ body.mf-on{overflow:hidden}
 .tc-scn{display:block;width:100%;height:auto;aspect-ratio:320/130}
 .tc-key{padding:10px 14px 0}.tc-key span,.tc-chk span{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--tc);padding:3px 9px;border-radius:999px}
 .tc-aim{display:flex;gap:8px;align-items:baseline;margin:0 14px 10px;font-size:12px;font-weight:700;color:var(--ink-2);line-height:1.5}.tc-aim b{flex:none;font-size:11px;font-weight:700;color:var(--tc);background:color-mix(in srgb,var(--tc) 12%,transparent);border-radius:6px;padding:2px 7px}
+/* 심박 존 · 무엇을 지키나 (v20.19) */
+.zkeep{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;background:var(--bg);border-radius:12px;padding:8px 10px;margin-top:10px;font-size:12px;color:var(--ink-2);line-height:1.5}
+.zkeep em{font-style:normal;font-weight:800;font-size:11px;border-radius:6px;padding:1px 7px;color:#fff;background:#1E9B5C}.zk-pace em{background:#7A4CC2}.zk-form em,.zk-effort em{background:#8C8299}
+.zkeep b{font-size:13px;font-weight:800;color:var(--ink)}.zkeep i{font-style:normal;font-weight:800;font-size:11px;color:var(--ink-3)}.zkeep span{flex-basis:100%;font-weight:500}
+.tc-zone{align-items:flex-start}.tc-zone .zkeep{margin:0;flex:1;background:transparent;padding:0}.tc-zone .zkeep b{background:none;padding:0;color:var(--ink);font-size:13px}.tc-zone .zkeep em{color:#fff}
+.zg-t{width:100%;border-collapse:collapse;font-size:12.5px}.zg-t th,.zg-t td{padding:7px 4px;border-top:1px solid var(--line);text-align:left;vertical-align:middle}.zg-t thead th{border-top:0;font-size:11px;color:var(--ink-3);font-weight:700}
+.zg-t tbody th{white-space:nowrap;font-weight:800}.zg-t tbody th i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:0}.zg-t td.num{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700}.zg-t td b{font-weight:800}
+.zg-src{font-size:11px;color:var(--ink-3);margin:6px 0 0}
+.zg-q{margin-top:12px;background:var(--bg);border-radius:14px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--ink-2)}.zg-q>b{font-size:13.5px;color:var(--ink)}.zg-q p{margin:4px 0}.zg-q ul{margin:4px 0;padding-left:18px}.zg-q li{margin:3px 0}.zg-tip{color:var(--ink-3);font-size:11.5px}
 .tc-key b{display:block;font-size:14px;margin:0}.tc-key p{margin:0;font-size:12px;line-height:1.65;color:var(--ink-2)}
 .tc-chk{margin:8px 14px 10px;padding:0;background:none!important;border-radius:14px;background:color-mix(in srgb,var(--tc) 8%,transparent);display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
 .tc-chk span{background:none;color:var(--tc);padding:0;width:100%;font-size:12px}
@@ -2485,7 +2494,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.18';
+const APPVER='20.19';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4526,6 +4535,7 @@ function openConfirm(i){
     up.onclick=()=>{ clearCustom(s.d); go('plan'); }; }
   { const oc=i>=0&&s.dist?overCap(s.dist,s.d):null, el=$('cCapWarn')||(()=>{ const d=document.createElement('div'); d.id='cCapWarn'; d.className='note'; d.style.cssText='margin:8px 0 0;color:var(--alarm);font-weight:700;line-height:1.6'; $('cMeta').after(d); return d; })();
     el.hidden=!oc; if(oc)el.textContent=`⚠ 오늘 ${s.dist}km > 30일 최장 +10%(안전선 ${oc}km) · 부상 위험↑ — Frandsen 2025.`; }
+  { const el=$('cZone')||(()=>{ const d=document.createElement('div'); d.id='cZone'; $('cMeta').after(d); return d; })(); const h=i>=0?zoneKeepHTML(s.type):''; el.hidden=!h; el.innerHTML=h; }
   { const ce=$('cEdit'), bx=i>=0?BLOCK[i]:null, ok=bx&&!bx.rw&&PE_TYPES.some(t=>t[0]===bx.type)&&bx.d.slice(0,10)>=todayStr()&&!RUNS.some(r=>r.planId===bx.d);
     if(ce){ ce.hidden=!ok; ce.onclick=ok?()=>openPlanEdit(bx.d):null; } }
   $('cMeta').textContent=(i<0?'기록만':`${s.d.slice(5,10).replace('-','.')} ${dowOf(s.d)} · ${s.dist}km`)+
@@ -9111,7 +9121,7 @@ function exerciseSheet(tab){
   EX_TAB=tab;
   const TABS=[['dyn','동적 스트레칭'],['stat','정적 스트레칭'],['str','근력'],['core','코어']];
   return `<div class="ex-tabs">${TABS.map(([k,l])=>`<button type="button" data-extab="${k}" class="${tab===k?'on':''}">${l}<em>${STR[k].moves.length}</em></button>`).join('')}</div>
-    <div class="ex-note">${{dyn:'달리기 전 3분 — 멈추지 않고 움직이며 몸을 깨웁니다.',stat:'달리고 나서 — 한 자세를 천천히 버티며 풀어줍니다.',str:'쉬는 날이나 이지런 뒤 — 플랜의 근력 항목과 같은 구성입니다.',core:'짧게 자주 — 몸통을 잡아 주는 네 가지.'}[tab]}</div>
+    <div class="ex-note">${{dyn:'달리기 전 4분 — 멈추지 않고 움직이며 몸을 깨웁니다.',stat:'달리고 나서 — 한 자세를 천천히 버티며 풀어줍니다.',str:'쉬는 날이나 이지런 뒤 — 플랜의 근력 항목과 같은 구성입니다.',core:'짧게 자주 — 몸통을 잡아 주는 네 가지.'}[tab]}</div>
     ${stretchCard(tab,{compact:false,id:'tileStr'})}`;
 }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-extab]'); if(!b)return; $('tileBody').innerHTML=exerciseSheet(b.dataset.extab); try{ wireHome(null,-1); }catch(err){} });
@@ -9235,7 +9245,7 @@ function todayCard(sess,idx){
   const b=['recovery','easy','long'].includes(sess.type)?coachBasis():null;
   /* 오늘 훈련 — 목록형(다음 훈련과 같은 결) · 보라 배경. 예전 카드의 60% 안팎 높이 */
   /* '개인 기준/임시 기준' 표시는 홈에서 뺐다 — 기준은 '훈련 기준' 타일과 계획 화면에서 본다 */
-  const line=[isTT?`전체 ${fmtKm1(sess.dist)}km`:'',mins?mins+'분':'',pace&&pace!=='—'?pace:'',hz?'심박 '+hz+'↓':''].filter(Boolean).join(' · ');
+  const line=[isTT?`전체 ${fmtKm1(sess.dist)}km`:'',mins?mins+'분':'',pace&&pace!=='—'?pace:'',hz?'심박 '+hz+'↓':(zoneShort(sess.type)||'')].filter(Boolean).join(' · ');
   return `<section class="hero he" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
     <div class="he-row"><span class="he-ic" style="background:${(LOOK[sess.type]||LOOK.free).bg}">${symSVG(sess.type)}</span>
       <div class="he-info"><div class="he-top"><em>오늘 훈련${sess.role?' · '+ESC(sess.role):''}</em></div>
@@ -9445,6 +9455,48 @@ function dayScore(d){ /* 그날 점수 — 계획과 짝이 맞는 기록 우선
   const d0=r.planKm||(r.distRatio?+(r.km/r.distRatio).toFixed(1):0);
   const s=b?Object.assign({},b,{dist:d0||DIST[b.d]||b.dist,ceiling:r.ceiling||b.ceiling}):{dist:d0,ceiling:r.ceiling,repTarget:null};
   return runScore(r,s); }
+/* ───────── 훈련마다 무엇을 지키나 — 심박 존(Z1~Z5)과 속도 중 '주인'은 하나 ─────────
+   쉬운 날(리커버리·이지·LSD) = 심박이 주인, 속도는 결과. 빠른 날(페이스주·템포·인터벌) = 속도가 주인, 심박은 확인용
+   (심박은 1~3분 늦게 오르고 더위·수면·피로에 흔들린다 — 생리 B). 짧은 질주(레페티션·스트라이드)·언덕·TT = 심박 안 봄.
+   숫자는 TYPES[k].hrZone(코칭·판정이 쓰는 값)을 그대로 쓴다 — 같은 개념 = 같은 값 */
+const ZRULE={
+  recovery:{lead:'hr',z:1,how:'상한을 넘으면 속도를 늦추거나 걷기 · 속도는 보지 않기'},
+  easy:{lead:'hr',z:2,how:'대화가 될 만큼 · 상한을 넘으면 늦추기 · 오르막은 걸어도 괜찮아요'},
+  long:{lead:'hr',z:2,how:'후반에 심박이 저절로 오르면(심박 표류) 속도를 늦춰 상한 지키기'},
+  buildup:{lead:'pace',z:[2,4],how:'Z2로 시작해 마지막 구간만 Z4까지'},
+  mpace:{lead:'pace',z:3,how:'목표 속도 유지 · 심박이 Z4로 오르면 더위·피로 신호 → 5~10초 늦추기'},
+  goalpace:{lead:'pace',z:3,how:'목표 속도 유지 · 심박이 Z4로 오르면 더위·피로 신호 → 5~10초 늦추기'},
+  threshold:{lead:'pace',z:4,how:'속도 유지 · 심박은 처음 몇 분 늦게 올라 Z4에 머물러요 · Z5로 넘으면 너무 빠름'},
+  interval:{lead:'pace',z:5,how:'회차 속도 유지 · 심박은 회차 끝 무렵 Z5 · 쉬는 동안 내려와야 다음 회차'},
+  rep:{lead:'form',how:'2분 안쪽이라 심박이 못 따라와요 — 속도·폼만'},
+  stride:{lead:'form',how:'20초라 심박은 의미 없음 — 가볍고 빠른 폼'},
+  hill:{lead:'effort',z:[4,5],how:'경사라 속도는 의미 없음 — 힘든 느낌(Z4~5)과 횟수'},
+  tt:{lead:'effort',how:'가운데 구간 힘껏 — 심박은 보지 않고 끝까지 고르게'}
+};
+const ZLEAD={hr:'심박 우선',pace:'속도 우선 · 심박은 확인',form:'폼 우선 · 심박 안 봄',effort:'느낌 우선 · 심박 안 봄'};
+/* 그 훈련의 심박 칸 — [아래, 위, 'Z2'] (Z1은 아래 없음) */
+function zoneOf(k){ const R=ZRULE[k]; if(!R||!R.z||!ZONES||!ZONES[4])return null;
+  const T=TYPES[k]||{}, zz=Array.isArray(R.z)?R.z:[R.z,R.z], lab='Z'+zz[0]+(zz[1]!==zz[0]?'~'+zz[1]:'');
+  const hz=T.hrZone&&!Array.isArray(R.z)?T.hrZone:[ZONES[zz[0]-1][0],zz[1]>=5?HRMAX:ZONES[zz[1]-1][1]];
+  return [hz[0]||0,hz[1],lab]; }
+function zoneShort(k){ const R=ZRULE[k], z=zoneOf(k); if(!R||!z)return '';
+  return R.lead==='hr'?`심박 ${z[1]}↓`:`심박 ${z[0]}~${z[1]} 확인`; }
+function zoneKeepHTML(k){ const R=ZRULE[k]; if(!R)return ''; const z=zoneOf(k);
+  const v=z?(R.lead==='hr'?`<b class="num">♥ ${z[1]} 이하</b> <i>${z[2]}</i>`:`<b class="num">♥ ${z[0]}~${z[1]}</b> <i>${z[2]}</i>`):'';
+  return `<div class="zkeep zk-${R.lead}"><em>${ZLEAD[R.lead]}</em>${v}<span>${R.how}</span></div>`; }
+/* 훈련 원리 맨 위 — Z1~Z5 표 + '둘 다 지켜야 하나?' */
+function zoneGuideHTML(){ if(!ZONES||!ZONES[4])return '';
+  const FEEL=['아주 편함 · 걷는 듯','편함 · 대화 가능','보통 · 말이 짧아짐','힘듦 · 몇 마디만','아주 힘듦 · 말 못 함'];
+  const WHO=['리커버리런','이지런 · LSD','페이스주(대회 속도)','템포런','인터벌'];
+  const rows=ZONES.slice(0,5).map((z,i)=>`<tr><th><i style="background:${ZCOL[i]}"></i>Z${i+1}</th><td class="num">${i?z[0]:''}${i?'~':''}${i===4?HRMAX:z[1]}${i?'':' 이하'}</td><td>${FEEL[i]}</td><td><b>${WHO[i]}</b></td></tr>`).join('');
+  return `<div class="zg"><table class="zg-t"><thead><tr><th>존</th><th>심박</th><th>느낌</th><th>이 존에서 하는 훈련</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="zg-src">내 기준 · 최대 심박 ${HRMAX}${ZONES.kind==='hrr'?` · 안정 심박 ${ZONES.rhr} (여유 심박 방식)`:' (최대 심박 % 방식)'} · 한 주 달리는 시간의 약 80%는 Z1~2 (80/20)</p>
+    <div class="zg-q"><b>속도와 심박, 둘 다 지켜야 하나요?</b>
+      <p>아니요. 훈련마다 <b>주인은 하나</b>예요.</p>
+      <ul><li><b>쉬운 날</b> (리커버리·이지·LSD) — <b>심박이 주인</b>. 상한만 넘지 않으면 속도는 느려도 괜찮아요. 넘으면 늦추고, 오르막은 걸어도 돼요.</li>
+      <li><b>빠른 날</b> (페이스주·템포·인터벌) — <b>속도가 주인</b>, 심박은 확인용. 심박은 1~3분 늦게 오르고 더위·잠 부족·피로에 올라가요. 같은 속도인데 심박이 한 존 위면 그날은 5~10초 늦추세요.</li>
+      <li><b>짧은 질주·언덕·TT</b> — 심박은 보지 않아요. 폼과 느낌만.</li></ul>
+      <p class="zg-tip">처음 몇 주는 Z2를 지키면 답답할 만큼 느려요. 정상이에요 — 같은 심박에서 속도가 몇 주에 걸쳐 빨라져요. 달리는 중에 상한을 넘으면 앱이 알려 줘요.</p></div></div>`; }
 /* ───────── 이번 주 — 7일 막대. 높이 = 그날 점수, 색 = 훈련 종류 ───────── */
 function weekStrip(o){ try{ return weekStrip0(o||{}); }catch(e){ console.warn('weekStrip',e); return ''; } }
 function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람) 요일 그래프는 늘 보인다 — 한 점수만 */
@@ -9526,17 +9578,20 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
   const plan=cum(days.map(x=>x.s?(x.d<t&&x.load>0?x.load:x.plan):x.load)), act=cum(days.map(x=>x.load)).slice(0,(lastIx<0?6:lastIx)+1), prv=cum(prevDays);
   const ymax=Math.max(50,...plan,...act,...prv)*1.08, W=340,H=136,L=10,R=74,T=12,B=22, X=i=>L+i*(W-L-R)/6, Y=v=>T+(H-T-B)*(1-v/ymax);
   const pl=(a,c,w,da)=>a.length>1?`<polyline points="${a.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${da?` stroke-dasharray="${da}"`:''}/>`:'';
-  const lab=(a,c,txt,dy)=>a.length?`<text x="${(X(a.length-1)+6).toFixed(1)}" y="${(Y(a[a.length-1])+4+(dy||0)).toFixed(1)}" font-size="10.5" font-weight="700" fill="${c}">${txt} ${Math.round(a[a.length-1])}</text>`:'';
-  const ends=[[plan,'계획'],[prv,'지난주']].map(([a,n])=>Y(a[6])), dyP=Math.abs(ends[0]-ends[1])<12?(ends[0]<ends[1]?-6:6):0;
+  /* 오른쪽 끝 이름표 — 같은 끝에 모이면(일요일엔 이번 주·계획이 같은 점) 13px씩 벌리고, 이번 주와 계획이 거의 같으면 계획 이름표는 뺀다 */
+  const full7=act.length===7, endL=[]; if(full7)endL.push({a:act,c:'#5B2D86',t:'이번 주'});
+  if(!(full7&&Math.abs(plan[6]-act[6])<=Math.max(3,act[6]*.03)))endL.push({a:plan,c:'var(--ink-3)',t:'계획'}); endL.push({a:prv,c:'#9C8FB0',t:'지난주'});
+  endL.forEach(e=>e.y=Y(e.a[6])+4); endL.sort((p,q)=>p.y-q.y); for(let i=1;i<endL.length;i++)if(endL[i].y-endL[i-1].y<13)endL[i].y=endL[i-1].y+13;
+  const over=endL.length?endL[endL.length-1].y-(H-B+2):0; if(over>0)endL.forEach(e=>e.y-=over);
   const chart=`<svg viewBox="0 0 ${W} ${H}" class="wk-ch" role="img" aria-label="누적 훈련 부하">
     ${[0.5,1].map(f=>`<line x1="${L}" x2="${W-R}" y1="${Y(ymax/1.08*f).toFixed(1)}" y2="${Y(ymax/1.08*f).toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`).join('')}
     ${pl(prv,'#C9BEDA',2)}${pl(plan,'var(--ink-3)',1.6,'4 4')}${pl(act,'#5B2D86',2.6)}
     ${act.length?`<circle cx="${X(act.length-1).toFixed(1)}" cy="${Y(act[act.length-1]).toFixed(1)}" r="4" fill="#5B2D86" stroke="var(--panel)" stroke-width="2"/>`:''}
-    ${lab(plan,'var(--ink-3)','계획',dyP)}${lab(prv,'#9C8FB0','지난주',-dyP)}${act.length&&act.length<7?`<text x="${X(act.length-1).toFixed(1)}" y="${(Y(act[act.length-1])-9).toFixed(1)}" font-size="11" font-weight="800" fill="#5B2D86" text-anchor="middle">${Math.round(act[act.length-1])}</text>`:lab(act,'#5B2D86','이번 주',0)}
+    ${endL.map(e=>`<text x="${(X(6)+8).toFixed(1)}" y="${e.y.toFixed(1)}" font-size="10.5" font-weight="${e.t==='이번 주'?800:700}" fill="${e.c}">${e.t} ${Math.round(e.a[6])}</text>`).join('')}${act.length&&!full7?`<text x="${X(act.length-1).toFixed(1)}" y="${(Y(act[act.length-1])-9).toFixed(1)}" font-size="11" font-weight="800" fill="#5B2D86" text-anchor="middle">${Math.round(act[act.length-1])}</text>`:''}
     ${days.map((x,i)=>`<text x="${X(i).toFixed(1)}" y="${H-6}" font-size="10.5" text-anchor="middle" fill="${x.d===t?'#5B2D86':'var(--ink-3)'}" font-weight="${x.d===t?800:500}">${dowOf(x.d)}</text>`).join('')}</svg>`;
   const loadSec=`<section class="wstrip ws-more"><div class="ws-h"><b>쌓인 훈련 부하</b><span>rTSS · 근력 포함</span></div>${chart}
     <div class="wk-leg"><span><i style="background:#5B2D86"></i>이번 주</span><span><i class="dash"></i>계획대로 하면</span><span><i style="background:#C9BEDA"></i>지난주</span></div>
-    <div class="ws-note">${plan[6]?`계획대로 마치면 이번 주 부하 ${Math.round(plan[6])}${prv[6]>=60?` — 지난주(${Math.round(prv[6])})의 ${Math.round(plan[6]/prv[6]*100)}%`:''}.`:''} 한 주에 10%(많아야 30%) 넘게 늘리지 않는 게 부상 위험을 줄여요.</div></section>`;
+    <div class="ws-note">${(()=>{ const v=full7?act[6]:plan[6]; return v?`${full7?'이번 주 부하':'계획대로 마치면 이번 주 부하'} ${Math.round(v)}${prv[6]>=60?` — 지난주(${Math.round(prv[6])})의 ${Math.round(v/prv[6]*100)}%`:''}.`:''; })()} 한 주에 10%(많아야 30%) 넘게 늘리지 않는 게 부상 위험을 줄여요.</div></section>`;
   /* 강도 나눔 — 이번 주 심박 존 시간. 쉬운(1~2) : 중간(3) : 힘든(4~5), 길게 뛰는 사람은 쉬운 쪽 약 80% (80/20, Seiler) */
   const zs=[0,0,0,0,0]; days.forEach(x=>dRuns(x.d).forEach(r=>(r.zones||[]).forEach((v,i)=>{ if(i<5)zs[i]+=+v||0; })));
   const zt=zs.reduce((a,b)=>a+b,0);
@@ -11906,6 +11961,7 @@ function renderGuide(){
       <div class="tc-key"><b>${m[3]}</b></div>
       <div class="tc-chk">${m[5].map(x=>`<i>${x}</i>`).join('')}</div>
       ${m[6]?`<div class="tc-aim"><b>키우는 것</b><span>${m[6]}</span></div>`:''}
+      ${ZRULE[k]?`<div class="tc-aim tc-zone"><b>지키는 것</b>${zoneKeepHTML(k)}</div>`:''}
       ${body?`<details class="tc-more"><summary>계산 기준</summary><div class="gd-bd">${body}</div></details>`:''}</article>`; };
   const tr=(k,one,mine,body)=>tcard(k,mine,body);
   const types=[
@@ -12119,6 +12175,7 @@ function renderGuide(){
       ${nMan?`<p class="gw-cap">직접 ${nMan}개 · 나머지 자동</p>`:''}</div>`;
 $('gdBody').innerHTML=`<div class="idline lite"><span class="idl-ic">🎧</span><div><b>가지런 · 훈련 기준으로 실시간 코칭</b><i>아래 = 훈련 기준</i></div></div>`
     +SEC('goal','훈련 기준','기록 자동 · 수정 가능',`<div class="ab big" role="note"><span class="ab-ic">${autoBanner(true).match(/<svg[\s\S]*?<\/svg>/)[0]}</span><div><b>기록 자동 입력 · 수정 가능</b><i>'수정' → 자동/직접</i></div></div>${watch}`)
+    +SEC('zone','심박 존 · 무엇을 지키나','Z1~Z5',zoneGuideHTML())
     +SEC('train','훈련 종류','',`<div class="gd-sec" style="margin-top:0">${types.join('')}</div>`)
     +SEC('body','스트레칭 · 근력','',`<div class="gd-sec" style="margin-top:0">${stretchCard('dyn')}${stretchCard('stat')}${stretchCard('str')}${stretchCard('core')}</div>`)
     +SEC('ana','계산 기준 전체','',`<details class="gd-all"><summary>펼쳐 보기</summary>${sec('훈련 기준 계산',base)}${sec('측정',meas)}${sec('일정 · 판정',sys)}</details>`)+
@@ -12205,6 +12262,12 @@ const POSE={
   /* 토 터치 킥 — 옆모습: 다리 쭉 펴 앞으로 차올리고 반대 손으로 발끝 */
   toekickA:SS({h:[53,14],n:[51,25],p:[49,52],L:[0,0],R:[68,68],A:{ik:[80,62],bend:1},B:[-25,-25],x:{arr:AR('M86 80a24 24 0 0 0-8-26m0 7l0-7 7 1')}}),
   toekickB:SS({h:[52,13],n:[50,24],p:[50,52],L:[0,0],R:[22,10],A:[30,30],B:[-25,-25],x:{arr:AR('M86 80a24 24 0 0 0-8-26m0 7l0-7 7 1')}}),
+  /* 다리 앞뒤 스윙 — 옆모습: 다리를 앞 → 뒤로 시계추처럼 (벽은 설명 글로) */
+  legswingA:SS({h:[50,13],n:[48,24],p:[46,52],R:[0,0],L:[62,58],A:[-30,-15],B:[35,20],x:{arr:AR('M24 88q24 12 52-4m-6-2l6 2-4 5')}}),
+  legswingB:SS({h:[54,13],n:[52,24],p:[50,52],R:[0,0],L:[-38,-30],A:[30,15],B:[-35,-20],x:{arr:AR('M80 84q-26 16-52 4m6-4l-6 4 6 3')}}),
+  /* 다리 좌우 스윙 — 앞모습: 팔 벌려 균형, 다리를 몸 앞에서 바깥 → 안쪽으로 */
+  sideswingA:FS({A:[-70,-70],B:[70,70],L:[-35,-35],x:{arr:AR('M20 80q12 12 34 10m-5-4l5 4-5 3')}}),
+  sideswingB:FS({A:[-70,-70],B:[70,70],L:[22,22],x:{arr:AR('M60 90q-22 6-38-8m1 6l-1-6 6 0')}}),
   /* 고관절 열기·닫기 — 앞모습: 무릎 앞으로 → 옆으로 90° */
   gateOpenA:FS({A:HIPS.A,B:HIPS.B,R:{pts:[[58,43],[58,63]]},x:{arr:AR('M62 44q14 2 18 14m-6-5l6 5-6 2')}}),
   gateOpenB:FS({A:HIPS.A,B:HIPS.B,R:[90,0],x:{arr:AR('M62 44q14 2 18 14m-6-5l6 5-6 2')}}),
@@ -12276,6 +12339,8 @@ const STEPS={
   fold:[['발 골반너비, 무릎 살짝','엉덩이 빼며 숙이기','손을 발등 쪽으로 15~20초'],'반동 주지 않기'],
   calf:[['벽을 두 손으로 밀기','한 발 뒤로 크게, 뒤꿈치 바닥','앞 무릎 굽히며 15~20초'],'뒤 발끝은 정면'],
   lunge:[['크게 한 걸음 앞으로','뒷무릎 바닥 가까이','일어나며 반대 발로'],'앞무릎 발끝 안쪽'],
+  legswing:[['벽·기둥을 한 손으로 잡고 서기','다리를 앞뒤로 시계추처럼','10번 → 반대 다리'],'상체는 곧게 · 점점 크게'],
+  sideswing:[['벽을 마주 보고 두 손 짚기','다리를 몸 앞에서 좌우로','10번 → 반대 다리'],'골반이 따라 돌지 않게'],
   toekick:[['한 팔 앞으로 뻗기','반대 다리 펴서 차올리기','손끝-발끝 터치 → 반대쪽'],'무릎 펴고 높이는 되는 만큼'],
   gateOpen:[['무릎 굽혀 들기','옆으로 90° 돌리기','내린 뒤 반대쪽 다리'],'상체가 따라 돌지 않게'],
   gateClose:[['무릎을 굽혀 옆 90°로 들기','정면으로 모으기','내린 뒤 반대쪽 다리'],'골반은 정면 유지'],
@@ -12297,10 +12362,12 @@ const STEPS={
 const STR={
   dyn:{en:'WARM-UP',ko:'러닝 전 준비운동',when:'훈련 전',sec:30,key:'짧게 깨우고 가볍게 출발',
     desc:'데우기(Behm 2016 — 동적 준비운동은 기록에 작은 도움, B) · 첫 1km 천천히',
-    chk:['6가지 · 3분','멈추지 않고 움직이며','아프지 않은 범위'],
+    chk:['8가지 · 4분','멈추지 않고 움직이며','아프지 않은 범위'],
     tips:['끝나면 첫 1km 천천히','추운 날엔 더 길게'],
     moves:[['arm','팔 돌리기','팔·가슴·어깨','팔 뻗어 앞 · 뒤로',false],
            ['waist','허리 돌리기','코어 안정','손 허리, 골반 원',false],
+           ['legswing','다리 앞뒤 스윙','고관절 앞뒤 풀기','시계추처럼 앞뒤 · 10번씩',false],
+           ['sideswing','다리 좌우 스윙','허벅지 안쪽·엉덩이 옆','몸 앞에서 좌우 · 10번씩',false],
            ['toekick','토 터치 킥','햄스트링 풀기','차올려 반대 손 터치',false],
            ['gateOpen','고관절 열기·닫기','고관절 돌리기','무릎 들어 옆 90° · 교대',false],
            ['lunge','워킹 런지','엉덩이·허벅지 깨우기','큰 걸음 · 골반 낮게',false],
