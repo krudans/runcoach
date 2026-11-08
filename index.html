@@ -13,7 +13,7 @@
 <meta name="description" content="가지런하다 — 실시간 코칭 프로그램. 내가 정한 강도·거리·시간에 맞춰 달리는 중에 안내합니다.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="가지런">
-<meta property="og:description" content="가지런하다 — 실시간 코칭 프로그램">
+<meta property="og:description" content="가지런하다 — 내 기록 × 검증된 훈련 이론 → 실시간 코칭 프로그램">
 <meta property="og:image" content="https://krudans.github.io/runcoach/gaji-og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://krudans.github.io/runcoach/">
@@ -1301,7 +1301,7 @@ body.mf-on{overflow:hidden}
 .sp-c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;margin-top:-40px}
 .sp-c .brandmark{width:64px;height:64px;display:block}.sp-c .brandmark svg{width:100%;height:100%}
 .sp-c b{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:36px}
-.sp-c em{font-style:normal;font-size:16px;font-weight:700;color:#BFE0C8;letter-spacing:.02em;margin-top:18px}
+.sp-c em{font-style:normal;font-size:15px;font-weight:700;color:#BFE0C8;letter-spacing:.01em;margin-top:18px;text-align:center;line-height:1.55}
 .sp-ft{text-align:center;font-size:12px;letter-spacing:.24em;opacity:.55}
 @media (prefers-reduced-motion:reduce){#splash{transition:none}}
 
@@ -1326,8 +1326,8 @@ body.mf-on{overflow:hidden}
 </style>
 </head>
 <body>
-<div id="splash" role="img" aria-label="가지런하다 · 실시간 코칭 프로그램">
-  <div class="sp-c"><span class="brandmark" data-bm="light"></span><b>가지런하다</b><em>실시간 코칭 프로그램</em></div>
+<div id="splash" role="img" aria-label="가지런하다 · 내 기록 × 검증된 훈련 이론 → 실시간 코칭 프로그램">
+  <div class="sp-c"><span class="brandmark" data-bm="light"></span><b>가지런하다</b><em>내 기록 × 검증된 훈련 이론<br>→ 실시간 코칭 프로그램</em></div>
   <div class="sp-ft">가지런</div>
 </div>
 <script>
@@ -2488,7 +2488,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* v20.16 저장 그림 빈자리 채우기 */
 .snap-fill{margin-top:12px}.snap-fill .sf-hd{font-size:14px;font-weight:700;color:var(--ink-2);margin:0 2px 6px}
-.snap-fill .ol-card{margin-bottom:0}
+.snap-fill .ol-card{margin-bottom:0}.snap-fill>.wstrip,.snap-fill>.lcard{margin-left:0!important;margin-right:0!important}   /* 채움 카드도 위 카드와 같은 폭 */
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
 
@@ -2505,7 +2505,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.23';
+const APPVER='20.24';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13643,8 +13643,9 @@ function snapInline(src,dst){
   for(let i=0;i<sc.length&&i<dc.length;i++)snapInline(sc[i],dc[i]);
 }
 /* 내용을 담은 버튼(일정 한 줄·오늘 그림·결정 기록 줄)은 지우지 않고 div로 바꿔 둔다 — 버튼을 통째로 지우던 탓에 주차 이미지에 훈련이 하나도 안 찍혔다 */
-var SNAP_M={l:46,r:46,head:50,foot:30};
-const HADA_C='#5B2D86';   /* 앱 머리 '하다'(.hada = --plum, 굵기 500)와 같게 */   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다. 왼쪽=오른쪽(쪽 번호 탭 폭만큼) → 내용·글·칸은 가운데, 탭만 오른쪽 끝(책 라벨) */
+var SNAP_M={l:46,r:46,head:68,foot:30,band:54};   /* band = 머리 띠 높이, head = 띠 + 내용 위 여백 */
+const SLOGAN='내 기록 × 검증된 훈련 이론 → 실시간 코칭 프로그램';   /* 슬로건 — 시작 화면·저장 이미지 바닥줄·공유 설명이 같은 말 */
+const HADA_C='#5B2D86', HADA_L='#C9B3EA', BAND_C='#2A1638';   /* 띠 위 '하다'·보조 글자 = 밝은 보라 */   /* 앱 머리 '하다'(.hada = --plum, 굵기 500)와 같게 */   /* 쪽 여백 — 내용 폭 고르기와 그리기가 같은 값을 쓴다. 왼쪽=오른쪽(쪽 번호 탭 폭만큼) → 내용·글·칸은 가운데, 탭만 오른쪽 끝(책 라벨) */
 function snapCH(w){ return Math.round((w+SNAP_M.l+SNAP_M.r)*16/9)-SNAP_M.head-SNAP_M.foot; }
 var SNAP_KEEP='button.gw-r,button.pd-main,button.hero-shape,button.decrow,button[data-pgo]';
 function snapKeep(root){ root.querySelectorAll(SNAP_KEEP).forEach(b=>{ const d=document.createElement('div'); d.className=b.className; d.setAttribute('style',b.getAttribute('style')||''); d.innerHTML=b.innerHTML; b.replaceWith(d); }); }
@@ -13675,14 +13676,23 @@ function snapCuts(root,h,ch){
 /* 저장 파일 이름 — 날짜·시·분까지(같은 날 여러 번 저장해도 겹치지 않게): 2026-11-07_2103 */
 function stampFile(){ const d=new Date(), p=n=>String(n).padStart(2,'0'); return `${todayStr()}_${p(d.getHours())}${p(d.getMinutes())}`; }
 /* 저장 그림 빈자리 채우기 — 저장하는 화면마다 함께 보면 좋은 것. 높이가 들어가는 것만 위에서부터 */
-function snapFills(name){ const F=[];
+/* 저장 그림의 빈 곳 채우기 — 한 장짜리(오늘 훈련 등)도 4분의 1 넘게 비면 관련 카드로 채운다. 들어가는 것만 넣고(안 들어가면 다음 것), 화면엔 없다 */
+function snapFills(name){
+  const tmp=document.createElement('div');
+  const pick=(html,fn)=>{ try{ tmp.innerHTML=html; const el=fn(tmp); if(!el)return '';
+      el.querySelectorAll('*').forEach(x=>{ if(!x.children.length&&/누르면/.test(x.textContent))x.remove(); }); return el.outerHTML; }catch(e){ return ''; } };
   const wk=()=>{ try{ const h=weekStrip(); return h?`<div class="sf-hd">이번 주</div>${h}`:''; }catch(e){ return ''; } };
-  const ol=()=>{ try{ return outlookChart(); }catch(e){ return ''; } };
-  if(name==='result'||name==='review'){ F.push(ol(),wk()); }
-  else if(name==='plan'||name==='week'||name==='today'){ F.push(wk(),ol()); }
-  else if(name==='race'){ F.push(ol()); }
-  else F.push(wk(),ol());
-  return F.filter(Boolean); }
+  let full=''; try{ full=weekStrip({full:1}); }catch(e){}
+  const sec=t=>pick(full,r=>[...r.querySelectorAll('section.ws-more')].find(x=>(x.querySelector('.ws-h b')||{}).textContent===t));
+  const days=()=>sec('날마다').replace('<b>날마다</b>','<b>이번 주 일정</b>'), pmc=()=>sec('체력 · 피로 · 컨디션'), zone=()=>sec('강도 나눔');
+  let mc=''; try{ mc=`<div class="lcard mile" style="margin:10px 16px 0">${mileCharts(mileage())}</div>`; }catch(e){}
+  const mGoal=()=>pick(mc,r=>{ const c=r.firstElementChild; if(!c)return null; [...c.children].forEach((x,i)=>{ if(i>1)x.remove(); }); return c; });   /* 다음 목표 + 주별 거리 */
+  const ol=()=>{ try{ const h=outlookChart(); return /기록이 생기면/.test(h)?'':h; }catch(e){ return ''; } };   /* 아직 빈 전망(안내 문구뿐)은 채움으로 안 쓴다 */
+  name=String(name||'').replace(/\d+$/,''); if(name==='rest')name='today';
+  const L=name==='result'||name==='review'?[ol,pmc,wk,zone,days,mGoal]
+    :name==='today'?[days,pmc,mGoal,wk]:name==='plan'||name==='week'?[days,pmc,mGoal,wk,ol]
+    :name==='race'?[ol,pmc,mGoal]:[wk,pmc,mGoal,ol];
+  return L.map(f=>f()).filter(Boolean); }
 async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
   let W=el.offsetWidth; const H=el.offsetHeight, clone=el.cloneNode(true);
@@ -13722,16 +13732,20 @@ async function snapCard(el,name,title){
       const sc=fill-(last<0.5?(0.5-last)*0.6:0)-(w>base?0.3:0.15)*Math.abs(Math.log(w/base));
       if(!best||sc>best.sc)best={w,sc,cuts,h}; }
     W=best.w; probe.style.width=W+'px'; wrap.style.width=W+'px'; }
-  /* 여러 쪽인데 마지막 쪽이 4분의 1 넘게 비면 — 관련 카드(전망 그래프·이번 주 등)로 채운다. 저장 그림에만 들어가고 화면엔 없다 */
-  if(best.cuts.length>2){ const CHw=snapCH(W);
+  /* 마지막 쪽(한 장짜리 포함)이 4분의 1 넘게 비면 — 관련 카드(이번 주·날마다·체력·마일리지·전망)로 채운다. 저장 그림에만 들어가고 화면엔 없다 */
+  /* 테두리 있는 카드(오늘 훈련 등)는 채움 카드를 테두리 밖에 — 카드 아래에 나란히 놓는다 */
+  let oS=src, oC=clone; const pairs=[];
+  if(best.cuts.length>=2){ const CHw=snapCH(W);
     for(const f of snapFills(name)){ if(!f)continue; const lastH=best.h-best.cuts[best.cuts.length-2], free=CHw-lastH; if(free<CHw*0.25)break;
+      if(oS===src){ const cs=getComputedStyle(src); if(cs.borderTopWidth!=='0px'||cs.boxShadow!=='none'){ const ws=document.createElement('div'), wc=document.createElement('div');
+        src.parentNode.insertBefore(ws,src); ws.appendChild(src); clone.parentNode.insertBefore(wc,clone); wc.appendChild(clone); oS=ws; oC=wc; } }
       const mk=()=>{ const d=document.createElement('div'); d.className='snap-fill'; d.innerHTML=f; d.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); return d; };
-      const a=mk(); src.appendChild(a); const hh=src.offsetHeight-best.h;
+      const a=mk(); oS.appendChild(a); const hh=oS.offsetHeight-best.h;
       if(hh>free-4){ a.remove(); continue; }
-      const b=mk(); clone.appendChild(b); kFix(a); best.h=src.offsetHeight; best.cuts[best.cuts.length-1]=best.h; } }
-  snapInline(src,clone); clone.style.margin='0'; clone.style.width=W+'px';
+      const b=mk(); oC.appendChild(b); kFix(a); if(oS!==src)pairs.push([a,b]); best.h=oS.offsetHeight; best.cuts[best.cuts.length-1]=best.h; } }
+  snapInline(src,clone); pairs.forEach(([a,b])=>snapInline(a,b)); clone.style.margin='0'; clone.style.width=W+'px'; if(oC!==clone){ oC.style.width=W+'px'; oC.style.background=getComputedStyle(document.body).backgroundColor; }
   const h2=best.h; probe.remove();
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(clone)}</div></foreignObject></svg>`;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(oC)}</div></foreignObject></svg>`;
   wrap.remove();
   const img=new Image(); img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   try{ await img.decode(); }catch(e){ toast('이미지 생성 실패'); return; }
@@ -13743,23 +13757,25 @@ async function snapCard(el,name,title){
   const FK='"Noto Sans KR",system-ui,sans-serif', FO='"Outfit","Noto Sans KR",system-ui,sans-serif';
   for(let i=0;i<N;i++){ const sy=cuts[i], ey=cuts[i+1], hh=ey-sy, cv=document.createElement('canvas');
     /* 한 장짜리 짧은 카드는 9:16을 고집하지 않고 내용 높이에 맞춘다 — 아래가 텅 빈 그림이 됐다 */
-    const fit=N===1&&hh<CH, PHi=fit?HEAD+hh+16:PH;
+    const fit=N===1&&hh<CH, PHi=fit?HEAD+hh+16+FOOT:PH;   /* 한 장짜리 짧은 그림도 바닥 띠까지 */
     cv.width=PW*k; cv.height=PHi*k; const x=cv.getContext('2d'); x.scale(k,k);
     x.fillStyle=bg; x.fillRect(0,0,PW,PHi);
-    /* 머리줄 — 왼쪽 브랜드, 오른쪽 제목·날짜 */
-    try{ drawBrand(x,ML,12,26,'#2A1638','#FDFBF6'); }catch(e){}
+    /* 머리 띠 — 모든 쪽 같게: 진보라 띠 + 앱 아이콘 칸 + 큰 '가지런하다' + 버전 · 오른쪽 화면 이름·날짜 (B안) */
+    const BH=SNAP_M.band; x.fillStyle=BAND_C; x.fillRect(0,0,PW,BH);
+    { const bs=36, bx=ML, by=(BH-bs)/2, r=10; x.fillStyle='#4A2470'; x.beginPath(); x.moveTo(bx+r,by); x.arcTo(bx+bs,by,bx+bs,by+bs,r); x.arcTo(bx+bs,by+bs,bx,by+bs,r); x.arcTo(bx,by+bs,bx,by,r); x.arcTo(bx,by,bx+bs,by,r); x.closePath(); x.fill();
+      x.strokeStyle='rgba(255,255,255,.18)'; x.lineWidth=1.5; x.stroke(); try{ drawBrand(x,bx+4,by+3,28,'#F4F0EA','#4A2470'); }catch(e){} }
     x.textBaseline='alphabetic'; x.textAlign='left';
-    /* 모든 쪽 같은 머리줄 — 로고 + 가지런하다(앱 머리와 같은 두 색) + 버전 · 오른쪽 화면 이름·날짜 */
-    x.font='800 16px '+FK; x.fillStyle='#2A1638'; x.fillText('가지런',ML+32,31); const w1=x.measureText('가지런').width;
-    x.fillStyle=HADA_C; x.font='500 16px '+FK; x.fillText('하다',ML+32+w1+1,31); const w2=x.measureText('하다').width;
-    x.fillStyle='#9A8CA8'; x.font='700 10px '+FO; x.fillText('v'+APPVER,ML+32+w1+w2+6,31);
-    x.textAlign='right'; x.fillStyle='#2A1638'; x.font='800 13px '+FK; x.fillText(title||'',PW-MR,25);
-    x.fillStyle='#72637F'; x.font='700 10px '+FO; x.fillText(stamp,PW-MR,37);
+    { const nx=ML+48; x.font='900 21px '+FK; x.fillStyle='#FDFBF6'; x.fillText('가지런',nx,BH/2+3); const w1=x.measureText('가지런').width;
+      x.fillStyle=HADA_L; x.font='500 21px '+FK; x.fillText('하다',nx+w1+1,BH/2+3);
+      x.fillStyle='#A99BB8'; x.font='700 9.5px '+FO; x.fillText('v'+APPVER,nx+1,BH/2+16); }
+    x.textAlign='right'; x.fillStyle='#FDFBF6'; x.font='800 13px '+FK; x.fillText(title||'',PW-MR,BH/2-1);
+    x.fillStyle=HADA_L; x.font='700 10px '+FO; x.fillText(stamp,PW-MR,BH/2+13);
     /* 내용 — 폭을 골라 쪽에 꽉 차게 맞췄다. 조금 남으면 위아래 가운데 */
     const top=HEAD;   /* 위에서부터 — 가운데 정렬은 쪽 위쪽이 텅 비어 깨진 그림처럼 보였다 */
     x.save(); x.beginPath(); x.rect(ML,top,W,hh); x.clip(); x.drawImage(img,0,sy,W,hh,ML,top,W,hh); x.restore();
-    /* 모든 쪽 같은 바닥줄 — '실시간 코칭 프로그램'(시작 화면과 같은 말). 쪽 표시는 오른쪽 탭 하나로(점은 겹쳐서 뺐다) */
-    x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='#9A8CA8'; x.font='700 10.5px '+FK; x.fillText('실시간 코칭 프로그램',ML+W/2,PH-FOOT/2);
+    /* 모든 쪽 같은 바닥줄 — 슬로건(시작 화면과 같은 말: SLOGAN). 쪽 표시는 오른쪽 탭 하나로(점은 겹쳐서 뺐다) */
+    x.fillStyle=BAND_C; x.fillRect(0,PHi-FOOT,PW,FOOT);   /* 바닥 띠 — 머리 띠와 같은 색 */
+    x.textAlign='center'; x.textBaseline='middle'; x.fillStyle=HADA_L; x.font='700 10.5px '+FK; x.fillText(SLOGAN,PW/2,PHi-FOOT/2);
     x.textBaseline='alphabetic';
     /* 쪽 번호 탭 — 오른쪽 가장자리 한가운데, 한 장짜리는 안 붙인다 */
     if(N>1){ const tw=42, th=100, tx=PW-tw, ty=Math.round(PH/2-th/2), r=18;   /* 크게 — 썸네일에서도 읽히게 */
