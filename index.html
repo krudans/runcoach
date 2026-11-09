@@ -2505,7 +2505,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.24';
+const APPVER='20.25';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7119,16 +7119,19 @@ const OBSTEP=[
     });
   },
   read(){ const d=OB.d;
-    d.birth=$('obBirth').value||d.birth||null; d.age=ageOf(d.birth); d.w=+$('obW').value||d.w; d.rhr=+$('obRHR').value||null;
+    /* 태어난 해는 1단계(obBy)에서만 받는다 — 이 단계엔 생년월일 칸(obBirth)이 없어서 전엔 여기서 멈추고(오류) 나이가 비어 '생년월일 재확인'이 떴다 */
+    const bi=$('obBirth'); if(bi&&bi.value)d.birth=bi.value;
+    if(!d.birth&&d.by&&d.by!=='u14')d.birth=`${d.by}-07-01`; d.age=ageOf(d.birth);
+    const we=$('obW'); if(we)d.w=+we.value||d.w; const re=$('obRHR'); if(re)d.rhr=+re.value||null;
     if(d.rd){ const hh=+($('obRTh')||{}).value||0, m=+($('obRTm')||{}).value||0, sx=+($('obRTs')||{}).value||0;
       d.rt=(hh>0||m>0||sx>0)?Math.round(hh*3600+m*60+sx):null; } else d.rt=null;
   },
   ok(){ const d=OB.d;
     /* 처음 달리는 사람 — 걷기+달리기 단계는 심박·속도 기준을 쓰지 않아서 생년월일·체중이 없어도 시작할 수 있다. 넣으면 확인만 한다 */
-    if(d.novice){ if(d.birth&&!(d.age>=10&&d.age<=95))return {m:'생년월일 재확인',f:'obBirth'};
+    if(d.novice){ if(d.birth&&!(d.age>=10&&d.age<=95))return {m:'태어난 해 재확인 — 1단계에서 고쳐요'};
       if(d.w&&!(d.w>=25&&d.w<=200))return {m:'체중 재확인',f:'obW'}; return true; }
-    if(!d.birth)return {m:'생년월일 → 나이 자동',f:'obBirth'};
-    if(!(d.age>=10&&d.age<=95))return {m:'생년월일 재확인',f:'obBirth'};
+    if(!d.birth)return {m:'태어난 해 — 1단계에서 골라 주세요'};
+    if(!(d.age>=10&&d.age<=95))return {m:'태어난 해 재확인 — 1단계에서 고쳐요'};
     if(!(d.w>=25&&d.w<=200))return {m:'체중 입력',f:'obW'};
     if(!d.rd)return true;
     if(!d.rt)return {m:'시·분·초 입력 · 없으면 "없음"',f:'obRTm'};
