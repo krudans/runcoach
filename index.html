@@ -318,6 +318,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   font-size:13px;color:var(--warn-ink);margin-bottom:12px}
 .note.red{background:var(--bad-bg);border-color:#F0C4C2;color:var(--bad-ink)}
 .stgo-row{display:flex;gap:8px;margin-top:8px}
+.gl-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.gl-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.gl-hd b{font-size:14px;font-weight:700}.gl-hd i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}.wk-nav b{font-size:14px;text-align:center}.wk-nav b i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:600}.wk-nav button{border:1px solid var(--line);background:var(--card,#fff);border-radius:10px;padding:8px 10px;font-weight:700;font-size:12px;color:var(--ink)}.wk-nav button:disabled{opacity:.35}.stgo-row .btn{flex:1;margin:0}
 .note.green{background:var(--ok-bg);border-color:#B6DEC6;color:var(--ok-ink)}
 .note.blue{background:var(--info-bg);border-color:#C2D9EC;color:var(--info-ink)}
@@ -1372,7 +1373,7 @@ body.mf-on{overflow:hidden}
   <div style="padding:0 16px">
     <div class="ptabs" id="planTabs" hidden></div>
     <div id="planSched">
-      <section class="sec" style="--sc:#5B2D86"><div class="sec-hd"><b>목표</b><button type="button" class="btn sm ghost" id="plGoalEdit" style="margin:0 0 0 auto;padding:6px 12px;width:auto;flex:none">목표 고치기</button></div><div id="planHead"></div></section>
+      <section class="sec" style="--sc:#5B2D86"><div class="sec-hd"><b>목표</b><button type="button" class="btn sm ghost" id="plGoalEdit" style="margin:0 0 0 auto;padding:6px 12px;width:auto;flex:none">목표 고치기</button></div><div id="planHead"></div><div id="plGoalList"></div></section>
       <section class="sec" style="--sc:#1E9B5C"><div class="sec-hd"><b>일정</b></div><div id="planTools"></div>
       <div id="planGrid" hidden></div>
       <div id="dayList"></div>
@@ -2508,7 +2509,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.32';
+const APPVER='20.33';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3940,13 +3941,13 @@ function refreshEasyPaces(sess){
 const hasPlan=()=>!!(PLAN&&PLAN.sessions&&PLAN.sessions.length);
 /* 지난 주 기록 — 4주가 끝나 다음 4주를 새로 짜면(결산) 앞 4주가 일정에서 사라지고 이번 주가 1주차가 됐다.
    같은 목표면 지난 날 일정을 PLAN.past로 넘겨 계속 보이게 하고, 주차는 목표를 시작한 주부터 센다 (결정 2026-11-09) */
-function samePlanGoal(a,b){ return !!(a&&b&&a.kind===b.kind&&(a.m||0)===(b.m||0)&&((a.aero&&a.aero.mode)||'')===((b.aero&&b.aero.mode)||'')); }
 function pastSlim(s){ return {d:s.d,t:s.t,type:s.type,dist:(typeof DIST!=='undefined'&&DIST[s.d])||s.dist||0,role:s.role||null,reps:s.reps||null,repLen:s.repLen||null}; }
 function planCarryPast(old,p){
-  if(!old||!p||!p.sessions||!samePlanGoal(old.goal,p.goal))return;
+  if(!old||!p||!p.sessions)return;   /* 목표가 바뀌어도 지난 날은 남긴다 — 이번 목표 시작 전 주는 '이전 목표'로 표시 */
   const first=p.sessions.length?String(p.sessions[0].d).slice(0,10):todayStr(), seen=new Set();
   const all=(old.past||[]).concat((old.sessions||[]).filter(x=>x.type!=='off').map(pastSlim));
-  p.past=all.filter(x=>{ const d=String(x.d).slice(0,10), k=d+'|'+x.t; if(d>=first||seen.has(k))return false; seen.add(k); return true; }).sort((a,b)=>a.d<b.d?-1:1);
+  const lim=addDays(todayStr(),-366);
+  p.past=all.filter(x=>{ const d=String(x.d).slice(0,10), k=d+'|'+x.t; if(d>=first||d<lim||seen.has(k))return false; seen.add(k); return true; }).sort((a,b)=>a.d<b.d?-1:1);
   p.since0=old.since0||(p.past.length?weekMonday(p.past[0].d):weekMonday(old.start||first));
 }
 /* 이미 사라진 지난 4주 되살리기(한 번) — 직전 일정 보관본 + 일정에 붙은 기록 */
@@ -3954,16 +3955,19 @@ function planRecoverPast(){ try{
   if(!PLAN||!PLAN.sessions||!PLAN.sessions.length||PLAN.pastFix)return;
   const first=String(PLAN.sessions[0].d).slice(0,10), pv=DEV.store.get('planPrev',null), have=new Set((PLAN.past||[]).map(x=>String(x.d).slice(0,10)+'|'+x.t));
   let add=[];
-  if(pv&&pv.plan&&samePlanGoal(pv.plan.goal,PLAN.goal)) add=add.concat(pv.plan.past||[],(pv.plan.sessions||[]).filter(x=>x.type!=='off').map(pastSlim));
-  const g0=(GLOG||[]).find(x=>x.status==='active'), since=g0&&g0.start?String(g0.start).slice(0,10):null;
+  if(pv&&pv.plan) add=add.concat(pv.plan.past||[],(pv.plan.sessions||[]).filter(x=>x.type!=='off').map(pastSlim));
+  const since=addDays(todayStr(),-366);   /* 일정에 붙은 기록 — 최근 1년 */
   RUNS.forEach(r=>{ if(!r.planId||!isRun(r))return; const d=String(r.planId).slice(0,10); if(d>=first||(since&&d<since))return;
     if(!add.some(x=>String(x.d).slice(0,10)===d)) add.push({d:r.planId,t:r.name||'달리기',type:r.type||'easy',dist:+r.planKm||+r.km||0,role:null}); });
   add=add.filter(x=>{ const d=String(x.d).slice(0,10), k=d+'|'+x.t; if(d>=first||have.has(k))return false; have.add(k); return true; });
   if(add.length){ PLAN.past=(PLAN.past||[]).concat(add).sort((a,b)=>a.d<b.d?-1:1); PLAN.since0=PLAN.since0||weekMonday(PLAN.past[0].d); }
   PLAN.pastFix=1; DEV.store.set('plan',PLAN);
 }catch(e){ console.warn('recover past',e); } }
-function planSince(){ const P=PLAN||{}, ps=P.past||[]; return weekMonday(P.since0||(ps.length?String(ps[0].d):null)||P.start||(BLOCK&&BLOCK[0]&&BLOCK[0].d)||todayStr()); }
-function wkNo(mon){ return Math.max(1,Math.round((Date.parse(mon)-Date.parse(planSince()))/6048e5)+1); }
+/* 주차 = 지금 진행 중인 목표를 시작한 주부터 (목표 목록의 시작일). 그 전 주는 이전 목표 — 지우지 않고 날짜로 보여 준다 */
+function planSince(){ let g0=null; try{ g0=(typeof GLOG!=='undefined'&&GLOG||[]).find(x=>x.status==='active'); }catch(e){}
+  const P=PLAN||{}; return weekMonday((g0&&g0.start)||P.start||(BLOCK&&BLOCK[0]&&BLOCK[0].d)||todayStr()); }
+function wkNo(mon){ return Math.round((Date.parse(mon)-Date.parse(planSince()))/6048e5)+1; }
+function wkLab(mon,suf){ const n=wkNo(mon); return n>=1?`${n}${suf||'주차'}`:`${+mon.slice(5,7)}.${+mon.slice(8,10)} 주`; }
 function pastSessOn(ds){ return ((PLAN&&PLAN.past)||[]).find(x=>String(x.d).slice(0,10)===ds&&x.type!=='off')||null; }
 function loadPlan(){
   const base=(PLAN&&PLAN.sessions&&PLAN.sessions.length) ? PLAN.sessions : buildBlock();
@@ -4433,7 +4437,7 @@ function renderPlan(){
   if(hd){
     if(PLAN&&PLAN.why&&PLAN.why.length){
       const g=PLAN.goal||{}, G=GOALS.find(x=>x.k===g.kind);
-      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${g.m&&g.sec?`${gdLabel(g.m)} ${fmtClock(g.sec)}`:G?G.nm:'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`${(()=>{ const m=planMons()[0]; return m?wkNo(m):1; })()}주차 ${(()=>{ const m=planMons()[0], w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
+      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${g.m&&g.sec?`${gdLabel(g.m)} ${fmtClock(g.sec)}`:G?G.nm:'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`${(()=>{ const m=planMons()[0]; return m?wkLab(m):'1주차'; })()} ${(()=>{ const m=planMons()[0], w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
         <ul>${planChecks(PLAN,BLOCK).why.map(x=>`<li>${x}</li>`).join('')}</ul></details>`+
         /* 시간 한계 같은 경고는 접어 두지 않는다 — 일정이 왜 안 늘어나는지 바로 보이게 */
         /* 경고는 한 카드로 — 원인(쓸 수 있는 시간)을 그 자리에서 바꿀 수 있게 */
@@ -4451,6 +4455,7 @@ function renderPlan(){
       $('plMake').onclick=()=>goalStart();
     }
   }
+  paintGoalList();
   const host=$('dayList'); host.innerHTML=planListHTML(); try{ host.insertAdjacentHTML('beforeend',futureListHTML()); }catch(e){} try{ paintPlanView(); }catch(e){}
   if(!renderPlan._did){ renderPlan._did=1; setTimeout(()=>{ const c=host.querySelector('.pw.cur'); if(c)c.scrollIntoView({block:'start'}); },60); }
   // 페이스 존
@@ -9169,7 +9174,7 @@ function renderHome(){
   const today=todayStr(), d=new Date();
   $('tlDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${dowOf(today)}요일`;
   const cur=BLOCK.find(x=>x.d.slice(0,10)===today);
-  $('tlWk').textContent=cur&&hasPlan()?`${wkNo(weekMonday(today))}주차`:'';
+  $('tlWk').textContent=cur&&hasPlan()?wkLab(weekMonday(today)):'';
 
   const idx=hasPlan()?BLOCK.findIndex(x=>x.d.slice(0,10)===today&&x.type!=='off'):-1;   /* 예시 일정은 오늘 할 일이 아니다 */
   const sess=idx>=0?sessionOf(idx):null;
@@ -12783,7 +12788,7 @@ function pastListHTML(){
       return L.map(x=>{ const r=RUNS.find(r=>r.planId===x.d), col=(TYPES[x.type]||{}).col||'#5B2D86';
         return `<div class="pd-row${r?' did':' past'}" style="--tc:${col}">${dn}<span class="pd-main"${r?` data-wkrun="${ESC(r.rid)}" role="button"`:''} style="cursor:${r?'pointer':'default'}"><span class="pd-bar"><i style="height:${Math.max(18,(+x.dist||0)/max*100)}%"></i></span>
           <span class="pd-tx"><b>${ESC(String(x.t||'').replace(/\s*\([^)]*\)/g,''))}</b><i>${r?`${fmtKm1(+r.km||0)}km · ${fmtClock(+r.sec||0)}`:`계획 ${fmtKm1(+x.dist||0)}km`}</i></span></span>${r?'<em class="pd-st ok">✓</em>':'<em class="pd-st miss">놓침</em>'}</div>`; }).join(''); }).join('');
-    return `<section class="pw pw-f past fold" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkNo(mon)}주차</b><span class="pw-role">지난 4주</span>
+    return `<section class="pw pw-f past fold" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b><span class="pw-role">${wkNo(mon)>=1?'지난 4주':'이전 목표'}</span>
       <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i><i class="pw-sum">뛴 날 <b>${nDid}</b> / ${items.length}</i></div></div><span class="pw-km"><b class="num">${fmtKm1(plan)}</b>km</span></header><div class="pw-rows">${rows}</div></section>`; }).join('');
 }
 function planListHTML0(){
@@ -12815,13 +12820,13 @@ function planListHTML0(){
     const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
     const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
     return `<section class="pw pw-f${cur?' cur':''}${past?' past':''}${pwFold(mon,cur)?' fold':''}" id="pw${wk}" data-pwm="${mon}">
-      <header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkNo(mon)}주차</b>${cur?'<span class="pw-now">이번 주</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
+      <header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b>${cur?'<span class="pw-now">이번 주</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
         <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i>${sum}</div></div>
         ${items.some(x=>x.rw)?`<span class="pw-km"><b class="num">${Math.round(items.reduce((a,x)=>{ const v=sessionOf(BLOCK.indexOf(x))||x; return a+((v.rw&&v.rw.totSec)||0); },0)/60)}</b>분</span>`:`<span class="pw-km"><b class="num">${done?fmtKm1(done)+' / ':''}${fmtKm1(plan)}</b>km</span>`}</header>
       ${done?`<div class="pw-prog"><i style="width:${Math.min(100,done/plan*100)}%"></i></div>`:''}
       ${(()=>{ const n=aeroWeekNote((PLAN&&PLAN.goal)||GOAL,mon); return n?`<div class="pw-note">${n}</div>`:''; })()}
       <div class="pw-rows">${rows}</div>
-      ${!past?`<div class="pw-tools">${snapBtn('.pw','week'+wkNo(mon),wkNo(mon)+'주차 계획')}<span>거리 조절</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
+      ${!past?`<div class="pw-tools">${snapBtn('.pw','week'+wkNo(mon),wkLab(mon)+' 계획')}<span>거리 조절</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
     </section>`; }).join('');
 }
 document.addEventListener('click',async e=>{
@@ -12961,7 +12966,7 @@ function futureListHTML(){
       return L.map(x=>{ const col=(TYPES[x.type]||{}).col||'#5B2D86';
         return `<div class="pd-row" style="--tc:${col}">${dn}<span class="pd-main" style="cursor:default"><span class="pd-bar"><i style="height:${Math.max(18,(x.dist||0)/max*100)}%"></i></span>
           <span class="pd-tx"><b>${ESC(String(x.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${boldNums(summary(x))}</i></span></span></div>`; }).join(''); }).join('');
-    return `<section class="pw pw-f fu${pwFold(mon,false)?' fold':''}" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkNo(mon)}주차</b><span class="pw-role fu">예상</span>${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
+    return `<section class="pw pw-f fu${pwFold(mon,false)?' fold':''}" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b><span class="pw-role fu">예상</span>${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
       <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i></div></div><span class="pw-km"><b class="num">${fmtKm1(km)}</b>km</span></header><div class="pw-rows">${rows}</div></section>`; }).join('');
 }
 function pgU(h){ return String(h).replace(/(\d)(km|m)(?![a-z])/g,'$1<small>$2</small>'); }   /* 좁은 칸: 단위만 작게 — 숫자가 두 줄로 깨지지 않게 */
@@ -12980,7 +12985,7 @@ function planGridHTML(){
         const det=v.rw?(v.rw.totSec?Math.round(v.rw.totSec/60)+'분':''):(km?`${fmtKm1(km)}km`:'')+(x.reps>1&&x.repLen?`<br>${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?`<br>${fmtKm1(x.repLen)}km 이어서`:'');   /* 그날 전체 거리를 늘 먼저 */
         return `<div class="pg-s${did?' did':''}${ds<t&&!did?' miss':''}${ds===t?' now':''}" style="--tc:${T.col||'#5B2D86'}" data-pgo="${i}"><i>${ds===t?'오늘':+ds.slice(8,10)}</i><b class="${lab.length>3?'lg':''}">${pgName(lab)}</b><span>${pgU(det)}</span></div>`; }).join('')}</td>`; }).join('');
     const bar=wst&&items.length?`<u><s style="width:${Math.round(dn/items.length*100)}%"></s></u>`:'';
-    return `<tr class="${wst}"><th><b>${wkNo(mon)}주</b><span>${fmtKm1(wkm)}km</span>${bar}${wst==='now'?'<em>이번 주</em>':''}</th>${cells}</tr>`; }).join('');
+    return `<tr class="${wst}"><th><b>${wkLab(mon,'주')}</b><span>${fmtKm1(wkm)}km</span>${bar}${wst==='now'?'<em>이번 주</em>':''}</th>${cells}</tr>`; }).join('');
   /* 지난 4주들 — 다시 짜도 사라지지 않는다(PLAN.past). 보기만, 뛴 날 ✓ · 놓친 날 표시 */
   { const P=(PLAN&&PLAN.past)||[], pm=[...new Set(P.map(x=>weekMonday(x.d)))].filter(m=>!mons.includes(m)).sort();
     const prow=pm.map(mon=>{ const items=P.filter(x=>weekMonday(x.d)===mon), wkm=items.reduce((a,x)=>a+(+x.dist||0),0), dn=items.filter(x=>RUNS.some(r=>r.planId===x.d)).length;
@@ -12988,7 +12993,7 @@ function planGridHTML(){
         if(!L.length)return `<td class="r"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`;
         return `<td>${L.map(x=>{ const did=RUNS.some(r=>r.planId===x.d), lab=PSHORT[x.type]||String(x.t||'').split(' ')[0];
           return `<div class="pg-s${did?' did':' miss'}" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b class="${lab.length>3?'lg':''}">${pgName(lab)}</b><span>${pgU(x.dist?fmtKm1(x.dist)+'km':'')}</span></div>`; }).join('')}</td>`; }).join('');
-      return `<tr class="past"><th><b>${wkNo(mon)}주</b><span>${fmtKm1(wkm)}km</span>${items.length?`<u><s style="width:${Math.round(dn/items.length*100)}%"></s></u>`:''}</th>${cells}</tr>`; }).join('');
+      return `<tr class="past"><th><b>${wkLab(mon,'주')}</b><span>${fmtKm1(wkm)}km</span>${items.length?`<u><s style="width:${Math.round(dn/items.length*100)}%"></s></u>`:''}</th>${cells}</tr>`; }).join('');
     rows=prow+rows; }
   /* 4주 뒤 — 미리 보기(점선). 목표일까지 */
   const F=planFuture(), fm=[...new Set(F.map(x=>weekMonday(x.d)))].sort();
@@ -12996,7 +13001,7 @@ function planGridHTML(){
     const cells=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>x.d.slice(0,10)===ds);
       if(!L.length)return g&&g.date&&g.date.slice(0,10)===ds?`<td><div class="pg-s" style="--tc:#C2410C"><i>${+ds.slice(8,10)}</i><b>★ 대회</b><span>${g.m?gdLabel(g.m):''}</span></div></td>`:`<td class="r"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`;
       return `<td>${L.map(x=>`<div class="pg-s fu" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b class="${(PSHORT[x.type]||'').length>3?'lg':''}">${pgName(PSHORT[x.type]||String(x.t).split(' ')[0])}</b><span>${pgU((x.dist?fmtKm1(x.dist)+'km':'')+(x.reps>1&&x.repLen?`<br>${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?`<br>${kmLab(x.repLen)} 이어서`:''))}</span></div>`).join('')}</td>`; }).join('');
-    return `<tr class="fu"><th><b>${wkNo(mon)}주</b><span>${fmtKm1(wkm)}km</span></th>${cells}</tr>`; }).join('');
+    return `<tr class="fu"><th><b>${wkLab(mon,'주')}</b><span>${fmtKm1(wkm)}km</span></th>${cells}</tr>`; }).join('');
   const futSep=frows?`<tr class="fu-sep"><td colspan="8"><span>↓ 미리 보기 · 4주마다 다시 짬</span></td></tr>`:'';
   rows+=futSep+frows;
   const f=BLOCK[0], l=F.length?F[F.length-1]:BLOCK[BLOCK.length-1], md=x=>x.slice(5,10).replace('-','.');
@@ -14029,8 +14034,9 @@ function glogResume(x){ /* 멈춘 자리의 남은 일정을 다가오는 월요
   GOAL=g; DEV.store.set('goal',g); DIST=Object.assign({},DIST,ds); DEV.store.set('dist',DIST); applyPlan(p);
   return `일정 ${k}주 연기 재개`;
 }
-function renderGoalsTab(){
-  const el=$('planGoals'); if(!el)return; glogTick();
+/* 목표 목록 — 플랜 '목표' 칸 아래에 늘 (진행 중 · 잠시 멈춤 · 끝난 목표). 지우지 않는 한 계속 남는다 (결정 2026-11-09) */
+function paintGoalList(){ const el=$('plGoalList'); if(!el)return; try{ el.innerHTML=goalListHTML(); }catch(e){ console.warn('goal list',e); } }
+function goalListHTML(){ glogTick();
   const ico=g=>g.kind==='aero'?'❤️':g.kind==='race'?'🏅':g.kind==='finish'?'🏁':g.kind==='weight'?'🔥':g.kind==='health'?'🌱':'🎯';
   const ST={active:['진행 중','act'],paused:['잠시 멈춤','pau'],done:['달성','done'],missed:['미달성','miss'],ended:['중단','end']};
   const d=s=>s?s.slice(5).replace('-','.'):'';
@@ -14049,15 +14055,20 @@ function renderGoalsTab(){
     const nav=pages>1?`<div class="gl-pg"><button type="button" data-glpg="${key}:${pg-1}" ${pg<=1?'disabled':''}>‹</button><span>${pg} / ${pages}</span><button type="button" data-glpg="${key}:${pg+1}" ${pg>=pages?'disabled':''}>›</button></div>`:'';
     return `<div class="gc-lab">${lab} <small>${arr.length}개</small></div><ul class="gl-list">${show.map(item).join('')}</ul>${nav}`; };
   const L=GLOG.slice().reverse();
-  let top=''; try{ top=goalModel()?goalCard(false):''; }catch(e){}
-  el.innerHTML=top+`<section class="sec" style="--sc:#5B2D86"><div class="sec-hd"><b>목표 목록</b><i>새 목표 → 기존 목표 잠시 멈춤</i></div>
+  return `<div class="gl-box"><div class="gl-hd"><b>목표 목록</b><i>새 목표 → 하던 목표는 잠시 멈춤</i></div>
     ${GLOG.length?'':'<div class="gl-empty">목표 없음</div>'}
     ${grp('진행 중',L.filter(x=>x.status==='active'),'act')}${grp('잠시 멈춤',L.filter(x=>x.status==='paused'),'pau')}${grp('끝난 목표',L.filter(x=>['done','missed','ended'].includes(x.status)),'end')}
     ${GLOG.length>5?`<div class="gl-pgset"><span>페이지당</span>${[5,10,20].map(n=>`<button type="button" class="${n===PG?'on':''}" data-glpgs="${n}">${n}개</button>`).join('')}</div>`:''}
-    <button type="button" class="btn" id="glNew" style="margin-top:12px">＋ 새 목표 설정</button></section>
-    <section class="sec" style="--sc:#C98A00"><div class="sec-hd"><b>내 기록</b><i>대회·측정 — 목표와 별개</i></div>${rlogCard()}</section>`;
-  const nb=$('glNew'); if(nb)nb.onclick=()=>goalStart();
+    <button type="button" class="btn ghost" data-glnew="1" style="margin-top:10px">＋ 새 목표 설정</button></div>`;
 }
+/* 목표 고치기 화면 — 지금 목표 카드 + 내 기록. 목표 목록은 플랜 '목표' 칸 아래 한 곳에만(중복 없음) */
+function renderGoalsTab(){
+  const el=$('planGoals'); paintGoalList(); if(!el)return;
+  let top=''; try{ top=goalModel()?goalCard(false):''; }catch(e){}
+  el.innerHTML=top+`<button type="button" class="btn" data-glnew="1" style="margin:12px 0">＋ 새 목표 설정</button>
+    <section class="sec" style="--sc:#C98A00"><div class="sec-hd"><b>내 기록</b><i>대회·측정 — 목표와 별개</i></div>${rlogCard()}</section>`;
+}
+document.addEventListener('click',e=>{ if(e.target.closest('[data-glnew]'))goalStart(); });
 document.addEventListener('click',async e=>{
   const r=e.target.closest('[data-glres]'); if(r){ const x=GLOG.find(y=>y.id===r.dataset.glres); if(!x)return;
     const act=GLOG.find(y=>y.status==='active');
