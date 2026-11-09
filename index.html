@@ -2517,7 +2517,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.35';
+const APPVER='20.36';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2590,7 +2590,10 @@ const DEV = {
     let dev=known;
     if(!dev){
       const saved=(typeof BT!=='undefined'&&BT.name)?String(BT.name):'';
-      const prefixes=['Amazfit','Zepp','Garmin','Polar','Wahoo','TICKR','COROS','Suunto','Galaxy','Watch','Mi ','Xiaomi','Redmi','Huawei','HUAWEI','HONOR','Fitbit','Coospo','COOSPO','Magene','XOSS','HRM','HR ','Scosche','Whoop','Forerunner','Venu','Fenix','fenix','Epix','Instinct','Enduro','vivo','Pace','PACE','Apex','APEX','Vertix','Race','Vertical','Peak','Vantage','Pacer','Grit','Ignite','Verity','OH1','GTR','GTS','T-Rex','Cheetah','Balance','Active','Bip','Band','Heart for Bluetooth','HeartCast'];
+      const prefixes=['Amazfit','Zepp','Garmin','Polar','Wahoo','TICKR','COROS','Suunto','Galaxy','Watch','Mi ','Xiaomi','Redmi','Huawei','HUAWEI','HONOR','Fitbit','Coospo','COOSPO','Magene','XOSS','HRM','HR ','Scosche','Whoop','Forerunner','Venu','Fenix','fenix','Epix','Instinct','Enduro','vivo','Pace','PACE','Apex','APEX','Vertix','Race','Vertical','Peak','Vantage','Pacer','Grit','Ignite','Verity','OH1','GTR','GTS','T-Rex','Cheetah','Balance','Active','Bip','Band','Heart for Bluetooth','HeartCast',
+        /* 가민 시계 이름들 */ 'Approach','Descent','Lily','Bounce','MARQ','quatix','tactix','D2','Edge',
+        /* 삼성 */ 'Samsung','SM-R',
+        /* 중국 브랜드 */ 'OPPO','OnePlus','realme','Realme','Mibro','KOSPET','Kospet','Haylou','HAYLOU','IMILAB','Imilab','QCY','Lenovo','Zeblaze','Redmi','Smart Band','Mi Band','Mi Watch','Xiaomi Watch','Xiaomi Smart','Amazfit Balance','Helio','Zepp E','Zepp Z','HUAWEI WATCH','HUAWEI Band','HONOR Watch','HONOR Band','Ticwatch','TicWatch','Mobvoi','vivo WATCH','iGPSPORT','Magene','Coospo H','H6','H808','HW9','HW706','Chileaf','CL8','Moofit','Wahoo','Bryton','Rider'];
       const filters=[{services:['heart_rate']}].concat(saved?[{name:saved}]:[]).concat(prefixes.map(p=>({namePrefix:p})));
       const all=DEV._btAll; DEV._btAll=false;
       dev = await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true, optionalServices:['heart_rate','battery_service']}:{filters, optionalServices:['heart_rate','battery_service']});
