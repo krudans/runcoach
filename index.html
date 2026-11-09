@@ -318,6 +318,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
   font-size:13px;color:var(--warn-ink);margin-bottom:12px}
 .note.red{background:var(--bad-bg);border-color:#F0C4C2;color:var(--bad-ink)}
 .stgo-row{display:flex;gap:8px;margin-top:8px}
+.past-tg{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--panel,#fff);border-radius:14px;padding:12px 14px;margin:0 0 10px;font-size:13px;color:var(--ink-2)}.past-tg b{color:var(--ink);font-weight:700}.past-tg i{font-style:normal;color:var(--ink-3)}.past-tg em{font-style:normal;font-size:12px;color:var(--accent);font-weight:700}.past-tr td{padding:4px 0}.gl-sd{display:inline-flex;align-items:center;gap:4px}.gl-sd input{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:var(--panel,#fff);color:var(--ink)}
 .gl-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.gl-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.gl-hd b{font-size:14px;font-weight:700}.gl-hd i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}.wk-nav b{font-size:14px;text-align:center}.wk-nav b i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:600}.wk-nav button{border:1px solid var(--line);background:var(--card,#fff);border-radius:10px;padding:8px 10px;font-weight:700;font-size:12px;color:var(--ink)}.wk-nav button:disabled{opacity:.35}.stgo-row .btn{flex:1;margin:0}
 .note.green{background:var(--ok-bg);border-color:#B6DEC6;color:var(--ok-ink)}
@@ -2509,7 +2510,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.33';
+const APPVER='20.34';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3941,11 +3942,12 @@ function refreshEasyPaces(sess){
 const hasPlan=()=>!!(PLAN&&PLAN.sessions&&PLAN.sessions.length);
 /* 지난 주 기록 — 4주가 끝나 다음 4주를 새로 짜면(결산) 앞 4주가 일정에서 사라지고 이번 주가 1주차가 됐다.
    같은 목표면 지난 날 일정을 PLAN.past로 넘겨 계속 보이게 하고, 주차는 목표를 시작한 주부터 센다 (결정 2026-11-09) */
-function pastSlim(s){ return {d:s.d,t:s.t,type:s.type,dist:(typeof DIST!=='undefined'&&DIST[s.d])||s.dist||0,role:s.role||null,reps:s.reps||null,repLen:s.repLen||null}; }
+function goalKey(g){ return g?[g.kind,g.m||0,(g.aero&&g.aero.mode)||''].join(':'):''; }
+function pastSlim(s,g){ return {gk:s.gk||goalKey(g),d:s.d,t:s.t,type:s.type,dist:(typeof DIST!=='undefined'&&DIST[s.d])||s.dist||0,role:s.role||null,reps:s.reps||null,repLen:s.repLen||null}; }
 function planCarryPast(old,p){
   if(!old||!p||!p.sessions)return;   /* 목표가 바뀌어도 지난 날은 남긴다 — 이번 목표 시작 전 주는 '이전 목표'로 표시 */
   const first=p.sessions.length?String(p.sessions[0].d).slice(0,10):todayStr(), seen=new Set();
-  const all=(old.past||[]).concat((old.sessions||[]).filter(x=>x.type!=='off').map(pastSlim));
+  const all=(old.past||[]).concat((old.sessions||[]).filter(x=>x.type!=='off').map(x=>pastSlim(x,old.goal)));
   const lim=addDays(todayStr(),-366);
   p.past=all.filter(x=>{ const d=String(x.d).slice(0,10), k=d+'|'+x.t; if(d>=first||d<lim||seen.has(k))return false; seen.add(k); return true; }).sort((a,b)=>a.d<b.d?-1:1);
   p.since0=old.since0||(p.past.length?weekMonday(p.past[0].d):weekMonday(old.start||first));
@@ -3955,7 +3957,7 @@ function planRecoverPast(){ try{
   if(!PLAN||!PLAN.sessions||!PLAN.sessions.length||PLAN.pastFix)return;
   const first=String(PLAN.sessions[0].d).slice(0,10), pv=DEV.store.get('planPrev',null), have=new Set((PLAN.past||[]).map(x=>String(x.d).slice(0,10)+'|'+x.t));
   let add=[];
-  if(pv&&pv.plan) add=add.concat(pv.plan.past||[],(pv.plan.sessions||[]).filter(x=>x.type!=='off').map(pastSlim));
+  if(pv&&pv.plan) add=add.concat(pv.plan.past||[],(pv.plan.sessions||[]).filter(x=>x.type!=='off').map(x=>pastSlim(x,pv.plan.goal)));
   const since=addDays(todayStr(),-366);   /* 일정에 붙은 기록 — 최근 1년 */
   RUNS.forEach(r=>{ if(!r.planId||!isRun(r))return; const d=String(r.planId).slice(0,10); if(d>=first||(since&&d<since))return;
     if(!add.some(x=>String(x.d).slice(0,10)===d)) add.push({d:r.planId,t:r.name||'달리기',type:r.type||'easy',dist:+r.planKm||+r.km||0,role:null}); });
@@ -3964,8 +3966,23 @@ function planRecoverPast(){ try{
   PLAN.pastFix=1; DEV.store.set('plan',PLAN);
 }catch(e){ console.warn('recover past',e); } }
 /* 주차 = 지금 진행 중인 목표를 시작한 주부터 (목표 목록의 시작일). 그 전 주는 이전 목표 — 지우지 않고 날짜로 보여 준다 */
+/* 월요일 결산으로 진행 중이던 4주가 오늘부터 새로 짜였으면 한 번 되돌린다 — 직전 일정(같은 목표·더 이른 시작·아직 안 끝난 4주) */
+function planRestoreBlock(){ try{
+  if(!PLAN||!PLAN.sessions||DEV.store.get('blockFix',0))return; DEV.store.set('blockFix',1);
+  const pv=DEV.store.get('planPrev',null), op=pv&&pv.plan; if(!op||!op.sessions||!op.start||!PLAN.start)return;
+  const t=todayStr(), recent=PLAN.made&&Date.now()-Date.parse(PLAN.made)<4*864e5, last=op.sessions.length?String(op.sessions[op.sessions.length-1].d).slice(0,10):'';
+  if(!recent||!goalKey(op.goal)||goalKey(op.goal)!==goalKey(PLAN.goal)||!(op.start<PLAN.start)||last<t)return;
+  /* 바뀐 뒤 뛰거나 직접 고친 날은 옮겨 담는다 */
+  const keep=PLAN.sessions.filter(x=>RUNS.some(r=>r.planId===x.d)||x.edited), kd=new Set(keep.map(x=>String(x.d).slice(0,10)));
+  const cur=PLAN; op.sessions=op.sessions.filter(x=>!kd.has(String(x.d).slice(0,10))).concat(keep).sort((a,b)=>a.d<b.d?-1:1);
+  op.past=(cur.past||[]).filter(x=>String(x.d).slice(0,10)<op.start);
+  DEV.store.set('planPrev',{at:new Date().toISOString(),plan:cur,goal:GOAL});
+  PLAN=op; DEV.store.set('plan',PLAN); BLOCK=loadPlan(); setTimeout(()=>{ try{ toast(`${+op.start.slice(5,7)}.${+op.start.slice(8,10)} 시작 일정으로 되돌림`); }catch(e){} },1500);
+}catch(e){ console.warn('restore block',e); } }
 function planSince(){ let g0=null; try{ g0=(typeof GLOG!=='undefined'&&GLOG||[]).find(x=>x.status==='active'); }catch(e){}
-  const P=PLAN||{}; return weekMonday((g0&&g0.start)||P.start||(BLOCK&&BLOCK[0]&&BLOCK[0].d)||todayStr()); }
+  const P=PLAN||{}; let st=(g0&&g0.start)||P.start||(BLOCK&&BLOCK[0]&&BLOCK[0].d)||todayStr();
+  if(g0&&P.start&&goalKey(P.goal)===goalKey(g0.goal)&&String(P.start)<String(st))st=P.start;   /* 지금 일정이 같은 목표로 더 일찍 시작했으면 그날부터 */
+  return weekMonday(st); }
 function wkNo(mon){ return Math.round((Date.parse(mon)-Date.parse(planSince()))/6048e5)+1; }
 function wkLab(mon,suf){ const n=wkNo(mon); return n>=1?`${n}${suf||'주차'}`:`${+mon.slice(5,7)}.${+mon.slice(8,10)} 주`; }
 function pastSessOn(ds){ return ((PLAN&&PLAN.past)||[]).find(x=>String(x.d).slice(0,10)===ds&&x.type!=='off')||null; }
@@ -8540,6 +8557,8 @@ function applyReview(act,v){
   const g=(PLAN&&PLAN.goal)||GOAL||null;
   const o={goal:g};   /* 시작일은 makePlan이 고른다 — 남은 날이 적으면 다음 주 월요일 */
   o.fromReview=true;
+  /* 지금 4주가 아직 안 끝났으면 처음부터 다시 짜지 않는다 — 시작일 그대로, 남은 날의 양만 조절 (전엔 월요일 결산마다 오늘부터 새 4주가 됐다) */
+  { const last=BLOCK.length?BLOCK[BLOCK.length-1].d.slice(0,10):null; if(PLAN&&PLAN.start&&last&&last>=addDays(todayStr(),6)){ o.start=PLAN.start; o.keepDays=true; } }
   if(act==='repeat'){ o.baseOverride=Math.max(6,v.planKm/1); o.growOverride=1.0; }
   else if(act==='shrink'){ o.baseOverride=Math.max(6,v.ranKm||v.planKm*0.7); }
   else if(act==='easier'){ o.baseOverride=Math.max(6,v.planKm*0.95); o.hardMinus=1; }
@@ -8582,6 +8601,7 @@ const ESC=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const GRB=g=>g&&g!=='—'?`<span class="gr ${g}">${g}</span>`:'';
 const dsOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const isRun=r=>(r.act||'run')==='run';
+planRestoreBlock();
 planRecoverPast();   /* RUNS·DIST·isRun 선언 뒤 — 사라진 지난 4주 되살리기(한 번) */
 
 function decLog(kind,title,why,choice,extra){
@@ -12780,21 +12800,17 @@ function planListHTML(){ return pastListHTML()+planListHTML0(); }
 function pastListHTML(){
   const P=(PLAN&&PLAN.past)||[], cur=new Set(BLOCK.map(x=>weekMonday(x.d))), mons=[...new Set(P.map(x=>weekMonday(x.d)))].filter(m=>!cur.has(m)).sort();
   if(!mons.length)return '';
-  return mons.map(mon=>{ const items=P.filter(x=>weekMonday(x.d)===mon), sun=addDays(mon,6), plan=items.reduce((a,x)=>a+(+x.dist||0),0);
-    const ranOn=ds=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds);
-    const nDid=items.filter(x=>RUNS.some(r=>r.planId===x.d)).length, max=Math.max(1,...items.map(x=>+x.dist||0));
-    const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), dn=`<span class="pd-dt"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`, L=items.filter(x=>String(x.d).slice(0,10)===ds), rr=ranOn(ds);
-      if(!L.length){ const km=rr.reduce((a,r)=>a+(+r.km||0),0); return `<div class="pd-row rest past${km?' did':''}">${dn}<span class="pd-bar rest"><i style="height:0"></i></span><span class="pd-rest">${km?`✓ 프리런 ${fmtKm1(km)}km`:'쉬는 날'}</span></div>`; }
-      return L.map(x=>{ const r=RUNS.find(r=>r.planId===x.d), col=(TYPES[x.type]||{}).col||'#5B2D86';
-        return `<div class="pd-row${r?' did':' past'}" style="--tc:${col}">${dn}<span class="pd-main"${r?` data-wkrun="${ESC(r.rid)}" role="button"`:''} style="cursor:${r?'pointer':'default'}"><span class="pd-bar"><i style="height:${Math.max(18,(+x.dist||0)/max*100)}%"></i></span>
-          <span class="pd-tx"><b>${ESC(String(x.t||'').replace(/\s*\([^)]*\)/g,''))}</b><i>${r?`${fmtKm1(+r.km||0)}km · ${fmtClock(+r.sec||0)}`:`계획 ${fmtKm1(+x.dist||0)}km`}</i></span></span>${r?'<em class="pd-st ok">✓</em>':'<em class="pd-st miss">놓침</em>'}</div>`; }).join(''); }).join('');
-    return `<section class="pw pw-f past fold" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b><span class="pw-role">${wkNo(mon)>=1?'지난 4주':'이전 목표'}</span>
-      <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i><i class="pw-sum">뛴 날 <b>${nDid}</b> / ${items.length}</i></div></div><span class="pw-km"><b class="num">${fmtKm1(plan)}</b>km</span></header><div class="pw-rows">${rows}</div></section>`; }).join('');
+  /* 지난 주는 한 줄로 접어 둔다 — 눌러야 펼침. 매번 맨 위에 길게 늘어놓지 않는다 */
+  const nCur=mons.filter(m=>wkNo(m)>=1).length, nOld=mons.length-nCur, open=!!window.PAST_OPEN;
+  const head=`<button type="button" class="past-tg${open?' on':''}" data-pasttg="1"><span>지난 기록 <b>${mons.length}주</b>${nOld?` <i>· 이전 목표 ${nOld}주</i>`:''}</span><em>${open?'접기 ▴':'펼치기 ▾'}</em></button>`;
+  if(!open)return head;
+  return head+planListHTML0(P,mons);   /* 지금 주와 같은 틀 — 쉬는 날 할 일·점수까지 */
 }
-function planListHTML0(){
-  const t=todayStr(), mons=[...new Set(BLOCK.map(x=>weekMonday(x.d)))].sort();
+/* 주 카드 — 지금 4주(BLOCK)와 지난 기록(PLAN.past)을 같은 틀로. 쉬는 날(근력·회복 할 일·점수)도 똑같이 보인다 */
+function planListHTML0(src,monsIn){
+  const L=src||BLOCK, isPast=!!src, t=todayStr(), mons=monsIn||[...new Set(L.map(x=>weekMonday(x.d)))].sort();
   return mons.map((mon,wi)=>{
-    const items=BLOCK.filter(x=>weekMonday(x.d)===mon), sun=addDays(mon,6), wk=wi+1, wkRaw=items[0].wk;
+    const items=L.filter(x=>weekMonday(x.d)===mon), sun=addDays(mon,6), wk=isPast?'p'+mon:wi+1, wkRaw=items[0]&&items[0].wk;
     const plan=items.reduce((a,x)=>a+sKm(x),0);
     /* 한 것 = 실제로 뛴 거리(기록 기준). 계획 3km에 9km를 뛰었으면 9km다 */
     const ranOn=ds=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds).reduce((a,r)=>a+(+r.km||0),0);
@@ -12810,17 +12826,20 @@ function planListHTML0(){
         const sub=scored?restMissions(K.k).filter(x=>x.pts).map(x=>x.k==='str'?'근력 6동작×3':x.k==='core'?'코어 4동작×2':x.k==='norun'?'뛰지 않기':x.k==='rhr'?'안정 심박':x.k==='sleep'?'수면':x.t).join(' · '):'';
         const st=freeKm?`<em class="pd-st ok">✓ 프리런 ${fmtKm1(freeKm)}km</em>`:!scored?'':closed?`<em class="pd-st ok">☾ ${R.score}점 ✓</em>`:ds===t?`<em class="pd-st now">오늘${any?` · ${R.score}점`:''}</em>`:ds<t?(any?`<em class="pd-st rest">☾ ${R.score}점</em>`:'<em class="pd-st rest">기록 없음</em>'):'';
         return `<div class="pd-row rest${ds<t?' past':''}${freeKm||closed?' did':''}${ds===t?' today':''}">${dn}<span class="pd-bar rest"><i style="height:${scored?Math.max(18,(closed||any?R.score:0)):0}%"></i></span><span class="pd-rest"><b class="pd-rl">${lab}</b>${sub?`<i>${sub}</i>`:''}</span>${st}${ds>t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`; }
-      return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=sessionOf(i)||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
+      return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=(i>=0&&sessionOf(i))||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         const did=RUNS.some(r=>r.planId===sx.d), miss=!did&&ds<t, word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
         const st=did?`<em class="pd-st ok">✓${Math.abs(freeKm-km)>=0.5?` ${fmtKm1(freeKm)}km`:''}</em>`:miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
-          <button type="button" class="pd-main" data-pgo="${i}"><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
+          <button type="button" class="pd-main" ${i>=0?`data-pgo="${i}"`:(()=>{ const r=RUNS.find(r=>r.planId===sx.d); return r?`data-wkrun="${ESC(r.rid)}"`:'disabled'; })()}><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
             <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
           ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:miss?`<button type="button" class="pd-add" data-pman="${sx.d}" aria-label="기록 직접 넣기">+</button>`:''}</div>`; }).join(''); }).join('');
     const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
-    const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
+    /* 쉬는 날도 훈련 — 할 일이 있는 쉬는 날(근력·회복)을 마감했는지 같이 센다 */
+    const rD=[0,1,2,3,4,5,6].map(k=>addDays(mon,k)).filter(ds=>ds<t&&!items.some(x=>x.d.slice(0,10)===ds&&x.type!=='off')&&(()=>{ try{ return restKind(ds).k!=='plain'; }catch(e){ return false; } })());
+    const rK=rD.filter(ds=>RESTLOG[ds]&&RESTLOG[ds].closed).length;
+    const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${rD.length?` · 쉬는 날 <b>${rK}</b> / ${rD.length}`:''}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
     return `<section class="pw pw-f${cur?' cur':''}${past?' past':''}${pwFold(mon,cur)?' fold':''}" id="pw${wk}" data-pwm="${mon}">
-      <header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b>${cur?'<span class="pw-now">이번 주</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
+      <header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b>${cur?'<span class="pw-now">이번 주</span>':''}${wkNo(mon)<1?'<span class="pw-role">이전 목표</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
         <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i>${sum}</div></div>
         ${items.some(x=>x.rw)?`<span class="pw-km"><b class="num">${Math.round(items.reduce((a,x)=>{ const v=sessionOf(BLOCK.indexOf(x))||x; return a+((v.rw&&v.rw.totSec)||0); },0)/60)}</b>분</span>`:`<span class="pw-km"><b class="num">${done?fmtKm1(done)+' / ':''}${fmtKm1(plan)}</b>km</span>`}</header>
       ${done?`<div class="pw-prog"><i style="width:${Math.min(100,done/plan*100)}%"></i></div>`:''}
@@ -12832,7 +12851,8 @@ function planListHTML0(){
 document.addEventListener('click',async e=>{
   if(!e.target.closest('#plan,#peSheet'))return;
   { const pm=e.target.closest('[data-pman]'); if(pm)return manOpen(pm.dataset.pman); }
-  { const wr=e.target.closest('#plan [data-wkrun]'); if(wr)return openRunView(wr.dataset.wkrun); }   /* 지난 4주 — 뛴 날은 그 기록 */
+  { const wr=e.target.closest('#plan [data-wkrun]'); if(wr)return openRunView(wr.dataset.wkrun); }
+  { const pt=e.target.closest('[data-pasttg]'); if(pt){ window.PAST_OPEN=!window.PAST_OPEN; const h=$('dayList'); if(h){ h.innerHTML=planListHTML(); try{ h.insertAdjacentHTML('beforeend',futureListHTML()); }catch(err){} } try{ const g=$('planGrid')||document.querySelector('.pg-card'); if(g&&typeof paintPlanView==='function')paintPlanView(); }catch(err){} return; } }   /* 지난 4주 — 뛴 날은 그 기록 */
   const up=e.target.closest('[data-unpaste]'); if(up){ e.stopPropagation(); if(await ask('받아 적은 훈련을 지우고 원래 일정으로 되돌릴까요?','되돌리기')){ clearCustom(up.dataset.unpaste); renderPlan(); toast('원래 일정으로 되돌렸어요'); } return; }
   const g=e.target.closest('[data-pgo]'); if(g)return openConfirm(+g.dataset.pgo);
   const ph=e.target.closest('.pw.pw-f>header'); if(ph){ const sec=ph.parentElement, m=sec.dataset.pwm; const f=sec.classList.toggle('fold'); if(f)PWOPEN.delete(m); else PWOPEN.add(m); return; }
@@ -12990,11 +13010,11 @@ function planGridHTML(){
   { const P=(PLAN&&PLAN.past)||[], pm=[...new Set(P.map(x=>weekMonday(x.d)))].filter(m=>!mons.includes(m)).sort();
     const prow=pm.map(mon=>{ const items=P.filter(x=>weekMonday(x.d)===mon), wkm=items.reduce((a,x)=>a+(+x.dist||0),0), dn=items.filter(x=>RUNS.some(r=>r.planId===x.d)).length;
       const cells=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>String(x.d).slice(0,10)===ds);
-        if(!L.length)return `<td class="r"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`;
+        if(!L.length){ const ok=!!(RESTLOG[ds]&&RESTLOG[ds].closed); return `<td class="r past${ok?' kept':''}"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`; }   /* 지금 주 표와 같은 기준 — 마감한 쉬는 날 표시 */
         return `<td>${L.map(x=>{ const did=RUNS.some(r=>r.planId===x.d), lab=PSHORT[x.type]||String(x.t||'').split(' ')[0];
           return `<div class="pg-s${did?' did':' miss'}" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b class="${lab.length>3?'lg':''}">${pgName(lab)}</b><span>${pgU(x.dist?fmtKm1(x.dist)+'km':'')}</span></div>`; }).join('')}</td>`; }).join('');
       return `<tr class="past"><th><b>${wkLab(mon,'주')}</b><span>${fmtKm1(wkm)}km</span>${items.length?`<u><s style="width:${Math.round(dn/items.length*100)}%"></s></u>`:''}</th>${cells}</tr>`; }).join('');
-    rows=prow+rows; }
+    if(pm.length) rows=`<tr class="past-tr"><td colspan="8"><button type="button" class="past-tg${window.PAST_OPEN?' on':''}" data-pasttg="1"><span>지난 기록 <b>${pm.length}주</b></span><em>${window.PAST_OPEN?'접기 ▴':'펼치기 ▾'}</em></button></td></tr>`+(window.PAST_OPEN?prow:'')+rows; }
   /* 4주 뒤 — 미리 보기(점선). 목표일까지 */
   const F=planFuture(), fm=[...new Set(F.map(x=>weekMonday(x.d)))].sort();
   const frows=fm.map((mon,wi)=>{ const items=F.filter(x=>weekMonday(x.d)===mon&&x.type!=='off'), wkm=items.reduce((a,x)=>a+(x.dist||0),0);
@@ -13965,6 +13985,7 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-snap]'); 
 /* ═════════════════════ 목표 목록 — 정한 목표는 지워지지 않고 쌓인다 ═════════════════════
    {id, made, goal, start, end, status:'active'|'done'|'ended', v0, vEnd, closedAt} */
 var GLOG=DEV.store.get('goals',[]);
+setTimeout(()=>{ try{ glogMergeSame(); renderHome(); }catch(e){} },0);   /* 겹친 같은 목표 한 번 합치기 */
 function glogSave(){ DEV.store.set('goals',GLOG); }
 function glogMetric(g){ /* 그 목표의 지금 값·목표값 — goalModel과 같은 규칙, 저장된 목표 기준 */
   if(!g)return null;
@@ -13977,8 +13998,22 @@ function glogMetric(g){ /* 그 목표의 지금 값·목표값 — goalModel과 
 }
 function glogReached(m){ return m&&m.now!=null&&(m.better==='higher'?m.now>=m.vT:m.now<=m.vT); }
 /* 새 목표를 정했을 때 — 이전 진행 중 목표는 '달성' 또는 '종료'로 닫고 새 목표를 쌓는다 */
+/* 같은 목표 = 종류·거리(편한 달리기는 방식)가 같음. 기록·날짜·길(path)을 고친 건 같은 목표를 이어 가는 것 */
+function goalSame(a,b){ return !!(a&&b&&a.kind===b.kind&&(a.m||0)===(b.m||0)&&((a.aero&&a.aero.mode)||'')===((b.aero&&b.aero.mode)||'')); }
+/* 같은 목표를 다시 정했을 때 생긴 겹친 줄을 하나로 — 시작일은 처음 시작한 날 (전엔 목표를 고칠 때마다 새 줄이 생기고 주차가 1주차로 돌아갔다) */
+function glogMergeSame(){ try{ if(!GLOG||!GLOG.length)return; const a=GLOG.find(x=>x.status==='active'); if(!a)return; let ch=false;
+  for(let i=GLOG.indexOf(a)-1;i>=0;i--){ const x=GLOG[i]; if(!goalSame(x.goal,a.goal)||!['paused','ended'].includes(x.status))break;
+    if(String(x.start||'')<String(a.start||'9')){ a.start=x.start; } if(x.v0!=null&&a.v0==null)a.v0=x.v0; a.merged=(a.merged||[]).concat(x.id); GLOG.splice(i,1); ch=true; }
+  /* 지난 일정 중 같은 목표로 이어진 날이 있으면 그 첫날이 시작 — 4주 결산·목표 고치기로 다시 짜도 시작일은 처음 그대로 */
+  try{ const P=PLAN||{}, first=P.sessions&&P.sessions.length?String(P.sessions[0].d).slice(0,10):todayStr(), cands=[];
+    const k=goalKey(a.goal), ps=(P.past||[]).slice().sort((x,y)=>x.d<y.d?1:-1); let run=null; for(const x of ps){ if(x.gk!==k)break; run=String(x.d).slice(0,10); } if(run)cands.push(run);
+    if(P.start&&goalKey(P.goal)===k)cands.push(String(P.start).slice(0,10));
+    const st=cands.sort()[0]; if(st&&st<String(a.start||'9')){ a.start=st; ch=true; } }catch(e){}
+  if(ch)glogSave(); }catch(e){ console.warn('glog merge',e); } }
 function glogPush(g,plan){
   const t=todayStr();
+  { const a=GLOG.find(x=>x.status==='active');
+    if(a&&goalSame(a.goal,g)){ a.goal=JSON.parse(JSON.stringify(g)); a.end=g.date?g.date.slice(0,10):null; glogSave(); return; } }   /* 같은 목표를 고친 것 — 새 줄 없이 고치고 시작일·주차는 그대로 */
   /* 진행 중이던 목표는 '잠시 멈춤'으로 보관한다 — 일정 스냅샷을 같이 두어 나중에 그 자리에서 이어갈 수 있게. 이미 달성했으면 '달성' */
   GLOG.forEach(x=>{ if(x.status==='active'){ const m=glogMetric(x.goal); x.vEnd=m?m.now:null;
     if(glogReached(m)){ x.status='done'; x.closedAt=t; }
@@ -14048,7 +14083,7 @@ function goalListHTML(){ glogTick();
              :x.status==='active'?`<button type="button" class="gl-re" data-glend="${x.id}">목표 종료</button>`
              :`<button type="button" class="gl-re" data-glre="${x.id}">이 목표로 재시작</button>`;
     const del=x.status!=='active'?`<button type="button" class="gl-del" data-gldel="${x.id}" aria-label="목록에서 지우기">지우기</button>`:'';
-    return `<li class="gl-it ${st[1]}"><span class="gl-ic">${ico(g)}</span><div class="gl-t"><b>${glogTitle(g)}</b><i>${d(x.start)}${x.end?' → '+d(x.end):''}${x.pausedAt&&x.status==='paused'?' · '+d(x.pausedAt)+' 멈춤':''}${x.closedAt&&!['active','paused'].includes(x.status)?' · '+d(x.closedAt)+' 마감':''}</i>${vals?`<em>${vals}</em>`:''}<div class="gl-act">${btn}${del}</div></div><span class="gl-st">${st[0]}</span></li>`; };
+    return `<li class="gl-it ${st[1]}"><span class="gl-ic">${ico(g)}</span><div class="gl-t"><b>${glogTitle(g)}</b><i>${x.status==='active'?`<label class="gl-sd">시작 <input type="date" data-glsd="${x.id}" value="${String(x.start||'').slice(0,10)}" max="${todayStr()}"></label>`:d(x.start)}${x.end?' → '+d(x.end):''}${x.pausedAt&&x.status==='paused'?' · '+d(x.pausedAt)+' 멈춤':''}${x.closedAt&&!['active','paused'].includes(x.status)?' · '+d(x.closedAt)+' 마감':''}</i>${vals?`<em>${vals}</em>`:''}<div class="gl-act">${btn}${del}</div></div><span class="gl-st">${st[0]}</span></li>`; };
   /* 목록이 길어지면 페이지로 — 한 페이지 개수는 사용자가 정한다(5·10·20) */
   const PG=+(DEV.store.get('glPg',5))||5; window.GLV=window.GLV||{};
   const grp=(lab,arr,key)=>{ if(!arr.length)return ''; const pages=Math.max(1,Math.ceil(arr.length/PG)), pg=Math.min(pages,Math.max(1,GLV[key]||1)), show=arr.slice((pg-1)*PG,pg*PG);
@@ -14069,6 +14104,9 @@ function renderGoalsTab(){
     <section class="sec" style="--sc:#C98A00"><div class="sec-hd"><b>내 기록</b><i>대회·측정 — 목표와 별개</i></div>${rlogCard()}</section>`;
 }
 document.addEventListener('click',e=>{ if(e.target.closest('[data-glnew]'))goalStart(); });
+/* 진행 중 목표의 시작일 — 주차(1주차)의 기준. 앱이 잘못 잡았으면 직접 고친다 */
+document.addEventListener('change',e=>{ const el=e.target.closest('[data-glsd]'); if(!el)return; const x=GLOG.find(y=>y.id===el.dataset.glsd), v=el.value;
+  if(!x||!v||v>todayStr())return; x.start=v; glogSave(); try{ renderPlan(); renderHome(); }catch(err){} toast(`시작 ${+v.slice(5,7)}.${+v.slice(8,10)} → 이번 주 ${wkLab(weekMonday(todayStr()))}`); });
 document.addEventListener('click',async e=>{
   const r=e.target.closest('[data-glres]'); if(r){ const x=GLOG.find(y=>y.id===r.dataset.glres); if(!x)return;
     const act=GLOG.find(y=>y.status==='active');
