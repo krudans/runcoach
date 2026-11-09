@@ -2505,7 +2505,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.26';
+const APPVER='20.27';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11684,7 +11684,7 @@ function goalBadge(){
   try{ const g=PLAN&&PLAN.goal; if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&!PLAN.starter&&g&&g.kind==='race'&&g.date&&g.m&&PLAN.season!==2&&!PLAN.imported&&g.date.slice(0,10)>todayStr()){
     applyPlan(makePlan({goal:g,start:PLAN.start,keepDays:true})); DEV.store.set('seasonUp',APPVER); setTimeout(()=>{ try{ toast('남은 일정 재구성'); }catch(e){} },1800); } }catch(e){ console.warn('season up',e); }
   /* v19.22 — 시즌 상한 기준이 옛 값에 묶여 평평하던 일정·옛 일정과 부딪히던 고친 날을 한 번 바로잡는다. 지난 날·뛴 날은 그대로, '되돌리기'로 돌아갈 수 있다 */
-  try{ const g=PLAN&&PLAN.goal; if(!DEV.store.get('fix24',0)&&PLAN&&PLAN.season===2&&!PLAN.starter&&!PLAN.imported&&g&&g.m>=21000&&(!g.date||g.date.slice(0,10)>todayStr())){
+  try{ const g=PLAN&&PLAN.goal; if(!DEV.store.get('fix24',0)&&PLAN&&String(PLAN.made||'')<'2026-11-03'&&PLAN.season===2&&!PLAN.starter&&!PLAN.imported&&g&&g.m>=21000&&(!g.date||g.date.slice(0,10)>todayStr())){
     replanRest(); DEV.store.set('fix24',1); setTimeout(()=>{ try{ toast('버그 수정 → 남은 일정 재구성'); }catch(e){} },1800); } }catch(e){ console.warn('fix22',e); }
   renderHome(); paintFb();
   /* 한 번이라도 로그인한 폰에서만 미리 깨운다.
@@ -11941,8 +11941,8 @@ function autoBanner(mini){
   const n=(RUNS||[]).filter(r=>(r.act||'run')==='run'&&Date.now()-Date.parse(r.date)<42*864e5).length, nOv=Object.keys(ovGet()).length;
   const ic=`<svg viewBox="0 0 24 24" width="${mini?14:22}" height="${mini?14:22}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/><path d="M9 12l2 2 4-4"/></svg>`;
   if(mini) return `<span class="ab-mini">${ic}자동 계산</span>`;
-  return `<div class="ab" role="note"><span class="ab-ic">${ic}</span><div><b>모든 값 = 내 기록</b>
-    <i>6주 ${n}회${nOv?` · 직접 입력 ${nOv}개`:''} · 매번 갱신</i></div></div>`;
+  return `<div class="ab" role="note"><span class="ab-ic">${ic}</span><div><b>${n?'모든 값 = 내 기록':'지금 값 = 처음 설정에 넣은 기록'}</b>
+    <i>${n?`6주 ${n}회${nOv?` · 직접 입력 ${nOv}개`:''} · 매번 갱신`:`달리기를 기록하면 내 기록으로 바뀜${nOv?` · 직접 입력 ${nOv}개`:''}`}</i></div></div>`;
 }
 let GUIDE_BACK='settings', GW_OPEN=null; const GW_MAN={};
 function guideShape(k,col){
