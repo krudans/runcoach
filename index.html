@@ -317,7 +317,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .note{background:var(--warn-bg);border:1px solid var(--line);border-radius:10px;padding:13px 15px;
   font-size:13px;color:var(--warn-ink);margin-bottom:12px}
 .note.red{background:var(--bad-bg);border-color:#F0C4C2;color:var(--bad-ink)}
-.stgo-row{display:flex;gap:8px;margin-top:8px}.stgo-row .btn{flex:1;margin:0}
+.stgo-row{display:flex;gap:8px;margin-top:8px}
+.wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}.wk-nav b{font-size:14px;text-align:center}.wk-nav b i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:600}.wk-nav button{border:1px solid var(--line);background:var(--card,#fff);border-radius:10px;padding:8px 10px;font-weight:700;font-size:12px;color:var(--ink)}.wk-nav button:disabled{opacity:.35}.stgo-row .btn{flex:1;margin:0}
 .note.green{background:var(--ok-bg);border-color:#B6DEC6;color:var(--ok-ink)}
 .note.blue{background:var(--info-bg);border-color:#C2D9EC;color:var(--info-ink)}
 .note b{color:var(--ink)}
@@ -2507,7 +2508,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.31';
+const APPVER='20.32';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3937,6 +3938,33 @@ function refreshEasyPaces(sess){
   return sess;
 }
 const hasPlan=()=>!!(PLAN&&PLAN.sessions&&PLAN.sessions.length);
+/* 지난 주 기록 — 4주가 끝나 다음 4주를 새로 짜면(결산) 앞 4주가 일정에서 사라지고 이번 주가 1주차가 됐다.
+   같은 목표면 지난 날 일정을 PLAN.past로 넘겨 계속 보이게 하고, 주차는 목표를 시작한 주부터 센다 (결정 2026-11-09) */
+function samePlanGoal(a,b){ return !!(a&&b&&a.kind===b.kind&&(a.m||0)===(b.m||0)&&((a.aero&&a.aero.mode)||'')===((b.aero&&b.aero.mode)||'')); }
+function pastSlim(s){ return {d:s.d,t:s.t,type:s.type,dist:(typeof DIST!=='undefined'&&DIST[s.d])||s.dist||0,role:s.role||null,reps:s.reps||null,repLen:s.repLen||null}; }
+function planCarryPast(old,p){
+  if(!old||!p||!p.sessions||!samePlanGoal(old.goal,p.goal))return;
+  const first=p.sessions.length?String(p.sessions[0].d).slice(0,10):todayStr(), seen=new Set();
+  const all=(old.past||[]).concat((old.sessions||[]).filter(x=>x.type!=='off').map(pastSlim));
+  p.past=all.filter(x=>{ const d=String(x.d).slice(0,10), k=d+'|'+x.t; if(d>=first||seen.has(k))return false; seen.add(k); return true; }).sort((a,b)=>a.d<b.d?-1:1);
+  p.since0=old.since0||(p.past.length?weekMonday(p.past[0].d):weekMonday(old.start||first));
+}
+/* 이미 사라진 지난 4주 되살리기(한 번) — 직전 일정 보관본 + 일정에 붙은 기록 */
+function planRecoverPast(){ try{
+  if(!PLAN||!PLAN.sessions||!PLAN.sessions.length||PLAN.pastFix)return;
+  const first=String(PLAN.sessions[0].d).slice(0,10), pv=DEV.store.get('planPrev',null), have=new Set((PLAN.past||[]).map(x=>String(x.d).slice(0,10)+'|'+x.t));
+  let add=[];
+  if(pv&&pv.plan&&samePlanGoal(pv.plan.goal,PLAN.goal)) add=add.concat(pv.plan.past||[],(pv.plan.sessions||[]).filter(x=>x.type!=='off').map(pastSlim));
+  const g0=(GLOG||[]).find(x=>x.status==='active'), since=g0&&g0.start?String(g0.start).slice(0,10):null;
+  RUNS.forEach(r=>{ if(!r.planId||!isRun(r))return; const d=String(r.planId).slice(0,10); if(d>=first||(since&&d<since))return;
+    if(!add.some(x=>String(x.d).slice(0,10)===d)) add.push({d:r.planId,t:r.name||'달리기',type:r.type||'easy',dist:+r.planKm||+r.km||0,role:null}); });
+  add=add.filter(x=>{ const d=String(x.d).slice(0,10), k=d+'|'+x.t; if(d>=first||have.has(k))return false; have.add(k); return true; });
+  if(add.length){ PLAN.past=(PLAN.past||[]).concat(add).sort((a,b)=>a.d<b.d?-1:1); PLAN.since0=PLAN.since0||weekMonday(PLAN.past[0].d); }
+  PLAN.pastFix=1; DEV.store.set('plan',PLAN);
+}catch(e){ console.warn('recover past',e); } }
+function planSince(){ const P=PLAN||{}, ps=P.past||[]; return weekMonday(P.since0||(ps.length?String(ps[0].d):null)||P.start||(BLOCK&&BLOCK[0]&&BLOCK[0].d)||todayStr()); }
+function wkNo(mon){ return Math.max(1,Math.round((Date.parse(mon)-Date.parse(planSince()))/6048e5)+1); }
+function pastSessOn(ds){ return ((PLAN&&PLAN.past)||[]).find(x=>String(x.d).slice(0,10)===ds&&x.type!=='off')||null; }
 function loadPlan(){
   const base=(PLAN&&PLAN.sessions&&PLAN.sessions.length) ? PLAN.sessions : buildBlock();
   base.forEach(termSess); base.forEach(refreshEasyPaces); base.forEach(fixRestDist);
@@ -3977,6 +4005,7 @@ function applyPlan(p){
   /* 직전 일정은 하나 보관한다 — 다시 짠 결과가 마음에 안 들면 되돌린다 */
   try{ if(PLAN&&PLAN.sessions&&PLAN.sessions.length&&PLAN!==p)DEV.store.set('planPrev',{at:new Date().toISOString(),plan:PLAN,goal:GOAL}); }catch(e){}
   if(PLAN&&p&&PLAN.start&&p.start===PLAN.start)p.since=PLAN.since||PLAN.made;
+  try{ planCarryPast(PLAN,p); }catch(e){ console.warn('carry past',e); }
   PLAN=p; DEV.store.set('plan',p);
   (p.sessions||[]).forEach(refreshEasyPaces); (p.sessions||[]).forEach(fixRestDist);
   BLOCK=mergeCustom(p.sessions);
@@ -4404,7 +4433,7 @@ function renderPlan(){
   if(hd){
     if(PLAN&&PLAN.why&&PLAN.why.length){
       const g=PLAN.goal||{}, G=GOALS.find(x=>x.k===g.kind);
-      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${g.m&&g.sec?`${gdLabel(g.m)} ${fmtClock(g.sec)}`:G?G.nm:'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`1주차 ${(()=>{ const m=planMons()[0], w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
+      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${g.m&&g.sec?`${gdLabel(g.m)} ${fmtClock(g.sec)}`:G?G.nm:'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`${(()=>{ const m=planMons()[0]; return m?wkNo(m):1; })()}주차 ${(()=>{ const m=planMons()[0], w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
         <ul>${planChecks(PLAN,BLOCK).why.map(x=>`<li>${x}</li>`).join('')}</ul></details>`+
         /* 시간 한계 같은 경고는 접어 두지 않는다 — 일정이 왜 안 늘어나는지 바로 보이게 */
         /* 경고는 한 카드로 — 원인(쓸 수 있는 시간)을 그 자리에서 바꿀 수 있게 */
@@ -6865,7 +6894,7 @@ function reloadLocals(){
   DIST=DEV.store.get('dist',DIST); SURVEY=DEV.store.get('survey',SURVEY);
   PROF=Object.assign({},DEFAULT_PROF,DEV.store.get('prof',PROF));
   /* 목표·일정·받아적은 것도 함께 되살린다 — 안 그러면 폰을 바꿨을 때 일정이 사라진다 */
-  GOAL=DEV.store.get('goal',GOAL); PLAN=DEV.store.get('plan',PLAN);
+  GOAL=DEV.store.get('goal',GOAL); PLAN=DEV.store.get('plan',PLAN); try{ planRecoverPast(); }catch(e){}
   try{ RHR=DEV.store.get('rhr',RHR); HIKES=DEV.store.get('hikes',HIKES); RLOG=DEV.store.get('races',RLOG); GLOG=DEV.store.get('goals',GLOG); }catch(e){}
   CUSTOM=DEV.store.get('custom',CUSTOM)||{};
   DECS=DEV.store.get('decs',DECS); ACTS=DEV.store.get('acts',ACTS); RESTLOG=DEV.store.get('restlog',RESTLOG);
@@ -8548,6 +8577,7 @@ const ESC=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const GRB=g=>g&&g!=='—'?`<span class="gr ${g}">${g}</span>`:'';
 const dsOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const isRun=r=>(r.act||'run')==='run';
+planRecoverPast();   /* RUNS·DIST·isRun 선언 뒤 — 사라진 지난 4주 되살리기(한 번) */
 
 function decLog(kind,title,why,choice,extra){
   DECS.push(Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
@@ -8647,8 +8677,9 @@ const symSVG=t=>`<svg class="sym" viewBox="0 0 100 100" aria-hidden="true">${(LO
 
 /* ───────── 하루 상태 — 약속을 지켰나 ─────────
    달린 날은 판정으로, 쉬는 날은 '안 뛰었나'로 센다. 쉬는 날을 지킨 것도 약속이다. */
-function planOn(ds){ if(!hasPlan())return null; return BLOCK.find(x=>x.d.slice(0,10)===ds&&x.type!=='off')||null; }
-function inPlan(ds){ if(!hasPlan()||!BLOCK.length)return false; const b0=BLOCK[0].d.slice(0,10), st=(PLAN&&PLAN.sessions&&PLAN.start&&PLAN.start<b0)?PLAN.start:b0;
+function planOn(ds){ if(!hasPlan())return null; return BLOCK.find(x=>x.d.slice(0,10)===ds&&x.type!=='off')||pastSessOn(ds); }   /* 지난 4주 일정도 — 다시 짜도 지난 날의 지킴·놓침 판정이 사라지지 않게 */
+function inPlan(ds){ if(!hasPlan()||!BLOCK.length)return false; const b0=BLOCK[0].d.slice(0,10), p0=(PLAN&&PLAN.past&&PLAN.past.length)?String(PLAN.past[0].d).slice(0,10):null;
+  const st=[b0,(PLAN&&PLAN.sessions&&PLAN.start&&PLAN.start<b0)?PLAN.start:null,p0].filter(Boolean).sort()[0];
   return ds>=st&&ds<=addDays(BLOCK[BLOCK.length-1].d.slice(0,10),1); }
 function dayStatus(ds){
   const today=todayStr();
@@ -8656,7 +8687,8 @@ function dayStatus(ds){
   const s=planOn(ds), runs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds);
   if(!inPlan(ds))return runs.length?'free':'none';
   /* 일정을 만들기 전 날(같은 주 월요일부터 세는 일정)은 약속이 아니었다 — '못 함'·'쉼'으로 세지 않는다 */
-  const made=PLAN&&(PLAN.since||PLAN.made)?ldate(PLAN.since||PLAN.made):null;
+  const p0=PLAN&&PLAN.past&&PLAN.past.length?String(PLAN.past[0].d).slice(0,10):null;   /* 지난 4주가 있으면 그 첫날부터가 약속 */
+  const made=p0||(PLAN&&(PLAN.since||PLAN.made)?ldate(PLAN.since||PLAN.made):null);
   if(made&&ds<made&&!(s&&RUNS.some(x=>x.planId===s.d)))return runs.length?'free':'none';
   if(s){
     const r=RUNS.find(x=>x.planId===s.d);
@@ -9137,7 +9169,7 @@ function renderHome(){
   const today=todayStr(), d=new Date();
   $('tlDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${dowOf(today)}요일`;
   const cur=BLOCK.find(x=>x.d.slice(0,10)===today);
-  $('tlWk').textContent=cur&&hasPlan()?`${cur.wk}주차`:'';
+  $('tlWk').textContent=cur&&hasPlan()?`${wkNo(weekMonday(today))}주차`:'';
 
   const idx=hasPlan()?BLOCK.findIndex(x=>x.d.slice(0,10)===today&&x.type!=='off'):-1;   /* 예시 일정은 오늘 할 일이 아니다 */
   const sess=idx>=0?sessionOf(idx):null;
@@ -9243,8 +9275,13 @@ function tileOpen(k){
   try{ wireHome(null,-1); }catch(e){}
   if(k==='body'){ try{ wireLog($('tileBody')); }catch(e){} }
   if(k==='race'){ try{ renderRaces($('tileRaces')); }catch(e){} }
-  if(k==='week'){ const b=$('tileBody'); b.querySelectorAll('[data-wkrun]').forEach(x=>x.onclick=e=>{ if(e.target.closest('[data-pman]'))return; tileClose(); openRunView(x.dataset.wkrun); });
-    b.querySelectorAll('[data-pman]').forEach(x=>x.onclick=e=>{ e.stopPropagation(); tileClose(); manOpen(x.dataset.pman); }); }
+  if(k==='week')wkWire();
+}
+function wkWire(){ const b=$('tileBody'); if(!b)return;
+  b.querySelectorAll('[data-wkrun]').forEach(x=>x.onclick=e=>{ if(e.target.closest('[data-pman]'))return; tileClose(); openRunView(x.dataset.wkrun); });
+  b.querySelectorAll('[data-pman]').forEach(x=>x.onclick=e=>{ e.stopPropagation(); tileClose(); manOpen(x.dataset.pman); });
+  /* 지난주 보기 — 같은 창에서 주를 넘긴다 */
+  b.querySelectorAll('[data-wkm]').forEach(x=>x.onclick=()=>{ if(x.disabled)return; b.innerHTML=weekStrip({full:1,mon:x.dataset.wkm}); $('tileTitle').textContent=x.dataset.wkm===weekMonday(todayStr())?'이번 주 · 오늘':'지난 주 기록'; wkWire(); b.scrollTop=0; });
 }
 function tileClose(){ const sh=$('tileSheet'); if(!sh)return; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-tile]'); if(t)return tileOpen(t.dataset.tile);
@@ -9553,7 +9590,7 @@ function runScore(r,s){ try{
 function dayScore(d){ /* 그날 점수 — 계획과 짝이 맞는 기록 우선. 계획 없는 날(쉬는 날)은 휴식 점수 */
   const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d);
   if(!rs.length||!planOn(d)){ const R=restScore(d); if(R)return {score:R.score,parts:R.parts,rest:R.kind}; if(!rs.length)return null; }
-  const b=BLOCK.find(x=>x.d.slice(0,10)===d&&x.type!=='off'); const r=rs.find(x=>b&&x.planId===b.d)||rs[0];
+  const b=BLOCK.find(x=>x.d.slice(0,10)===d&&x.type!=='off')||pastSessOn(d); const r=rs.find(x=>b&&x.planId===b.d)||rs[0];   /* 지난 4주 날도 그날 계획으로 점수 */
   const d0=r.planKm||(r.distRatio?+(r.km/r.distRatio).toFixed(1):0);
   const s=b?Object.assign({},b,{dist:d0||DIST[b.d]||b.dist,ceiling:r.ceiling||b.ceiling}):{dist:d0,ceiling:r.ceiling,repTarget:null};
   return runScore(r,s); }
@@ -9602,9 +9639,10 @@ function zoneGuideHTML(){ if(!ZONES||!ZONES[4])return '';
 /* ───────── 이번 주 — 7일 막대. 높이 = 그날 점수, 색 = 훈련 종류 ───────── */
 function weekStrip(o){ try{ return weekStrip0(o||{}); }catch(e){ console.warn('weekStrip',e); return ''; } }
 function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람) 요일 그래프는 늘 보인다 — 한 점수만 */
-  const t=todayStr(), mon=weekMonday(t), prevMon=addDays(mon,-7);
+  const t=todayStr(), tw=weekMonday(t), mon=o.mon&&o.mon<=tw?weekMonday(o.mon):tw, prevMon=addDays(mon,-7), isCur=mon===tw;   /* o.mon = 지난주 보기 */
+  const wkLab=isCur?'이번 주':mon===addDays(tw,-7)?'지난주':`${+mon.slice(5,7)}.${+mon.slice(8,10)} 주`;
   const dayLoad=d=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d).reduce((a,r)=>{ const L=loadOf(r); return a+(L&&L.tss!=null?L.tss:0); },0)+restLoad(d);   /* rTSS + 근력 sRPE */
-  const days=[0,1,2,3,4,5,6].map(i=>{ const d=addDays(mon,i), ix=BLOCK.length?BLOCK.findIndex(x=>x.d.slice(0,10)===d&&x.type!=='off'):-1, s=ix>=0?sessionOf(ix):null;
+  const days=[0,1,2,3,4,5,6].map(i=>{ const d=addDays(mon,i), ix=BLOCK.length?BLOCK.findIndex(x=>x.d.slice(0,10)===d&&x.type!=='off'):-1, s=ix>=0?sessionOf(ix):pastSessOn(d);   /* 지난 4주 일정도 */
     const rk=s?null:restKind(d), sc=dayScore(d), restOpen=rk&&rk.k!=='plain'&&d>=t&&!(RESTLOG[d]&&RESTLOG[d].closed);   /* 쉬는 날은 지나갔거나 마감해야 점수 */
     return {d,s,rk,km:s?(s.dist||0):0,ran:dayKm(d),load:Math.round(dayLoad(d)),st:dayStatus(d),sc:sc&&!restOpen?sc.score:null}; });
   const sumL=days.reduce((a,x)=>a+x.load,0), prevL=[0,1,2,3,4,5,6].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
@@ -9626,7 +9664,7 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
       <b class="wk-n num sc-${band}">${dp!=null?(restDay?'☾':'')+dp+'<small>점</small>':done?'✓':(x.st==='restKept'||(x.st==='todayRest'&&restMis(x.d).norun))?'☾✓':''}</b>
       <div class="wk-bar">${h?`<i style="height:${h.toFixed(0)}%;background:${col2};opacity:${done||(restDay&&dp!=null)?1:.22}"></i>`:''}${miss?'<span>×</span>':''}</div><em>${dowOf(x.d)}</em></div>`; }).join('');
   /* 지난주와 비교는 '같은 요일까지'끼리 — 월요일 아침에 이번 주 0점을 지난주 전체와 비교하면 늘 -100%가 나왔다 */
-  const dIx=Math.max(0,Math.min(6,Math.round((Date.parse(t)-Date.parse(weekMonday(t)))/864e5))), doneToday=days[dIx]&&days[dIx].load>0;
+  const dIx=isCur?Math.max(0,Math.min(6,Math.round((Date.parse(t)-Date.parse(weekMonday(t)))/864e5))):6, doneToday=!isCur||(days[dIx]&&days[dIx].load>0);   /* 지난 주는 일주일 전체끼리 */
   const upto=doneToday?dIx:dIx-1, prevUpto=upto<0?0:[...Array(upto+1).keys()].reduce((a,i)=>a+dayLoad(addDays(prevMon,i)),0);
   const sumUpto=upto<0?0:days.slice(0,upto+1).reduce((a,x)=>a+x.load,0);
   /* 지난주가 거의 비어 있으면(첫 주·쉰 주) % 비교는 뜻이 없다(+710% 같은 숫자) — 지난주 같은 요일까지 부하 60↑일 때만 */
@@ -9635,9 +9673,9 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
   /* 주 달성률 = 이번 주 계획한 훈련의 점수 합 ÷ (계획 횟수 × 100). 아직 안 온 날·놓친 날은 0 → 주가 갈수록 100%에 다가간다 */
   /* 계획 훈련 + 과정 휴식(회복·준비·근력·대회 주)이 분모. 그냥 쉬는 날(플랜 밖)은 뺀다 */
   const planned=days.filter(x=>x.s||(x.rk&&x.rk.k!=='plain')), nP=planned.length, got=planned.reduce((a,x)=>a+(x.sc||0),0), doneN=planned.filter(x=>x.s&&x.sc!=null).length, nRun=planned.filter(x=>x.s).length;
-  const wkPct=nP?Math.round(got/(nP*100)*100):null; WEEK_PCT={pct:wkPct,done:doneN,n:nRun};
+  const wkPct=nP?Math.round(got/(nP*100)*100):null; if(isCur)WEEK_PCT={pct:wkPct,done:doneN,n:nRun};
   const todaySc=days[dIx]&&days[dIx].sc;
-  const cmp=prevL?`부하 ${sumL} · 지난주 ${Math.round(prevL)}${diff!=null?` (같은 요일까지 ${diff>0?'+':''}${diff}%)`:''}`:`부하 ${sumL}`;
+  const cmp=prevL?`부하 ${sumL} · ${isCur?'지난주':'그 전 주'} ${Math.round(prevL)}${diff!=null?` (${isCur?'같은 요일까지 ':''}${diff>0?'+':''}${diff}%)`:''}`:`부하 ${sumL}`;
   if(!o.full) return `<section class="wstrip" aria-label="이번 주 훈련">
     <div class="ws-h"><b>이번 주 달성</b><span class="num">${wkPct!=null?`<b>${wkPct}</b>%`:'<b>—</b>'}</span></div>
     <div class="ws-sub">${nP?`훈련 ${nRun}회 중 ${doneN}회${nP>nRun?` · ${tm('off')} ${nP-nRun}일`:''}${todaySc!=null?` · 오늘 ${todaySc}점`:''} · `:''}${cmp}</div>
@@ -9647,9 +9685,13 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
   /* ── 크게 보기(홈 '이번 주' 줄을 눌렀을 때) — 숫자 3개 · 요일 막대 · 날마다 · 누적 부하 · 강도 나눔 · 점수 기준 ── */
   const kmDone=days.reduce((a,x)=>a+x.ran,0), kmPlan=days.reduce((a,x)=>a+(x.s?(+x.km||0):0),0), kmLeft=days.filter(x=>x.s&&x.d>=t&&!(x.ran>0)).reduce((a,x)=>a+(+x.km||0),0);
   const kpi=(lab,val,sub,pct)=>`<div class="wk-kpi"><i>${lab}</i><b class="num">${val}</b>${pct!=null?`<span class="wk-kbar"><u style="width:${Math.max(0,Math.min(100,pct)).toFixed(0)}%"></u></span>`:''}<em>${sub}</em></div>`;
-  const lSub=diff!=null?`지난주 이맘때 ${Math.round(prevUpto)} · <b class="${diff>30?'up':''}">${diff>0?'+':''}${diff}%</b>`:prevL?`지난주 ${Math.round(prevL)} · 비교 기록 적음`:'지난주 기록 없음';
-  const head=`<section class="wstrip" aria-label="이번 주 훈련">
-    <div class="ws-h"><b>이번 주 달성</b><span class="num">${wkPct!=null?`<b>${wkPct}</b>%`:'<b>—</b>'}</span></div>
+  const pw=isCur?'지난주':'그 전 주';
+  const lSub=diff!=null?`${pw}${isCur?' 이맘때':''} ${Math.round(prevUpto)} · <b class="${diff>30?'up':''}">${diff>0?'+':''}${diff}%</b>`:prevL?`${pw} ${Math.round(prevL)} · 비교 기록 적음`:`${pw} 기록 없음`;
+  /* 지난주 보기 — 주를 넘겨 가며 계속 볼 수 있게. 첫 기록·첫 일정 주까지 */
+  const firstMon=weekMonday([RUNS.filter(r=>isRun(r)).map(r=>ldate(r.date).slice(0,10)).sort()[0],((PLAN&&PLAN.past)||[]).map(x=>String(x.d).slice(0,10))[0],t].filter(Boolean).sort()[0]);
+  const nav=`<div class="wk-nav"><button type="button" data-wkm="${addDays(mon,-7)}"${mon<=firstMon?' disabled':''}>‹ ${isCur?'지난주':'전 주'}</button><b>${wkLab} <i>${+mon.slice(5,7)}.${+mon.slice(8,10)}–${+addDays(mon,6).slice(5,7)}.${+addDays(mon,6).slice(8,10)}</i></b><button type="button" data-wkm="${addDays(mon,7)}"${isCur?' disabled':''}>${addDays(mon,7)===tw?'이번 주':'다음 주'} ›</button></div>`;
+  const head=nav+`<section class="wstrip" aria-label="${wkLab} 훈련">
+    <div class="ws-h"><b>${wkLab} 달성</b><span class="num">${wkPct!=null?`<b>${wkPct}</b>%`:'<b>—</b>'}</span></div>
     ${wkPct!=null?`<div class="ws-prog"><i style="width:${Math.min(100,wkPct)}%"></i></div>`:''}
     <div class="wk-kpis">${kpi('달린 거리',`${fmtKm1(kmDone)}<small>${kmPlan?` / ${fmtKm1(kmPlan)}km`:'km'}</small>`,kmPlan?(kmLeft>0?`남은 계획 ${fmtKm1(kmLeft)}km`:'계획 거리 끝'):'계획 없음',kmPlan?kmDone/kmPlan*100:null)}
       ${kpi('훈련',`${doneN}<small> / ${nRun}회</small>`,nP>nRun?`+ ${tm('off')} ${nP-nRun}일`:'계획한 날',nRun?doneN/nRun*100:null)}
@@ -12728,7 +12770,23 @@ function weekScale(wk,f){ const t=todayStr();
 /* 플랜 주차 = 달력 주(월~일). 일정이 밀리면 원래 주 번호(wk)와 달력 주가 어긋나므로, 목록·막대 모두 달력 주로 묶는다 */
 function planMons(){ return [...new Set(BLOCK.map(x=>weekMonday(x.d)))].sort(); }
 function fmtKm1(v){ return (Math.round(v*10)/10).toFixed(1).replace(/\.0$/,''); }
-function planListHTML(){
+function planListHTML(){ return pastListHTML()+planListHTML0(); }
+/* 지난 4주들 — 접힌 주 카드로. 뛴 날은 눌러서 기록 보기 */
+function pastListHTML(){
+  const P=(PLAN&&PLAN.past)||[], cur=new Set(BLOCK.map(x=>weekMonday(x.d))), mons=[...new Set(P.map(x=>weekMonday(x.d)))].filter(m=>!cur.has(m)).sort();
+  if(!mons.length)return '';
+  return mons.map(mon=>{ const items=P.filter(x=>weekMonday(x.d)===mon), sun=addDays(mon,6), plan=items.reduce((a,x)=>a+(+x.dist||0),0);
+    const ranOn=ds=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds);
+    const nDid=items.filter(x=>RUNS.some(r=>r.planId===x.d)).length, max=Math.max(1,...items.map(x=>+x.dist||0));
+    const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), dn=`<span class="pd-dt"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`, L=items.filter(x=>String(x.d).slice(0,10)===ds), rr=ranOn(ds);
+      if(!L.length){ const km=rr.reduce((a,r)=>a+(+r.km||0),0); return `<div class="pd-row rest past${km?' did':''}">${dn}<span class="pd-bar rest"><i style="height:0"></i></span><span class="pd-rest">${km?`✓ 프리런 ${fmtKm1(km)}km`:'쉬는 날'}</span></div>`; }
+      return L.map(x=>{ const r=RUNS.find(r=>r.planId===x.d), col=(TYPES[x.type]||{}).col||'#5B2D86';
+        return `<div class="pd-row${r?' did':' past'}" style="--tc:${col}">${dn}<span class="pd-main"${r?` data-wkrun="${ESC(r.rid)}" role="button"`:''} style="cursor:${r?'pointer':'default'}"><span class="pd-bar"><i style="height:${Math.max(18,(+x.dist||0)/max*100)}%"></i></span>
+          <span class="pd-tx"><b>${ESC(String(x.t||'').replace(/\s*\([^)]*\)/g,''))}</b><i>${r?`${fmtKm1(+r.km||0)}km · ${fmtClock(+r.sec||0)}`:`계획 ${fmtKm1(+x.dist||0)}km`}</i></span></span>${r?'<em class="pd-st ok">✓</em>':'<em class="pd-st miss">놓침</em>'}</div>`; }).join(''); }).join('');
+    return `<section class="pw pw-f past fold" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkNo(mon)}주차</b><span class="pw-role">지난 4주</span>
+      <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i><i class="pw-sum">뛴 날 <b>${nDid}</b> / ${items.length}</i></div></div><span class="pw-km"><b class="num">${fmtKm1(plan)}</b>km</span></header><div class="pw-rows">${rows}</div></section>`; }).join('');
+}
+function planListHTML0(){
   const t=todayStr(), mons=[...new Set(BLOCK.map(x=>weekMonday(x.d)))].sort();
   return mons.map((mon,wi)=>{
     const items=BLOCK.filter(x=>weekMonday(x.d)===mon), sun=addDays(mon,6), wk=wi+1, wkRaw=items[0].wk;
@@ -12757,18 +12815,19 @@ function planListHTML(){
     const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
     const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
     return `<section class="pw pw-f${cur?' cur':''}${past?' past':''}${pwFold(mon,cur)?' fold':''}" id="pw${wk}" data-pwm="${mon}">
-      <header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wk}주차</b>${cur?'<span class="pw-now">이번 주</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
+      <header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkNo(mon)}주차</b>${cur?'<span class="pw-now">이번 주</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
         <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i>${sum}</div></div>
         ${items.some(x=>x.rw)?`<span class="pw-km"><b class="num">${Math.round(items.reduce((a,x)=>{ const v=sessionOf(BLOCK.indexOf(x))||x; return a+((v.rw&&v.rw.totSec)||0); },0)/60)}</b>분</span>`:`<span class="pw-km"><b class="num">${done?fmtKm1(done)+' / ':''}${fmtKm1(plan)}</b>km</span>`}</header>
       ${done?`<div class="pw-prog"><i style="width:${Math.min(100,done/plan*100)}%"></i></div>`:''}
       ${(()=>{ const n=aeroWeekNote((PLAN&&PLAN.goal)||GOAL,mon); return n?`<div class="pw-note">${n}</div>`:''; })()}
       <div class="pw-rows">${rows}</div>
-      ${!past?`<div class="pw-tools">${snapBtn('.pw','week'+wk,wk+'주차 계획')}<span>거리 조절</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
+      ${!past?`<div class="pw-tools">${snapBtn('.pw','week'+wkNo(mon),wkNo(mon)+'주차 계획')}<span>거리 조절</span><button type="button" data-pws="${mon}:0.9">−10%</button><button type="button" data-pws="${mon}:1.1">+10%</button></div>`:''}
     </section>`; }).join('');
 }
 document.addEventListener('click',async e=>{
   if(!e.target.closest('#plan,#peSheet'))return;
   { const pm=e.target.closest('[data-pman]'); if(pm)return manOpen(pm.dataset.pman); }
+  { const wr=e.target.closest('#plan [data-wkrun]'); if(wr)return openRunView(wr.dataset.wkrun); }   /* 지난 4주 — 뛴 날은 그 기록 */
   const up=e.target.closest('[data-unpaste]'); if(up){ e.stopPropagation(); if(await ask('받아 적은 훈련을 지우고 원래 일정으로 되돌릴까요?','되돌리기')){ clearCustom(up.dataset.unpaste); renderPlan(); toast('원래 일정으로 되돌렸어요'); } return; }
   const g=e.target.closest('[data-pgo]'); if(g)return openConfirm(+g.dataset.pgo);
   const ph=e.target.closest('.pw.pw-f>header'); if(ph){ const sec=ph.parentElement, m=sec.dataset.pwm; const f=sec.classList.toggle('fold'); if(f)PWOPEN.delete(m); else PWOPEN.add(m); return; }
@@ -12902,7 +12961,7 @@ function futureListHTML(){
       return L.map(x=>{ const col=(TYPES[x.type]||{}).col||'#5B2D86';
         return `<div class="pd-row" style="--tc:${col}">${dn}<span class="pd-main" style="cursor:default"><span class="pd-bar"><i style="height:${Math.max(18,(x.dist||0)/max*100)}%"></i></span>
           <span class="pd-tx"><b>${ESC(String(x.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${boldNums(summary(x))}</i></span></span></div>`; }).join(''); }).join('');
-    return `<section class="pw pw-f fu${pwFold(mon,false)?' fold':''}" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${w0+wi+1}주차</b><span class="pw-role fu">예상</span>${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
+    return `<section class="pw pw-f fu${pwFold(mon,false)?' fold':''}" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkNo(mon)}주차</b><span class="pw-role fu">예상</span>${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
       <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i></div></div><span class="pw-km"><b class="num">${fmtKm1(km)}</b>km</span></header><div class="pw-rows">${rows}</div></section>`; }).join('');
 }
 function pgU(h){ return String(h).replace(/(\d)(km|m)(?![a-z])/g,'$1<small>$2</small>'); }   /* 좁은 칸: 단위만 작게 — 숫자가 두 줄로 깨지지 않게 */
@@ -12921,14 +12980,23 @@ function planGridHTML(){
         const det=v.rw?(v.rw.totSec?Math.round(v.rw.totSec/60)+'분':''):(km?`${fmtKm1(km)}km`:'')+(x.reps>1&&x.repLen?`<br>${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?`<br>${fmtKm1(x.repLen)}km 이어서`:'');   /* 그날 전체 거리를 늘 먼저 */
         return `<div class="pg-s${did?' did':''}${ds<t&&!did?' miss':''}${ds===t?' now':''}" style="--tc:${T.col||'#5B2D86'}" data-pgo="${i}"><i>${ds===t?'오늘':+ds.slice(8,10)}</i><b class="${lab.length>3?'lg':''}">${pgName(lab)}</b><span>${pgU(det)}</span></div>`; }).join('')}</td>`; }).join('');
     const bar=wst&&items.length?`<u><s style="width:${Math.round(dn/items.length*100)}%"></s></u>`:'';
-    return `<tr class="${wst}"><th><b>${wi+1}주</b><span>${fmtKm1(wkm)}km</span>${bar}${wst==='now'?'<em>이번 주</em>':''}</th>${cells}</tr>`; }).join('');
+    return `<tr class="${wst}"><th><b>${wkNo(mon)}주</b><span>${fmtKm1(wkm)}km</span>${bar}${wst==='now'?'<em>이번 주</em>':''}</th>${cells}</tr>`; }).join('');
+  /* 지난 4주들 — 다시 짜도 사라지지 않는다(PLAN.past). 보기만, 뛴 날 ✓ · 놓친 날 표시 */
+  { const P=(PLAN&&PLAN.past)||[], pm=[...new Set(P.map(x=>weekMonday(x.d)))].filter(m=>!mons.includes(m)).sort();
+    const prow=pm.map(mon=>{ const items=P.filter(x=>weekMonday(x.d)===mon), wkm=items.reduce((a,x)=>a+(+x.dist||0),0), dn=items.filter(x=>RUNS.some(r=>r.planId===x.d)).length;
+      const cells=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>String(x.d).slice(0,10)===ds);
+        if(!L.length)return `<td class="r"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`;
+        return `<td>${L.map(x=>{ const did=RUNS.some(r=>r.planId===x.d), lab=PSHORT[x.type]||String(x.t||'').split(' ')[0];
+          return `<div class="pg-s${did?' did':' miss'}" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b class="${lab.length>3?'lg':''}">${pgName(lab)}</b><span>${pgU(x.dist?fmtKm1(x.dist)+'km':'')}</span></div>`; }).join('')}</td>`; }).join('');
+      return `<tr class="past"><th><b>${wkNo(mon)}주</b><span>${fmtKm1(wkm)}km</span>${items.length?`<u><s style="width:${Math.round(dn/items.length*100)}%"></s></u>`:''}</th>${cells}</tr>`; }).join('');
+    rows=prow+rows; }
   /* 4주 뒤 — 미리 보기(점선). 목표일까지 */
   const F=planFuture(), fm=[...new Set(F.map(x=>weekMonday(x.d)))].sort();
   const frows=fm.map((mon,wi)=>{ const items=F.filter(x=>weekMonday(x.d)===mon&&x.type!=='off'), wkm=items.reduce((a,x)=>a+(x.dist||0),0);
     const cells=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>x.d.slice(0,10)===ds);
       if(!L.length)return g&&g.date&&g.date.slice(0,10)===ds?`<td><div class="pg-s" style="--tc:#C2410C"><i>${+ds.slice(8,10)}</i><b>★ 대회</b><span>${g.m?gdLabel(g.m):''}</span></div></td>`:`<td class="r"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`;
       return `<td>${L.map(x=>`<div class="pg-s fu" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b class="${(PSHORT[x.type]||'').length>3?'lg':''}">${pgName(PSHORT[x.type]||String(x.t).split(' ')[0])}</b><span>${pgU((x.dist?fmtKm1(x.dist)+'km':'')+(x.reps>1&&x.repLen?`<br>${kmLab(x.repLen)}×${x.reps}`:x.reps===1&&x.repLen?`<br>${kmLab(x.repLen)} 이어서`:''))}</span></div>`).join('')}</td>`; }).join('');
-    return `<tr class="fu"><th><b>${mons.length+wi+1}주</b><span>${fmtKm1(wkm)}km</span></th>${cells}</tr>`; }).join('');
+    return `<tr class="fu"><th><b>${wkNo(mon)}주</b><span>${fmtKm1(wkm)}km</span></th>${cells}</tr>`; }).join('');
   const futSep=frows?`<tr class="fu-sep"><td colspan="8"><span>↓ 미리 보기 · 4주마다 다시 짬</span></td></tr>`:'';
   rows+=futSep+frows;
   const f=BLOCK[0], l=F.length?F[F.length-1]:BLOCK[BLOCK.length-1], md=x=>x.slice(5,10).replace('-','.');
