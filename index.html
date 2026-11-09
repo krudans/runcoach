@@ -2507,7 +2507,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.30';
+const APPVER='20.31';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7117,8 +7117,9 @@ const OBSTEP=[
         <div class="meta" style="margin:10px 0 6px">종류</div>
         <div class="tagrow" id="obRK">
           <button class="tag${d.rk!=='solo'?' on':''}" data-v="race">공식 레이스</button>
-          <button class="tag${d.rk==='solo'?' on':''}" data-v="solo">혼자 측정</button></div>
-        <div class="meta" style="margin-top:7px">혼자 +3%</div>
+          <button class="tag${d.rk==='solo'?' on':''}" data-v="solo">혼자 힘껏</button>
+          <button class="tag${d.rk==='easy'?' on':''}" data-v="easy">평소 속도</button></div>
+        <div class="meta" style="margin-top:7px;line-height:1.6">혼자 힘껏 = 3% 보정 · <b>평소 속도</b>(슬로우 조깅 등)는 실력 계산에 안 씀 → 첫 TT로</div>
       </div>
       <div class="oblab">최근 3개월 해당 항목</div>
       <div class="card tight">
@@ -7138,7 +7139,8 @@ const OBSTEP=[
       if(!OB.d.rd||!t){ o.textContent=''; return; }
       const pc=t/(OB.d.rd/1000);
       o.innerHTML=`<b>${fmtClock(t)}</b> · 1km에 ${fmtPace(pc)}`+
-        (pc<150||pc>1200?' <span style="color:var(--alarm)">— 재확인</span>':''); };
+        (pc<150||pc>1200?' <span style="color:var(--alarm)">— 재확인</span>':'')+
+        (pc>=450&&pc<=1200&&OB.d.rk!=='easy'?'<br>평소처럼 편하게 뛴 기록이면 아래 <b>평소 속도</b>를 골라요':''); };   /* 7'30"보다 느린 기록은 힘껏이 아닌 경우가 많다(슬로우 조깅) */
     ['obRTh','obRTm','obRTs'].forEach(id=>{ const el=$(id); if(el)el.oninput=()=>{
       OB.d.rt=null; paintRT(); }; });
     paintRT();
@@ -7148,7 +7150,7 @@ const OBSTEP=[
         (OB.d.sex==='f'?`<br>여성은 더 낮음(${Math.round(206-0.88*a)}) · 실측 최선`:''):''; }
     paintHr();
     $('obRK').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return;
-      OB.d.rk=b.dataset.v; $('obRK').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); };
+      OB.d.rk=b.dataset.v; $('obRK').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); paintRT(); };
     $('obBody').querySelectorAll('[data-f]').forEach(c=>c.onchange=()=>{
       OB.d.f=OB.d.f||{};
       if(c.dataset.f==='none'&&c.checked){ OB.d.f={none:true};
@@ -7331,13 +7333,13 @@ function obSave(){
   d.wk=surveyWk(d)||d.wk||null;
   SURVEY={dayPref:(SURVEY&&SURVEY.dayPref)||undefined,freq:d.freq,per:d.per,long:d.long,wk:d.wk,rw:d.rw,
     days:(d.days||[]).slice(),twd:d.twd,twe:d.twe,f:d.f||{},
-    gpxN:d.gpxN||0,at:todayStr()};
+    gpxN:d.gpxN||0,at:todayStr(), easyPace:(d.rd&&d.rt&&d.rk==='easy')?Math.round(d.rt/(d.rd/1000)):null};   /* 평소 속도로 뛴 기록 — 힘껏 뛴 기록으로 보면 실력이 낮게 잡혀 '너무 빨라요'만 듣게 된다(슬로우 조깅) */
   DEV.store.set('survey',SURVEY);
   PROF=Object.assign({},PROF,{ nick:String(d.nick||PROF.nick||'').trim(), by:d.by||PROF.by||null, birth:d.birth||(d.by?`${d.by}-07-01`:null), sex:d.sex||null, age:ageOf(d.birth||(d.by?`${d.by}-07-01`:null))||d.age, w:d.w, rhr:d.rhr||null,
     hrmaxSrc: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? 'measured' : 'estimated',
     hrmax: PROF.hrmaxSrc==='measured'&&PROF.hrmax ? PROF.hrmax : estHrMax(d.age),
-    race: d.rd&&d.rt ? {m:d.rd,sec:d.rt,kind:d.rk||'race',src:d.rsrc||'survey',at:(PROF.race&&PROF.race.m===d.rd&&PROF.race.sec===d.rt&&d.rw==null)?(PROF.race.at||todayStr()):addDays(todayStr(),-7*(+d.rw||0))} : PROF.race });   /* '언제'(주 단위)를 기록 날짜에 반영 — 오늘로 적으면 옛 기록이 지금 실력이 된다 */
-  DEV.store.set('prof',PROF); if(d.rd&&d.rt)rlogSync(PROF.race);
+    race: d.rd&&d.rt&&d.rk!=='easy' ? {m:d.rd,sec:d.rt,kind:d.rk||'race',src:d.rsrc||'survey',at:(PROF.race&&PROF.race.m===d.rd&&PROF.race.sec===d.rt&&d.rw==null)?(PROF.race.at||todayStr()):addDays(todayStr(),-7*(+d.rw||0))} : PROF.race });   /* '언제'(주 단위)를 기록 날짜에 반영 — 오늘로 적으면 옛 기록이 지금 실력이 된다 */
+  DEV.store.set('prof',PROF); if(d.rd&&d.rt&&d.rk!=='easy')rlogSync(PROF.race);
   recalcProfile(); recalcTypes(); BLOCK=loadPlan();
   DEV.store.set('onboarded',true);
   if(typeof paintProf==='function')paintProf();
