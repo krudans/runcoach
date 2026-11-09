@@ -2520,7 +2520,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.37';
+const APPVER='20.38';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3826,16 +3826,19 @@ function makePlan(opts){
           const len=iLen0;
           let n=Math.max(3,Math.min(6,Math.floor(Math.min(10,km*0.08)/len)));   /* 상한(주간 8%·10km)까지 채운다 · 최소 3회 (A-5) */
           if(n*len<2.4) n=Math.min(8,Math.ceil(2.4/len));
+          while(capW<999&&n>2&&fitKm(2,n,len,0.5)>capW)n--;   /* 그날 전체 거리 ≤ 한 번 거리 한도 */
           const tgt=sessTgt('interval');
-          s={d:ds,wk:w+1,t:`빠르게 ${kmLab(len)} × ${n}`,...interval(Math.max(6,hardKm,fitKm(2,n,len,0.5)),2,n,len,tgt,0.5,null)};
+          s={d:ds,wk:w+1,t:`빠르게 ${kmLab(len)} × ${n}`,...interval(Math.min(Math.max(6,hardKm,fitKm(2,n,len,0.5)),Math.max(capW<999?capW:99,fitKm(2,n,len,0.5))),2,n,len,tgt,0.5,null)};
         } else {
           /* 벅차게 — 한 번에 5~15분. 주간 10% 안에서 길이와 횟수를 잡는다 */
           const cp=Math.max(km*0.10, tFloorKm);   /* 본 운동 = 20분 이상 또는 주간 10% 중 큰 쪽 (A-5 · Daniels T 20분, C) */
           let len=2, n=2, bestOver=Infinity;   /* cp의 95% 이상을 채우는 (길이×횟수) 중 넘침이 가장 적은 것 — 같으면 긴 반복 */
-          for(const L of [2,1.5,1]) for(let N=2;N<=5;N++){ const v=N*L; if(v<cp*0.95)continue; const over=v-cp; if(over<bestOver-0.01){ bestOver=over; len=L; n=N; } }
+          const fitsCap=(L,N)=>capW>=999||fitKm(2,N,L,restKm(Math.max(60,Math.round(L*60)),PACE.recJog))<=capW;   /* 웜업·쿨다운·사이 조깅까지 더한 그날 거리도 한 번 거리 한도(+10%) 안 — 9km 템포가 30일 최장 7.5km 사람에게 나오던 것 */
+          for(const L of [2,1.5,1]) for(let N=2;N<=5;N++){ const v=N*L; if(v<cp*0.95||!fitsCap(L,N))continue; const over=v-cp; if(over<bestOver-0.01){ bestOver=over; len=L; n=N; } }
+          if(bestOver===Infinity){ len=1; n=2; for(const L of [2,1.5,1]) for(let N=5;N>=2;N--){ if(fitsCap(L,N)&&N*L>n*len){ len=L; n=N; } } }
           const tgt=sessTgt('threshold');
           const tRest=Math.max(60,Math.round(len*60));   /* Daniels 크루즈 인터벌: 일:휴 5:1 → 1km마다 약 1분 */
-          s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.max(6,hardKm,fitKm(2,n,len,restKm(tRest,PACE.recJog))),2,n,len,tgt,0.35,tRest)};
+          s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.min(Math.max(6,hardKm,fitKm(2,n,len,restKm(tRest,PACE.recJog))),Math.max(capW<999?capW:99,fitKm(2,n,len,restKm(tRest,PACE.recJog)))),2,n,len,tgt,0.35,tRest)};
         }
         if(taper)s.role=wkRole[w];
       } else {
@@ -7078,6 +7081,8 @@ function askSheet(o){ return new Promise(res=>{ let sh=$('askSheet'); if(!sh){ s
   const done=v=>{ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); sh.onclick=null; res(v); };
   sh.onclick=e=>{ const b=e.target.closest('[data-ask]'); if(b)return done(b.dataset.ask==='1'); if(e.target===sh)done(false); }; }); }
 /* 기본 확인창(confirm) 대신 — 앱 안 확인 창. 줄바꿈은 그대로 */
+/* 브라우저 기본 알림창(alert) 대신 앱 안 안내 창 — 기본 창은 앱 모양과 다르고 화면을 멈춘다. 13곳을 한 번에 */
+try{ window.alert=t=>{ try{ askSheet({title:'안내',html:ESC(String(t)).replace(/\n/g,'<br>'),yes:'확인',no:'닫기'}); }catch(e){} }; }catch(e){}
 function ask(t,yes,danger){ return askSheet({title:'확인',html:ESC(String(t)).replace(/\n/g,'<br>'),yes:yes||'확인',no:'취소',danger:!!danger}); }
 /* 만 14세 미만 — 보호자 동의 절차 대신 만 14세가 되면 가입하도록 안내한다 */
 function u14Sheet(){ askSheet({title:'만 14세부터 쓸 수 있어요',html:`가지런은 달리기 기록과 심박 같은 건강 정보를 다뤄서 <b>만 14세 이상</b>만 가입할 수 있어요.<br><br>만 14세가 되면 그때 가입해서 함께 달려요.`,yes:'알겠어요',no:'닫기'}); }
@@ -7210,7 +7215,7 @@ const OBSTEP=[
         <div class="meta" style="margin:10px 0 6px">언제</div>${obTags('rw')}
         <div class="meta" style="margin:10px 0 6px">종류</div>
         <div class="tagrow" id="obRK">
-          <button class="tag${d.rk!=='solo'?' on':''}" data-v="race">공식 레이스</button>
+          <button class="tag${(!d.rk||d.rk==='race')?' on':''}" data-v="race">공식 레이스</button>
           <button class="tag${d.rk==='solo'?' on':''}" data-v="solo">혼자 힘껏</button>
           <button class="tag${d.rk==='easy'?' on':''}" data-v="easy">평소 속도</button></div>
         <div class="meta" style="margin-top:7px;line-height:1.6">혼자 힘껏 = 3% 보정 · <b>평소 속도</b>(슬로우 조깅 등)는 실력 계산에 안 씀 → 첫 TT로</div>
@@ -7591,6 +7596,11 @@ function basisCommit(c){
   try{ if(PLAN&&PLAN.sessions&&PLAN.sessions.length) applyPlan(makePlan({goal:PLAN.goal,start:PLAN.start,keepDays:true})); else BLOCK=loadPlan(); }catch(e){ console.warn('basis replan',e); }
   if(oldTT){ const i=BLOCK.findIndex(x=>x.d===oldTT.d); if(i>=0)BLOCK[i]=oldTT;
     if(PLAN&&PLAN.sessions){ const j=PLAN.sessions.findIndex(x=>x.d===oldTT.d); if(j>=0){ PLAN.sessions[j]=oldTT; DEV.store.set('plan',PLAN); } } }
+  /* 오늘 TT를 남겼는데 새 일정의 내일이 빠른 날이면 48시간 규칙이 깨진다(2026-11-10 시험) — 그 주의 다음 쉬운 날과 날짜를 맞바꾼다 */
+  if(oldTT&&PLAN&&PLAN.sessions){ const td=oldTT.d.slice(0,10), L=PLAN.sessions;
+    const near=L.find(x=>x!==oldTT&&HARD_T.includes(x.type)&&x.d.slice(0,10)>td&&x.d.slice(0,10)<=addDays(td,1)&&!RUNS.some(r=>r.planId===x.d));
+    if(near){ const cand=L.find(x=>x.d>near.d&&x.d.slice(0,10)<=addDays(td,14)&&!HARD_T.includes(x.type)&&x.type!=='long'&&x.type!=='off'&&x.type!=='race'&&!RUNS.some(r=>r.planId===x.d));
+      if(cand){ const a=near.d, b=cand.d; near.d=b.slice(0,10)+a.slice(10); cand.d=a.slice(0,10)+b.slice(10); L.sort((x,y)=>x.d<y.d?-1:1); DEV.store.set('plan',PLAN); BLOCK=loadPlan(); } } }
   FUT_C=null; DEV.store.del?DEV.store.del('basisPend'):DEV.store.set('basisPend',null);
   if(typeof paintProf==='function')try{ paintProf(); }catch(e){}
 }
@@ -7748,7 +7758,7 @@ const GSTEP=[
    if(b.dataset.k!=='start'&&!GB.novAsked&&svNovice()){ GB.novAsked=true;
      const k=b.dataset.k, ok=await askSheet({title:'처음 시작부터 권해요',html:`처음 설정에서 <b>주 ${SURVEY.wk!=null?fmtKm1(SURVEY.wk):'—'}km</b> 정도 달린다고 했어요. 이 목표의 일정은 하루 최소 <b>4km</b>부터라 처음엔 무리일 수 있어요.<br><br><b>처음 시작</b>(걷기+달리기 → 30분 연속)을 마치면 목표 짜기를 다시 열어요.`,yes:'처음 시작으로',no:'그래도 이 목표로'});
      if(ok){ GB.d.kind='start'; GB.d.stWhy={race:5,finish:4,weight:2}[k]||1; GB.i=1; gPaint(); return; } }
-   if(GB.d.kind!==b.dataset.k){ GB.d.sec=null; GB.d.perKm=null; }   /* 종류를 바꾸면 이전 목표의 시간은 버린다 — 풀코스 3:59가 '1km 페이스 239분'이나 완주 목표의 기록으로 남던 버그 */
+   if(GB.d.kind!==b.dataset.k){ GB.d.sec=null; GB.d.perKm=null; GB.d.date=null; GB.d.raceName=null; GB.d.path=null; }   /* 종류를 바꾸면 이전 목표의 날짜도 버린다 — 대회 날짜가 '편한 달리기' 목표의 끝날로 남던 것(2026-11-10 시험) */   /* 종류를 바꾸면 이전 목표의 시간은 버린다 — 풀코스 3:59가 '1km 페이스 239분'이나 완주 목표의 기록으로 남던 버그 */
    GB.d.kind=b.dataset.k; gPaint(); }; },
  ok(){ return GB.d.kind?true:'하나 선택'; }},
 
@@ -8804,9 +8814,10 @@ function remapDates(map){ const ks=Object.keys(map); if(!ks.length)return;
 /* 한 번에 뛰는 거리의 안전선 — 최근 30일 가장 길게 뛴 거리의 +10%.
    Frandsen 외 2025(BJSM, 5,205명): 한 번 뛴 거리가 최근 30일 최장 거리보다 10% 넘게 길면 부상 위험이 오름(10~30%↑ 위험비 1.64, 2배↑ 2.28). 주간 부하비는 관련 없었음 (B) */
 function longest30(){ const since=addDays(todayStr(),-30); const L=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>since).reduce((a,r)=>Math.max(a,+r.km||0),0)||null;
-  if(L)return L;
-  /* 기록이 없으면 처음 설정의 '최장 거리'(30일 안에 답한 것) — 없으면 '거의 안 뛰는' 사람에게도 첫 주 LSD 8km가 나왔다 (+10% 규칙, Frandsen 2025 · B) */
-  try{ const sv=SURVEY; if(sv&&sv.long&&sv.at&&sv.at>since&&!RUNS.some(r=>isRun(r)))return +sv.long; }catch(e){} return null; }
+  /* 처음 설정의 '최장 거리'(30일 안에 답한 것)도 30일 기록으로 본다 — 앱에 첫 기록(8km)이 생기는 순간 답한 21km가 버려져
+     이미 짠 일정이 한도를 넘는 것처럼 되던 것(2026-11-10 시험). 기록이 없을 때 '거의 안 뛰는' 사람에게 LSD 8km가 나오던 것도 막는다 (+10% 규칙, Frandsen 2025 · B) */
+  let S=null; try{ const sv=SURVEY; if(sv&&sv.long&&sv.at&&sv.at>since)S=+sv.long; }catch(e){}
+  return (L||S)?Math.max(L||0,S||0):null; }
 function sessionCap(){ const L=longest30(); return L?Math.round(L*1.1*2)/2:null; }
 function overCap(km,ds){ const c=sessionCap(); if(!c)return null;
   /* 앞날의 훈련은 '그날 기준 최근 30일 가장 긴 날' +10%로 본다 — 그 사이 계획한 날을 뛰었다고 보고. 일정을 짠 규칙(Frandsen 2025 · B)과 같은 선 */
@@ -14093,13 +14104,18 @@ function glogMergeSame(){ try{ if(!GLOG||!GLOG.length)return; const a=GLOG.find(
     if(P.start&&goalKey(P.goal)===k)cands.push(String(P.start).slice(0,10));
     const st=cands.sort()[0]; if(st&&st<String(a.start||'9')){ a.start=st; ch=true; } }catch(e){}
   if(ch)glogSave(); }catch(e){ console.warn('glog merge',e); } }
+/* 목표 '달성' 판단은 이 하나 — 대회 목표는 예상 기록이 아니라 그 거리의 실제 기록(대회·TT)이 목표 안에 들어왔을 때만.
+   예전엔 목표를 바꿀 때만 예상 기록으로 판단해 10km 70분 목표가 5km TT 한 번으로 '달성'이 됐다 */
+function glogHit(x){ if(!x||!x.goal)return false; const g=x.goal;
+  if(g.kind==='race'&&g.m){ const rr=PROF.race||{}; return !!(rr.m===g.m&&rr.sec&&String(rr.at||'')>=String(x.start||'')&&rr.sec<=(g.final||g.sec||0)); }
+  return glogReached(glogMetric(g)); }
 function glogPush(g,plan){
   const t=todayStr();
   { const a=GLOG.find(x=>x.status==='active');
     if(a&&goalSame(a.goal,g)){ a.goal=JSON.parse(JSON.stringify(g)); a.end=g.date?g.date.slice(0,10):null; glogSave(); return; } }   /* 같은 목표를 고친 것 — 새 줄 없이 고치고 시작일·주차는 그대로 */
   /* 진행 중이던 목표는 '잠시 멈춤'으로 보관한다 — 일정 스냅샷을 같이 두어 나중에 그 자리에서 이어갈 수 있게. 이미 달성했으면 '달성' */
   GLOG.forEach(x=>{ if(x.status==='active'){ const m=glogMetric(x.goal); x.vEnd=m?m.now:null;
-    if(glogReached(m)){ x.status='done'; x.closedAt=t; }
+    if(glogHit(x)){ x.status='done'; x.closedAt=t; }
     else { x.status='paused'; x.pausedAt=t; try{ x.plan=PLAN?JSON.parse(JSON.stringify(PLAN)):null; x.dist=JSON.parse(JSON.stringify(DIST||{})); }catch(e){} } } });
   const m=glogMetric(g);
   GLOG.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),made:t,goal:JSON.parse(JSON.stringify(g)),start:(plan&&plan.start)||t,end:g.date?g.date.slice(0,10):null,status:'active',v0:m?m.now:null,vEnd:null,closedAt:null});
@@ -14111,7 +14127,7 @@ function glogCheck(){ if(!GLOG)GLOG=DEV.store.get('goals',[]);   /* 부팅 중 �
   if(a.v0==null&&m&&m.now!=null){ a.v0=m.now; glogSave(); }
   /* 대회 목표는 예상 기록이 아니라 그 거리의 실제 기록(대회·TT)이 목표 안에 들어왔을 때만 '달성' — 예측이 닿은 건 '이미 닿는 실력'일 뿐 */
   const raceG=a.goal&&a.goal.kind==='race'&&a.goal.m, rr=PROF.race||{};
-  const hit=raceG?(rr.m===a.goal.m&&rr.sec&&String(rr.at||'')>=String(a.start||'')&&rr.sec<=(a.goal.final||a.goal.sec)):glogReached(m);
+  const hit=glogHit(a);
   if(hit&&!a.doneAt){ a.doneAt=todayStr(); a.status='done'; a.vEnd=raceG?rr.sec:m.now; glogSave(); try{ toast('🎉 목표 달성! 새 목표 설정'); }catch(e){} } }
 function glogTitle(g){ try{ if(g.kind==='aero'&&aeroX(g.aero))return aeroView(g.aero).title; if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`심박 ${a.hrCap}시 페이스 ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)} 페이스 시 심박 ${a.hrT}`; }
   if(g.m&&(g.final||g.sec))return `${gdLabel(g.m)} ${fmtClock(g.final||g.sec)}${g.kind==='race'?'':''}`; if(g.kind==='finish'&&g.m)return `${gdLabel(g.m)} 완주`; return GKIND[g.kind]||'목표'; }catch(e){ return '목표'; } }
@@ -14135,10 +14151,10 @@ document.addEventListener('click',async e=>{ const b=e.target.closest('[data-glr
 /* ───────── 목표 목록 — 플랜 탭 ───────── */
 function glogTick(){ /* 기한이 지난 진행 중 목표는 달성/미달성으로 닫는다 */
   const t=todayStr(); let ch=false;
-  GLOG.forEach(x=>{ if(x.status==='active'&&x.end&&x.end<t){ const m=glogMetric(x.goal); x.vEnd=m?m.now:null; x.status=glogReached(m)?'done':'missed'; x.closedAt=t; ch=true; } });
+  GLOG.forEach(x=>{ if(x.status==='active'&&x.end&&x.end<t){ const m=glogMetric(x.goal); x.vEnd=m?m.now:null; x.status=glogHit(x)?'done':'missed'; x.closedAt=t; ch=true; } });
   if(ch)glogSave();
 }
-function glogCloseActive(){ const t=todayStr(); GLOG.forEach(x=>{ if(x.status==='active'){ const m=glogMetric(x.goal); x.vEnd=m?m.now:null; x.status=glogReached(m)?'done':(x.end&&x.end<t?'missed':'ended'); x.closedAt=t; } }); }
+function glogCloseActive(){ const t=todayStr(); GLOG.forEach(x=>{ if(x.status==='active'){ const m=glogMetric(x.goal); x.vEnd=m?m.now:null; x.status=glogHit(x)?'done':(x.end&&x.end<t?'missed':'ended'); x.closedAt=t; } }); }
 function glogResume(x){ /* 멈춘 자리의 남은 일정을 다가오는 월요일부터 다시 깐다 — 새로 짜지 않는다 */
   const t=todayStr(), snap=x.plan;
   const rest=snap&&snap.sessions?snap.sessions.filter(s=>s.d&&s.d.slice(0,10)>=(x.pausedAt||t)&&!RUNS.some(r=>r.planId===s.d)):[];
@@ -14202,7 +14218,7 @@ document.addEventListener('click',async e=>{
   const pgs=e.target.closest('[data-glpgs]'); if(pgs){ DEV.store.set('glPg',+pgs.dataset.glpgs); window.GLV={}; renderGoalsTab(); return; }
   const n=e.target.closest('[data-glend]'); if(n){ const x=GLOG.find(y=>y.id===n.dataset.glend); if(!x)return;
     if(!(await ask(`'${glogTitle(x.goal)}' 목표를 끝낼까요?\n일정은 그대로예요`,'끝내기')))return;
-    const m=glogMetric(x.goal); x.vEnd=m?m.now:null; x.status=glogReached(m)?'done':'ended'; x.closedAt=todayStr(); glogSave(); renderGoalsTab(); }
+    const m=glogMetric(x.goal); x.vEnd=m?m.now:null; x.status=glogHit(x)?'done':'ended'; x.closedAt=todayStr(); glogSave(); renderGoalsTab(); }
 });
 /* ═════════════════════ 직접 목표 설정 — 내 페이스 → 하루 → 주간 → 4주 ═════════════════════
    자동 값은 모두 1단계 페이스에서 Daniels 존으로 계산하되, 어느 칸이든 손으로 바꿀 수 있다 */
@@ -14282,7 +14298,12 @@ function cbRender(){
     const cbW=[]; { const cap=sessionCap(), lp=midPace(PACE.long)||420;
       const over=cap?p.sessions.filter(x=>x.dist>cap+0.01):[]; if(over.length)cbW.push(`1회 거리 > 30일 최장 ${fmtKm1(longest30()||0)}km +10%(${cap}km) ${over.length}번 — ${over.slice(0,3).map(x=>x.d.slice(5).replace('-','.')+' '+x.dist+'km').join(', ')} (Frandsen 2025 · B)`);
       [1,2,3,4].forEach(w=>{ const L=p.sessions.filter(x=>x.wk===w), tot=L.reduce((a,x)=>a+x.dist,0), lg=Math.max(0,...L.map(x=>x.dist)); if(tot>0&&lg/tot>0.45&&lg>10)cbW.push(`${w}주차 최장 ${lg}km = 주간 ${Math.round(lg/tot*100)}% — 45% 초과 (관행 C)`); if(lg*lp>210*60)cbW.push(`${w}주차 ${lg}km는 ${fmtHM(lg*lp)} — 210분 넘음 (관행 C)`); });
-      for(let w=2;w<=4;w++){ const a=wk[w-2], b=wk[w-1]; if(a>0&&b>a*1.2)cbW.push(`${w-1}→${w}주차 주간 거리 +${Math.round((b/a-1)*100)}% — 20% 초과`); } }
+      for(let w=2;w<=4;w++){ const a=wk[w-2], b=wk[w-1]; if(a>0&&b>a*1.2)cbW.push(`${w-1}→${w}주차 주간 거리 +${Math.round((b/a-1)*100)}% — 20% 초과`); }
+      /* 앱이 짜는 일정과 같은 규칙을 직접 짠 주간 배치에도 알려 준다(막지는 않음) — 빠른 날 48시간 · 빠른 날 옆 LSD · 주 2일 쉼 */
+      { const DOW=['월','화','수','목','금','토','일'], ty=d=>{ const i=CB.week[d]; return i==null||!CB.tpls[i]?null:CB.tpls[i].type; }, HD=t=>['threshold','interval','goalpace'].includes(t);
+        const pairs=[]; DOW.forEach((d,i)=>{ const n=DOW[(i+1)%7], a=ty(d), b=ty(n); if(a&&b&&((HD(a)&&HD(b))||(HD(a)&&b==='long')||(a==='long'&&HD(b))))pairs.push(d+'·'+n); });
+        if(pairs.length)cbW.push(`빠른 날이 다른 빠른 날·LSD와 붙음(${pairs.join(', ')}) — 사이 48시간 권장 (Seiler 2010 · B)`);
+        const runD=DOW.filter(d=>ty(d)).length; if(runD>5)cbW.push(`주 ${runD}일 달리기 — 쉬는 날 ${7-runD}일 (주 2일 쉼 권장, 관행 C)`); } }
     h+=`<h2 class="cb-h">확인</h2><p class="cb-sub">${p.start}부터 4주 · ${wk.reduce((a,b)=>a+b,0).toFixed(0)}km · 주 ${Object.values(CB.week).filter(x=>x!=null).length}회</p>
       ${cbW.length?`<div class="note" style="margin:0 0 10px;font-size:12px;line-height:1.65"><b>안전선 초과</b> — 확인 필요<br>${cbW.map(x=>'· '+x).join('<br>')}</div>`:''}
       ${[1,2,3,4].map(w=>`<div class="cb-tpl"><span class="sw" style="background:var(--accent)"></span><span class="sp"><b>${w}주차 · ${wk[w-1].toFixed(1)}km</b><i>${p.sessions.filter(x=>x.wk===w).map(x=>dowOf(x.d.slice(0,10))+' '+x.t).join(' · ')||'쉬는 주'}</i></span></div>`).join('')}
