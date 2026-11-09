@@ -2520,7 +2520,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.38';
+const APPVER='20.39';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8658,6 +8658,21 @@ const dsOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 const isRun=r=>(r.act||'run')==='run';
 planRestoreBlock();
 planRecoverPast();   /* RUNS·DIST·isRun 선언 뒤 — 사라진 지난 4주 되살리기(한 번) */
+/* 확정 일정이 끝나면 다음 일정을 저절로 확정한다 — 화면에 '확정 일정이 끝나면 뛴 기록으로 이어서 확정'이라 써 놓고
+   실제로는 월요일 결산에서 '예정대로 계속'을 눌러야만 이어졌다. 결산을 건너뛰거나 '일정 유지'를 고르면 앞으로 일정이 텅 비었다(2026-11-10 시즌 시뮬레이션).
+   이제 앞으로 7일 안에 훈련이 하나도 없고 목표가 아직 끝나지 않았으면, 지난 기록으로 다음 일정을 확정한다(지난 기록은 그대로 남는다) */
+function planAutoNext(){ try{
+  if(!PLAN||!PLAN.sessions||PLAN.starter||PLAN.imported)return false;
+  const g=PLAN.goal||GOAL; if(!g||g.kind==='custom')return false;
+  const t=todayStr(), end=g.date?String(g.date).slice(0,10):null; if(end&&end<=addDays(t,1))return false;
+  const ahead=(BLOCK||[]).some(x=>x.type!=='off'&&String(x.d).slice(0,10)>=t&&String(x.d).slice(0,10)<=addDays(t,7)); if(ahead)return false;
+  const act=(typeof GLOG!=='undefined'?GLOG:[]).find(x=>x.status==='active'); if(act&&goalKey(act.goal)!==goalKey(g))return false;
+  const p=makePlan({goal:g,fromReview:true}); if(!p||!p.sessions||!p.sessions.some(x=>x.type!=='off'&&String(x.d).slice(0,10)>=t))return false;
+  (p.why=p.why||[]).unshift('확정 일정이 끝나 다음 일정을 이어서 확정');
+  applyPlan(p); setTimeout(()=>{ try{ toast('다음 일정 확정 · 지난 기록 그대로'); }catch(e){} },1600); return true;
+}catch(e){ console.warn('auto next',e); return false; } }
+setTimeout(planAutoNext,0);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!(typeof S!=='undefined'&&S.running))planAutoNext(); });
 
 function decLog(kind,title,why,choice,extra){
   DECS.push(Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
