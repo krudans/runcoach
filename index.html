@@ -113,6 +113,7 @@ body.nonav #nav{display:none!important}
 .oblab:first-child{margin-top:0}
 .obgrid{display:grid;gap:8px}
 .obgrid.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.obgrid.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .datef{display:flex;gap:6px;align-items:center;position:relative}
 .datef input[type=text]{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 13px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink)}
 .datef input[type=text]:focus{outline:none;border-color:var(--accent)}
@@ -2506,7 +2507,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.29';
+const APPVER='20.30';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3677,7 +3678,7 @@ function makePlan(opts){
       else km=Math.max(km,pick.length*minDay); }
     /* 롱런 하나, 고강도 몇 개, 나머지는 쉬운 날 */
     const longD = pick.find(d=>IXDOW[d.getDay()]===weekendPick) || pick[pick.length-1];
-    const hardN = raceTaper ? Math.min(1,shape.hard||1) : taper?Math.max(0,shape.hard-1):SEA&&((phase==='base'&&wtr%2)||(phase==='peak'&&wtr%2&&(SEA.D==='M'||SEA.D==='H')))?Math.min(1,Math.max(1,shape.hard)):SEA?Math.max(1,shape.hard):shape.hard;
+    const hardN = raceTaper ? Math.min(1,days.length>=3?(shape.hard||1):shape.hard) : taper?Math.max(0,shape.hard-1):SEA&&((phase==='base'&&wtr%2)||(phase==='peak'&&wtr%2&&(SEA.D==='M'||SEA.D==='H')))?Math.min(1,Math.max(days.length>=3?1:0,shape.hard)):SEA?Math.max(days.length>=3?1:0,shape.hard):shape.hard;   /* 주 2일이면 빠른 날 없음(planShape) — 시즌이라고 1회를 강제하면 긴 날 다음 날 인터벌이 붙었다 */
     /* 바닥값(A-5): 역치 본 운동 20분(≈ 20×60/T km) 또는 주간 10% 중 큰 쪽 · 인터벌 3회 또는 2.4km.
        주간 거리가 작아 둘 다 넣으면 질 세션이 주간 20%를 넘길 때는 빠른 날을 1회(역치)로 줄인다 — 자극 미달 세션 둘보다 제대로 된 하나 (Daniels, C) */
     const tFloorKm=Math.round(20*60/Z.T*10)/10, iLen0=Math.max(0.4,Math.min(1.6,+(240/Z.I).toFixed(1))), iFloorKm=Math.max(2.4,3*iLen0);
@@ -3690,7 +3691,8 @@ function makePlan(opts){
     /* 긴 날 바로 앞뒤는 비운다. 이어서 힘든 날이 오면 둘 다 망친다 */
     const near=d=>Math.abs(d-longD)<=864e5*1.5||(prevLong&&Math.abs(d-prevLong)<=864e5*1.5);
     let pool = pick.filter(d=>d!==longD&&!near(d));
-    if(pool.length<hardN) pool = pick.filter(d=>d!==longD);
+    /* 비울 수 없으면 긴 날 옆에 붙이지 않고 빠른 날 수를 줄인다 — 전엔 긴 날 다음 날 템포·인터벌이 붙었다 */
+    if(pool.length<hardN&&hardN>0&&!why.some(x=>/긴 날 앞뒤/.test(x))) why.push('긴 날 앞뒤는 비움 → 빠른 날 줄임 · 요일을 더 띄우면 늘어남');
     /* 힘든 날은 서로 이틀 이상 띄운다(지난주 마지막 힘든 날 포함). 못 띄우면 개수를 줄인다 —
        '주 3회'를 골라도 요일상 불가능하면 이어 붙이지 않는다 */
     const hardD=[];
@@ -3763,7 +3765,8 @@ function makePlan(opts){
       const ds=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
       let s;
       if(d===testD){
-        { const gm=(opts.goal&&opts.goal.m)||0, k=gm>=10000?5:2; s={d:ds,wk:w+1,t:`TT ${k}km`,...testRun(k)}; }   /* 10km 이상 목표는 5km TT — 예상 기록 근거로 2km는 너무 짧다 */
+        { const gm=(opts.goal&&opts.goal.m)||0; let k=gm>=10000?5:2; if(capW<999&&testRun(k).dist>capW)k=2;   /* 한 번 거리 한도(+10%)를 넘는 5km TT(앞뒤 포함 9km) 대신 2km */
+          s={d:ds,wk:w+1,t:`TT ${k}km`,...testRun(k)}; }   /* 10km 이상 목표는 5km TT — 예상 기록 근거로 2km는 너무 짧다 */
       } else if(d===longD){
         s={d:ds,wk:w+1,t:`길게 ${longKm}km`,...long(longKm)}; s.longBy=longBy;
         /* 실전기 긴 날 후반을 목표 속도로 (Pfitzinger 'MP long run', C) — 풀 최대 12km·하프 최대 5km, 줄이는 주·테이퍼 제외 */
@@ -3782,7 +3785,11 @@ function makePlan(opts){
         if(taper)s.role=wkRole[w];
       } else if(hardD.includes(d)&&SEA&&wkRole[w]==='줄이는 주'&&hardD.indexOf(d)===0&&phase!=='taper'){
         /* 시즌 점검 TT — 줄이는 주(다리가 덜 지친 주)의 첫 빠른 날. 기록으로 VDOT·모든 속도를 다시 맞춘다 (Daniels: 경기·TT로 VDOT 갱신 · Pfitzinger 중간 점검 경기, C) */
-        const ttK=SEA.D==='T5'?3:5; s={d:ds,wk:w+1,t:`TT ${ttK}km — 실력 점검`,...testRun(ttK),role:wkRole[w]}; s.seaTT=true; testDone=true; ttOver=Math.max(0,s.dist-hardKm);   /* 이 TT가 측정을 겸한다 — 뒤 주에 2km TT를 또 넣지 않는다 */
+        let ttK=SEA.D==='T5'?3:5; if(capW<999&&testRun(ttK).dist>capW)ttK=testRun(3).dist<=capW?3:2; s={d:ds,wk:w+1,t:`TT ${ttK}km — 실력 점검`,...testRun(ttK),role:wkRole[w]}; s.seaTT=true; testDone=true; ttOver=Math.max(0,s.dist-hardKm);   /* 이 TT가 측정을 겸한다 — 뒤 주에 2km TT를 또 넣지 않는다 */
+      } else if(hardD.includes(d)&&capW<7){
+        /* 한 번 거리 한도가 7km보다 짧으면 빠른 날(웜업+본 운동+쿨다운 6.5km↑)을 못 넣는다 — 쉬운 날로, 거리가 늘면 다시 (+10%, Frandsen 2025 · B) */
+        s={d:ds,wk:w+1,t:`천천히 ${easyKm}km`,...easy(easyKm)};
+        if(!why.some(x=>/빠른 날 대신/.test(x)))why.push(`한 번 거리 한도 ${fmtKm1(capW)}km → 빠른 날 대신 쉬운 날 · 늘면 다시`);
       } else if(hardD.includes(d)){
         const mixL=seaMix||shape.mix, kind=mixL[hardD.indexOf(d)%Math.max(1,mixL.length)]||'T';
         const goalDay = gPaceSec && (SEA ? kind==='GP' : (w===1||w===2) && hardD.indexOf(d)===hardD.length-1);
@@ -6928,7 +6935,7 @@ const OBOPT={
   freq:[{l:'0~1',v:0.5},{l:'2~3',v:2.5},{l:'4~5',v:4.5},{l:'6+',v:6.5}],
   per :[{l:'~3km',v:2.5},{l:'3~5',v:4},{l:'5~10',v:7.5},{l:'10+',v:12}],
   long:[{l:'~5km',v:4},{l:'5~10',v:7.5},{l:'10~21',v:15},{l:'21+',v:25}],
-  rd  :[{l:'5km',v:5000},{l:'10km',v:10000},{l:'하프',v:21097},{l:'없음',v:0}],
+  rd  :[{l:'5km',v:5000},{l:'10km',v:10000},{l:'하프',v:21097},{l:'풀',v:42195},{l:'없음',v:0}],   /* 풀코스 기록을 넣을 칸이 없었다 */
   rw  :[{l:'1달 내',v:2},{l:'1~3달',v:8},{l:'3~6달',v:18},{l:'더 전',v:30}],
   twd :[{l:'30분',v:30},{l:'40분',v:40},{l:'60분',v:60},{l:'90분+',v:90}],
   twe :[{l:'40분',v:40},{l:'1시간',v:60},{l:'90분',v:90},{l:'2시간',v:120},{l:'3시간',v:180},{l:'4시간+',v:240}]
@@ -6953,12 +6960,17 @@ function obStart(again){
   if(!OB.d.days||!OB.d.days.length)OB.d.days=['화','목','토','일'];
   if(!OB.d.twd)OB.d.twd=40;
   if(!OB.d.twe)OB.d.twe=90;
+  /* 처음 설정 도중 앱이 꺼지거나(심박 재러 다른 앱에 다녀오는 등) 뒤로 가기로 첫 화면까지 나가면 답이 모두 사라졌다 — 그 자리에서 이어 한다 */
+  if(!again){ let dr=null; try{ dr=JSON.parse(localStorage.getItem('rc_obDraft')||'null'); }catch(e){} if(dr&&dr.d&&dr.at&&Date.now()-dr.at<7*864e5){ Object.assign(OB.d,dr.d); OB.i=Math.min(3,Math.max(0,dr.i|0)); } }
   obPaint(); show('onb');
 }
+function obDraftSave(){ try{ if(OB.only)return; const st=OBSTEP[OB.i]; if(st&&st.read)try{ st.read(); }catch(e){}
+  const d=Object.assign({},OB.d); delete d.agree; delete d.age14; delete d.health;   /* 동의는 매번 직접 */
+  localStorage.setItem('rc_obDraft',JSON.stringify({i:OB.i,d,at:Date.now()})); }catch(e){} }   /* 이 폰에만 — 동기화 안 함 */
 const obEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 function obTags(key,multi){
   const o=OBOPT[key]||[];
-  return `<div class="obgrid c4" data-k="${key}">`+o.map(x=>
+  return `<div class="obgrid ${o.length===5?'c5':'c4'}" data-k="${key}">`+o.map(x=>
     `<button type="button" class="obopt${OB.d[key]===x.v?' on':''}" data-v="${x.v}">${x.l}</button>`
   ).join('')+`</div>`;
 }
@@ -7010,7 +7022,7 @@ const OBSTEP=[
       <input type="text" id="obNick" maxlength="12" placeholder="2~12자 · 다른 사람과 겹치면 안 돼요" value="${ESC(lock?PROF.nick:(d.nick||''))}" autocomplete="nickname"${lock?' readonly':''}>
       <div class="meta" id="obNickNote" style="margin-top:6px;min-height:18px">${lock?'별명은 한 번 정하면 바꿀 수 없어요 (설정 › 계정 초기화로만)':'한 번 정하면 바꿀 수 없어요'}</div>
       <div class="oblab">태어난 해 <span class="obreq">필수</span></div>
-      <select id="obBy"><option value="">선택</option>${Array.from({length:Y-14-1939},(_,i)=>Y-14-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}<option value="u14"${d.by==='u14'?' selected':''}>${Y-13}년 이후</option></select>
+      <select id="obBy"><option value="">선택</option>${Array.from({length:Y-14-1939},(_,i)=>Y-14-i).map(y=>`<option value="${y}"${+d.by===y?' selected':''}>${y}년</option>`).join('')}<option value="1939"${+d.by===1939?' selected':''}>1939년 이전</option><option value="u14"${d.by==='u14'?' selected':''}>${Y-13}년 이후</option></select>
       <div class="meta" style="margin-top:6px">최대 심박 추정(208 − 0.7 × 나이)에 씁니다 · 만 14세 이상만 쓸 수 있어요</div>
       <div class="oblab">성별 <span class="obreq">필수</span></div>
       <div class="tagrow" id="obSex0" style="margin:0">
@@ -7207,7 +7219,7 @@ const OBSTEP=[
     if(!d.twd||!d.twe)return '시간 선택';
     return true; }}
 ];
-function obPaint(){ const same=OB._pi===OB.i; OB._pi=OB.i; keepScroll($('obBody'),same,obPaint0); }
+function obPaint(){ const same=OB._pi===OB.i; OB._pi=OB.i; keepScroll($('obBody'),same,obPaint0); obDraftSave(); }   /* 뒤로 가서 첫 화면이면 다시 시작도 1단계부터 — 답은 그대로 */
 function obPaint0(){
   const st=OBSTEP[OB.i];
   $('obStep').textContent=`STEP ${OB.i+1} / ${OBSTEP.length}`;
@@ -7249,7 +7261,12 @@ $('introGoogle').onclick=async()=>{
     if(!u)return;                         /* 구글 창으로 넘어간 경우 — 돌아와서 afterLogin()이 잇는다 */
     await afterLogin();
   }catch(e){
-    er.textContent='로그인 실패. '+(e.message||e);
+    const c=String((e&&(e.code||e.message))||e);   /* 구글 오류 원문(영어) 대신 할 일 */
+    er.textContent=/[가-힣]/.test(c)?c:/popup-closed|cancelled-popup|user-cancel/.test(c)?'로그인 창을 닫았어요 · 다시 눌러 주세요'
+      :/network|offline|failed to fetch/i.test(c)?'인터넷 연결을 확인하고 다시 눌러 주세요'
+      :/popup-blocked/.test(c)?'팝업이 막혔어요 · 브라우저에서 팝업 허용 후 다시'
+      :/unauthorized-domain/.test(c)?'이 주소에서는 구글 로그인이 안 돼요 · 관리자에게 알려 주세요'
+      :'로그인 실패 · 잠시 뒤 다시 ('+c.slice(0,60)+')';
     er.style.display='block';
   }finally{ bt.disabled=false; bt.innerHTML=was; }
 };
@@ -7309,7 +7326,7 @@ function obFinish(){ obSave();
 }
 /* 설문 답 저장 — 끝까지 했을 때와 중간에 '나중에'를 눌렀을 때 같은 식. 건너뛰면 그때까지 답한 것이 전부 버려졌다 */
 function obSave(){
-  const d=OB.d;
+  const d=OB.d; try{ localStorage.removeItem('rc_obDraft'); }catch(e){}
   if(!d.birth&&d.by&&d.by!=='u14')d.birth=`${d.by}-07-01`; if(d.birth)d.age=ageOf(d.birth)||d.age;   /* 2단계에서 건너뛰어도 나이(최대 심박 추정)는 1단계 태어난 해로 */
   d.wk=surveyWk(d)||d.wk||null;
   SURVEY={dayPref:(SURVEY&&SURVEY.dayPref)||undefined,freq:d.freq,per:d.per,long:d.long,wk:d.wk,rw:d.rw,
@@ -7707,7 +7724,7 @@ const GSTEP=[
    if(!d.days) d.days=defDays(rec);
    const n=d.days.length, sh=planShape(shapeKind(Object.assign({},d,{kind:d.kind||'health'})),n);
    const restD=IXDOW.filter(x=>!d.days.includes(x)).sort((a,b)=>((DOWIX[a]+6)%7)-((DOWIX[b]+6)%7));
-   const opts=[3,4,5,6,7].map(k=>`<button type="button" class="obopt${n===k?' on':''}" data-n="${k}">${k}일${k===rec?'<i class="recdot">추천</i>':''}</button>`).join('');
+   const opts=[2,3,4,5,6,7].map(k=>`<button type="button" class="obopt${n===k?' on':''}" data-n="${k}">${k}일${k===rec?'<i class="recdot">추천</i>':''}</button>`).join('');
    const chips=['월','화','수','목','금','토','일'].map(x=>`<button type="button" class="daychip${d.days.includes(x)?' on':''}" data-d="${x}">${x}</button>`).join('');
    const diff=n-cur.n;
    const op = Math.abs(diff)<1.5
@@ -7716,7 +7733,7 @@ const GSTEP=[
      : `지금보다 감소 · OK`;
    const op2 = d.kind==='start' ? `<b>주 3번</b> 시작 · 띄워서 (ACSM 주 3~5일, B)` : op;
    const nextMon=addDays(weekMonday(todayStr()),7);
-   return `<div class="obgrid c5" id="gN">${opts}</div>
+   return `<div class="obgrid c3" id="gN">${opts}</div>
      <div class="oblab">요일</div><div class="daychips" id="gDays">${chips}</div>
      ${dateField('gStart',d.start||null,'시작일',`비우면 오늘부터`,[['오늘',todayStr()],['내일',addDays(todayStr(),1)],['다음 주 월요일',nextMon]],true)}
      <div class="card tight" style="margin-top:14px;line-height:1.75;font-size:13px">
@@ -13511,7 +13528,7 @@ function goalRoad(M,big,split){
   if(goalSec){
     /* 예상 기록은 검증된 기록(TT·직접 올린 대회)만 — 없으면 TT 안내 */
     const P=measured?predRange(VDOT,g.m):null;
-    const src=measured&&r?`${r.at?mdw(r.at.slice(0,10))+' ':''}${r.kind==='tt'?'TT':'대회'} ${r.m>=42000?'풀':r.m>=21000?'하프':fmtKm1(r.m/1000)+'km'} ${fmtClock(r.sec)}`:'';
+    const src=measured&&r?`${r.at?mdw(r.at.slice(0,10))+' ':''}${r.kind==='tt'?'TT':r.kind==='solo'?'혼자 측정':'대회'} ${r.m>=42000?'풀':r.m>=21000?'하프':fmtKm1(r.m/1000)+'km'} ${fmtClock(r.sec)}`:'';
     const cmp=!P?'':goalSec>=P.hi?`느린 쪽도 ${fmtGap(goalSec-P.hi)} 여유`:goalSec>=P.lo?'목표가 예상 범위 안':`${fmtGap(P.lo-goalSec)} 줄여야 함`;
     st=`<div class="gr-st">
       <div><i>예상 기록${P&&P.conf!=='믿을 만함'?` · ${P.conf}`:''}</i><b>${P?predText(P):'TT 후'}</b><em>${P?`근거 ${src}${P.why?` · ${P.why}`:''}`:'5km를 전력으로 한 번 뛰면 나와요'}</em>${P?'':`<button type="button" class="tch gr-tt" data-ttplan="1">TT 일정 넣기</button>`}</div>
