@@ -2520,7 +2520,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.40';
+const APPVER='20.41';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4018,7 +4018,7 @@ function keepDone(p){
   const sameGoal=JSON.stringify(PLAN.goal||null)===JSON.stringify(p.goal||null);
   const ran=s=>RUNS.some(r=>r.planId===s.d);
   const nStart=p.sessions.length?d10(p.sessions[0]):t, mon0=weekMonday(p.start||nStart);
-  const kept=PLAN.sessions.filter(s=>d10(s)>=nStart&&(d10(s)<t||ran(s)||(sameGoal&&s.edited&&!p.replan)));   /* '남은 일정을 다시 짜요'(시간·요일 바꾸기)는 앞날의 고친 일정도 새로 — 옛 일정이 남아 새 일정과 부딪히던 버그 */
+  const kept=PLAN.sessions.filter(s=>d10(s)>=nStart&&(d10(s)<t||ran(s)||(sameGoal&&(s.edited||s.shifted)&&!p.replan)));   /* '남은 일정을 다시 짜요'(시간·요일 바꾸기)는 앞날의 고친 일정도 새로 — 옛 일정이 남아 새 일정과 부딪히던 버그 */
   if(!kept.length&&!p.sessions.some(s=>d10(s)<t))return p;
   const keptD=new Set(kept.map(d10));
   const wkOf=d=>Math.max(1,Math.floor((Date.parse(weekMonday(d))-Date.parse(mon0))/6048e5)+1);
@@ -8666,7 +8666,11 @@ function planAutoNext(){ try{
   if(!PLAN||!PLAN.sessions||PLAN.imported)return false;   /* 처음 시작(입문) 일정도 이어진다 — 4주 뒤 입문자 일정이 텅 비던 것 */
   const g=PLAN.goal||GOAL; if(!g||g.kind==='custom')return false;
   const t=todayStr(), end=g.date?String(g.date).slice(0,10):null; if(end&&end<=addDays(t,1))return false;
-  const ahead=(BLOCK||[]).some(x=>x.type!=='off'&&String(x.d).slice(0,10)>=t&&String(x.d).slice(0,10)<=addDays(t,7)); if(ahead)return false;
+  const ahead=(BLOCK||[]).some(x=>x.type!=='off'&&String(x.d).slice(0,10)>=t&&String(x.d).slice(0,10)<=addDays(t,7));
+  /* 확정 일정의 '원래 날짜'가 다 지났으면(남은 건 미뤄서 밀려온 것뿐) 다음 일정을 잇는다 — 미룬 훈련 하나만 남아 그 주 나머지가 비어 보이던 것(2026-11-10 시즌 시뮬레이션 C).
+     밀려온 훈련은 keepDone이 새 일정에 그대로 남긴다 */
+  const origEnd=(PLAN.sessions||[]).filter(x=>x.type!=='off').map(x=>String(x.moved||x.d).slice(0,10)).sort().pop()||'';
+  if(ahead&&!(origEnd&&origEnd<t))return false;
   const act=(typeof GLOG!=='undefined'?GLOG:[]).find(x=>x.status==='active'); if(act&&goalKey(act.goal)!==goalKey(g))return false;
   const p=makePlan({goal:g,fromReview:true}); if(!p||!p.sessions||!p.sessions.some(x=>x.type!=='off'&&String(x.d).slice(0,10)>=t))return false;
   (p.why=p.why||[]).unshift('확정 일정이 끝나 다음 일정을 이어서 확정');
