@@ -2074,6 +2074,7 @@ body.mf-on{overflow:hidden}
 .tr-go{display:block;width:100%;margin:12px 0 0;height:50px;border:none;border-radius:14px;background:var(--tc);color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
 #hidBan{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:60;background:#B3261E;color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:4px;font-size:14px;line-height:1.45}
 #hidBan[hidden]{display:none}#hidBan b{font-size:17px}#hidBan span:last-child{opacity:.8;font-size:13px}
+.gqnote{margin:10px 2px 0;font-size:12.5px;line-height:1.5;color:var(--ink-3,#857d90)}.gqnote.bad{padding:9px 11px;border-radius:12px;background:#FDECEA;color:#8C1D18}
 .hidnote{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:#FDECEA;color:#8C1D18;font-size:13.5px;line-height:1.5}
 .tr-links{display:flex;justify-content:center;gap:16px;margin-top:6px}.tr-links button{border:none;background:none;font:inherit;font-size:13px;color:var(--ink-3);text-decoration:underline;padding:8px 2px;cursor:pointer}
 .mdock{position:fixed;left:10px;right:10px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:25;display:flex;align-items:center;gap:2px;background:var(--ink);color:#fff;border-radius:14px;padding:5px 6px 5px 10px;box-shadow:var(--sh);max-width:520px;margin:0 auto}
@@ -2524,7 +2525,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.44';
+const APPVER='20.45';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4910,7 +4911,7 @@ async function startRun(){
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
-    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,
+    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,restHrCue:null,hrSoft:(S.factors||[]).length>0,hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -5053,12 +5054,13 @@ document.querySelector('.laphd').onclick=e=>{
 };
 
 /* ───────── GPS ───────── */
-function onPosErr(e){$('rDot').className='dot bad';
+function onPosErr(e){$('rDot').className='dot bad'; try{ const q=S.gq||(S.gq={n:0,bad:0,sum:0,max:0,gapSec:0,rearm:0,err:0}); q.err++; q.errCode=e&&e.code; }catch(x){}
   $('rGps').textContent=e.code===1?'위치 권한 거부됨':e.code===3?'GPS 신호 없음':'GPS 오류';}
 function onPos(pos){
   if(!S.running||S.paused)return;
   const c=pos.coords,now=pos.timestamp||Date.now(),acc=c.accuracy||99;
   S.lastFixAt=Date.now(); if(acc<=25)S.lastGoodAt=Date.now();
+  { const q=S.gq||(S.gq={n:0,bad:0,sum:0,max:0,gapSec:0,rearm:0,err:0}); q.n++; q.sum+=Math.min(acc,999); if(acc>q.max)q.max=Math.round(acc); if(acc>25)q.bad++; }   /* GPS 품질 — 거리가 이상할 때 원인을 볼 수 있게 기록에 남긴다 */
   $('rDot').className='dot '+(acc<=12?'good':acc<=25?'weak':'bad'); S.gpsAcc=acc;
   if(!(S.overSince&&now-S.overSince>10000))
     $('rGps').textContent=`GPS 정확도 ±${Math.round(acc)}m`+(acc>25?' — 샘플 무시':'');
@@ -5183,6 +5185,13 @@ function onTick(){
   const TD=Math.max(0,Math.min(60,S.elapsed-(S.lastTickEl==null?S.elapsed:S.lastTickEl))); S.lastTickEl=S.elapsed;
   /* 실시간 페이스 창 — 앱 시계·거리로 기록 (최근 35초만) */
   /* GPS 끊김 — (1) 좌표가 6초 넘게 안 오거나 정확도가 나쁜 것만 올 때, (2) 걸음은 뛰는 중(케이던스 130↑)인데 좌표가 6초 넘게 제자리일 때(터널에서 폰이 마지막 자리를 계속 주는 경우) */
+  /* 위치 다시 연결 — 브라우저가 좌표를 주다가 말없이 멈추는 일이 있다. 전엔 멈추면 그대로 기다리기만 해서, 화면을 켜 두고 뛰어도 몇 분씩 좌표가 비었다
+     (2026-11-10 실제 사례: 같은 폰의 다른 앱은 5.16km, 가지런은 1.09km). 12초 넘게 좌표가 없으면 위치 받기를 껐다 다시 켠다(15초에 한 번까지) */
+  if(S.running&&!S.paused&&!document.hidden&&S.watchId!=null){ const nowMs=Date.now(), q=S.gq||(S.gq={n:0,bad:0,sum:0,max:0,gapSec:0,rearm:0,err:0});
+    if(S.gpsGap)q.gapSec+=TD;
+    const last=S.lastFixAt||S.gpsT0||(S.gpsT0=nowMs);
+    if(nowMs-last>12000&&nowMs-(S.rearmAt||0)>15000){ S.rearmAt=nowMs; q.rearm++;
+      try{ DEV.geo.stop(S.watchId); }catch(e){} try{ S.watchId=DEV.geo.start(onPos,onPosErr); }catch(e){} } }
   if(S.act!=='walk'&&!S.paused&&S.anchor&&!S.gpsGap&&S.dist>30){ const nowMs=Date.now(), age=(nowMs-(S.lastFixAt||nowMs))/1000, bad=(nowMs-(S.lastGoodAt||nowMs))/1000;
     let cn=null; try{ cn=cadence(); }catch(e){}
     const stall=cn&&cn>=130&&S.lastMoveEl&&S.elapsed-S.lastMoveEl>6;
@@ -5935,7 +5944,8 @@ function renderSummary(completed){
 
   S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:new Date(S.t0||Date.now()).toISOString(),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
-    hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
+    hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,
+    gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
     hrAvg,hrMax:heldMax(S.hr.samples,5)||S.hr.max||null,   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
     hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
@@ -6093,6 +6103,9 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden)liveSave()
    전엔 아무 표시가 없어 다 뛰고서야 알았다 → 꺼지는 순간 소리·진동, 돌아오면 못 받은 시간을 화면에 띄우고 기록에도 남긴다 */
 function hidFmt(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), x=sec%60; return m?(x?`${m}분 ${x}초`:`${m}분`):`${x}초`; }
 function hidNote(r){ return r&&r.hidSec>=20?`<p class="hidnote">⚠ 화면 꺼짐·다른 앱 <b>${hidFmt(r.hidSec)}</b>${r.hidN>1?` (${r.hidN}번)`:''} — 그동안 위치를 못 받아 거리가 실제보다 짧을 수 있어요</p>`:''; }
+function gqNote(r){ const q=r&&r.gq; if(!q||!q.n&&!q.gapSec&&!q.err)return q?'<p class="gqnote bad">GPS 좌표를 하나도 받지 못했어요</p>':'';
+  const badPct=q.n?Math.round(q.bad/q.n*100):0, per=r.sec&&q.n?(r.sec/q.n):0, warn=badPct>=30||q.gapSec>=60||(per>3);
+  return `<p class="gqnote${warn?' bad':''}">GPS 좌표 ${q.n.toLocaleString()}개${per?` (${per<1.05?'1초마다':per.toFixed(1)+'초에 1개'})`:''} · 평균 정확도 ±${q.acc}m · 버린 좌표 ${badPct}%${q.gapSec>=10||q.gapN?` · 끊김 ${q.gapN||0}번 ${hidFmt(q.gapSec)}`:''}${q.rearm?` · 다시 연결 ${q.rearm}번`:''}${warn?' — 거리가 실제보다 짧을 수 있어요':''}</p>`; }
 function hidBanner(sec,tot){ let b=$('hidBan'); if(!b){ b=document.createElement('div'); b.id='hidBan'; b.setAttribute('role','alert'); document.body.appendChild(b); b.addEventListener('click',()=>{ b.hidden=true; }); }
   b.innerHTML=`<b>위치를 못 받은 시간 ${hidFmt(sec)}</b><span>화면이 꺼지거나 다른 앱이 앞에 있었어요. 그 구간은 직선거리로만 이어져 실제보다 짧게 기록돼요.${tot>sec?` 오늘 합계 ${hidFmt(tot)}.`:''}</span><span>이 화면을 켜 둔 채로 뛰세요 · 눌러서 닫기</span>`; b.hidden=false; }
 document.addEventListener('visibilitychange',()=>{ try{
@@ -6454,7 +6467,7 @@ async function selfTest(){
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
       hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,
-      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,
+      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
@@ -10648,7 +10661,7 @@ function renderResult(host,r,s,opt){
     <h2 class="rt">${ESC(runTitle(r))}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
     ${hasMap?`<div class="rroute">${routeBoxHTML()}</div>`:'<div class="rmap" hidden></div>'}
-    ${SEC(vc,'오늘 결과','',hidNote(r)+hero)}
+    ${SEC(vc,'오늘 결과','',hidNote(r)+hero+gqNote(r))}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
     ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 심박 존</summary>':''}
     ${segSec}
