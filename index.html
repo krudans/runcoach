@@ -2391,6 +2391,7 @@ button.gc{cursor:pointer}button.gc:active{background:var(--panel-2)}
 .hgrp>*+*{border-top:1px solid var(--line)!important}
 .hlg{margin:16px 16px 0}.hlg-h{font-size:13px;font-weight:700;color:var(--ink-2);margin:0 4px 6px}
 .hlist{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.hall{display:block;margin:12px 16px 0;width:calc(100% - 32px);padding:11px;border:1px dashed var(--line);border-radius:14px;background:none;color:var(--ink-2);font:inherit;font-size:14px;font-weight:600}
 .hrow{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid var(--line);background:none;font:inherit;color:var(--ink);padding:12px 14px;text-align:left;cursor:pointer}
 .hrow:first-child{border-top:0}.hrow:active{background:var(--panel-2)}
 .hrow svg{width:22px;height:22px;flex:none;color:var(--tc)}.hrow-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px}.hrow-t b{font-size:14px;font-weight:700;flex:none}.hrow-t i{font-style:normal;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2520,7 +2521,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.41';
+const APPVER='20.42';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9390,6 +9391,11 @@ function renderHome(){
 }
 /* 홈 타일 — 숫자 하나씩. 누르면 예전 홈 카드가 시트로 열린다 */
 const TILE_IC={goal:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',week:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',rec:'<path d="M4 20v-9M10 20V5M16 20v-7M21 20H3"/>',body:'<path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/>',basis:'<path d="M3 12h4l2-6 4 12 2-6h6"/>',mile:'<circle cx="12" cy="15" r="5"/><path d="M8.5 3l3.5 7M15.5 3L12 10"/>',warm:'<circle cx="12" cy="4" r="1.6"/><path d="M12 7v6M12 13l-3 7M12 13l3 7M12 9l-4 1M12 9l4 1"/>',race:'<path d="M5 21V4h11l-2 4 2 4H5"/>'};
+/* 홈에 무엇을 보일지 — 목표 종류로 저절로 정한다 */
+function homeLevel(){ const g=(PLAN&&PLAN.goal)||GOAL; if(!g||!g.kind)return 'none';
+  return ['start','health','weight','aero'].includes(g.kind)?'light':'full'; }
+function homeAllGet(){ try{ return localStorage.getItem('rc_homeAll')==='1'; }catch(e){ return false; } }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-homeall]'); if(!b)return; try{ localStorage.setItem('rc_homeAll',b.dataset.homeall); }catch(err){} try{ renderHome(); }catch(err){} });
 function homeTiles(sess){ try{
   const g=(PLAN&&PLAN.goal)||GOAL, t=todayStr();
   const dday=g&&g.date?Math.round((Date.parse(g.date.slice(0,10)+'T00:00:00')-Date.parse(t+'T00:00:00'))/864e5):null;
@@ -9413,8 +9419,17 @@ function homeTiles(sess){ try{
   if(!RACES){ try{ racesLoad().then(()=>{ const t=document.querySelector('[data-tile="race"] i'); if(t&&RACES&&RACES.updated){ const u=new Date(RACES.updated); t.textContent=`${u.getMonth()+1}.${u.getDate()} ${pad(u.getHours())}:${pad(u.getMinutes())} 기준`; } }).catch(()=>{}); }catch(e){} }
   /* 목록 카드 3묶음 — 이름 왼쪽 · 값 오른쪽. 러닝 마일리지는 머리 계기판과 같은 숫자라 뺌(계기판을 누르면 열림) */
   const TB={}; tiles.forEach(x=>TB[x[0]]=x);
+  /* 필요한 사람에게만 — 목표 없이 뛰는 사람에게 '목표 —', '훈련 0/0', 속도 기준 숫자가 늘어서 지저분했다(2026-11-10 요청).
+     목표 종류로 저절로 정한다: 목표 없음 → 이번 주·운동법(목표 세우기는 위 카드) / 가벼운 목표(처음 시작·건강·체중·편한 달리기) → 목표·이번 주·운동법 / 기록·대회 목표 → 전부.
+     몸 상태는 점검할 게 있으면 누구에게나 보인다(안전). 숨긴 것은 '전체 보기'로 연다 */
+  const lvl=homeLevel(), alertBody=!!body[2];
+  const SHOW={none:['week','warm'],light:['goal','week','warm'],full:['goal','week','basis','body','rec','warm','race']}[lvl];
+  const showAll=homeAllGet(), vis=k=>showAll||SHOW.includes(k)||(k==='body'&&alertBody);
+  if(lvl==='none'&&TB.goal){ TB.goal=['goal','목표','정하기','목표를 정하면 일정을 짜 드려요','#5B2D86']; }   /* 목표 없음 — 위 '아직 계획 없음' 카드에 '목표 세우기'가 있어 목록에선 뺀다(전체 보기에서만) */
   const GR=[['내 훈련',['goal','week','basis']],['내 몸·기록',['body','rec']],['도구',['warm','race']]];
-  return GR.map(([gn,ks])=>`<div class="hlg"><div class="hlg-h">${gn}</div><div class="hlist">${ks.map(k=>{ const x=TB[k]; return `<button type="button" class="hrow" data-tile="${k}" style="--tc:${x[4]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_IC[k]}</svg><span class="hrow-t"><b>${x[1]}</b><i>${x[3]}</i></span><strong class="num">${x[2]}</strong><span class="hrow-go" aria-hidden="true">›</span></button>`; }).join('')}</div></div>`).join('');
+  const nHid=GR.reduce((a,[,ks])=>a+ks.filter(k=>!vis(k)).length,0);
+  const more=(nHid||showAll)&&lvl!=='full'?`<button type="button" class="hall" data-homeall="${showAll?0:1}">${showAll?'간단히 보기':`전체 보기 · ${nHid}개 더`}</button>`:'';
+  return GR.map(([gn,ks])=>[gn,ks.filter(vis)]).filter(([,ks])=>ks.length).map(([gn,ks])=>`<div class="hlg"><div class="hlg-h">${gn}</div><div class="hlist">${ks.map(k=>{ const x=TB[k]; return `<button type="button" class="hrow" data-tile="${k}" style="--tc:${x[4]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TILE_IC[k]}</svg><span class="hrow-t"><b>${x[1]}</b><i>${x[3]}</i></span><strong class="num">${x[2]}</strong><span class="hrow-go" aria-hidden="true">›</span></button>`; }).join('')}</div></div>`).join('')+more;
 }catch(e){ console.warn('tiles',e); return ''; } }
 /* 운동법 시트 — 몸으로 하는 운동만 한곳에: 준비(동적) · 마무리(정적) · 근력 · 코어. 처음 여는 탭은 오늘 상황대로 */
 var EX_TAB=null;
