@@ -2072,6 +2072,9 @@ body.mf-on{overflow:hidden}
 .tr-rows li{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:7px 10px;border-radius:10px;background:var(--panel-2)}
 .tr-rows li span{color:var(--ink-3);white-space:nowrap}.tr-rows li b{text-align:right;font-weight:700}.tr-rows li.bad b{color:var(--bad-ink)}.tr-rows li.ok b{color:var(--ok-ink)}
 .tr-go{display:block;width:100%;margin:12px 0 0;height:50px;border:none;border-radius:14px;background:var(--tc);color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+#hidBan{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:60;background:#B3261E;color:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:4px;font-size:14px;line-height:1.45}
+#hidBan[hidden]{display:none}#hidBan b{font-size:17px}#hidBan span:last-child{opacity:.8;font-size:13px}
+.hidnote{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:#FDECEA;color:#8C1D18;font-size:13.5px;line-height:1.5}
 .tr-links{display:flex;justify-content:center;gap:16px;margin-top:6px}.tr-links button{border:none;background:none;font:inherit;font-size:13px;color:var(--ink-3);text-decoration:underline;padding:8px 2px;cursor:pointer}
 .mdock{position:fixed;left:10px;right:10px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:25;display:flex;align-items:center;gap:2px;background:var(--ink);color:#fff;border-radius:14px;padding:5px 6px 5px 10px;box-shadow:var(--sh);max-width:520px;margin:0 auto}
 .md-art{flex:none;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#F6C27A}
@@ -2521,7 +2524,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.43';
+const APPVER='20.44';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4907,7 +4910,7 @@ async function startRun(){
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
-    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,
+    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,restHrCue:null,hrSoft:(S.factors||[]).length>0,hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -5932,6 +5935,7 @@ function renderSummary(completed){
 
   S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:new Date(S.t0||Date.now()).toISOString(),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
+    hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
     hrAvg,hrMax:heldMax(S.hr.samples,5)||S.hr.max||null,   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
     hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
@@ -6083,6 +6087,24 @@ function liveGet(){ try{ const o=JSON.parse(localStorage.getItem('rc_live')||'nu
 function liveClear(){ try{ localStorage.removeItem('rc_live'); }catch(e){} }
 setInterval(()=>{ if(S.running&&!S.paused)liveSave(); },10000);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden)liveSave(); });
+/* ───────── 달리는 중 화면이 꺼지거나 다른 앱으로 갈 때 ─────────
+   웹앱은 화면에 보일 때만 폰이 위치를 준다. 화면이 꺼지거나 다른 앱이 앞에 오면 좌표가 멈추고, 돌아오면 그 사이를 직선거리로만 잇는다.
+   공원을 여러 바퀴 돌면 직선이 거의 0이라 5km가 1km로 기록됐다(2026-11-10 실제 사례 — 다른 달리기 앱을 앞에 두고 뜀).
+   전엔 아무 표시가 없어 다 뛰고서야 알았다 → 꺼지는 순간 소리·진동, 돌아오면 못 받은 시간을 화면에 띄우고 기록에도 남긴다 */
+function hidFmt(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), x=sec%60; return m?(x?`${m}분 ${x}초`:`${m}분`):`${x}초`; }
+function hidNote(r){ return r&&r.hidSec>=20?`<p class="hidnote">⚠ 화면 꺼짐·다른 앱 <b>${hidFmt(r.hidSec)}</b>${r.hidN>1?` (${r.hidN}번)`:''} — 그동안 위치를 못 받아 거리가 실제보다 짧을 수 있어요</p>`:''; }
+function hidBanner(sec,tot){ let b=$('hidBan'); if(!b){ b=document.createElement('div'); b.id='hidBan'; b.setAttribute('role','alert'); document.body.appendChild(b); b.addEventListener('click',()=>{ b.hidden=true; }); }
+  b.innerHTML=`<b>위치를 못 받은 시간 ${hidFmt(sec)}</b><span>화면이 꺼지거나 다른 앱이 앞에 있었어요. 그 구간은 직선거리로만 이어져 실제보다 짧게 기록돼요.${tot>sec?` 오늘 합계 ${hidFmt(tot)}.`:''}</span><span>이 화면을 켜 둔 채로 뛰세요 · 눌러서 닫기</span>`; b.hidden=false; }
+document.addEventListener('visibilitychange',()=>{ try{
+  if(typeof S==='undefined'||!S.running)return;
+  if(document.hidden){ if(S.paused||S._fin)return; S.hidAt=Date.now();
+    DEV.buzz(BZ.off); DEV.speak('화면이 꺼졌어요. 이 상태로는 거리를 못 잽니다. 가지런 화면을 켜 두세요.',true,true); return; }
+  if(!S.hidAt)return; const sec=Math.round((Date.now()-S.hidAt)/1000); S.hidAt=null;
+  if(sec<20)return;   /* 잠깐 알림창 본 정도는 세지 않는다 */
+  S.hidSec=(S.hidSec||0)+sec; S.hidN=(S.hidN||0)+1;
+  hidBanner(sec,S.hidSec); DEV.buzz(BZ.off);
+  DEV.speak(`${hidFmt(sec)} 동안 위치를 못 받았어요. 그 구간은 거리가 짧게 기록됩니다. 화면을 켜 두세요.`,true,true);
+}catch(e){} });
 window.addEventListener('pagehide',liveSave);
 /* 앱을 다시 열었을 때 — 끝내지 못한 기록이 있으면 묻는다 */
 async function liveCheck(){
@@ -6432,7 +6454,7 @@ async function selfTest(){
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
       hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,
-      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,
+      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
@@ -9553,6 +9575,7 @@ function todayResultCard(r,sess){
     <div class="tr-top"><span class="tr-chip">${ic('check',14)}</span><span class="tr-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span></div>
     <div class="tr-main"><div><b class="num">${(+r.km).toFixed(2)}</b><span>km</span></div>${map?`<div class="tr-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}</div>
     <div class="tr-stats"><span>${ic('clock')}<b class="num">${fmtClock(r.sec)}</b></span><span>${ic('pace')}<b class="num">${fmtPace(r.paceAvg)}</b>/km</span>${r.hrAvg?`<span>${ic('heart')}<b class="num">${r.hrAvg}</b> <small>${zLab(r.hrAvg)}</small></span>`:''}${r.cadAvg?`<span>👣<b class="num">${r.cadAvg}</b></span>`:''}</div>
+    ${hidNote(r)}
     ${vd?`<div class="tr-vd ${tone}">${vd[0]}</div>`:''}
     ${loadCard(r,true)}
     ${rows?`<ul class="tr-rows">${rows}</ul>`:''}
@@ -10625,7 +10648,7 @@ function renderResult(host,r,s,opt){
     <h2 class="rt">${ESC(runTitle(r))}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
     ${hasMap?`<div class="rroute">${routeBoxHTML()}</div>`:'<div class="rmap" hidden></div>'}
-    ${SEC(vc,'오늘 결과','',hero)}
+    ${SEC(vc,'오늘 결과','',hidNote(r)+hero)}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
     ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 심박 존</summary>':''}
     ${segSec}
