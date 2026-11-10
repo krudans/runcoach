@@ -2520,7 +2520,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.39';
+const APPVER='20.40';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4061,6 +4061,7 @@ function applyPlan(p){
   PLAN=p; DEV.store.set('plan',p);
   (p.sessions||[]).forEach(refreshEasyPaces); (p.sessions||[]).forEach(fixRestDist);
   BLOCK=mergeCustom(p.sessions);
+  try{ capNear(); }catch(e){}   /* 새 일정도 앞 7일은 실제 기록 기준 한도로 — 결산에서 이어 짠 일정이 '앞 덩어리를 다 뛰었다'고 보고 길게 나오던 것 */
   renderHome();
   try{ if(FB.user)FB.sync().catch(()=>{}); }catch(e){}
 }
@@ -8662,7 +8663,7 @@ planRecoverPast();   /* RUNS·DIST·isRun 선언 뒤 — 사라진 지난 4주 �
    실제로는 월요일 결산에서 '예정대로 계속'을 눌러야만 이어졌다. 결산을 건너뛰거나 '일정 유지'를 고르면 앞으로 일정이 텅 비었다(2026-11-10 시즌 시뮬레이션).
    이제 앞으로 7일 안에 훈련이 하나도 없고 목표가 아직 끝나지 않았으면, 지난 기록으로 다음 일정을 확정한다(지난 기록은 그대로 남는다) */
 function planAutoNext(){ try{
-  if(!PLAN||!PLAN.sessions||PLAN.starter||PLAN.imported)return false;
+  if(!PLAN||!PLAN.sessions||PLAN.imported)return false;   /* 처음 시작(입문) 일정도 이어진다 — 4주 뒤 입문자 일정이 텅 비던 것 */
   const g=PLAN.goal||GOAL; if(!g||g.kind==='custom')return false;
   const t=todayStr(), end=g.date?String(g.date).slice(0,10):null; if(end&&end<=addDays(t,1))return false;
   const ahead=(BLOCK||[]).some(x=>x.type!=='off'&&String(x.d).slice(0,10)>=t&&String(x.d).slice(0,10)<=addDays(t,7)); if(ahead)return false;
@@ -8671,8 +8672,39 @@ function planAutoNext(){ try{
   (p.why=p.why||[]).unshift('확정 일정이 끝나 다음 일정을 이어서 확정');
   applyPlan(p); setTimeout(()=>{ try{ toast('다음 일정 확정 · 지난 기록 그대로'); }catch(e){} },1600); return true;
 }catch(e){ console.warn('auto next',e); return false; } }
-setTimeout(planAutoNext,0);
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!(typeof S!=='undefined'&&S.running))planAutoNext(); });
+/* 가까운 7일 일정 — 한 번 거리 한도(그날 기준 최근 30일 최장 +10%, Frandsen 2025 · B) 다시 맞추기.
+   일정은 '앞 주들을 계획대로 뛰었다'고 보고 주마다 한도를 10%씩 올려 짠다. 그런데 쉬거나 덜 뛰면 실제 최장은 그대로라
+   3~4주차 템포런 7.5km가 최근 최장 5km인 사람에게 그대로 남았다(2026-11-10 시즌 시험 B). 매일 앞 7일을 실제 기록으로 다시 본다.
+   사용자가 직접 바꾼 날(edited)·뛴 날·TT·대회는 손대지 않는다 */
+function capNear(){ try{
+  const L=peStore(); if(!L||PLAN.imported)return 0; const g=PLAN.goal||GOAL; if(g&&g.kind==='custom')return 0;
+  const t=todayStr(), end=addDays(t,7), L0=longest30(); if(!L0)return 0;
+  const HARD=['threshold','interval','goalpace'], SOFT=['easy','recovery','long'];
+  const done=x=>RUNS.some(r=>r.planId===x.d);
+  const order=L.map((x,i)=>i).filter(i=>{ const d=String(L[i].d).slice(0,10); return d>=t&&d<end; }).sort((a,b)=>L[a].d<L[b].d?-1:1);
+  let n=0;
+  order.forEach(i=>{ const x=L[i], d=String(x.d).slice(0,10);
+    if(x.edited||done(x)||!(HARD.includes(x.type)||SOFT.includes(x.type))||!x.dist)return;
+    const lo=addDays(d,-30);
+    const prior=L.filter(y=>{ const e=String(y.d).slice(0,10); return e>=t&&e<d&&e>lo&&y.type!=='off'; }).map(y=>sKm(y));
+    const lim=Math.round(Math.max(L0,...prior)*1.1*2)/2, km=sKm(x); if(!(km>lim+0.01))return;
+    let ns=null;
+    if(SOFT.includes(x.type)){ if(lim<2)return; ns=peBuild(x.d,x.wk,x.type,lim); }
+    else { let reps=x.reps||2, len=x.repLen||1;
+      const tot=(r,l)=>{ const b=peBuild(x.d,x.wk,x.type,0,r,l); return {b,k:+b.dist||0}; };
+      let c=tot(reps,len);
+      while(c.k>lim+0.01&&reps>2){ reps--; c=tot(reps,len); }
+      while(c.k>lim+0.01&&len>1){ len=+(len-0.5).toFixed(2); c=tot(reps,len); }
+      if(c.k>lim+0.01)return;   /* 가장 짧게 해도 넘으면 그대로 둔다 — 화면에 한도 경고가 뜬다 */
+      ns=peBuild(x.d,x.wk,x.type,lim,reps,len); }
+    if(!ns)return; ns.d=x.d; ns.wk=x.wk; if(x.role)ns.role=x.role; if(x.moved)ns.moved=x.moved;
+    ns.capCut={from:km,to:+ns.dist||lim,at:t}; ns.orig=x.orig||JSON.parse(JSON.stringify(x));
+    L[i]=ns; if(DIST[x.d]!=null)delete DIST[x.d]; n++; });
+  if(n){ DEV.store.set('dist',DIST); peSave(()=>{}); setTimeout(()=>{ try{ toast(`가까운 일정 ${n}개 — 최근 30일 최장 +10%에 맞춰 줄임`); }catch(e){} },2400); }
+  return n;
+}catch(e){ console.warn('capNear',e); return 0; } }
+setTimeout(()=>{ planAutoNext(); capNear(); },0);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!(typeof S!=='undefined'&&S.running)){ planAutoNext(); capNear(); } });
 
 function decLog(kind,title,why,choice,extra){
   DECS.push(Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
@@ -8862,10 +8894,13 @@ function shiftFrom(ds,days){
   const sN=slotsFrom(ds,false), sL=slotsFrom(ds,true);
   const kN=firstLong?0:skip(sN,ds), kL=firstLong?skip(sL,ds):0;
   const map={}; let n=0, dropped=0;
-  const place=(seq,slots,k)=>seq.forEach((x,i)=>{ const nd=slots[i+k]; if(!nd){ x._drop=true; dropped++; return; } if(nd!==d10(x)){ map[x.d]=nd+x.d.slice(10); x.moved=x.moved||d10(x); x.d=nd+x.d.slice(10); n++; } });
+  const place=(seq,slots,k)=>seq.forEach((x,i)=>{ const nd=slots[i+k]; if(!nd){ x._drop=true; dropped++; return; } if(nd!==d10(x)){ map[x.d]=nd+x.d.slice(10); x.moved=x.moved||d10(x); x.shifted=1; x.d=nd+x.d.slice(10); n++; } });
   /* 빠른 날 48시간 규칙 — 밀린 순서에서 빠른 날이 앞 빠른 날과 붙으면 다음 쉬운 날과 순서를 바꾼다 */
-  for(let i=1;i<seqN.length;i++){ if(!HD(seqN[i]))continue; const nd=sN[i+kN], pd=sN[i-1+kN]; if(!nd||!pd)continue;
-    const near=[...seqN.slice(0,i).map((y,j)=>sN[j+kN])].some((d,j)=>HD(seqN[j])&&Math.abs(Date.parse(nd)-Date.parse(d))<2*864e5+1)||sL.some(d=>Math.abs(Date.parse(nd)-Date.parse(d))<864e5+1&&seqL.length);
+  /* 첫 칸(i=0)도 본다 — 목요일 템포런을 못 해 미루면 그게 첫 칸이라 검사를 건너뛰고 토요일 LSD 바로 다음 일요일에 들어갔다(2026-11-10 시즌 시뮬레이션 E).
+     움직이지 않는 날(이미 뛴 빠른 날)도 48시간 계산에 넣는다 */
+  const fixH=PLAN.sessions.filter(x=>!movable(x)&&HD(x)).map(d10);
+  for(let i=0;i<seqN.length;i++){ if(!HD(seqN[i]))continue; const nd=sN[i+kN]; if(!nd)continue;
+    const near=[...seqN.slice(0,i).map((y,j)=>sN[j+kN])].some((d,j)=>HD(seqN[j])&&Math.abs(Date.parse(nd)-Date.parse(d))<2*864e5+1)||fixH.some(d=>Math.abs(Date.parse(nd)-Date.parse(d))<2*864e5+1)||(seqL.length&&sL.slice(kL,kL+seqL.length).some(d=>Math.abs(Date.parse(nd)-Date.parse(d))<864e5+1));
     if(near){ const j=seqN.findIndex((y,q)=>q>i&&!HD(y)); if(j>0){ const t=seqN[i]; seqN[i]=seqN[j]; seqN[j]=t; } } }
   place(seqN,sN,kN); place(seqL,sL,kL);
   if(dropped)PLAN.sessions=PLAN.sessions.filter(x=>!x._drop);
@@ -8883,7 +8918,7 @@ function missedDay(){
 function moveSession(fromD,toD){
   const mv=x=>{ const i=x.findIndex(y=>y.d===fromD); if(i<0)return;
     const tgt=x.findIndex(y=>y.d.slice(0,10)===toD.slice(0,10));
-    const m=Object.assign({},x[i],{d:toD,moved:fromD});
+    const m=Object.assign({},x[i],{d:toD,moved:fromD}); delete m.shifted;   /* shifted = 앱이 미룬 것(규칙 지켜야 함) · 없으면 사용자가 고른 이동 */
     x.splice(i,1); if(tgt>=0){ const j=x.findIndex(y=>y.d.slice(0,10)===toD.slice(0,10)); x.splice(j,1,m); } else x.push(m);
     x.sort((a,b)=>a.d<b.d?-1:1); };
   if(PLAN&&PLAN.sessions){ mv(PLAN.sessions); DEV.store.set('plan',PLAN); }
@@ -8945,7 +8980,11 @@ function openMissed(m){
   /* 이번 주에 비어 있는 날 — 앞뒤로 힘든 날이 없는 날 */
   let slot=null; const mon=weekMonday(t);
   /* 오늘이 쉬는 날이면 오늘이 첫 후보다 — 어제 못 한 걸 '다음 쉬는 날'로 넘기면 오늘을 건너뛰게 된다 */
-  for(let i=(isToday?1:0);i<=6;i++){ const d=addDays(t,i); if(weekMonday(d)!==mon)break;
+  /* 지난주 일요일에 못 한 걸 이번 주 쉬는 날로 옮기면 이번 주가 고른 요일 수보다 하루 많아졌다(주 4일인데 5일 · 2026-11-10 시즌 시뮬레이션).
+     이번 주 훈련 날(옮길 훈련 빼고)이 이미 고른 수만큼이면 쉬는 날로 옮기기는 내지 않는다 — 같은 주 안에서 옮기는 건 그대로 가능 */
+  const nDays=((PLAN&&PLAN.days)||SURVEY.days||[]).length||7;
+  const wkN=new Set(BLOCK.filter(x=>x.type!=='off'&&x.d!==s.d&&weekMonday(x.d.slice(0,10))===mon).map(x=>x.d.slice(0,10))).size;
+  for(let i=(isToday?1:0);i<=6&&wkN<nDays;i++){ const d=addDays(t,i); if(weekMonday(d)!==mon)break;
     if(planOn(d))continue;
     const p=planOn(addDays(d,-1)), n=planOn(addDays(d,1));
     if(isHard&&((p&&hardT.includes(p.type))||(n&&hardT.includes(n.type))))continue;
@@ -12940,7 +12979,7 @@ function planListHTML0(src,monsIn){
         const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ok">✓${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" ${i>=0?`data-pgo="${i}"`:(()=>{ const r=RUNS.find(r=>r.planId===sx.d); return r?`data-wkrun="${ESC(r.rid)}"`:'disabled'; })()}><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
-            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
+            <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${!sx.edited&&sx.capCut?`<small title="최근 30일 최장 +10% 한도">줄임 ${fmtKm1(sx.capCut.from)}→${fmtKm1(sx.capCut.to)}km</small>`:''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
           ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:miss?`<button type="button" class="pd-add" data-pman="${sx.d}" aria-label="기록 직접 넣기">+</button>`:''}</div>`; }).join(''); }).join('');
     const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
     /* 쉬는 날도 훈련 — 할 일이 있는 쉬는 날(근력·회복)을 마감했는지 같이 센다 */
@@ -14132,6 +14171,10 @@ function glogPush(g,plan){
   GLOG.forEach(x=>{ if(x.status==='active'){ const m=glogMetric(x.goal); x.vEnd=m?m.now:null;
     if(glogHit(x)){ x.status='done'; x.closedAt=t; }
     else { x.status='paused'; x.pausedAt=t; try{ x.plan=PLAN?JSON.parse(JSON.stringify(PLAN)):null; x.dist=JSON.parse(JSON.stringify(DIST||{})); }catch(e){} } } });
+  /* 잠시 멈춘 같은 목표가 있으면 새 줄을 만들지 않고 그 목표를 다시 진행 — 시작일·지난 기록이 그대로 이어진다.
+     예전엔 다른 목표로 갔다가 같은 목표를 다시 고르면 새 줄이 생기고 시작일이 오늘로 바뀌어 주차가 1주차로 돌아갔다(2026-11-10 시즌 시뮬레이션) */
+  { const pz=GLOG.slice().reverse().find(x=>x.status==='paused'&&goalSame(x.goal,g));
+    if(pz){ pz.status='active'; pz.goal=JSON.parse(JSON.stringify(g)); pz.end=g.date?g.date.slice(0,10):null; pz.resumedAt=t; delete pz.pausedAt; delete pz.closedAt; glogSave(); return; } }
   const m=glogMetric(g);
   GLOG.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),made:t,goal:JSON.parse(JSON.stringify(g)),start:(plan&&plan.start)||t,end:g.date?g.date.slice(0,10):null,status:'active',v0:m?m.now:null,vEnd:null,closedAt:null});
   if(GLOG.length>60)GLOG=GLOG.slice(-60); glogSave();
