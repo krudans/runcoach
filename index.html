@@ -2531,7 +2531,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.50';
+const APPVER='20.51';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13976,8 +13976,12 @@ function goalModel(){
       sub:st.phase==='check'?`기본 체크 ${st.checksN}/2 → 시작 단계`:st.phase==='grad'?'졸업 — 30분 연속 완주':`${st.lv}단계 / 8단계 · ${rwLabel(RW_LV[st.lv])}`,
       how:'주 3회 · 1회 30분 · 뛰는 시간↑',status:rwNextLine()});
   } else { Object.assign(M,{ico:({weight:'🔥',health:'🌱',back:'↩'})[g.kind]||'🎯',title:GKIND[g.kind]||'목표',sub:'',how:`${M.mix.slice(0,3).map(x=>`${x.nm} 주 ${x.n}회`).join(' · ')}`}); }
+  /* '시작'은 목표를 시작할 때 한 번 적어 둔 값(목표 목록의 시작값과 같은 값)을 쓴다 — 전엔 화면을 그릴 때마다 '일정 시작일 직전 기록'으로 다시 계산해서,
+     일정이 새로 짜이거나(시작일이 바뀜) 최근 긴 날 횟수가 바뀌면 시작 값이 날마다 달라졌다(2026-11-11 실제 폰) */
+  try{ const act=(typeof GLOG!=='undefined'&&GLOG||[]).find(x=>x.status==='active'&&goalSame(x.goal,g)); if(act&&act.v0!=null&&isFinite(+act.v0))M.v0=+act.v0; }catch(e){}
   if(M.v0==null&&M.now!=null)M.v0=M.now;
-  M.pct=(M.v0!=null&&M.now!=null&&M.vT!=null)?Math.max(0,Math.min(100,Math.round((M.v0-M.now)/((M.v0-M.vT)||1)*100))):0;
+  { const ok=M.v0!=null&&M.now!=null&&M.vT!=null, reached=ok&&(M.better==='higher'?M.now>=M.vT:M.now<=M.vT);   /* 이미 목표 안이면 막대는 끝까지 — 전엔 시작이 목표보다 좋으면 0%로 그렸다 */
+    M.pct=!ok?0:reached?100:Math.max(0,Math.min(100,Math.round((M.v0-M.now)/((M.v0-M.vT)||1)*100))); }
   return M;
 }
 function goalSetChips(M){ const g=M.g, a=g.aero, days=(PLAN&&PLAN.days)||SURVEY.days||[]; const c=[];
