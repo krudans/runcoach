@@ -1,0 +1,48 @@
+name: 안드로이드 앱 만들기
+
+# 수동 실행(Actions 탭 → Run workflow) 또는 앱 껍데기 파일이 바뀌었을 때만 돈다.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'android-build/**'
+      - '.github/workflows/android.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: android-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: 패키지 설치
+        run: npm install --no-audit --no-fund
+      - name: 웹앱 복사 + 다리 스크립트 끼우기
+        run: node tools/prep.js
+      - name: 안드로이드 프로젝트 만들기
+        run: |
+          npx cap add android
+          node tools/android-patch.js
+          npx cap sync android
+      - name: 시험용 앱(APK) 빌드
+        working-directory: android-build/android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: 결과 올리기
+        uses: actions/upload-artifact@v4
+        with:
+          name: gajirun-test-apk
+          path: android-build/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
