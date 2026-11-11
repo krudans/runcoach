@@ -2533,7 +2533,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.55';
+const APPVER='20.56';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3881,8 +3881,11 @@ function makePlan(opts){
           const cp=Math.max(km*0.10, tFloorKm);   /* 본 운동 = 20분 이상 또는 주간 10% 중 큰 쪽 (A-5 · Daniels T 20분, C) */
           let len=2, n=2, bestOver=Infinity;   /* cp의 95% 이상을 채우는 (길이×횟수) 중 넘침이 가장 적은 것 — 같으면 긴 반복 */
           const fitsCap=(L,N)=>capW>=999||fitKm(2,N,L,restKm(Math.max(60,Math.round(L*60)),PACE.recJog))<=capW;   /* 웜업·쿨다운·사이 조깅까지 더한 그날 거리도 한 번 거리 한도(+10%) 안 — 9km 템포가 30일 최장 7.5km 사람에게 나오던 것 */
-          for(const L of [2,1.5,1]) for(let N=2;N<=5;N++){ const v=N*L; if(v<cp*0.95||!fitsCap(L,N))continue; const over=v-cp; if(over<bestOver-0.01){ bestOver=over; len=L; n=N; } }
-          if(bestOver===Infinity){ len=1; n=2; for(const L of [2,1.5,1]) for(let N=5;N>=2;N--){ if(fitsCap(L,N)&&N*L>n*len){ len=L; n=N; } } }
+          /* 본 운동 상한 — 전엔 모든 수준이 2km×5(본 운동 10km, 그날 약 15km)에서 멈춰, 주 100km 넘게 뛰는 빠른 목표는 주간 10%를 채우지 못했다.
+             목표 수준(목표 기록의 VDOT)에 따라: 서브3 수준(54)부터 본 운동 13km(그날 약 18km) · 서브2:30 수준(67)부터 16km(약 21km) · 한 번 3km까지(T 속도로 15분 안, Daniels C) (2026-11-11 결정) */
+          const tLvl=(SEA&&SEA.lvl)||0, tMax=tLvl>=67?16:tLvl>=54?13:10, tLens=tMax>10?[3,2,1.5,1]:[2,1.5,1], tN=tMax>10?6:5;
+          for(const L of tLens) for(let N=2;N<=tN;N++){ const v=N*L; if(v>tMax+0.01||v<cp*0.95||!fitsCap(L,N))continue; const over=v-cp; if(over<bestOver-0.01){ bestOver=over; len=L; n=N; } }
+          if(bestOver===Infinity){ len=1; n=2; for(const L of tLens) for(let N=tN;N>=2;N--){ if(N*L<=tMax+0.01&&fitsCap(L,N)&&N*L>n*len){ len=L; n=N; } } }
           const tgt=sessTgt('threshold');
           const tRest=Math.max(60,Math.round(len*60));   /* Daniels 크루즈 인터벌: 일:휴 5:1 → 1km마다 약 1분 */
           s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.min(Math.max(6,hardKm,fitKm(2,n,len,restKm(tRest,PACE.recJog))),Math.max(capW<999?capW:99,fitKm(2,n,len,restKm(tRest,PACE.recJog)))),2,n,len,tgt,0.35,tRest)};
