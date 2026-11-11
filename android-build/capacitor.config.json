@@ -1,0 +1,6 @@
+{
+  "appId": "io.github.krudans.gajirun",
+  "appName": "가지런",
+  "webDir": "www",
+  "android": { "useLegacyBridge": true }
+}
