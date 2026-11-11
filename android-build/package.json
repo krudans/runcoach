@@ -1,0 +1,18 @@
+{
+  "name": "gajirun-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "가지런 안드로이드 앱 빌드 (웹앱 + Capacitor)",
+  "scripts": { "prep": "node tools/prep.js", "sync": "npx cap sync android" },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/local-notifications": "8.3.1",
+    "@capacitor-community/background-geolocation": "1.3.1",
+    "@capacitor-community/text-to-speech": "8.0.2",
+    "@capacitor-community/bluetooth-le": "8.3.0",
+    "@capacitor-community/keep-awake": "8.0.1"
+  }
+}
