@@ -319,7 +319,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .note.red{background:var(--bad-bg);border-color:#F0C4C2;color:var(--bad-ink)}
 .stgo-row{display:flex;gap:8px;margin-top:8px}
 .past-tg{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--panel,#fff);border-radius:14px;padding:12px 14px;margin:0 0 10px;font-size:13px;color:var(--ink-2)}.past-tg b{color:var(--ink);font-weight:700}.past-tg i{font-style:normal;color:var(--ink-3)}.past-tg em{font-style:normal;font-size:12px;color:var(--accent);font-weight:700}.past-tr td{padding:4px 0}.gl-sd{display:inline-flex;align-items:center;gap:4px}.gl-sd input{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:var(--panel,#fff);color:var(--ink)}
-.upr-f{display:grid;gap:10px}.upr-f label{display:grid;gap:4px;font-size:13px;font-weight:600}.upr-f label small{font-weight:400;color:var(--mute,#888)}.upr-f input,.upr-f select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:inherit;min-width:0}.upr-note{font-size:13px;line-height:1.55;padding:10px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}
+.upr-f{display:grid;gap:10px}.upr-f label{display:grid;gap:4px;font-size:13px;font-weight:600}.upr-f label small{font-weight:400;color:var(--mute,#888)}.upr-f input,.upr-f select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:inherit;min-width:0}.upr-lab{font-size:13px;font-weight:600;margin-bottom:-6px}.upr-lab small{font-weight:400;color:var(--ink-3)}.upr-hms{display:flex;align-items:center;gap:6px}.upr-hms input{flex:1;width:0;text-align:center}.upr-hms span{font-size:13px;color:var(--ink-3);flex:none;margin-right:4px}
+.upr-note{font-size:13px;line-height:1.55;padding:10px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}
 .gl-box{margin-top:10px;padding-top:4px;border-top:1px solid var(--line)}.gl-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.gl-hd b{font-size:14px;font-weight:700}.gl-hd i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}.wk-nav b{font-size:14px;text-align:center}.wk-nav b i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:600}.wk-nav button{border:1px solid var(--line);background:var(--card,#fff);border-radius:10px;padding:8px 10px;font-weight:700;font-size:12px;color:var(--ink)}.wk-nav button:disabled{opacity:.35}.stgo-row .btn{flex:1;margin:0}
 .note.green{background:var(--ok-bg);border-color:#B6DEC6;color:var(--ok-ink)}
@@ -1398,7 +1399,7 @@ body.mf-on{overflow:hidden}
         <div class="row">
           <select id="vDist"><option value="5000">5 km</option><option value="10000" selected>10 km</option>
             <option value="21097">하프</option><option value="42195">마라톤</option></select>
-          <input type="text" id="vTime" placeholder="45:46" inputmode="numeric">
+          <input type="text" id="vTime" placeholder="4546 → 45분 46초" inputmode="numeric" aria-label="기록 — 숫자만 적어요 (4546 = 45분 46초)">
           <button class="btn sm" style="margin:0;flex:0 0 68px" id="vCalc">계산</button>
         </div>
         <div id="vOut" style="margin-top:12px"></div>
@@ -2530,7 +2531,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.49';
+const APPVER='20.50';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8180,7 +8181,7 @@ function gOvBox(){
     <div class="meta" style="margin:4px 0 8px;line-height:1.7">${tm('easy')} ${mmss(PACE.easy[0])}~${mmss(PACE.easy[1])} · 템포 ${mmss(PACE.T)} · ${tm('interval')} ${mmss(PACE.I)} · 최대 ${HRMAX} · 쉬운 날 상한 ${TYPES.easy.hrZone[1]}</div>
     <button type="button" class="btn sm ghost" id="ovGuide" style="margin:0 0 10px">훈련 원리에서 수정 ›</button>
     <div class="aerow"><label for="ov_longMax"><b>LSD 최대 거리</b><i>자동 (시간·주간 거리 기준)</i></label>
-     <span><input type="text" id="ov_longMax" data-ov="longMax" inputmode="numeric" value="${n(o.longMax||'')}" autocomplete="off"><em>km</em></span></div>
+     <span><input type="text" id="ov_longMax" data-ov="longMax" inputmode="decimal" value="${n(o.longMax||'')}" autocomplete="off"><em>km</em></span></div>
     </div></details>`;
 }
 function gOvWire(){ const box=$('gOv'); if(!box)return;
@@ -8974,16 +8975,19 @@ async function uprAddSheet(pre){ const t=todayStr(), v=pre||{};
     <label>대회 이름<input type="text" id="uprNm" maxlength="30" placeholder="예: 인천 K마라톤" value="${ESC(v.name||'')}"></label>
     <label>대회 날짜<input type="date" id="uprDt" min="${t}" value="${ESC(v.date||'')}"></label>
     <label>거리<select id="uprM">${[[5000,'5km'],[10000,'10km'],[21097,'하프'],[42195,'풀코스']].map(o=>`<option value="${o[0]}" ${(+v.m||42195)===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label>
-    <label>목표 기록 <small>비우면 완주 목표</small><input type="text" id="uprSec" inputmode="numeric" placeholder="예: 3:59:00" value="${ESC(v.secTxt||'')}"></label>
+    <div class="upr-lab">목표 기록 <small>비우면 완주 목표</small></div>
+    <div class="upr-hms"><input type="text" id="uprH" inputmode="numeric" maxlength="2" placeholder="0" aria-label="시간" value="${ESC(v.h||'')}"><span>시간</span><input type="text" id="uprMi" inputmode="numeric" maxlength="2" placeholder="00" aria-label="분" value="${ESC(v.mi||'')}"><span>분</span><input type="text" id="uprS" inputmode="numeric" maxlength="2" placeholder="00" aria-label="초" value="${ESC(v.s||'')}"><span>초</span></div>
     <div class="upr-note" id="uprNote"></div></div>`});
-  const name=String(($('uprNm')||{}).value||'').trim(), date=($('uprDt')||{}).value||'', m=+(($('uprM')||{}).value||42195), st=String(($('uprSec')||{}).value||'').trim();
+  const gv=id=>String(($(id)||{}).value||'').replace(/[^0-9]/g,''), th=gv('uprH'), tmi=gv('uprMi'), ts=gv('uprS');
+  const name=String(($('uprNm')||{}).value||'').trim(), date=($('uprDt')||{}).value||'', m=+(($('uprM')||{}).value||42195), st=th+tmi+ts;
   if(!ok)return false;
   let sec=null, err=null;
-  if(st){ const p=st.split(':'); sec=p.length===2&&m>=21000?(+p[0])*3600+(+p[1])*60:parseTime(st); if(!isFinite(sec)||sec<600||sec>12*3600)err='목표 기록은 3:59:00처럼 적어요'; }
+  /* 목표 기록은 시간·분·초 칸으로 — 한 칸에 3:59:00을 적게 했더니 숫자 자판에 ':'가 없어 적을 수 없었다(2026-11-11 실제 폰) */
+  if(st){ sec=(+th||0)*3600+(+tmi||0)*60+(+ts||0); if((+tmi||0)>59||(+ts||0)>59)err='분·초는 0~59로 적어요'; else if(!isFinite(sec)||sec<600||sec>12*3600)err='목표 기록을 다시 확인해요 (예: 3시간 59분 00초)'; }
   if(!date)err='대회 날짜를 골라요'; else if(date<t)err='지난 날짜예요';
   else if(uprMain()&&uprMain().date===date)err='지금 목표와 같은 날이에요';
   else if(uprAll().some(r=>r.date===date))err='같은 날 대회가 이미 있어요';
-  if(err){ toast(err); return uprAddSheet({name,date,m,secTxt:st}); }
+  if(err){ toast(err); return uprAddSheet({name,date,m,h:th,mi:tmi,s:ts}); }
   const r={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name||(UPR_NM(m)+' 대회'),date,m,sec:sec||null,made:t};
   uprAll().push(r); uprSave(); const ro=uprRole(r); uprApply();
   toast(ro==='next'?`대회 추가 — 지금 목표가 끝나면 이어서 준비`:`대회 추가 — ${UPR_TAG[ro][0]} · 일정에 반영`);
