@@ -2525,7 +2525,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.47';
+const APPVER='20.48';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4101,6 +4101,9 @@ function planFix(p){ try{
         if(lg){ const i=p.sessions.indexOf(lg), k=Math.max(3,Math.min(8,Math.round((sKm(lg)||6)*0.6*2)/2)); const ns=peBuild(lg.d,lg.wk,'easy',k); ns.d=lg.d; ns.wk=lg.wk; ns.fix=1; if(lg.role)ns.role=lg.role; p.sessions[i]=ns; ch=true; n++; break; }
         /* 어제 빠른 날을 뛰었는데 오늘 TT — TT는 지우지 않고 다음 빠른 날 자리로 보낸다(그 빠른 날은 오늘 쉬운 달리기로) */
         const h=L.find(z=>z!==x&&!user(z)&&HT.includes(z.type)&&z.type!=='tt'&&d10(z)>d&&gap(d10(z),d)<=14&&!bad(x,d10(z),L.filter(q=>q!==z)));
+        /* 그 주에 바꿀 날이 없고 뒤에 빠른 날도 없으면(건강·체중 목표) 열흘 안의 쉬운 날과 맞바꾼다 — 월요일 템포런을 뛴 다음 날 목표를 바꾸자 그날 TT가 잡혔다 */
+        if(!h){ const y2=L.find(z=>z!==x&&!user(z)&&['easy','recovery'].includes(z.type)&&d10(z)>d&&gap(d10(z),d)<=10&&!bad(x,d10(z),L,d,z));
+          if(y2){ const dx=x.d, dy=y2.d; x.d=dy; y2.d=dx; x.fix=1; y2.fix=1; try{ delete DIST[dx]; delete DIST[dy]; }catch(e){} ch=true; n++; break; } }
         if(h){ const i=p.sessions.indexOf(h), dOld=x.d, k=Math.max(3,Math.round((sKm(h)||5)*2)/2); x.d=h.d; x.fix=1; const ns=peBuild(dOld,h.wk,'easy',k); ns.d=dOld; ns.wk=x.wk; ns.fix=1; p.sessions[i]=ns; try{ delete DIST[dOld]; delete DIST[h.d]; }catch(e){} ch=true; n++; break; }
         continue; }
       { const i=p.sessions.indexOf(x), k=Math.max(3,Math.round(Math.min(sKm(x)||5,(sKm(x)||5))*2)/2); const ns=peBuild(x.d,x.wk,'easy',k); ns.d=x.d; ns.wk=x.wk; ns.fix=1; if(x.role)ns.role=x.role; if(x.moved){ ns.moved=x.moved; ns.shifted=x.shifted; }
