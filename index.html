@@ -2533,7 +2533,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.53';
+const APPVER='20.54';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13987,7 +13987,11 @@ function goalModel(){
   try{ const act=(typeof GLOG!=='undefined'&&GLOG||[]).find(x=>x.status==='active'&&goalSame(x.goal,g)); if(act&&act.v0!=null&&isFinite(+act.v0))M.v0=+act.v0;
     /* 시작한 날·오늘·목표 날을 값 아래에 적는다(2026-11-11 요청) — 시작일은 목표 목록의 시작일과 같은 값 */
     const md=d=>{ d=String(d||'').slice(0,10); return /^\d{4}-\d{2}-\d{2}$/.test(d)?`${+d.slice(5,7)}.${+d.slice(8,10)}(${dowOf(d)})`:''; };
-    M.d0=md((act&&act.start)||(PLAN&&PLAN.start)); M.dNow=md(todayStr()); M.dT=md(g.date); }catch(e){}
+    M.d0=md((act&&act.start)||(PLAN&&PLAN.start)); M.dNow=md(todayStr()); M.dT=md(g.date);
+    /* 날짜가 있는 목표의 동그라미는 '오늘이 시작일~목표일 사이 어디인가' — 아래에 날짜를 적어 놓고 동그라미는 값(또는 확인 횟수)으로 움직이니,
+       예상이 이미 목표 안인 사람은 동그라미가 시작일 자리에 붙어 있었다(2026-11-11 실제 폰). 날짜 없는 목표는 전처럼 값 기준 */
+    const a=String((act&&act.start)||(PLAN&&PLAN.start)||'').slice(0,10), b=String(g.date||'').slice(0,10), t=todayStr();
+    if(M.dT&&/^\d{4}-/.test(a)&&b>a){ const tot=uprGap(a,b); M.pctT=Math.max(0,Math.min(100,Math.round(uprGap(a,t)/tot*100))); M.dLeft=Math.max(0,uprGap(t,b)); } }catch(e){}
   if(M.v0==null&&M.now!=null)M.v0=M.now;
   { const ok=M.v0!=null&&M.now!=null&&M.vT!=null, reached=ok&&(M.better==='higher'?M.now>=M.vT:M.now<=M.vT);   /* 이미 목표 안이면 막대는 끝까지 — 전엔 시작이 목표보다 좋으면 0%로 그렸다 */
     M.pct=!ok?0:M.confirm?Math.round(M.confirm.n/M.confirm.of*100):reached?100:Math.max(0,Math.min(100,Math.round((M.v0-M.now)/((M.v0-M.vT)||1)*100))); }
@@ -14214,10 +14218,10 @@ function goalTrend(M,big){
 }
 function goalGauge(M,big){
   if(M.vT==null)return '';
-  const pct=M.v0==null?0:M.pct, has=M.now!=null&&M.v0!=null;
+  const byT=M.pctT!=null, pct=byT?M.pctT:(M.v0==null?0:M.pct), has=byT||(M.now!=null&&M.v0!=null);
   return `<div class="gg${big?' big':''}"><div class="gg-bar"><i style="width:${pct}%"></i>${has?`<b style="left:${pct}%"></b>`:''}</div>
     <div class="gg-l"><span><i>${M.lab0||'시작'}</i><b>${M.v0!=null?M.fmt(M.v0):'측정 전'}</b>${M.d0?`<em>${M.d0}</em>`:''}</span><span class="now"><i>${M.labNow||'지금'}</i><b>${M.now!=null?M.fmt(M.now):'측정 전'}</b>${M.dNow?`<em>${M.dNow}</em>`:''}</span><span><i>목표</i><b>${M.fmt(M.vT)}</b><em>${M.dT||'날짜 없음'}</em></span></div>
-    ${M.confirm?`<div class="gg-cf">예상으로는 목표 안 · 아직 확인 전 — 28km↑ 긴 날 <b>${M.confirm.n}/${M.confirm.of}번</b> (막대 = 확인된 만큼)</div>`:''}</div>`;
+    ${byT?`<div class="gg-cf">막대 = 날짜 · 목표일까지 <b>${M.dLeft}일</b> 남음</div>`:''}${M.confirm?`<div class="gg-cf">예상으로는 목표 안 · 아직 확인 전 — 28km↑ 긴 날 <b>${M.confirm.n}/${M.confirm.of}번</b>${byT?'':' (막대 = 확인된 만큼)'}</div>`:''}</div>`;
 }
 function goalCard(compact){
   const M=goalModel(); if(!M)return '';
