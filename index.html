@@ -319,7 +319,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .note.red{background:var(--bad-bg);border-color:#F0C4C2;color:var(--bad-ink)}
 .stgo-row{display:flex;gap:8px;margin-top:8px}
 .past-tg{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--panel,#fff);border-radius:14px;padding:12px 14px;margin:0 0 10px;font-size:13px;color:var(--ink-2)}.past-tg b{color:var(--ink);font-weight:700}.past-tg i{font-style:normal;color:var(--ink-3)}.past-tg em{font-style:normal;font-size:12px;color:var(--accent);font-weight:700}.past-tr td{padding:4px 0}.gl-sd{display:inline-flex;align-items:center;gap:4px}.gl-sd input{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:var(--panel,#fff);color:var(--ink)}
-.gl-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.gl-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.gl-hd b{font-size:14px;font-weight:700}.gl-hd i{font-style:normal;font-size:11px;color:var(--ink-3)}
+.upr-f{display:grid;gap:10px}.upr-f label{display:grid;gap:4px;font-size:13px;font-weight:600}.upr-f label small{font-weight:400;color:var(--mute,#888)}.upr-f input,.upr-f select{font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:inherit;min-width:0}.upr-note{font-size:13px;line-height:1.55;padding:10px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}
+.gl-box{margin-top:10px;padding-top:4px;border-top:1px solid var(--line)}.gl-hd{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.gl-hd b{font-size:14px;font-weight:700}.gl-hd i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}.wk-nav b{font-size:14px;text-align:center}.wk-nav b i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:600}.wk-nav button{border:1px solid var(--line);background:var(--card,#fff);border-radius:10px;padding:8px 10px;font-weight:700;font-size:12px;color:var(--ink)}.wk-nav button:disabled{opacity:.35}.stgo-row .btn{flex:1;margin:0}
 .note.green{background:var(--ok-bg);border-color:#B6DEC6;color:var(--ok-ink)}
 .note.blue{background:var(--info-bg);border-color:#C2D9EC;color:var(--info-ink)}
@@ -1319,6 +1320,7 @@ body.mf-on{overflow:hidden}
 .ex-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}.ex-tabs button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--ink-2);cursor:pointer}.ex-tabs button em{font-style:normal;font-size:11px;opacity:.6;margin-left:4px}.ex-tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.ex-tabs button.on em{opacity:.8}
 .ex-note{font-size:12px;color:var(--ink-3);line-height:1.5;margin:0 2px 10px}
 .rc-f+.rc-f{margin-top:-2px}
+.rc-noti{display:flex;gap:6px;align-items:center;margin:0 0 8px}.rc-noti label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-right:auto;white-space:nowrap;flex:none}.rc-noti label input{width:auto;flex:none;margin:0}.rc-noti select{width:auto;flex:none;min-width:0;border:1px solid var(--line);border-radius:10px;padding:6px 8px;font:inherit;font-size:12px;background:var(--panel);color:inherit}
 .rc-f2{display:flex;gap:6px;margin-bottom:10px}.rc-f2 select,.rc-f2 input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;background:var(--panel)}
 .rc-m{font-size:12px;font-weight:700;color:var(--ink-3);margin:14px 2px 6px}
 .rc-it{background:var(--panel);border-radius:14px;padding:11px 13px;margin-bottom:7px;display:grid;grid-template-columns:56px 1fr;gap:10px;cursor:pointer}
@@ -2241,6 +2243,9 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pg-leg .lg-did{background:var(--ink-2)}.pg-leg .lg-miss{background:var(--alarm);border-radius:50%}.pg-leg .lg-now{box-shadow:inset 0 0 0 2px var(--accent)}.pg-leg .lg-fu{border:1px dashed var(--ink-3)}
 .pg-leg hr{flex-basis:100%;height:0;margin:0;border:0}
 .fu-hd{margin:22px 4px 4px}.fu-hd b{font-size:14px;font-weight:700}.fu-hd p{font-size:12px;color:var(--ink-3);line-height:1.65;margin:4px 0 0}
+/* 접힌 주는 한 줄 — 주차 · 날짜 · 거리. 누르면 아래로 펼쳐진다(2026-11-11 요청: 목록이 너무 두껍다) */
+.pw.fold{margin:6px 0;border-radius:12px}.pw.fold header{padding:8px 12px}.pw.fold header b{font-size:14px}.pw.fold header i{display:inline;margin:0 0 0 8px}.pw.fold .pw-km b{font-size:15px}.pw.fold .pw-sum{display:inline;margin:0 0 0 8px}.pw.fold .pw-prog{display:none}.pw.fold .pw-cv{width:18px;height:18px}.pw.fold .pw-role,.pw.fold .pw-now{padding:1px 6px;font-size:10px}
+.gl-dd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:9px 2px 3px;font-size:13px;font-weight:700}.gl-dd>summary::-webkit-details-marker{display:none}.gl-dd>summary i{font-style:normal;font-weight:400;font-size:11px;color:var(--ink-3);flex:1}.gl-dd>summary:after{content:'';width:7px;height:7px;border-right:2px solid var(--ink-2);border-bottom:2px solid var(--ink-2);transform:rotate(-45deg);transition:transform .18s;margin-right:6px}.gl-dd[open]>summary:after{transform:rotate(45deg)}
 .pw.fu{background:transparent;border:1px dashed var(--line)}.pw.fu .pd-row{opacity:.85}.pw-role.fu{background:var(--panel-2);color:var(--ink-3)}
 .pg-s.fu{background:transparent;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--tc) 55%,transparent);border:0}.pg-s.fu b{color:color-mix(in srgb,var(--tc) 75%,var(--ink))}.pg tr.fu th{opacity:.75}
 .pg tr.fu-sep td{font-size:11px;color:var(--ink-3);font-weight:700;padding:12px 4px 4px;height:auto;text-align:left}.pg tr.fu-sep td span{display:inline-block;background:var(--panel-2);border-radius:999px;padding:3px 10px}
@@ -2525,7 +2530,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.48';
+const APPVER='20.49';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3341,6 +3346,23 @@ async function usagePing(force){ if(!usageOn())return; try{
     if(r.ok){ localStorage.setItem('rc_usageAt',String(Date.now())); if(F.first)localStorage.setItem('rc_usageFirst','1'); }
   }catch(e){} }
 document.addEventListener('change',e=>{ if(e.target&&e.target.id==='usageOpt'){ try{ localStorage.setItem('rc_usageOff',e.target.checked?'0':'1'); }catch(x){} if(e.target.checked)usagePing(true); toast(e.target.checked?'사용 현황 전송':'사용 현황 전송 끔'); } });
+/* ═══ 새 접수 알림 — 대회 목록(하루 한 번 갱신)에 '접수중'이 새로 뜬 대회를 종 알림으로 (v20.49 · 2026-11-11 요청) ═══
+   처음 켠 날 이미 접수 중인 대회는 알리지 않는다(그날 기준점만 잡는다). 그 뒤 새로 '접수중'이 된 대회만.
+   거리·지역을 고를 수 있다. 앱에는 알림 서버가 없어 앱을 열 때(또는 뒤에 떠 있을 때) 확인한다 — 앱이 완전히 꺼져 있으면 다음에 열 때 알린다 */
+let REGNEW=null;
+function regCfg(){ let c=null; try{ c=DEV.store.get('regNoti',null); }catch(e){} return Object.assign({on:true,c:'',reg:'',seen:null,pend:[]},c||{}); }
+function regSave(c){ try{ DEV.store.set('regNoti',c); }catch(e){} }
+function regMatch(r,c){ const cs=r.courses||[]; return (!c.c||cs.some(x=>x===c.c||(c.c==='풀'&&/^풀/.test(x))||(c.c==='하프'&&/^하프/.test(x))))&&(!c.reg||(c.reg==='cap'?RC_CAP.includes(r.area):!RC_CAP.includes(r.area))); }
+function regScan(){ try{ if(!RACES||!RACES.races||RACES._offline)return 0; const c=regCfg(), t=todayStr(), open=RACES.races.filter(r=>r.open&&r.date>=t);
+  if(!c.seen){ c.seen={}; open.forEach(r=>c.seen[r.id]=1); c.pend=[]; regSave(c); return 0; }
+  let add=0; const now={};
+  open.forEach(r=>{ now[r.id]=1; if(c.seen[r.id])return; if(c.on&&regMatch(r,c)&&!(c.pend||[]).some(p=>p.id===r.id)){ (c.pend=c.pend||[]).push({id:r.id,name:r.name,date:r.date}); add++; } });
+  c.seen=now; c.pend=(c.pend||[]).filter(p=>now[p.id]).slice(-30); regSave(c); return add; }catch(e){ console.warn('regScan',e); return 0; } }
+async function regTick(force){ try{ const c=regCfg(); if(!c.on&&c.seen)return; const last=+(localStorage.getItem('rc_regAt')||0); if(!force&&Date.now()-last<3*3600e3)return;
+  localStorage.setItem('rc_regAt',String(Date.now())); await racesLoad(); if(regScan()){ try{ renderHome(); }catch(e){} } }catch(e){} }
+function regOpen(){ const c=regCfg(); REGNEW=new Set((c.pend||[]).map(p=>p.id)); c.pend=[]; regSave(c); Object.assign(RCF,{st:'open',c:'',a:'',reg:'',q:'',y:'',n:40,x:null}); try{ tileOpen('race'); }catch(e){} try{ renderHome(); }catch(e){} }
+setTimeout(()=>regTick(),4000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!(typeof S!=='undefined'&&S.running))regTick(); });
 async function racesLoad(){
   try{ const r=await fetch('races.json',{cache:'no-store'}); if(r.ok){ RACES=await r.json(); try{ localStorage.setItem('rc_racesCache',JSON.stringify(RACES)); }catch(e){} await racesCatalogMerge(); return; } }catch(e){}
   try{ RACES=JSON.parse(localStorage.getItem('rc_racesCache')||'null'); if(RACES)RACES._offline=true; }catch(e){ RACES=null; } }
@@ -3360,6 +3382,7 @@ async function renderRaces(host){
   const areas=[...new Set(all.filter(regOk).map(r=>r.area).filter(Boolean))]; if(RCF.a&&!areas.includes(RCF.a))RCF.a='';
   const AORD=['서울','경기','인천','강원','충북','충남','대전','세종','전북','전남','광주','경북','대구','경남','부산','울산','제주','해외','기타']; areas.sort((a,b)=>AORD.indexOf(a)-AORD.indexOf(b));
   let h=`<div class="rc-meta">대회 ${all.length}개 · 갱신 ${up?`${up.getMonth()+1}.${up.getDate()} ${pad(up.getHours())}:${pad(up.getMinutes())}`:'—'}${RACES._offline?' (오프라인 — 저장된 목록)':''}${stale?' · <b style="color:var(--alarm)">3일↑ 미갱신</b>':''}<br>출처 <a href="${ESC(RACES.sourceUrl||'http://www.marathon.pe.kr/')}" target="_blank" rel="noopener">마라톤온라인</a></div>
+    ${(()=>{ const c=regCfg(); return `<div class="rc-noti"><label><input type="checkbox" id="regOn" ${c.on?'checked':''}> 새 접수 알림</label><select id="regC" aria-label="알림 받을 거리" ${c.on?'':'disabled'}>${[['','모든 거리'],['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']].map(o=>`<option value="${o[0]}"${c.c===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select id="regR" aria-label="알림 받을 지역" ${c.on?'':'disabled'}>${[['','전국'],['cap','수도권'],['oth','지방']].map(o=>`<option value="${o[0]}"${c.reg===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select></div><div class="rc-meta" style="margin-top:-4px">접수를 새로 시작한 대회가 뜨면 종 알림 · 앱을 열 때 확인(목록은 하루 한 번 갱신)</div>`; })()}
     <div class="rc-f rc-st">${[['','전체'],['open','접수중'],['closed','접수 마감']].map(([k,l])=>`<button type="button" data-rcs="${k}" class="${RCF.st===k?'on':''}">${l}<em>${k===''?all.length:all.filter(r=>k==='open'?r.open:!r.open).length}</em></button>`).join('')}</div>
     <div class="rc-f">${[['','전체'],['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']].map(([k,l])=>`<button type="button" data-rcc="${k}" class="${RCF.c===k?'on':''}">${l}</button>`).join('')}</div>
     <div class="rc-f">${years.length>1?years.map(y=>`<button type="button" data-rcy="${y}" class="${RCF.y===y?'on':''}">${y}년</button>`).join(''):''}${[['','전국'],['cap','수도권'],['oth','지방']].map(([k,l])=>`<button type="button" data-rcr="${k}" class="${RCF.reg===k?'on':''}">${l}</button>`).join('')}</div>
@@ -3370,14 +3393,18 @@ async function renderRaces(host){
     const dd=Math.round((Date.parse(r.date)-Date.parse(t))/864e5), open=RCF.x===r.id, mine=goalD&&goalD.slice(0,10)===r.date;
     h+=`<div class="rc-it" data-rcx="${ESC(r.id)}"${mine?' style="outline:2px solid var(--accent)"':''}><div class="rc-d"><b class="num">${+r.date.slice(8)}</b><i>${dowOf(r.date)} · D-${dd}</i></div>
       <div class="rc-t"><b>${ESC(r.name)}</b><span>${ESC(r.place)}${r.area?' · '+ESC(r.area):''}</span>
-        <div class="rc-cs">${r.courses.map(c=>`<em>${ESC(c)}</em>`).join('')}${r.open?'<em class="op">접수중</em>':''}${mine?'<em class="dd">목표일</em>':''}</div></div>
+        <div class="rc-cs">${r.courses.map(c=>`<em>${ESC(c)}</em>`).join('')}${r.open?'<em class="op">접수중</em>':''}${REGNEW&&REGNEW.has(r.id)?'<em class="dd">새 접수</em>':''}${mine?'<em class="dd">목표일</em>':''}</div></div>
       ${open?`<div class="rc-x">${r.host?`주최 ${ESC(r.host)}`:''}${r.tel?` · ☎ ${ESC(r.tel)}`:''}
         <div class="rc-b">${r.view?`<a href="${ESC(r.view)}" target="_blank" rel="noopener">대회 정보(원본)</a>`:''}${r.home?`<a href="${ESC(r.home)}" target="_blank" rel="noopener">홈페이지</a>`:''}
-        ${r.courses.filter(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).map(c=>`<button type="button" class="go" data-rcg="${ESC(r.id)}" data-rcm="${RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]}">${c==='풀'?'풀코스':ESC(c)}로 목표 설정</button>`).join('')}</div></div>`:''}</div>`; });
+        ${r.courses.filter(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).map(c=>`<button type="button" class="go" data-rcg="${ESC(r.id)}" data-rcm="${RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]}">${c==='풀'?'풀코스':ESC(c)}로 목표 설정</button>`).join('')}
+        ${(()=>{ const ms=r.courses.map(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).filter(Boolean); return ms.length?`<button type="button" class="go" data-rcu="${ESC(r.id)}" data-rcm="${Math.max(...ms)}">신청한 대회에 추가</button>`:''; })()}</div></div>`:''}</div>`; });
   if(L.length>RCF.n) h+=`<button type="button" class="btn sm ghost" data-rcmore="1" style="margin:6px 0 0">더 보기 (${L.length-RCF.n}개)</button>`;
   el.innerHTML=h;
   const ar=el.querySelector('#rcArea'); if(ar)ar.onchange=()=>{ RCF.a=ar.value; RCF.n=40; renderRaces(); };
   const qi=el.querySelector('#rcQ'); if(qi)qi.onchange=()=>{ RCF.q=qi.value; RCF.n=40; renderRaces(); };
+  { const on=el.querySelector('#regOn'), rc=el.querySelector('#regC'), rr=el.querySelector('#regR');
+    const sv=()=>{ const c=regCfg(); c.on=!!on.checked; c.c=rc.value; c.reg=rr.value; if(!c.on)c.pend=[]; regSave(c); rc.disabled=rr.disabled=!c.on; toast(c.on?`새 접수 알림 켬 — ${rc.options[rc.selectedIndex].text} · ${rr.options[rr.selectedIndex].text}`:'새 접수 알림 끔'); try{ renderHome(); }catch(e){} };
+    if(on&&rc&&rr){ on.onchange=sv; rc.onchange=sv; rr.onchange=sv; } }
 }
 document.addEventListener('click',e=>{ const rh=e.target.closest('.rc-host'); if(!rh)return; RC_HOST=rh;
   const c=e.target.closest('[data-rcc]'); if(c){ RCF.c=c.dataset.rcc; RCF.n=40; return renderRaces(); }
@@ -3387,6 +3414,7 @@ document.addEventListener('click',e=>{ const rh=e.target.closest('.rc-host'); if
   if(e.target.closest('[data-rcmore]')){ RCF.n+=40; return renderRaces(); }
   const g=e.target.closest('[data-rcg]'); if(g){ const r=RACES.races.find(x=>x.id===g.dataset.rcg); if(!r)return;
     try{ tileClose(); }catch(err){} goalStart(); try{ Object.assign(GB.d,{kind:'race',m:+g.dataset.rcm,date:r.date,raceName:r.name,sec:null}); GB.i=1; gPaint(); }catch(err){} return; }
+  const u=e.target.closest('[data-rcu]'); if(u){ const r=RACES.races.find(x=>x.id===u.dataset.rcu); if(!r)return; const pr=uprAddSheet({name:r.name,date:r.date,m:+u.dataset.rcm}); setTimeout(uprNote,30); return; }
   if(e.target.closest('a'))return;
   const x=e.target.closest('[data-rcx]'); if(x){ RCF.x=RCF.x===x.dataset.rcx?null:x.dataset.rcx; renderRaces(); } });
 
@@ -4083,12 +4111,13 @@ function planFix(p){ try{
   const ran=x=>RUNS.some(r=>r.planId===x.d), user=x=>!!x.edited||!!(x.moved&&!x.shifted);
   const gd=p.goal&&p.goal.date?String(p.goal.date).slice(0,10):null;
   if(gd) p.sessions=p.sessions.filter(x=>d10(x)<=gd||d10(x)<t||ran(x)||user(x));
+  try{ uprFix(p); }catch(e){}
   const gap=(a,b)=>Math.abs(Date.parse(a)-Date.parse(b))/864e5;
   const dH=RUNS.filter(r=>HT.includes(r.type)).map(r=>ldate(r.date).slice(0,10)).filter(d=>d>=addDays(t,-2));
   const dL=RUNS.filter(r=>r.type==='long').map(r=>ldate(r.date).slice(0,10)).filter(d=>d>=addDays(t,-1));
   const fut=()=>p.sessions.filter(x=>x.type!=='off'&&x.type!=='race'&&d10(x)>=t&&!ran(x));
   const bad=(x,d,L,dy,y)=>{ const at=z=>z===y?dy:d10(z);   /* x를 d에 놓았을 때(맞바꿀 y는 dy로) 규칙을 어기는가 — 사용자가 옮긴 이웃과의 충돌은 사용자 선택이라 세지 않는다 */
-    for(const z of L){ if(z===x||user(z))continue; const dz=at(z);
+    for(const z of L){ if(z===x)continue; if(z.race){ if(gap(d10(z),d)<2)return 'h'; continue; } if(user(z))continue; const dz=at(z);
       if(HT.includes(z.type)&&z!==y&&gap(dz,d)<2)return 'h'; if(z.type==='long'&&gap(dz,d)<=1)return 'l'; }
     if(dH.some(h=>h!==d&&gap(h,d)<2))return 'h'; if(dL.some(h=>h<d&&gap(h,d)<=1))return 'l'; return null; };
   let n=0;
@@ -4635,7 +4664,7 @@ function renderAlerts(){
       if(k==='miss'){ const m=missedDay(); if(m)openMissed(m); }
       else if(k==='tmiss'){ const m=todayUndone(); if(m)openMissed(m); }
       else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
-      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); };
+      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); };
     ph.appendChild(b); });
   /* 지난 결정 — 예전 플랜의 '결정 기록' 탭을 여기로 합쳤다 */
   renderDecLog($('alDone'));
@@ -6381,7 +6410,7 @@ $('btnFresh').onclick=async()=>{
    영구 보관을 요청해 두고(기기 용량이 부족해도 먼저 지워지지 않는다),
    언제든 파일로 빼고 되돌릴 수 있게 한다. */
 const BK_KEYS=['lastAct','runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc','survey','onboarded','del',
-  'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','notiSeen','extraSeen','sigSeen','planPrev','fix24','seasonUp'];   /* 목표와 일정도 함께 — 폰을 바꿔도 일정이 남아야 한다 */
+  'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','notiSeen','extraSeen','sigSeen','planPrev','fix24','seasonUp'];   /* 목표와 일정도 함께 — 폰을 바꿔도 일정이 남아야 한다 */
 /* API 키는 백업에 넣지 않는다 — 파일로 새어나가면 안 되는 값이다 */
 async function paintStore(){
   const el=$('storeState'); if(!el)return;
@@ -6906,7 +6935,7 @@ const FB={
   /* 설정 문서 하나 + 기록은 한 건씩 따로.
      한 문서에 다 넣으면 1MB 한계에 금방 닿는다. */
   SETK:['prof','survey','shoes','props','adj','dist','hero','lapc','rhr','hikes','del','onboarded',
-        'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','extraSeen','sigSeen'],
+        'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','extraSeen','sigSeen'],
   /* 동기화 장부 — 계정마다. 이미 올린 기록의 지문(h), 마지막으로 받은 시각(pullAt), 클라우드에서 지운 표(dd).
      예전엔 동기화마다 모든 기록을 다시 읽고 다시 썼다 — 무료 한도(하루 읽기 5만·쓰기 2만)를 사용자 수십 명이면 넘겼다 */
   st(){ const u=FB.user; let s=DEV.store.get('syncst',null);
@@ -7064,7 +7093,7 @@ function reloadLocals(){
   PROF=Object.assign({},DEFAULT_PROF,DEV.store.get('prof',PROF));
   /* 목표·일정·받아적은 것도 함께 되살린다 — 안 그러면 폰을 바꿨을 때 일정이 사라진다 */
   GOAL=DEV.store.get('goal',GOAL); PLAN=DEV.store.get('plan',PLAN); try{ planRecoverPast(); }catch(e){}
-  try{ RHR=DEV.store.get('rhr',RHR); HIKES=DEV.store.get('hikes',HIKES); RLOG=DEV.store.get('races',RLOG); GLOG=DEV.store.get('goals',GLOG); }catch(e){}
+  try{ RHR=DEV.store.get('rhr',RHR); HIKES=DEV.store.get('hikes',HIKES); RLOG=DEV.store.get('races',RLOG); GLOG=DEV.store.get('goals',GLOG); UPR=DEV.store.get('myraces',uprAll())||[]; }catch(e){}
   CUSTOM=DEV.store.get('custom',CUSTOM)||{};
   DECS=DEV.store.get('decs',DECS); ACTS=DEV.store.get('acts',ACTS); RESTLOG=DEV.store.get('restlog',RESTLOG);
   MISSSEEN=DEV.store.get('missSeen',MISSSEEN); try{ EXTRASEEN=DEV.store.get('extraSeen',EXTRASEEN); }catch(e){} VOPT=Object.assign({},VOPT,DEV.store.get('vopt',{}));
@@ -8812,9 +8841,169 @@ function capNear(){ try{
   return n;
 }catch(e){ console.warn('capNear',e); return 0; } }
 /* 매일 한 번 규칙 점검 — 일정을 새로 짜지 않은 날에도(어제 빠른 날을 뛰었는데 오늘이 LSD 등) */
+/* ═══ 대회 추가 — 한 사람이 여러 대회를 신청하고 준비한다 (v20.49 · 2026-11-11 요청) ═══
+   목표(주 대회)는 하나 그대로 두고, 신청한 다른 대회를 따로 적어 둔다(myraces).
+   · 주 대회보다 뒤 = '다음 대회' — 주 대회가 끝난 다음 날 회복 일정과 함께 저절로 다음 목표가 된다
+   · 주 대회보다 앞 = '기록 도전'(앞 며칠 가볍게 + 끝나고 회복) 또는 '훈련 삼아'(그 주 LSD 대신, 앞뒤 하루 쉽게)
+   회복: 풀 3일 쉼·2주 가볍게 / 하프 2일·1주 / 10km 1일·3일 / 5km 1일·2일 (Pfitzinger 'Advanced Marathoning' 여러 대회 일정 · Daniels 관행, C)
+   풀코스 사이가 12주 안이면 다시 쌓는 LSD는 26km(8주 안)·29km까지 (Pfitzinger 관행, C) */
+var UPR;
+function uprAll(){ if(!Array.isArray(UPR)){ try{ UPR=DEV.store.get('myraces',[])||[]; }catch(e){ UPR=[]; } if(!Array.isArray(UPR))UPR=[]; } return UPR; }
+function uprSave(){ DEV.store.set('myraces',uprAll()); }
+const UPR_D=m=>m>=42000?'M':m>=21000?'H':m>=10000?'T10':'T5';
+const UPR_NM=m=>m>=42000?'풀코스':m>=21000?'하프':m>=10000?'10km':'5km';
+const UPR_REC={M:{rest:3,win:14},H:{rest:2,win:7},T10:{rest:1,win:3},T5:{rest:1,win:2}};
+const uprGap=(a,b)=>Math.round((Date.parse(String(b).slice(0,10)+'T00:00:00')-Date.parse(String(a).slice(0,10)+'T00:00:00'))/864e5);
+function uprMain(){ const g=(typeof GOAL!=='undefined'&&GOAL)||(PLAN&&PLAN.goal); return g&&g.date&&g.m&&(g.kind==='race'||g.kind==='finish')&&String(g.date).slice(0,10)>=todayStr()?{m:g.m,date:String(g.date).slice(0,10),g}:null; }
+/* 역할 — 주 대회 뒤면 '다음 대회'. 앞이면 사용자가 정한 값, 없으면: 풀코스이거나 주 대회 3주 안의 하프는 '훈련 삼아', 나머지는 '기록 도전' */
+function uprRole(r){ const mn=uprMain();
+  if(mn&&r.date>mn.date)return 'next';
+  if(r.role==='pr'||r.role==='train')return r.role;
+  if(r.m>=42000)return 'train';
+  if(mn&&r.m>=21000&&uprGap(r.date,mn.date)<=21)return 'train';
+  return 'pr'; }
+function uprGoalOf(r,prev){ const g=r.sec?{kind:'race',m:r.m,sec:r.sec,perKm:null,date:r.date,raceName:r.name}:{kind:'finish',m:r.m,sec:null,date:r.date,raceName:r.name};
+  if(prev&&prev.m&&prev.date)g.after={m:prev.m,date:String(prev.date).slice(0,10)}; return g; }
+/* 주 대회 날짜가 지났고 '다음 대회'가 있으면 그 대회가 목표가 된다 — 회복 일정은 uprFix가 넣는다 */
+function uprAdvance(force){ try{
+  const t=todayStr(), L=uprAll(); if(!L.length)return false;
+  const g=GOAL; let nx=null, prev=null;
+  if(force){ nx=L.find(r=>r.id===force); }
+  else { if(!g||!g.date||!g.m||!(g.kind==='race'||g.kind==='finish'))return false; const gd=String(g.date).slice(0,10); if(gd>=t)return false;
+    nx=L.filter(r=>r.date>gd&&r.date>=t).sort((a,b)=>a.date<b.date?-1:1)[0]; prev={m:g.m,date:gd}; }
+  if(!nx||nx.date<t)return false;
+  if(prev&&uprGap(prev.date,t)>UPR_REC[UPR_D(prev.m)].win+7)prev=null;   /* 한참 지난 대회면 회복은 이미 끝났다 */
+  try{ glogTick(); }catch(e){}
+  const ng=uprGoalOf(nx,prev);
+  GOAL=ng; DEV.store.set('goal',GOAL);
+  UPR=L.filter(r=>r.id!==nx.id); uprSave();
+  try{ recalcProfile(); recalcTypes(); }catch(e){}
+  const p=makePlan({goal:ng});
+  if(prev){ const R=UPR_REC[UPR_D(prev.m)]; (p.why=p.why||[]).unshift(`앞 대회(${UPR_NM(prev.m)} ${prev.date.slice(5).replace('-','.')}) 회복 — ${R.rest}일 쉼 → ${R.win}일째까지 가볍게(빠른 날·LSD 없음) → 다시 준비 (Pfitzinger·Daniels 관행, C)`); }
+  applyPlan(p);
+  try{ glogPush(GOAL,p); }catch(e){}
+  try{ decLog('goal',goalLabel(GOAL),prev?'앞 대회가 끝나 다음 대회로':'신청한 대회를 목표로','회복 뒤 이어서 준비',{}); }catch(e){}
+  setTimeout(()=>{ try{ toast(`다음 대회 준비 시작 — ${nx.name}`); }catch(e){} },1800);
+  try{ paintGoalList(); }catch(e){}
+  return true;
+}catch(e){ console.warn('uprAdvance',e); return false; } }
+/* 일정에 대회를 반영 — 몇 번을 불러도 결과가 같다. 사용자가 직접 고친 날·이미 뛴 날·지난 날은 손대지 않는다 */
+function uprFix(p){ try{
+  if(!p||!p.sessions||p.imported)return 0; const g=p.goal||GOAL||{}; if(g.kind==='custom')return 0;
+  const t=todayStr(), d10=x=>String(x.d).slice(0,10), ran=x=>RUNS.some(r=>r.planId===x.d), user=x=>(!!x.edited&&!x.race)||!!(x.moved&&!x.shifted);
+  const HT=['threshold','interval','goalpace','rep','hill','mpace','tt'];
+  const free=x=>d10(x)>=t&&!ran(x)&&!user(x)&&!x.race&&x.type!=='off';
+  let n=0;
+  const keep=(x,by)=>x.uprOrig||{by,s:JSON.parse(JSON.stringify(x)),dist:(typeof DIST!=='undefined'&&DIST[x.d]!=null)?DIST[x.d]:null};
+  const swap=(x,type,k,by)=>{ const i=p.sessions.indexOf(x), ns=peBuild(x.d,x.wk,type,k); ns.d=x.d; ns.wk=x.wk; ns.fix=1; if(x.role)ns.role=x.role; if(x.moved){ ns.moved=x.moved; ns.shifted=x.shifted; }
+    if(by){ ns.uprOrig=keep(x,by); } p.sessions[i]=ns; try{ delete DIST[x.d]; }catch(e){} n++; };
+  const soft=(x,cap,type,by)=>{ const km=sKm(x)||5; if(!(HT.includes(x.type)||x.type==='long'||km>cap+0.01))return; swap(x,type||'easy',Math.max(3,Math.min(cap,Math.round(km*2)/2)),by); };
+  const drop=(x,by)=>{ if(by){ (p.uprDrop=p.uprDrop||[]).push(keep(x,by)); } p.sessions.splice(p.sessions.indexOf(x),1); try{ delete DIST[x.d]; }catch(e){} n++; };
+  const recover=(date,D,light,by)=>{ const R=UPR_REC[D], rest=light?(D==='M'?2:D==='H'?1:0):R.rest, win=light?(D==='M'?7:D==='H'?4:2):R.win;
+    p.sessions.slice().forEach(x=>{ if(!free(x))return; const k=uprGap(date,d10(x)); if(k<=0||k>win)return;
+      if(k<=rest)return drop(x,by);
+      const cap=D==='M'?(k<=7?6:10):D==='H'?8:10;
+      soft(x,cap,k<=Math.ceil(win/2)?'recovery':'easy',by); }); };
+  /* ① 앞 대회 회복 — 목표에 적힌 앞 대회(after) */
+  if(g.after&&g.after.date&&g.after.m){ const D=UPR_D(g.after.m), ad=String(g.after.date).slice(0,10);
+    if(uprGap(ad,t)<=UPR_REC[D].win)recover(ad,D,false,null);
+    if(D==='M'&&g.m>=42000&&g.date){ const wk=uprGap(ad,g.date)/7; if(wk<12){ const cap=wk<8?26:29;
+      p.sessions.slice().forEach(x=>{ if(free(x)&&x.type==='long'&&sKm(x)>cap+0.01)swap(x,'long',cap,null); }); } } }
+  /* ② 주 대회 앞의 대회 — 대회 날 칸 + 앞뒤 조정 */
+  const gd=g.date&&(g.kind==='race'||g.kind==='finish')?String(g.date).slice(0,10):null;
+  const lastD=p.sessions.length?p.sessions.map(d10).sort().pop():null;
+  /* 이미 뛴 대회도 회복 기간(최대 14일)이 끝날 때까지 본다 — 대회 뒤 결산에서 일정을 다시 짜면 회복 기간에 LSD가 돌아왔다(2026-11-11 여러 대회 시험) */
+  const ranOn=d=>RUNS.some(r=>{ try{ return ldate(r.date).slice(0,10)===d; }catch(e){ return false; } });
+  const mids=uprAll().filter(r=>(r.date>=t||(r.date>=addDays(t,-14)&&ranOn(r.date)))&&(!gd||r.date<gd)&&lastD&&weekMonday(r.date)<=weekMonday(lastD));
+  /* 지운 대회·날짜가 바뀐 대회의 칸은 뺀다 */
+  p.sessions.slice().forEach(x=>{ if(!x.race||ran(x)||d10(x)<t)return; const r=mids.find(q=>q.id===x.race.id); if(!r||r.date!==d10(x)||uprRole(r)!==x.race.role)p.sessions.splice(p.sessions.indexOf(x),1); });
+  mids.forEach(r=>{ const role=uprRole(r), D=UPR_D(r.m), by=r.id;
+    if(r.date>=t&&!p.sessions.some(x=>x.race&&x.race.id===r.id)){
+      p.sessions.slice().forEach(x=>{ if(d10(x)===r.date&&d10(x)>=t&&!ran(x)&&!x.race&&x.type!=='off')drop(x,by); });   /* 그날 직접 옮겨 둔 훈련도 대회에 자리를 내준다(지우면 돌아온다) */
+      const mon=weekMonday(r.date), nb=p.sessions.find(x=>weekMonday(d10(x))===mon), wk=nb?nb.wk:Math.max(1,Math.floor(uprGap(weekMonday(String(p.start||t).slice(0,10)),mon)/7)+1);
+      const tpl=p.sessions.find(x=>String(x.d).length>10), ds=tpl?r.date+String(tpl.d).slice(10):r.date;
+      const ns=peBuild(ds,wk,'free',Math.round(r.m/100)/10); ns.d=ds; ns.wk=wk; ns.t=`대회 · ${r.name}`; ns.race={id:r.id,name:r.name,role,m:r.m}; ns.edited=1;
+      p.sessions.push(ns); n++; }
+    if(role==='pr'){ const pre={T5:2,T10:2,H:3,M:6}[D], lc={T5:10,T10:12,H:12,M:16}[D];
+      p.sessions.slice().forEach(x=>{ if(!free(x))return; const k=uprGap(d10(x),r.date); if(k<=0||k>7)return;
+        if(k===1)return soft(x,4,'easy',by);
+        if(k<=pre)return soft(x,6,'easy',by);
+        if(x.type==='long'&&sKm(x)>lc+0.01)swap(x,'long',lc,by); });
+      recover(r.date,D,false,by); }
+    else { const mon=weekMonday(r.date);
+      p.sessions.slice().forEach(x=>{ if(!free(x))return; const k=uprGap(d10(x),r.date);
+        if(k===1)return soft(x,6,'easy',by);
+        if(k===2&&HT.includes(x.type))return soft(x,8,'easy',by);
+        if(r.m>=10000&&x.type==='long'&&weekMonday(d10(x))===mon)return soft(x,8,'easy',by);
+        if(k<0&&k>=-2&&(HT.includes(x.type)||(k===-1&&x.type==='long')))return soft(x,8,'easy',by); });
+      recover(r.date,D,true,by); } });
+  if(n){ p.sessions.sort((a,b)=>a.d<b.d?-1:1); try{ DEV.store.set('dist',DIST); }catch(e){} }
+  return n;
+}catch(e){ console.warn('uprFix',e); return 0; } }
+/* 대회를 지우거나 역할을 바꾸면 그 대회 때문에 바꾼 날을 원래대로 돌린다 */
+function uprUndo(id){ try{ const p=PLAN; if(!p||!p.sessions)return; const t=todayStr(), ran=x=>RUNS.some(r=>r.planId===x.d);
+  p.sessions=p.sessions.filter(x=>!(x.race&&x.race.id===id&&!ran(x)&&String(x.d).slice(0,10)>=t));
+  p.sessions=p.sessions.map(x=>{ if(!x.uprOrig||x.uprOrig.by!==id||ran(x)||x.edited)return x; const o=x.uprOrig.s; o.d=x.d; if(x.uprOrig.dist!=null)DIST[x.d]=x.uprOrig.dist; return o; });
+  (p.uprDrop||[]).filter(k=>k.by===id).forEach(k=>{ const o=k.s; if(String(o.d).slice(0,10)>=t&&!p.sessions.some(x=>String(x.d).slice(0,10)===String(o.d).slice(0,10))){ p.sessions.push(o); if(k.dist!=null)DIST[o.d]=k.dist; } });
+  p.uprDrop=(p.uprDrop||[]).filter(k=>k.by!==id); p.sessions.sort((a,b)=>a.d<b.d?-1:1); try{ DEV.store.set('dist',DIST); }catch(e){} }catch(e){ console.warn('uprUndo',e); } }
+function uprApply(){ try{ if(PLAN&&PLAN.sessions){ planFix(PLAN); DEV.store.set('plan',PLAN); BLOCK=loadPlan(); } }catch(e){}
+  try{ renderPlan(); }catch(e){} try{ renderHome(); }catch(e){} try{ paintGoalList(); }catch(e){} try{ if(FB.user)FB.sync().catch(()=>{}); }catch(e){} }
+const UPR_TAG={next:['다음 대회','pau'],pr:['기록 도전','act'],train:['훈련 삼아','done']};
+const UPR_SUB={next:'앞 대회가 끝나면 회복 뒤 이 대회 준비로 이어짐',pr:'대회 전 며칠 가볍게 · 끝나고 회복',train:'그 주 LSD 대신 · 앞뒤 하루는 쉽게'};
+function uprListHTML(){ const t=todayStr(), L=uprAll().filter(r=>r.date>=t).sort((a,b)=>a.date<b.date?-1:1), mn=uprMain();
+  const it=r=>{ const ro=uprRole(r), tg=UPR_TAG[ro], dn=uprGap(t,r.date);
+    const b1=ro!=='next'?`<button type="button" class="gl-re" data-uprrole="${r.id}">${ro==='pr'?'훈련 삼아 뛰기로':'기록 도전으로'}</button>`:'';
+    const b2=!mn?`<button type="button" class="gl-re" data-uprgo="${r.id}">이 대회를 목표로</button>`:'';
+    return `<li class="gl-it ${tg[1]}"><span class="gl-ic">🏅</span><div class="gl-t"><b>${ESC(r.name)} · ${UPR_NM(r.m)} ${r.sec?fmtClock(r.sec):'완주'}</b><i>${r.date.slice(5).replace('-','.')} · ${dn?dn+'일 남음':'오늘'}</i><em>${UPR_SUB[ro]}</em><div class="gl-act">${b1}${b2}<button type="button" class="gl-del" data-uprdel="${r.id}" aria-label="대회 지우기">지우기</button></div></div><span class="gl-st">${tg[0]}</span></li>`; };
+  return `${L.length?`<div class="gc-lab">신청한 대회 <small>${L.length}개</small></div><ul class="gl-list">${L.map(it).join('')}</ul>`:''}
+    <button type="button" class="btn ghost" data-upradd="1" style="margin-top:10px">＋ 대회 추가</button>`; }
+/* 대회 추가 창 — 날짜·거리를 고르면 이 대회가 어떻게 반영되는지 바로 보여 준다 */
+function uprNote(){ const el=$('uprNote'); if(!el)return; const date=($('uprDt')||{}).value||'', m=+(($('uprM')||{}).value||0), mn=uprMain(), t=todayStr();
+  if(!date){ el.textContent='날짜를 고르면 일정에 어떻게 들어가는지 보여요.'; return; }
+  if(date<t){ el.textContent='지난 날짜예요 — 지난 대회 기록은 플랜 → 목표 → 내 기록에 적어요.'; return; }
+  const ro=uprRole({date,m}), R=UPR_REC[UPR_D(mn&&ro==='next'?mn.m:m)]; let h='';
+  if(ro==='next'){ const wk=Math.floor(uprGap(mn.date,date)/7);
+    h=`<b>다음 대회</b> — 지금 목표(${UPR_NM(mn.m)} ${mn.date.slice(5).replace('-','.')})가 끝나면 ${R.rest}일 쉬고 ${R.win}일째까지 가볍게 달린 뒤 이 대회 준비로 이어져요. 사이 ${wk}주.`;
+    if(mn.m>=42000&&m>=42000&&wk<12)h+=`<br>풀코스 사이가 ${wk}주 — 회복하고 다시 쌓을 시간이 짧아요. <b>두 번째는 완주 목표</b>(기록 칸 비움)를 권해요.`; }
+  else if(ro==='train')h=`<b>훈련 삼아</b> — 그 주 LSD 대신 뛰고 앞뒤 하루는 쉽게 달려요. 목록에서 '기록 도전'으로 바꿀 수 있어요.`;
+  else h=`<b>기록 도전</b> — 대회 전 며칠은 가볍게, 끝나면 ${R.rest}일 쉬고 ${R.win}일째까지 가볍게 달려요. 목록에서 '훈련 삼아'로 바꿀 수 있어요.`;
+  if(!mn&&ro!=='next')h+=`<br>지금 목표에 대회 날짜가 없어요 — 목록에서 '이 대회를 목표로'를 누르면 이 대회에 맞춰 일정을 짜요.`;
+  el.innerHTML=h; }
+async function uprAddSheet(pre){ const t=todayStr(), v=pre||{};
+  const ok=await askSheet({title:'대회 추가',yes:'추가',no:'취소',html:`<div class="upr-f">
+    <label>대회 이름<input type="text" id="uprNm" maxlength="30" placeholder="예: 인천 K마라톤" value="${ESC(v.name||'')}"></label>
+    <label>대회 날짜<input type="date" id="uprDt" min="${t}" value="${ESC(v.date||'')}"></label>
+    <label>거리<select id="uprM">${[[5000,'5km'],[10000,'10km'],[21097,'하프'],[42195,'풀코스']].map(o=>`<option value="${o[0]}" ${(+v.m||42195)===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label>
+    <label>목표 기록 <small>비우면 완주 목표</small><input type="text" id="uprSec" inputmode="numeric" placeholder="예: 3:59:00" value="${ESC(v.secTxt||'')}"></label>
+    <div class="upr-note" id="uprNote"></div></div>`});
+  const name=String(($('uprNm')||{}).value||'').trim(), date=($('uprDt')||{}).value||'', m=+(($('uprM')||{}).value||42195), st=String(($('uprSec')||{}).value||'').trim();
+  if(!ok)return false;
+  let sec=null, err=null;
+  if(st){ const p=st.split(':'); sec=p.length===2&&m>=21000?(+p[0])*3600+(+p[1])*60:parseTime(st); if(!isFinite(sec)||sec<600||sec>12*3600)err='목표 기록은 3:59:00처럼 적어요'; }
+  if(!date)err='대회 날짜를 골라요'; else if(date<t)err='지난 날짜예요';
+  else if(uprMain()&&uprMain().date===date)err='지금 목표와 같은 날이에요';
+  else if(uprAll().some(r=>r.date===date))err='같은 날 대회가 이미 있어요';
+  if(err){ toast(err); return uprAddSheet({name,date,m,secTxt:st}); }
+  const r={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name||(UPR_NM(m)+' 대회'),date,m,sec:sec||null,made:t};
+  uprAll().push(r); uprSave(); const ro=uprRole(r); uprApply();
+  toast(ro==='next'?`대회 추가 — 지금 목표가 끝나면 이어서 준비`:`대회 추가 — ${UPR_TAG[ro][0]} · 일정에 반영`);
+  return true; }
+document.addEventListener('input',e=>{ if(e.target&&(e.target.id==='uprDt'||e.target.id==='uprM'))uprNote(); });
+document.addEventListener('change',e=>{ if(e.target&&(e.target.id==='uprDt'||e.target.id==='uprM'))uprNote(); });
+document.addEventListener('click',async e=>{ const q=k=>e.target.closest('[data-'+k+']');
+  if(q('upradd')){ const pr=uprAddSheet(); setTimeout(uprNote,30); await pr; return; }
+  let b;
+  if((b=q('uprdel'))){ const r=uprAll().find(x=>x.id===b.dataset.uprdel); if(!r)return;
+    if(!await ask(`'${r.name}'을(를) 신청한 대회에서 지울까요?\n이 대회 때문에 바꾼 일정은 원래대로 돌아가요.`,'지우기',true))return;
+    uprUndo(r.id); UPR=uprAll().filter(x=>x.id!==r.id); uprSave(); uprApply(); toast('대회 지움'); return; }
+  if((b=q('uprrole'))){ const r=uprAll().find(x=>x.id===b.dataset.uprrole); if(!r)return; const to=uprRole(r)==='pr'?'train':'pr';
+    uprUndo(r.id); r.role=to; uprSave(); uprApply(); toast(`${UPR_TAG[to][0]}(으)로 바꿈 · 일정에 반영`); return; }
+  if((b=q('uprgo'))){ const r=uprAll().find(x=>x.id===b.dataset.uprgo); if(!r)return;
+    if(!await ask(`'${r.name}'(${UPR_NM(r.m)} ${r.date.slice(5).replace('-','.')})을(를) 지금 목표로 할까요?\n하던 목표는 '잠시 멈춤'으로 남아요.`,'목표로'))return;
+    uprUndo(r.id); if(uprAdvance(r.id)){ try{ go('plan'); }catch(e){} } return; } });
 function planFixNow(){ try{ if(!PLAN||!PLAN.sessions)return; const sig=()=>PLAN.sessions.map(x=>x.d+x.type).join('|'), b=sig(); planFix(PLAN); if(sig()!==b){ DEV.store.set('plan',PLAN); BLOCK=loadPlan(); try{ renderHome(); }catch(e){} } }catch(e){} }
-setTimeout(()=>{ planAutoNext(); capNear(); planFixNow(); },0);
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!(typeof S!=='undefined'&&S.running)){ planAutoNext(); capNear(); planFixNow(); } });
+setTimeout(()=>{ uprAdvance(); planAutoNext(); capNear(); planFixNow(); },0);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!(typeof S!=='undefined'&&S.running)){ uprAdvance(); planAutoNext(); capNear(); planFixNow(); } });
 
 function decLog(kind,title,why,choice,extra){
   DECS.push(Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),
@@ -8992,7 +9181,7 @@ function shiftFrom(ds,days){
   if(!(PLAN&&PLAN.sessions))return 0; const g=PLAN.goal||GOAL||{}, race=g.date&&g.kind!=='aero'?g.date.slice(0,10):null;
   const D=(PLAN.days&&PLAN.days.length?PLAN.days:SURVEY.days||[]).slice(), HD=x=>HARD_T.includes(x.type);
   const isRan=x=>RUNS.some(r=>r.planId===x.d), d10=x=>x.d.slice(0,10), dw=d=>'일월화수목금토'[new Date(d+'T12:00:00').getDay()];
-  const movable=x=>d10(x)>=ds&&!isRan(x)&&x.type!=='off'&&x.type!=='race'&&!(race&&d10(x)>=race);
+  const movable=x=>d10(x)>=ds&&!isRan(x)&&x.type!=='off'&&x.type!=='race'&&!x.race&&!(race&&d10(x)>=race);
   const fixedD=new Set(PLAN.sessions.filter(x=>!movable(x)&&x.type!=='off').map(d10));
   const L=PLAN.sessions.filter(movable).sort((a,b)=>a.d<b.d?-1:1); if(!L.length)return 0;
   const longDay=(()=>{ const c={}; L.filter(x=>x.type==='long').forEach(x=>{ const w=dw(d10(x)); c[w]=(c[w]||0)+1; }); return Object.keys(c).sort((a,b)=>c[b]-c[a])[0]||((SURVEY.dayPref||{}).long)||'토'; })();
@@ -9031,6 +9220,8 @@ function missedDay(){
   return null;
 }
 function moveSession(fromD,toD){
+  /* 대회 날에는 다른 훈련을 옮겨 놓지 못하고, 대회 칸도 옮기지 못한다 — 대회 날짜는 '신청한 대회'에서 바꾼다 */
+  try{ const L=(PLAN&&PLAN.sessions)||[]; if(L.some(y=>y.race&&(y.d===fromD||String(y.d).slice(0,10)===String(toD).slice(0,10)))){ toast('대회 날은 그대로 둬요 — 다른 날을 골라요'); return; } }catch(e){}
   const mv=x=>{ const i=x.findIndex(y=>y.d===fromD); if(i<0)return;
     const tgt=x.findIndex(y=>y.d.slice(0,10)===toD.slice(0,10));
     const m=Object.assign({},x[i],{d:toD,moved:fromD}); delete m.shifted;   /* shifted = 앱이 미룬 것(규칙 지켜야 함) · 없으면 사용자가 고른 이동 */
@@ -9436,6 +9627,7 @@ function homeSignals(){
   if(!sigSeen('drift',7)&&driftAlert())sig.push(['drift','같은 속도 심박↑','이번 주 결정']);
   try{ const g=(PLAN&&PLAN.goal)||GOAL; if(g&&g.kind==='start'&&!sigSeen('grad',3650)&&starterState().phase==='grad')sig.push(['grad','30분 연속 — 졸업','목적별 목표 선택']); }catch(e){}
   const tu=todayUndone(); if(tu)sig.push(['tmiss',`오늘 ${(sessionOf(BLOCK.indexOf(tu.s))||tu.s).t} 미실시`,'넘기기 · 미루기']);
+  try{ const c=regCfg(); if(c.on&&c.pend&&c.pend.length)sig.push(['regopen',`접수 시작 — ${c.pend[0].name}${c.pend.length>1?` 외 ${c.pend.length-1}개`:''}`,'대회 찾기에서 확인']); }catch(e){}
   const ms=missedDay(); if(ms)sig.push(['miss',`${dowOf(ms.ds)}요일 ${ms.s.t} 누락`,'넘기기 · 옮기기']);
   const ex=extraPending(); if(ex)sig.push(['extra',`계획보다 ${ex.r.extraKm.toFixed(1)}km 초과`,`이번 주 ${fmtKm1(ex.proj)}km(+${ex.pct}%) — 일정 결정`]);
   const open=PROPS.filter(x=>!x.done); open.forEach(p=>sig.push(['prop',p.title,'답하기',p]));
@@ -9591,7 +9783,7 @@ function wireHome(sess,idx){
     else if(k==='tmiss'){ const x=todayUndone(); if(x)openMissed(x); }
     else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
     else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift();
-    else if(k==='prop')go('alerts'); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); });
+    else if(k==='prop')go('alerts'); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); });
   m.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ try{ DEV.store.set('lastAct',b.dataset.act); }catch(e){} startAct(b.dataset.act); });
   m.querySelectorAll('[data-qact]').forEach(b=>b.onclick=()=>{ const k=b.dataset.qact;
     m.querySelectorAll('[data-qact]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-checked',x===b); });
@@ -14357,6 +14549,7 @@ function glogResume(x){ /* 멈춘 자리의 남은 일정을 다가오는 월요
   return `일정 ${k}주 연기 재개`;
 }
 /* 목표 목록 — 플랜 '목표' 칸 아래에 늘 (진행 중 · 잠시 멈춤 · 끝난 목표). 지우지 않는 한 계속 남는다 (결정 2026-11-09) */
+document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.classList&&d.classList.contains('gl-dd')){ window.GLV=window.GLV||{}; GLV.open=d.open; } },true);
 function paintGoalList(){ const el=$('plGoalList'); if(!el)return; try{ el.innerHTML=goalListHTML(); }catch(e){ console.warn('goal list',e); } }
 function goalListHTML(){ glogTick();
   const ico=g=>g.kind==='aero'?'❤️':g.kind==='race'?'🏅':g.kind==='finish'?'🏁':g.kind==='weight'?'🔥':g.kind==='health'?'🌱':'🎯';
@@ -14377,11 +14570,13 @@ function goalListHTML(){ glogTick();
     const nav=pages>1?`<div class="gl-pg"><button type="button" data-glpg="${key}:${pg-1}" ${pg<=1?'disabled':''}>‹</button><span>${pg} / ${pages}</span><button type="button" data-glpg="${key}:${pg+1}" ${pg>=pages?'disabled':''}>›</button></div>`:'';
     return `<div class="gc-lab">${lab} <small>${arr.length}개</small></div><ul class="gl-list">${show.map(item).join('')}</ul>${nav}`; };
   const L=GLOG.slice().reverse();
-  return `<div class="gl-box"><div class="gl-hd"><b>목표 목록</b><i>새 목표 → 하던 목표는 잠시 멈춤</i></div>
+  const nR=uprAll().filter(r=>r.date>=todayStr()).length;
+  return `<details class="gl-box gl-dd" ${GLV.open?'open':''}><summary><b>목표 목록</b><i>목표 ${GLOG.length}개${nR?` · 신청한 대회 ${nR}개`:''} · 새 목표 · 대회 추가</i></summary>
     ${GLOG.length?'':'<div class="gl-empty">목표 없음</div>'}
     ${grp('진행 중',L.filter(x=>x.status==='active'),'act')}${grp('잠시 멈춤',L.filter(x=>x.status==='paused'),'pau')}${grp('끝난 목표',L.filter(x=>['done','missed','ended'].includes(x.status)),'end')}
     ${GLOG.length>5?`<div class="gl-pgset"><span>페이지당</span>${[5,10,20].map(n=>`<button type="button" class="${n===PG?'on':''}" data-glpgs="${n}">${n}개</button>`).join('')}</div>`:''}
-    <button type="button" class="btn ghost" data-glnew="1" style="margin-top:10px">＋ 새 목표 설정</button></div>`;
+    <button type="button" class="btn ghost" data-glnew="1" style="margin-top:10px">＋ 새 목표 설정</button>
+    ${uprListHTML()}</details>`;
 }
 /* 목표 고치기 화면 — 지금 목표 카드 + 내 기록. 목표 목록은 플랜 '목표' 칸 아래 한 곳에만(중복 없음) */
 function renderGoalsTab(){
