@@ -2533,7 +2533,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.54';
+const APPVER='20.55';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3968,7 +3968,7 @@ function makePlan(opts){
     if(a.mode==='breath'){ const wks={}; out.forEach(x=>{ if(x.type==='easy'&&x.dist)(wks[weekMonday(x.d)]=wks[weekMonday(x.d)]||[]).push(x); });
       Object.values(wks).forEach(L=>{ const x=L[Math.floor((L.length-1)/2)]; if(x)x.talkCheck=a.ref; }); } }
   const w1=out.filter(x=>x.wk===1).reduce((a,x)=>a+(x.dist||0),0);
-  if(w1>base*1.15) why.push(`하루·긴 날 최소 4km → 1주차 ${fmtKm1(w1)}km`);
+  if(w1>base*1.15) why.push(`하루·긴 날 최소 4km → 시작 주 ${fmtKm1(w1)}km`);   /* '1주차'라고 쓰면 화면 위의 목표 주차(2주차 등)와 어긋나 보인다 — 이 숫자는 이 4주 일정의 첫 주다 */
   return {made:new Date().toISOString(),
           start:start.getFullYear()+'-'+pad(start.getMonth()+1)+'-'+pad(start.getDate()),
           weeks:4, base:+(w1||base).toFixed(1),   /* base = 실제 1주차 거리 — 화면의 '주간 거리'와 같은 숫자 */ goal:g||null, ladder, why, days:days.slice(), sessions:out, season:SEA?2:0, opts:KEEP?PLAN.opts:undefined, seasonBase:opts.seasonBase||+base.toFixed(1), seaDate:seaDate||undefined};
@@ -8143,7 +8143,7 @@ function gAdjBox(p,fz){
   const touched=Object.keys(a).length>0;
   return `<details class="adjbox"${touched?' open':''}><summary>조절 ${touched?'· 바꿈':''}</summary>
     <div id="gAdj">
-    <div class="adj"><div><b>주간 거리</b><i>1주차 기준 · 3주 증가 · 1주 감소</i></div>
+    <div class="adj"><div><b>주간 거리</b><i>시작 주 기준 · 3주 증가 · 1주 감소</i></div>
       <button data-a="km" data-d="-1">−</button><span class="num">${p.base.toFixed(0)}km</span><button data-a="km" data-d="1">+</button></div>
     <div class="adj"><div><b>빠른 날</b><i>사이 최소 이틀</i></div>
       <button data-a="hard" data-d="-1">−</button><span class="num">주 ${hardNow}회</span><button data-a="hard" data-d="1">+</button></div>
@@ -13384,7 +13384,7 @@ function planChecks(P,blk){
   /* 1주차 — 설명에 적은 출발 숫자와 화면 합계가 다르면 그 차이를 밝힌다 */
   { const i=why.findIndex(x=>/일주일 ([\d.]+)km에서 (다시 )?시작합니다/.test(x)||/주간 거리 ([\d.]+)km로 시작합니다/.test(x));
     const b=i>=0?+((why[i].match(/일주일 ([\d.]+)km에서/)||why[i].match(/주간 거리 ([\d.]+)km로/)||[])[1]):0;
-    if(i>=0&&b&&Math.abs(F.w1-b)>=1) why.splice(i+1,0,`1주차 ${fmtKm1(F.w1)}km · 기준 ${b}km + 웜업·쿨다운·긴 날 조정${(blk||[]).some(x=>DIST[x.d]!=null||x.edited)?', 수정 거리 포함':''}`); }
+    if(i>=0&&b&&Math.abs(F.w1-b)>=1) why.splice(i+1,0,`시작 주 ${fmtKm1(F.w1)}km · 기준 ${b}km + 웜업·쿨다운·긴 날 조정${(blk||[]).some(x=>DIST[x.d]!=null||x.edited)?', 수정 거리 포함':''}`); }
   if(R&&['race','finish'].includes(g.kind)&&!P.imported&&P.season){
     const lp=midPace(PACE.long), lc=Math.floor(Math.min(R.lt,twe)*60/lp*2)/2;
     if(F.maxLong<R.L*0.9){
