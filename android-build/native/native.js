@@ -70,5 +70,13 @@
   try{ Object.defineProperty(navigator,'wakeLock',{value:{ request:function(){
         return KA.keepAwake().then(function(){ var l={released:false,release:function(){ l.released=true; return KA.allowSleep().catch(function(){}); },addEventListener:function(){}}; return l; }); } },configurable:true}); }catch(e){}
 
+  /* ── 5. 로그인: 웹의 팝업 로그인은 앱 안에서 바깥 브라우저의 빈 화면으로 빠져 돌아오지 못한다.
+        앱용 로그인을 붙일 때까지는 막고 안내만 한다(기록은 폰에 저장). ── */
+  window.addEventListener('load',function(){
+    try{ if(typeof FB!=='undefined'&&FB&&FB.signIn){ FB.signIn=function(){
+           try{ toast('앱 로그인은 준비 중이에요 · 지금은 폰에 저장돼요'); }catch(e){}
+           return Promise.resolve(null); }; note('login held'); } }catch(e){ note('login patch fail'); }
+  });
+
   note('native bridge ready');
 })();
