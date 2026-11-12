@@ -5,6 +5,21 @@ const v=fs.readFileSync(path.join(here,'.appver'),'utf8').trim();
 const [a,b]=v.split('.').map(Number); const code=a*1000+(b||0);           /* 20.56 → 20056 */
 let g=fs.readFileSync(path.join(app,'build.gradle'),'utf8');
 g=g.replace(/versionCode \d+/,'versionCode '+code).replace(/versionName "[^"]*"/,'versionName "'+v+'"');
+/* 시험용 서명 — 빌드할 때마다 서명이 바뀌면 폰에서 덮어 설치가 안 되고 기록이 지워진다.
+   시험용 열쇠 하나를 고정해 쓴다(스토어 출시용 열쇠와는 별개). */
+const ks=path.join(here,'test-keystore.b64');
+if(fs.existsSync(ks)&&!/signingConfigs/.test(g)){
+  fs.writeFileSync(path.join(here,'test.keystore'),Buffer.from(fs.readFileSync(ks,'utf8').replace(/\s+/g,''),'base64'));
+  g=g.replace(/android \{/,`android {
+    signingConfigs {
+        debug {
+            storeFile file('../../test.keystore')
+            storePassword 'gajitest'
+            keyAlias 'gajitest'
+            keyPassword 'gajitest'
+        }
+    }`);
+}
 fs.writeFileSync(path.join(app,'build.gradle'),g);
 const res=path.join(app,'src/main/res');
 let s=fs.readFileSync(path.join(res,'values/strings.xml'),'utf8');
