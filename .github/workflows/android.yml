@@ -10,7 +10,7 @@ on:
       - '.github/workflows/android.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -37,6 +37,12 @@ jobs:
           npx cap add android
           node tools/android-patch.js
           npx cap sync android
+      - name: 앱 아이콘 입히기
+        continue-on-error: true
+        run: |
+          mkdir -p assets
+          cp ../gaji-icon-512.png assets/logo.png
+          npx --yes @capacitor/assets@3 generate --android --iconBackgroundColor '#FFFFFF' --iconBackgroundColorDark '#FFFFFF' --splashBackgroundColor '#F3EFF8' --splashBackgroundColorDark '#F3EFF8'
       - name: 시험용 앱(APK) 빌드
         working-directory: android-build/android
         run: ./gradlew assembleDebug --no-daemon --stacktrace
@@ -46,3 +52,11 @@ jobs:
           name: gajirun-test-apk
           path: android-build/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+      - name: 받기 링크 갱신
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk gajirun-test.apk
+          gh release delete test-apk --yes --cleanup-tag || true
+          sleep 3
+          gh release create test-apk gajirun-test.apk --prerelease --target "$GITHUB_SHA" --title "가지런 시험용 앱 v$(cat .appver)" --notes "시험용 빌드입니다. 정식 출시 전 확인용이며 구글 플레이 버전과는 별개입니다."
