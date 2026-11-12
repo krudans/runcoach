@@ -2534,7 +2534,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.57';
+const APPVER='20.58';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4836,7 +4836,11 @@ const BT={
     if(BT.busy)return; BT.busy=true;
     if(!known)BT.paint('기기 검색 중…');
     try{
-      const r=await DEV.hr(b=>BT.feed(b), known);
+      /* 한 번 연결한 기기는 고정 — '연결'을 눌러도 목록을 다시 띄우지 않고 저장된 기기부터 붙는다. 안 붙으면 그때 목록을 연다('전체 기기 검색'은 바로 목록) */
+      let r=null;
+      if(!known&&!DEV._btAll&&BT.name){ let d=null; try{ d=await BT.saved(); }catch(e){}
+        if(d){ BT.paint(`${BT.name} 연결 중…`); try{ r=await DEV.hr(b=>BT.feed(b), d); }catch(e){ r=null; } } }
+      if(!r)r=await DEV.hr(b=>BT.feed(b), known);
       BT.dev=r.dev; BT.batt=r.batt; S.hr.dev=r.dev; BT.want=true; BT.tries=0;
       BT.name=r.dev.name||'심박 기기'; DEV.store.set('btname',BT.name);
       if(!r.dev._rcHooked){
@@ -4852,6 +4856,8 @@ const BT={
   /* 한 번 잡은 기기는 끊겨도 스스로 다시 붙는다.
      워치가 송출을 멈췄거나 잠깐 멀어진 경우가 대부분이라, 간격을 늘려가며 계속 시도한다.
      선택창은 다시 뜨지 않는다 — 이미 권한을 받은 기기라 조용히 붙는다. */
+  /* 저장된(고정된) 기기 — 이름이 같은 것, 앱에서는 이름이 비어도 마지막에 연결한 기기 */
+  async saved(){ const ds=await DEV.knownDevices(); return ds.find(x=>(x.name||'')===BT.name)||(window.GAJI_NATIVE?ds[0]:null)||null; },
   retry(){
     if(!BT.want||BT.dev)return;
     clearTimeout(BT.timer);
@@ -4861,9 +4867,9 @@ const BT={
     BT.timer=setTimeout(async()=>{
       if(!BT.want||BT.dev)return;
       let d=null;
-      try{ const ds=await DEV.knownDevices();
-           d=ds.find(x=>(x.name||'')===BT.name)||null; }catch(e){}
-      try{ await BT.connect(d||undefined); }catch(e){}
+      try{ d=await BT.saved(); }catch(e){}
+      /* 앱에서는 저장된 기기가 없을 때 자동으로 기기 목록을 띄우지 않는다(달리는 중에 목록이 계속 뜬다) */
+      try{ if(d||!window.GAJI_NATIVE)await BT.connect(d||undefined); }catch(e){}
       if(!BT.dev)BT.retry();
     },wait);
   },
@@ -12333,8 +12339,7 @@ function splashRun(){ const sp=$('splash'); if(!sp)return;
 (async()=>{ try{
   if(!BT.name||!navigator.bluetooth)return;
   BT.want=true; BT.paint();
-  const ds=await DEV.knownDevices();
-  const d=ds.find(x=>(x.name||'')===BT.name);
+  const d=await BT.saved();
   if(d){ await BT.connect(d); if(!BT.dev)BT.retry(); }
   else BT.paint();
 }catch(e){} })();
