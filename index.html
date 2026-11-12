@@ -2534,7 +2534,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.56';
+const APPVER='20.57';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2597,7 +2597,7 @@ const DEV = {
           set(k,v){ try{ localStorage.setItem('rc_'+k,JSON.stringify(v)); }catch(e){ return false; }
             try{ if(window.__rcTouch)window.__rcTouch(k); }catch(e){} return true; } },
   async hr(onBpm, known){
-    if(!navigator.bluetooth) throw new Error('블루투스 미지원 → 크롬');
+    if(!navigator.bluetooth) throw new Error(window.GAJI_NATIVE?'블루투스 준비 안 됨 → 앱을 완전히 닫고 다시 열기':'블루투스 미지원 → 크롬');
     // 중요 — 어메이핏 GTR 2e 등 상당수 워치는 표준 심박 서비스(0x180D)를
     // '가지고 있어도 광고(advertise)하지 않는다'. 그래서
     // filters:[{services:['heart_rate']}] 로는 선택창에 아예 뜨지 않는다.
@@ -4749,7 +4749,7 @@ function paintDevNote(T){ const el=$('cDev'); if(!el)return; T=T||{};
   if(BT.dev){ el.hidden=false; el.className='devnote warn'; el.innerHTML=`<span>💓</span><div><b>${ESC(BT.name||'심박 기기')} 연결 — 심박 없음</b><i>밀착 후 대기</i></div>`; return; }
   const hrDay=T.primary==='hr'||[TYPES.easy,TYPES.recovery,TYPES.long].includes(T);
   el.hidden=false; el.className='devnote '+(hrDay?'warn':'');
-  el.innerHTML=`<span>${hrDay?'⚠️':'ℹ️'}</span><div><b>심박 기기 미연결</b><i>${hrDay?'심박 훈련 → 속도론 부정확':'속도 기준 코칭만'} ${!navigator.bluetooth?'블루투스 미지원 — 크롬 사용':''}</i></div>
+  el.innerHTML=`<span>${hrDay?'⚠️':'ℹ️'}</span><div><b>심박 기기 미연결</b><i>${hrDay?'심박 훈련 → 속도론 부정확':'속도 기준 코칭만'} ${!navigator.bluetooth?(window.GAJI_NATIVE?'블루투스 준비 안 됨 — 앱 다시 열기':'블루투스 미지원 — 크롬 사용'):''}</i></div>
     ${navigator.bluetooth?`<button type="button" id="cDevBtn">연결</button>`:''}`;
   const b=$('cDevBtn'); if(b)b.onclick=async()=>{ b.disabled=true; b.textContent='찾는 중…'; try{ await BT.connect(); }catch(e){} paintDevNote(T); };
   if(!paintDevNote._t){ paintDevNote._t=setInterval(()=>{ if(document.querySelector('.view.on')&&document.querySelector('.view.on').id==='confirm'&&BT.dev)paintDevNote(T); },3000); } }
@@ -4974,7 +4974,7 @@ $('btnStart').onclick=()=>{
   const sh=$('hrAsk'); sh.hidden=false; sh.querySelector('.ms-body').innerHTML=`
     <div class="hrask-ic">${navigator.bluetooth?'💓':'ℹ️'}</div>
     <h3>심박 없음</h3>
-    <p>${hrDay?'심박 훈련 · 미연결 시 속도 코칭만':'미연결 시 속도 코칭만'}${navigator.bluetooth?'':'<br>블루투스 미지원 — 크롬'}</p>
+    <p>${hrDay?'심박 훈련 · 미연결 시 속도 코칭만':'미연결 시 속도 코칭만'}${navigator.bluetooth?'':(window.GAJI_NATIVE?'<br>블루투스 준비 안 됨 — 앱을 닫고 다시 열기':'<br>블루투스 미지원 — 크롬')}</p>
     ${navigator.bluetooth?`<button type="button" class="btn" id="hrAskConn" style="margin:0 0 8px">기기 연결하고 시작</button>`:''}
     <button type="button" class="btn ghost" id="hrAskGo" style="margin:0">심박 없이 시작</button>
     ${navigator.bluetooth?`<button type="button" class="hlink" id="hrAskAll" style="margin-top:10px">전체 기기 검색</button>`:''}
@@ -5103,8 +5103,10 @@ function actTick(km,moving){
   $('rAscC').textContent='+'+Math.round(S.asc||0); $('rAscU').textContent=ak==='hike'?(el>300?`시간당 ${Math.round((S.asc||0)/(el/3600))}m`:'m'):'m';
   $('rSpd').textContent=dt>=20&&moving?curSpd.toFixed(1):'—'; $('rSpdU').textContent=`평균 ${spd.toFixed(1)}`;
   $('rSteps').textContent=(S.cad&&S.cad.steps)||0;
-  const cad=moving?cadence():null; let pill='기록 중 · 판정 없음', say='';
-  if(!moving&&el>30) pill=ak==='hike'?'쉬는 중':'멈춤 — 움직이면 재개';
+  const gpsBlind=!S.lastGoodAt||(Date.now()-S.lastGoodAt)>8000;
+  const cad=(moving||gpsBlind)?cadence():null; let pill='기록 중 · 판정 없음', say='';
+  if(gpsBlind&&el>8&&ak!=='bike'&&!S.gpsGap) pill=(S.gq&&S.gq.errCode===1)?'위치 권한 꺼짐 — 설정에서 허용':(S.gpsAcc?`GPS 잡는 중 ±${Math.round(S.gpsAcc)}m · 거리는 잡힌 뒤부터`:'GPS 잡는 중 · 거리는 잡힌 뒤부터');   /* 거리 0.00이 왜인지 첫 화면에서 보이게 */
+  else if(!moving&&el>30) pill=ak==='hike'?'쉬는 중':'멈춤 — 움직이면 재개';
   else if(ak==='walk'){ pill=cad>=100?`분당 ${cad}걸음 · 중강도 걷기`:cad>=60?`분당 ${cad}걸음 · 가벼운 걷기`:'걷는 중';
     if(cad&&cad<100&&el>300)say='분당 100걸음+ = 중강도 (Tudor-Locke 2018)'; }
   else if(ak==='hike') pill=dAlt>=4?'오르막 · 천천히':dAlt<=-4?'내리막 · 보폭 짧게':'평지 · 기록 중';
@@ -5345,7 +5347,10 @@ function onTick(){
      페이스가 아니라 거리가 늘고 있는지로 판단한다(페이스가 없어도 동작해야 한다) */
   const moving = (!!S.lastMove && (Date.now()-S.lastMove)<8000) || !!S.gpsGap;   /* 터널 안에서도 걸음은 센다 */
   { const tdS=Math.min(S._stillT!=null?S.elapsed-S._stillT:0,5); S._stillT=S.elapsed; S.stillSec=moving?0:(S.stillSec||0)+Math.max(0,tdS); }
-  const cadNow = moving ? cadence() : null;
+  /* GPS가 쓸 만한 좌표를 아직 못 주는 동안(시작 직후·건물 옆·실내)은 '움직임'을 거리로 알 수 없다 — 그때는 걸음 센서를 그대로 믿는다.
+     예전엔 거리가 늘 때만 보여 줘서, GPS가 늦게 잡히면 걸음 수는 오르는데 케이던스는 '—'로 남았다 */
+  const gpsBlind = !S.lastGoodAt || (Date.now()-S.lastGoodAt)>8000;
+  const cadNow = (moving||gpsBlind) ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
   { const u=$('rCadU'); if(u)u.textContent=(cadNow&&isFinite(p)&&p>0)?`보폭 ${(1000/p*60/cadNow).toFixed(2)}m`:'분당'; }
   if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
@@ -6660,8 +6665,10 @@ async function selfTest(){
     add(!!navigator.geolocation,'GPS',navigator.geolocation?'사용 가능':'없음',
         navigator.geolocation?'OK':'불가');
     add(!!navigator.bluetooth,'블루투스 심박',
-        navigator.bluetooth?(BT.name?`지난 기기: ${BT.name}`:'사용 가능'):'미지원 — 크롬 사용',
+        navigator.bluetooth?(BT.name?`지난 기기: ${BT.name}`:'사용 가능'):(window.GAJI_NATIVE?'준비 안 됨 — 앱 다시 열기':'미지원 — 크롬 사용'),
         navigator.bluetooth?'OK':'불가');
+    { const N=window.GAJI_NATIVE, inApp=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+      if(inApp||N) add(!!N,'앱 연결 (휴대폰 기능)', N?`다리 v${N.ver} · ${(N.log||[]).slice(-6).join(' / ')||'기록 없음'}`:'다리 파일을 못 실음 — 앱을 닫고 다시 열기', N?'OK':'불가'); }
     add(!!window.DeviceMotionEvent,'가속도계 (케이던스)',
         window.DeviceMotionEvent?'사용 가능':'없음', window.DeviceMotionEvent?'OK':'불가');
     add('speechSynthesis' in window,'음성 안내',
@@ -7854,7 +7861,7 @@ function svNovice(){ try{ return !RUNS.some(r=>isRun(r))&&!!SURVEY&&((SURVEY.fre
 const gdLabel=m=>m>=42000?'풀코스':m>=21000?'하프':m>=10000?'10km':'5km';
 function startBody(){ const d=GB.d, grid=(key,opts,cols)=>`<div class="obgrid c${cols}" data-g="${key}">${opts.map(([l,v])=>`<button type="button" class="obopt${d[key]===v?' on':''}" data-v="${v}">${l}</button>`).join('')}</div>`;
   return `<div class="oblab">연속 몇 분?</div>${grid('stCan',[['모름',0],['1분도 힘듦',1],['1분쯤',2],['5분쯤',3],['15분쯤',4],['30분 넘게',5]],3)}
-    ${d.stCan===5?`<div class="note" style="margin:8px 0 0;line-height:1.7"><b>30분 넘게 달릴 수 있으면 처음 시작은 필요 없어요</b><div class="stgo-row"><button type="button" class="btn sm" data-gk="health">건강하게 꾸준히</button><button type="button" class="btn sm ghost" data-gk="finish">5km 완주</button></div></div>`
+    ${d.stCan===5?`<div class="note" style="margin:8px 0 0;line-height:1.7"><b>30분 넘게 달릴 수 있으면 처음 시작은 필요 없어요</b><br>아래에서 고르거나 <b>다음</b>을 누르면 달리는 이유에 맞는 목표로 넘어가요<div class="stgo-row"><button type="button" class="btn sm" data-gk="health">건강하게 꾸준히</button><button type="button" class="btn sm ghost" data-gk="finish">5km 완주</button></div></div>`
       :`<div class="meta" style="margin:6px 0 0;line-height:1.6">모르거나 1분이면 <b>상태 체크</b> 2번 → 단계 결정</div>`}
     <div class="oblab">달리는 이유</div>${grid('stWhy',[['건강 · 습관',1],['체중',2],['기분 · 스트레스',3],['오래 뛰기',4],['대회 나가기',5]],3)}
     <div class="meta" style="margin:6px 0 0;line-height:1.6">졸업(30분 연속) 후 목표</div>
@@ -8379,6 +8386,10 @@ $('gQuit').onclick=()=>{ AERO_PREVIEW=null; START_PREVIEW=null; if(GB&&GB.ovSave
 $('gNext').onclick=()=>{
   const st=GSTEP[GB.i];
   if(st.read)try{st.read();}catch(e){}
+  /* 처음 시작에서 '30분 넘게' — 예전엔 '다음'이 빨간 안내만 띄우고 멈췄다(위 작은 버튼을 눌러야 했음). 이제 '다음'이 달리는 이유에 맞는 목표로 넘긴다 */
+  if(GB.d.kind==='start'&&GB.d.stCan===5){ const w=GB.d.stWhy, k=w===2?'weight':(w===4||w===5)?'finish':'health';
+    GB.d.kind=k; if(k==='finish')GB.d.m=5000; GB.i=1; gPaint();
+    gHint(`30분 넘게 달릴 수 있어 '${k==='finish'?'5km 완주':GKIND[k]}' 목표로 넘어왔어요`); return; }
   const v=st.ok?st.ok():true;
   if(v!==true)return gHint(v);
   const vis=gVis(), k=vis.indexOf(GB.i);
