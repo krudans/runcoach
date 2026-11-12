@@ -2,5 +2,6 @@
   "appId": "io.github.krudans.gajirun",
   "appName": "가지런",
   "webDir": "www",
+  "server": { "url": "https://krudans.github.io/runcoach/", "errorPath": "offline.html" },
   "android": { "useLegacyBridge": true }
 }
