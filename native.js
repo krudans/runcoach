@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:2,log:[]};
+  window.GAJI_NATIVE={ver:3,log:[]};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -78,6 +78,59 @@
            try{ toast('앱 로그인은 준비 중이에요 · 지금은 폰에 저장돼요'); }catch(e){}
            return Promise.resolve(null); }; note('login held'); } }catch(e){ note('login patch fail'); }
   });
+
+  /* ── 6. 블루투스 심박: 웹뷰에는 웹 블루투스가 없다 — 휴대폰의 블루투스 기능으로 같은 모양을 만들어 준다.
+        앱 본문(index.html)의 심박 연결 코드는 그대로 쓴다. ── */
+  try{ if(!navigator.bluetooth){
+    var BLE=reg('BluetoothLe'), U=function(s){ return '0000'+s+'-0000-1000-8000-00805f9b34fb'; };
+    var NM={heart_rate:U('180d'),heart_rate_measurement:U('2a37'),battery_service:U('180f'),battery_level:U('2a19')};
+    var uu=function(s){ return NM[s]||String(s).toLowerCase(); };
+    var hex2dv=function(h){ h=String(h||'').replace(/[^0-9a-f]/gi,''); var a=new Uint8Array(h.length>>1);
+      for(var i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16); return new DataView(a.buffer); };
+    var bleInit=null, init=function(){ return bleInit||(bleInit=BLE.initialize({}).catch(function(e){ bleInit=null; note('ble init '+(e&&e.message)); throw e; })); };
+    var known=function(){ try{ return JSON.parse(localStorage.getItem('gaji_ble')||'[]'); }catch(e){ return []; } };
+    var remember=function(id,name){ try{ var k=known().filter(function(x){ return x.id!==id; }); k.unshift({id:id,name:name||''}); localStorage.setItem('gaji_ble',JSON.stringify(k.slice(0,5))); }catch(e){} };
+    var devs={};
+    var mkDev=function(id,name){ if(devs[id]){ if(name)devs[id].name=name; return devs[id]; }
+      var ls={}, nl={}, dl=null;
+      var dev={ id:id, name:name||'',
+        addEventListener:function(t,f){ (ls[t]=ls[t]||[]).push(f); },
+        removeEventListener:function(t,f){ ls[t]=(ls[t]||[]).filter(function(x){ return x!==f; }); } };
+      var fire=function(t){ (ls[t]||[]).slice().forEach(function(f){ try{ f({target:dev}); }catch(e){} }); };
+      var mkChar=function(su,cu){ var cl=[], ch={ uuid:cu, value:null,
+          addEventListener:function(t,f){ if(t==='characteristicvaluechanged')cl.push(f); },
+          removeEventListener:function(t,f){ cl=cl.filter(function(x){ return x!==f; }); },
+          startNotifications:function(){ var key='notification|'+id+'|'+su+'|'+cu;
+            try{ if(nl[key])nl[key].remove(); }catch(e){}      /* 다시 연결할 때 예전 수신기가 겹쳐 쌓이지 않게 */
+            nl[key]=C.addListener('BluetoothLe',key,function(ev){ if(!ev)return; ch.value=hex2dv(ev.value);
+              cl.slice().forEach(function(f){ try{ f({target:ch}); }catch(e){} }); });
+            return BLE.startNotifications({deviceId:id,service:su,characteristic:cu}).then(function(){ return ch; }); },
+          stopNotifications:function(){ return BLE.stopNotifications({deviceId:id,service:su,characteristic:cu}).then(function(){ return ch; }); },
+          readValue:function(){ return BLE.read({deviceId:id,service:su,characteristic:cu}).then(function(r){ ch.value=hex2dv(r&&r.value); return ch.value; }); } };
+        return ch; };
+      dev.gatt={ connected:false, device:dev,
+        connect:function(){ return init().then(function(){ return BLE.connect({deviceId:id,timeout:15000}); }).then(function(){
+            dev.gatt.connected=true; note('ble on '+(dev.name||id));
+            if(!dl)dl=C.addListener('BluetoothLe','disconnected|'+id,function(){ if(!dev.gatt.connected)return; dev.gatt.connected=false; note('ble off'); fire('gattserverdisconnected'); });
+            return dev.gatt; }); },
+        disconnect:function(){ var was=dev.gatt.connected; dev.gatt.connected=false; BLE.disconnect({deviceId:id}).catch(function(){}); if(was)fire('gattserverdisconnected'); },
+        getPrimaryService:function(s){ var su=uu(s);
+          return BLE.getServices({deviceId:id}).then(function(r){
+            var has=((r&&r.services)||[]).some(function(x){ return String(x.uuid).toLowerCase()===su; });
+            if(!has){ var e=new Error('service not found'); e.name='NotFoundError'; throw e; }
+            return { uuid:su, getCharacteristic:function(c){ return Promise.resolve(mkChar(su,uu(c))); } }; }); } };
+      devs[id]=dev; return dev; };
+    var bt={
+      getAvailability:function(){ return Promise.resolve(true); },
+      /* 기기 고르기 — 휴대폰이 주변 기기 목록을 띄운다. 심박 서비스를 알리지 않는 워치가 많아 이름·서비스로 거르지 않는다 */
+      requestDevice:function(){ return init().then(function(){ return BLE.requestDevice({optionalServices:[NM.heart_rate,NM.battery_service]}); })
+        .then(function(d){ if(!d||!d.deviceId){ var e=new Error('cancelled'); e.name='NotFoundError'; throw e; }
+          remember(d.deviceId,d.name); return mkDev(d.deviceId,d.name); },
+          function(e){ note('ble pick '+(e&&e.message)); var x=new Error(String(e&&e.message||'cancelled')); x.name='NotFoundError'; throw x; }); },
+      getDevices:function(){ var k=known(); if(!k.length)return Promise.resolve([]);
+        return init().then(function(){ return k.map(function(x){ return mkDev(x.id,x.name); }); }); } };
+    Object.defineProperty(navigator,'bluetooth',{value:bt,configurable:true}); note('ble shim');
+  } }catch(e){ note('ble define fail'); }
 
   note('native bridge ready');
 })();
