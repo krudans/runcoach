@@ -1331,7 +1331,7 @@ body.mf-on{overflow:hidden}
 .rc-it{background:var(--panel);border-radius:14px;padding:11px 13px;margin-bottom:7px;display:grid;grid-template-columns:56px 1fr;gap:10px;cursor:pointer}
 .rc-d{text-align:center;line-height:1.15}.rc-d b{display:block;font-size:20px;font-weight:700}.rc-d i{font-style:normal;font-size:11px;color:var(--ink-3);white-space:nowrap}
 .rc-t b{display:block;font-size:14px;font-weight:700;line-height:1.35}.rc-t span{display:block;font-size:11px;color:var(--ink-3);margin-top:2px}
-.rc-cs{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.rc-cs em{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--bg);color:var(--ink-2)}.rc-cs em.op{background:var(--ok-bg);color:var(--ok-ink)}.rc-cs em.dd{background:var(--warn-bg);color:var(--warn-ink)}
+.rc-cs{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}.rc-cs em{font-style:normal;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--bg);color:var(--ink-2)}.rc-cs em.op{background:var(--ok-bg);color:var(--ok-ink)}.rc-cs em.cl{background:var(--panel-2);color:var(--ink-3);text-decoration:line-through}.rc-cs em.dd{background:var(--warn-bg);color:var(--warn-ink)}
 .rc-x{grid-column:1/-1;border-top:1px solid var(--line);padding-top:9px;font-size:12px;line-height:1.7;color:var(--ink-2)}
 .rc-x .rc-b{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.rc-x .rc-b a,.rc-x .rc-b button{font:inherit;font-size:12px;font-weight:700;padding:7px 11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);text-decoration:none}
 .rc-x .rc-b button.go{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -2537,7 +2537,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.62';
+const APPVER='20.63';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3312,6 +3312,9 @@ async function noticeLoad(){ try{ const j=await fsGet('notices'); const t=todayS
 function noticeHTML(){ const n=NOTICE; if(!n)return '';
   return `<div class="notice1"><div><b>📢 ${ESC(n.title||'')}</b><p>${ESC(n.body||'')}</p>${n.link&&/^https?:\/\//.test(n.link)?`<a href="${ESC(n.link)}" target="_blank" rel="noopener">자세히 ›</a>`:''}</div><button type="button" data-ntc="${ESC(n.id)}" aria-label="공지 닫기">✕</button></div>`; }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-ntc]'); if(!b)return; try{ const s=JSON.parse(localStorage.getItem('rc_noticeSeen')||'[]'); s.push(b.dataset.ntc); localStorage.setItem('rc_noticeSeen',JSON.stringify(s.slice(-50))); }catch(x){} NOTICE=null; renderHome(); });
+/* 접수 마감 — 원본 사이트는 '접수중'만 알려 준다. 접수중이 아닌 대회 중 ① 접수중이었다가 빠진 대회(수집기가 closed로 표시) ② 대회까지 21일 이내인 대회만 '접수 마감'으로 본다.
+   그 밖(아직 접수를 열지 않았을 수 있는 먼 대회)은 표시하지 않는다 — 마감이 아닌데 마감이라고 쓰지 않기 위해. 목록 표시·'접수 마감' 거르기가 모두 이 하나를 쓴다 */
+function rcClosed(r,t){ if(!r||r.open)return false; if(r.closed)return true; const dd=Math.round((Date.parse(r.date)-Date.parse(t||todayStr()))/864e5); return dd<=21; }
 async function racesCatalogMerge(){ if(!RACES||!RACES.races||RACES._merged)return; try{ const d=await fsGet('catalog/races'); const c=fsDec({mapValue:{fields:d.fields||{}}})||{};
     const hide=new Set(c.hide||[]), add=(c.add||[]).filter(r=>r&&r.date&&r.name).map(r=>Object.assign({courses:[],place:'',host:'',area:r.area||''},r));
     RACES.races=RACES.races.filter(r=>!hide.has(r.id)).concat(add).sort((a,b)=>a.date.localeCompare(b.date)); RACES._merged=true; }catch(e){} }
@@ -3382,7 +3385,7 @@ async function renderRaces(host){
   const cOk=r=>!RCF.c||r.courses.some(c=>c===RCF.c||(RCF.c==='풀'&&/^풀/.test(c))||(RCF.c==='하프'&&/^하프/.test(c)));
   const qq=RCF.q.trim();
   const regOk=r=>!RCF.reg||(RCF.reg==='cap'?RC_CAP.includes(r.area):!RC_CAP.includes(r.area));
-  const stOk=r=>!RCF.st||(RCF.st==='open'?!!r.open:!r.open);
+  const stOk=r=>!RCF.st||(RCF.st==='open'?!!r.open:rcClosed(r,t));
   const L=all.filter(r=>cOk(r)&&(!RCF.y||r.date.slice(0,4)===RCF.y)&&regOk(r)&&(!RCF.a||r.area===RCF.a)&&stOk(r)&&(!qq||(r.name+' '+r.place+' '+(r.host||'')).includes(qq)));
   const years=[...new Set(all.map(r=>r.date.slice(0,4)))].sort();
   const goalD=((PLAN&&PLAN.goal)||GOAL||{}).date;
@@ -3390,7 +3393,7 @@ async function renderRaces(host){
   const AORD=['서울','경기','인천','강원','충북','충남','대전','세종','전북','전남','광주','경북','대구','경남','부산','울산','제주','해외','기타']; areas.sort((a,b)=>AORD.indexOf(a)-AORD.indexOf(b));
   let h=`<div class="rc-meta">대회 ${all.length}개 · 갱신 ${up?`${up.getMonth()+1}.${up.getDate()} ${pad(up.getHours())}:${pad(up.getMinutes())}`:'—'}${RACES._offline?' (오프라인 — 저장된 목록)':''}${stale?' · <b style="color:var(--alarm)">3일↑ 미갱신</b>':''}<br>출처 <a href="${ESC(RACES.sourceUrl||'http://www.marathon.pe.kr/')}" target="_blank" rel="noopener">마라톤온라인</a></div>
     ${(()=>{ const c=regCfg(); return `<div class="rc-noti"><label><input type="checkbox" id="regOn" ${c.on?'checked':''}> 새 접수 알림</label><select id="regC" aria-label="알림 받을 거리" ${c.on?'':'disabled'}>${[['','모든 거리'],['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']].map(o=>`<option value="${o[0]}"${c.c===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select id="regR" aria-label="알림 받을 지역" ${c.on?'':'disabled'}>${[['','전국'],['cap','수도권'],['oth','지방']].map(o=>`<option value="${o[0]}"${c.reg===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select></div><div class="rc-meta" style="margin-top:-4px">접수를 새로 시작한 대회가 뜨면 종 알림 · 앱을 열 때 확인(목록은 하루 한 번 갱신)</div>`; })()}
-    <div class="rc-f rc-st">${[['','전체'],['open','접수중'],['closed','접수 마감']].map(([k,l])=>`<button type="button" data-rcs="${k}" class="${RCF.st===k?'on':''}">${l}<em>${k===''?all.length:all.filter(r=>k==='open'?r.open:!r.open).length}</em></button>`).join('')}</div>
+    <div class="rc-f rc-st">${[['','전체'],['open','접수중'],['closed','접수 마감']].map(([k,l])=>`<button type="button" data-rcs="${k}" class="${RCF.st===k?'on':''}">${l}<em>${k===''?all.length:all.filter(r=>k==='open'?r.open:rcClosed(r,t)).length}</em></button>`).join('')}</div>
     <div class="rc-f">${[['','전체'],['풀','풀코스'],['하프','하프'],['10km','10km'],['5km','5km']].map(([k,l])=>`<button type="button" data-rcc="${k}" class="${RCF.c===k?'on':''}">${l}</button>`).join('')}</div>
     <div class="rc-f">${years.length>1?years.map(y=>`<button type="button" data-rcy="${y}" class="${RCF.y===y?'on':''}">${y}년</button>`).join(''):''}${[['','전국'],['cap','수도권'],['oth','지방']].map(([k,l])=>`<button type="button" data-rcr="${k}" class="${RCF.reg===k?'on':''}">${l}</button>`).join('')}</div>
     <div class="rc-f2"><select id="rcArea"><option value="">${RCF.reg==='cap'?'수도권 전체':RCF.reg==='oth'?'지방 전체':'모든 지역'}</option>${areas.map(a=>`<option${RCF.a===a?' selected':''}>${a}</option>`).join('')}</select><input id="rcQ" type="search" placeholder="대회 이름 · 장소" value="${ESC(RCF.q)}"></div>`;
@@ -3400,7 +3403,7 @@ async function renderRaces(host){
     const dd=Math.round((Date.parse(r.date)-Date.parse(t))/864e5), open=RCF.x===r.id, mine=goalD&&goalD.slice(0,10)===r.date;
     h+=`<div class="rc-it" data-rcx="${ESC(r.id)}"${mine?' style="outline:2px solid var(--accent)"':''}><div class="rc-d"><b class="num">${+r.date.slice(8)}</b><i>${dowOf(r.date)} · D-${dd}</i></div>
       <div class="rc-t"><b>${ESC(r.name)}</b><span>${ESC(r.place)}${r.area?' · '+ESC(r.area):''}</span>
-        <div class="rc-cs">${r.courses.map(c=>`<em>${ESC(c)}</em>`).join('')}${r.open?'<em class="op">접수중</em>':''}${REGNEW&&REGNEW.has(r.id)?'<em class="dd">새 접수</em>':''}${mine?'<em class="dd">목표일</em>':''}</div></div>
+        <div class="rc-cs">${r.courses.map(c=>`<em>${ESC(c)}</em>`).join('')}${r.open?'<em class="op">접수중</em>':rcClosed(r,t)?'<em class="cl">접수 마감</em>':''}${REGNEW&&REGNEW.has(r.id)?'<em class="dd">새 접수</em>':''}${mine?'<em class="dd">목표일</em>':''}</div></div>
       ${open?`<div class="rc-x">${r.host?`주최 ${ESC(r.host)}`:''}${r.tel?` · ☎ ${ESC(r.tel)}`:''}
         <div class="rc-b">${r.view?`<a href="${ESC(r.view)}" target="_blank" rel="noopener">대회 정보(원본)</a>`:''}${r.home?`<a href="${ESC(r.home)}" target="_blank" rel="noopener">홈페이지</a>`:''}
         ${r.courses.filter(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).map(c=>`<button type="button" class="go" data-rcg="${ESC(r.id)}" data-rcm="${RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]}">${c==='풀'?'풀코스':ESC(c)}로 목표 설정</button>`).join('')}
