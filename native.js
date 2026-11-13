@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:3,log:[]};
+  window.GAJI_NATIVE={ver:4,log:[]};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -71,12 +71,32 @@
   try{ Object.defineProperty(navigator,'wakeLock',{value:{ request:function(){
         return KA.keepAwake().then(function(){ var l={released:false,release:function(){ l.released=true; return KA.allowSleep().catch(function(){}); },addEventListener:function(){}}; return l; }); } },configurable:true}); }catch(e){}
 
-  /* ── 5. 로그인: 웹의 팝업 로그인은 앱 안에서 바깥 브라우저의 빈 화면으로 빠져 돌아오지 못한다.
-        앱용 로그인을 붙일 때까지는 막고 안내만 한다(기록은 폰에 저장). ── */
+  /* ── 5. 구글 로그인: 웹의 팝업 로그인은 앱 안에서 바깥 브라우저의 빈 화면으로 빠져 돌아오지 못한다.
+        앱에서는 휴대폰의 구글 계정 고르기 창으로 로그인하고, 받은 증표로 웹과 같은 Firebase 계정에 들어간다
+        (같은 구글 계정이면 웹앱과 같은 기록·목표를 본다). 로그인 기능이 없는 예전 설치본에서는 안내만 한다. ── */
+  var WEB_CLIENT='306293727512-od09dhml33jfn5pqa10e55poh4s8eeu7.apps.googleusercontent.com';
+  var SL=reg('SocialLogin'), slInit=null;
+  var hasSL=function(){ try{ return (C.PluginHeaders||[]).some(function(h){ return h&&h.name==='SocialLogin'; }); }catch(e){ return false; } };
+  var googleCred=function(){
+    slInit=slInit||SL.initialize({google:{webClientId:WEB_CLIENT}}).catch(function(e){ slInit=null; throw e; });
+    return slInit.then(function(){ return SL.login({provider:'google',options:{}}); }).then(function(r){
+      var tok=r&&r.result&&r.result.idToken; if(!tok)throw new Error('구글에서 로그인 증표를 받지 못했어요');
+      return firebase.auth.GoogleAuthProvider.credential(tok); }); };
+  window.GAJI_NATIVE.canLogin=hasSL;
+  window.GAJI_NATIVE.googleCred=googleCred;
   window.addEventListener('load',function(){
-    try{ if(typeof FB!=='undefined'&&FB&&FB.signIn){ FB.signIn=function(){
-           try{ toast('앱 로그인은 준비 중이에요 · 지금은 폰에 저장돼요'); }catch(e){}
-           return Promise.resolve(null); }; note('login held'); } }catch(e){ note('login patch fail'); }
+    try{ if(typeof FB!=='undefined'&&FB&&FB.signIn){
+      var webOut=FB.signOut;
+      FB.signIn=function(){
+        if(!hasSL()){ try{ toast('앱을 새 버전으로 설치하면 로그인돼요 · 지금은 폰에 저장돼요'); }catch(e){} return Promise.resolve(null); }
+        return Promise.resolve(FB.init()).then(function(ok){ if(!ok)throw new Error(FB.err||'Firebase 설정값 먼저');
+          return googleCred(); }).then(function(cred){ return firebase.auth().signInWithCredential(cred); })
+          .then(function(res){ if(res&&res.user)FB.user=res.user; note('login ok'); return (res&&res.user)||firebase.auth().currentUser||null; },
+            function(e){ var m=String(e&&e.message||e); note('login '+m.slice(0,80));
+              if(/cancel|취소|closed|dismiss/i.test(m))return null;      /* 계정 고르기 창을 닫은 것 — 오류가 아니다 */
+              throw new Error(m); }); };
+      FB.signOut=function(){ try{ if(hasSL())SL.logout({provider:'google'}).catch(function(){}); }catch(e){} return webOut.apply(FB,arguments); };
+      note(hasSL()?'login native':'login held'); } }catch(e){ note('login patch fail'); }
   });
 
   /* ── 6. 블루투스 심박: 웹뷰에는 웹 블루투스가 없다 — 휴대폰의 블루투스 기능으로 같은 모양을 만들어 준다.
