@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:4,log:[]};
+  window.GAJI_NATIVE={ver:5,log:[]};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -151,6 +151,9 @@
         return init().then(function(){ return k.map(function(x){ return mkDev(x.id,x.name); }); }); } };
     Object.defineProperty(navigator,'bluetooth',{value:bt,configurable:true}); note('ble shim');
   } }catch(e){ note('ble define fail'); }
+
+  /* ── 7. 종료: 웹의 창 닫기(window.close)는 앱 화면에서 아무 일도 하지 않는다 — 종료 단추가 앱을 실제로 끝내게 한다 ── */
+  try{ var APP=reg('App'); window.close=function(){ note('exit'); APP.exitApp().catch(function(e){ note('exit '+(e&&e.message)); }); }; }catch(e){ note('exit define fail'); }
 
   note('native bridge ready');
 })();
