@@ -1636,13 +1636,11 @@ body.mf-on{overflow:hidden}
     </div>
     <p class="ifoot">화면 안 봐도 됨<br>색·소리로 안내</p>
     <div id="introErr" style="display:none;font-size:12px;color:#FF9B85;margin-bottom:10px;line-height:1.6"></div>
-    <button class="ibtn" id="introGo">시작</button>
-    <p class="ihint">기록이 <b>이 폰에만</b> 저장</p>
     <button class="iglink" id="introGoogle">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-2.8-.4-4H24v7.3h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36.2 45 30.9 45 24.5z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4l-7.1-5.5C2.9 17 2 20.4 2 24s.9 7 2.4 9.9l7.1-5.5z"/><path fill="#EA4335" d="M24 10.3c4.1 0 6.9 1.8 8.5 3.3l6.1-6C34.9 4.1 29.9 2 24 2 15.4 2 8.1 7 4.4 14.1l7.1 5.5C13.3 14.1 18.2 10.3 24 10.3z"/></svg>
       구글 계정으로 시작
     </button>
-    <p class="ihint">폰 교체 후에도 <b>기록 유지</b></p>
+    <p class="ihint">구글 계정으로 로그인해야 시작돼요<br>기록이 <b>계정에 저장</b>돼 폰을 바꾸거나 앱을 지워도 남아요</p>
   </div>
 </div>
 
@@ -2537,7 +2535,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.64';
+const APPVER='20.65';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4759,7 +4757,27 @@ function paintDevNote(T){ const el=$('cDev'); if(!el)return; T=T||{};
     ${navigator.bluetooth?`<button type="button" id="cDevBtn">연결</button>`:''}`;
   const b=$('cDevBtn'); if(b)b.onclick=async()=>{ b.disabled=true; b.textContent='찾는 중…'; try{ await BT.connect(); }catch(e){} paintDevNote(T); };
   if(!paintDevNote._t){ paintDevNote._t=setInterval(()=>{ if(document.querySelector('.view.on')&&document.querySelector('.view.on').id==='confirm'&&BT.dev)paintDevNote(T); },3000); } }
+/* 구글 계정 필수(2026-11-13 결정) — 로그인 없이는 달리기를 시작하지 않는다. 폰에만 쌓인 기록은 앱을 지우거나 초기화하면 되살릴 수 없고, 웹과 앱이 서로 다른 기록을 보게 된다.
+   이미 로그인 없이 쓰던 사람의 기록은 지우지 않는다 — 보는 것은 그대로 되고, 로그인하면 폰의 기록이 계정으로 올라가 합쳐진다.
+   로그인 여부는 폰에 저장된 계정(ACCT.uid)으로 본다 — 한 번 로그인한 사람은 인터넷이 없어도 달릴 수 있다 */
+const loggedIn=()=>!!(ACCT&&ACCT.uid);
+let LOGIN_ASKING=false;
+async function loginGate(why){
+  if(loggedIn())return true; if(LOGIN_ASKING)return false; LOGIN_ASKING=true;
+  try{
+    const n=(typeof RUNS!=='undefined'&&RUNS)?RUNS.length:0;
+    const ok=await askSheet({title:'구글 계정으로 로그인',html:`${why||'달리기를 시작하려면 구글 계정 로그인이 필요해요.'}<br><span class="meta" style="line-height:1.7">기록이 계정에 저장돼 폰을 바꾸거나 앱을 지워도 남아요${n?`<br>지금 이 폰에 있는 기록 <b>${n}건</b>은 지워지지 않고 계정으로 올라가요`:''}</span>`,yes:'구글 계정으로 로그인',no:'나중에'});
+    if(!ok)return false;
+    try{ const u=await FB.signIn(); if(!u&&!loggedIn())return false; }
+    catch(e){ const c=String((e&&(e.code||e.message))||e); alert(/network|offline|failed to fetch/i.test(c)?'인터넷 연결을 확인하고 다시 해 주세요':'로그인하지 못했어요\n'+c.slice(0,80)); return false; }
+    try{ await FB.sync(); }catch(e){}
+    try{ renderHome(); }catch(e){}
+    if(loggedIn())toast('로그인됨 — 기록이 계정에 저장돼요');
+    return loggedIn();
+  } finally { LOGIN_ASKING=false; }
+}
 function openConfirm(i){
+  if(!loggedIn()){ loginGate().then(ok=>{ if(ok)openConfirm(i); }); return; }
   pendingIx=i; const s=sessionOf(i), T=TYPES[s.type]||{};
   const adj=ADJ[s.type]||0;
   if(i>=0)FREE_MODE=false;
@@ -5000,6 +5018,7 @@ $('btnStart').onclick=()=>{
   sh.onclick=e=>{ if(e.target===sh)close(); };
 };
 async function startRun(){
+  if(!loggedIn()){ if(!(await loginGate()))return; }
   try{ MUS.onRunStart(); }catch(e){}
   const s=sessionOf(pendingIx), T=TYPES[s.type]||{}, adj=ADJ[s.type]||0;
   /* GPS를 먼저 켜서 카운트 도는 동안 위성을 잡게 한다 */
@@ -7520,7 +7539,6 @@ function obHint(m,fid){
   setTimeout(()=>{ el.style.outline=''; },2600);
 }
 /* 설문 없이도 바로 쓸 수 있다. 뛰어본 뒤 설정에서 채우면 된다. */
-$('introGo').onclick=()=>obStart();
 $('introGoogle').onclick=async()=>{
   const er=$('introErr'), bt=$('introGoogle'), was=bt.innerHTML;
   er.style.display='none'; bt.disabled=true; bt.textContent='잠시만요…';
@@ -12342,6 +12360,7 @@ function goalBadge(){
     else { const er=$('introErr'); if(er){ er.textContent='로그인 실패 · 재시도'; er.style.display='block'; } }
   }).catch(()=>{});
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
+  else if(!loggedIn()&&!authWait)setTimeout(()=>{ try{ if(!loggedIn()&&!S.running)loginGate('이제 가지런은 구글 계정으로 로그인해서 써요.'); }catch(e){} },2600);   /* 로그인 없이 쓰던 사람 — 열 때 한 번 안내(닫아도 기록은 볼 수 있다) */
   else if(!DEV.store.get('consent',null)||DEV.store.get('consent',{}).ver!==CONSENT_VER){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 고지가 바뀌면 한 번 다시 */
   splashRun();
   setTimeout(()=>{ try{ liveCheck(); }catch(e){ console.warn('live',e); } },1300);   /* 끝내지 못한 기록 복구 */
