@@ -33,6 +33,9 @@ jobs:
       - name: 웹앱 복사 + 다리 스크립트 끼우기
         run: node tools/prep.js
       - name: 안드로이드 프로젝트 만들기
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
         run: |
           npx cap add android
           node tools/android-patch.js
@@ -45,6 +48,8 @@ jobs:
           npx --yes @capacitor/assets@3 generate --android --iconBackgroundColor '#FFFFFF' --iconBackgroundColorDark '#FFFFFF' --splashBackgroundColor '#F3EFF8' --splashBackgroundColorDark '#F3EFF8'
       - name: 시험용 앱(APK) 빌드
         working-directory: android-build/android
+        env:
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
         run: ./gradlew assembleDebug --no-daemon --stacktrace
       - name: 결과 올리기
         uses: actions/upload-artifact@v4
