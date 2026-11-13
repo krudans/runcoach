@@ -1522,6 +1522,8 @@ body.mf-on{overflow:hidden}
     <h1 style="text-align:center">오늘 훈련</h1><span class="sub" style="visibility:hidden">←</span></div>
   <div class="pad">
     <div class="card"><h2 id="cTitle">—</h2><div class="meta" id="cMeta">—</div><button type="button" class="btn sm ghost" id="cEdit" hidden style="margin:12px 0 0">✎ 훈련 수정 — 거리 · 시간 · 횟수 · 날짜</button></div>
+    <!-- 달리기 전후 스트레칭 — 예전엔 맨 아래 접힌 칸('준비운동 8가지')에만 있어 '지금 시작' 단추에 가려 보이지 않았다. 훈련 이름 바로 아래에 둔다 -->
+    <div class="st-pair" style="margin:0 0 12px"><button type="button" data-stgo="dyn">출발 전 동적 스트레칭 ▶</button><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
     <div class="devnote" id="cDev" hidden></div>
     <div class="idline" id="cCoach" role="note"><span class="idl-ic">🎧</span><div><b>이 훈련 기준 실시간 코칭</b><i>빠름 주황 · 느림 보라 · 소리 안내</i></div></div>
 
@@ -1790,6 +1792,8 @@ body.mf-on{overflow:hidden}
 
 <div class="view" id="sum"><div class="bar"><h1>세션 결과</h1><span class="sub" id="sumDate">—</span></div>
   <div class="pad">
+    <!-- 끝나고 정적 스트레칭 — 결과 맨 위에서 바로 열 수 있게(아래 카드는 그대로) -->
+    <div class="st-pair" style="margin:0 0 12px"><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
     <div id="sNew"></div>
     <div id="sStretch"></div>
     <div id="sOld" hidden>
@@ -2535,7 +2539,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.66';
+const APPVER='20.67';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
