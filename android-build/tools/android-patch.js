@@ -5,18 +5,21 @@ const v=fs.readFileSync(path.join(here,'.appver'),'utf8').trim();
 const [a,b]=v.split('.').map(Number); const code=a*1000+(b||0);           /* 20.56 → 20056 */
 let g=fs.readFileSync(path.join(app,'build.gradle'),'utf8');
 g=g.replace(/versionCode \d+/,'versionCode '+code).replace(/versionName "[^"]*"/,'versionName "'+v+'"');
-/* 시험용 서명 — 빌드할 때마다 서명이 바뀌면 폰에서 덮어 설치가 안 되고 기록이 지워진다.
-   시험용 열쇠 하나를 고정해 쓴다(스토어 출시용 열쇠와는 별개). */
-const ks=path.join(here,'test-keystore.b64');
-if(fs.existsSync(ks)&&!/signingConfigs/.test(g)){
-  fs.writeFileSync(path.join(here,'test.keystore'),Buffer.from(fs.readFileSync(ks,'utf8').replace(/\s+/g,''),'base64'));
+/* 시험용 서명 — 빌드할 때마다 서명이 바뀌면 폰에서 덮어 설치가 안 되고 기록이 지워진다. 열쇠 하나를 고정해 쓴다.
+   열쇠와 비밀번호는 저장소에 두지 않는다 — GitHub Actions 비밀값(KEYSTORE_B64 · KEYSTORE_PASS)에서 받는다.
+   (예전엔 열쇠 파일과 비밀번호가 공개 저장소에 있어 누구나 같은 서명으로 앱을 만들 수 있었다. 2026-11-13 교체)
+   스토어 출시용 열쇠는 이것과 별개이며 역시 저장소에 넣지 않는다. */
+const kb=(process.env.KEYSTORE_B64||'').replace(/\s+/g,''), kp=process.env.KEYSTORE_PASS||'';
+if(!kb||!kp){ console.error('서명 열쇠 비밀값이 없습니다 — 저장소 Settings › Secrets and variables › Actions 에 KEYSTORE_B64, KEYSTORE_PASS 를 넣어 주세요'); process.exit(1); }
+if(!/signingConfigs/.test(g)){
+  fs.writeFileSync(path.join(here,'signing.keystore'),Buffer.from(kb,'base64'));
   g=g.replace(/android \{/,`android {
     signingConfigs {
         debug {
-            storeFile file('../../test.keystore')
-            storePassword 'gajitest'
-            keyAlias 'gajitest'
-            keyPassword 'gajitest'
+            storeFile file('../../signing.keystore')
+            storePassword System.getenv('KEYSTORE_PASS')
+            keyAlias 'gajirun'
+            keyPassword System.getenv('KEYSTORE_PASS')
         }
     }`);
 }
