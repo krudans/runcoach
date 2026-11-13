@@ -2537,7 +2537,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.60';
+const APPVER='20.61';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7238,8 +7238,10 @@ function askSheet(o){ return new Promise(res=>{ let sh=$('askSheet'); if(!sh){ s
   sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="${ESC(o.title||'확인')}"><div class="ms-hd"><b>${ESC(o.title||'확인')}</b><button type="button" data-ask="0" aria-label="닫기">✕</button></div>
     <div class="ask-body">${o.html||ESC(o.text||'')}</div>
     <div class="mile-act" style="margin-top:14px"><button type="button" class="btn ghost" data-ask="0">${ESC(o.no||'취소')}</button><button type="button" class="btn${o.danger?' danger':''}" data-ask="1">${ESC(o.yes||'확인')}</button></div></div>`;
-  sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
-  const done=v=>{ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); sh.onclick=null; res(v); };
+  /* 확인 창을 연달아 띄울 때 — 앞 창을 닫으며 걸어 둔 '0.2초 뒤 숨기기'가 방금 뜬 다음 창을 숨겨 버렸다(계정 초기화의 두 번째 확인이 사라져 아무 일도 안 일어남). 창마다 번호를 매겨 자기 창일 때만 숨긴다 */
+  const my=sh._tok=(sh._tok||0)+1;
+  sh.hidden=false; requestAnimationFrame(()=>{ if(sh._tok===my)sh.classList.add('up'); });
+  const done=v=>{ sh.classList.remove('up'); setTimeout(()=>{ if(sh._tok===my)sh.hidden=true; },200); sh.onclick=null; res(v); };
   sh.onclick=e=>{ const b=e.target.closest('[data-ask]'); if(b)return done(b.dataset.ask==='1'); if(e.target===sh)done(false); }; }); }
 /* 기본 확인창(confirm) 대신 — 앱 안 확인 창. 줄바꿈은 그대로 */
 /* 브라우저 기본 알림창(alert) 대신 앱 안 안내 창 — 기본 창은 앱 모양과 다르고 화면을 멈춘다. 13곳을 한 번에 */
