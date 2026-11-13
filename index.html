@@ -2539,7 +2539,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.67';
+const APPVER='20.68';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4456,8 +4456,9 @@ async function keepAwake(){
   try{ if(WAKE&&!WAKE.released)return; WAKE=await DEV.wake.on(); }catch(e){}
 }
 /* 앱을 열거나 다시 볼 때, 켜 둔 동안엔 30분마다 — 다른 폰에서 바뀐 것을 받아오고 못 올린 것을 올린다 (달리는 중엔 하지 않는다) */
+/* 다시 볼 때는 20초만 지났어도 받는다 — 5분이던 때는 다른 기기에서 방금 바꾼 것이 한참 안 보였다 */
 function autoSync(){ try{ if(typeof FB==='undefined'||!FB.user||FB.busy||(typeof S!=='undefined'&&S.running))return;
-  if(Date.now()-(FB.last||0)<5*60e3)return; FB.sync().catch(()=>{}); }catch(e){} }
+  if(Date.now()-(FB.last||0)<20e3)return; FB.sync().catch(()=>{}); }catch(e){} }
 setInterval(()=>{ if(!document.hidden)autoSync(); },30*60e3);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ keepAwake(); autoSync();
   if(BT.want&&!BT.dev){ BT.tries=0; BT.retry(); } } });
@@ -4899,8 +4900,8 @@ const BT={
       if(!BT.want||BT.dev)return;
       let d=null;
       try{ d=await BT.saved(); }catch(e){}
-      /* 앱에서는 저장된 기기가 없을 때 자동으로 기기 목록을 띄우지 않는다(달리는 중에 목록이 계속 뜬다) */
-      try{ if(d||!window.GAJI_NATIVE)await BT.connect(d||undefined); }catch(e){}
+      /* 저장된 기기를 못 찾으면 자동으로 기기 목록을 띄우지 않는다(달리는 중에 목록이 계속 뜬다) */
+      try{ if(d)await BT.connect(d); }catch(e){}   /* 웹에서도 — 화면으로 돌아올 때 크롬의 '페어링하려고 함' 창이 저절로 뜨던 것을 막는다. 다시 붙이려면 '연결'을 누른다 */
       if(!BT.dev)BT.retry();
     },wait);
   },
@@ -6967,6 +6968,7 @@ const FB={
                DEV.store.set('acct',ACCT); }
         paintFb();
         if(u){ FB.sync().catch(()=>{}); try{ usagePing(true); }catch(e){} }   /* 로그인하면 사용 현황에 이메일이 붙는다 */
+        try{ FB.watch(); }catch(e){}
       });
       try{ await firebase.auth().getRedirectResult(); }catch(e){}
       FB.on=true; FB.err=null;
@@ -6990,6 +6992,14 @@ const FB={
   },
   async signOut(){ try{ await firebase.auth().signOut(); }catch(e){}
     ACCT={mode:'local',uid:null,email:null}; DEV.store.set('acct',ACCT); paintFb(); },
+  /* 실시간 받기 — 같은 계정의 다른 기기가 설정(결정·일정·목표…)을 올리면 곧바로 받아 화면을 맞춘다.
+     내 기기가 올린 것은 시각이 같아 다시 받지 않는다. 달리는 중에는 받지 않는다(끝난 뒤 동기화) */
+  watch(){ try{ if(FB._unsub){ FB._unsub(); FB._unsub=null; } }catch(e){}
+    const r=FB.ref(); if(!r)return; let first=true;
+    try{ FB._unsub=r.onSnapshot(snap=>{ if(first){ first=false; return; } if(snap.metadata&&snap.metadata.hasPendingWrites)return;
+      let u=0; try{ u=+(fsUnpackObj(snap.exists?(snap.data()||{}):{}).updatedAt)||0; }catch(e){}
+      if(u&&u>(+DEV.store.get('upd',0)||0)){ clearTimeout(FB._wt);
+        FB._wt=setTimeout(()=>{ if(FB.user&&!(typeof S!=='undefined'&&S.running))FB.sync().catch(()=>{}); },800); } },()=>{}); }catch(e){} },
   ref(){ const u=FB.user; if(!u)return null;
     return firebase.firestore().collection('users').doc(u.uid); },
 
@@ -7026,13 +7036,16 @@ const FB={
       FB.SETK.forEach(k=>{ if(k==='del'||cloud[k]===undefined||cloud[k]===null)return;
         if((k==='plan'||k==='goal'||k==='goals'||k==='dist')&&planNewerHere)return;
         /* 클라우드에 그 항목의 시각이 없으면(옛 기기가 올린 값) 내 항목 시각이 있는 한 덮지 않는다 — 문서 전체 시각으로 새 값을 옛 값으로 덮던 길을 막는다 */
-        const ct=+cMod[k]||(+myMod[k]?0:theirs), lt=Math.max(+myMod[k]||0,mine);
+        /* 클라우드에 그 항목의 '바꾼 시각'이 있으면 내 항목의 '바꾼 시각'하고만 견준다.
+           예전엔 '내가 마지막으로 올리거나 받은 시각(mine)'과도 견줬다 — 그래서 다른 기기가 조금 전에 한 결정이 내 마지막 동기화보다 '앞선 시각'으로 찍혀 있으면 받지 않고 버렸고, 두 기기의 화면이 끝내 달라졌다(2026-11-13 재현) */
+        const ct=+cMod[k]||(+myMod[k]?0:theirs), lt=+cMod[k]?(+myMod[k]||0):Math.max(+myMod[k]||0,mine);
         if(ct>lt){ DEV.store.set(k,cloud[k]); myMod[k]=ct; took=true; }
         else if(+cMod[k]) myMod[k]=Math.max(+myMod[k]||0,+cMod[k]); });   /* 다음 push가 클라우드의 시각을 지우지 않게 */
     } finally { FB._pulling=false; }
     DEV.store.set('modk',myMod);
     if(theirs>mine)DEV.store.set('upd',theirs);
     if(took)reloadLocals();
+    FB._took=took;   /* 기록은 그대로인데 결정·일정·목표만 다른 기기에서 바뀐 경우 — 화면을 다시 그리게 알린다 */
     const del=new Set(myDel.concat(cloud.del||[]).concat(DEV.store.get('del',[])));
     DEV.store.set('del',[...del]);
     const rs=await getSince('runs');
@@ -7124,7 +7137,8 @@ const FB={
         if(FB.susp){ FB.err='동기화 중지 · 폰 기록 유지 — 설정 › 의견'; return 0; }
         const got=await FB.pull(); await FB.push();
         const hadErr=!!FB.err; FB.err=null; FB.last=Date.now(); if(hadErr){ try{ usagePing(true); }catch(_){} }   /* 고쳐졌으면 오류 표시를 지운다 */
-        if(got){ afterRunsChanged(); }
+        /* 예전엔 '새 기록을 받았을 때만' 화면을 다시 그렸다. 다른 기기에서 한 결정(못 한 날 넘기기 등)·일정·목표는 받아 놓고도 화면이 옛 상태로 남아, 두 기기의 화면이 서로 달랐다 */
+        if(got||FB._took){ FB._took=false; afterRunsChanged(); try{ renderPlan(); }catch(e){} try{ if(CURVIEW==='alerts')renderAlerts(); }catch(e){} }
         return got;
       }catch(e){ FB.err=e.message||String(e);
         /* 실패하면 2분 뒤 혼자 다시 — 사용자가 '동기화'를 누르지 않아도 되게 (연달아 실패하면 최대 30분 간격) */
@@ -7144,7 +7158,9 @@ const newRid=r=>String((r&&r.date)||todayStr()).replace(/[^0-9]/g,'').slice(0,14
 /* 설정 항목을 이 폰에서 바꾼 시각 — 동기화 때 항목별로 새 쪽을 고른다 (끌어와서 쓰는 중에는 세지 않는다) */
 window.__rcTouch=k=>{ if(FB._pulling||!FB.SETK.includes(k))return;
   let m={}; try{ m=JSON.parse(localStorage.getItem('rc_modk'))||{}; }catch(e){}
-  m[k]=Date.now(); try{ localStorage.setItem('rc_modk',JSON.stringify(m)); }catch(e){} };
+  m[k]=Date.now(); try{ localStorage.setItem('rc_modk',JSON.stringify(m)); }catch(e){}
+  /* 바꾼 것은 곧바로(1.5초 뒤 한 번에) 올린다 — 예전엔 '오늘 건너뛰기' 같은 결정이 이 폰에만 남고, 앱을 다시 볼 때까지 올라가지 않았다 */
+  try{ clearTimeout(FB._pt); FB._pt=setTimeout(()=>{ try{ if(FB.user&&!(typeof S!=='undefined'&&S.running))FB.sync().catch(()=>{}); }catch(e){} },1500); }catch(e){} };
 
 /* 저장소에서 다시 읽어 메모리 변수를 맞춘다 — 클라우드에서 끌어온 뒤에 쓴다 */
 function reloadLocals(){
@@ -9924,14 +9940,18 @@ function todayResultCard(r,sess){
   </section>`;
 }
 document.addEventListener('click',e=>{
+  if(e.target.closest('#unskipToday')){ const t=todayStr(); delete MISSSEEN[t]; DEV.store.set('missSeen',MISSSEEN); try{ renderHome(); }catch(x){} toast('건너뛰기 취소 — 오늘 훈련으로 되돌림'); return; }
   const a=e.target.closest('[data-tres]'); if(a){ openRunView(a.dataset.tres); const b=$('rvwBack'); if(b)b.onclick=()=>go('home'); return; }
   const l=e.target.closest('[data-tlink]'); if(l){ const r=RUNS.find(x=>x.rid===l.dataset.tlink), s=planOn(todayStr()); if(r&&s){ r.planId=s.d; if(!r.type||r.type==='free')r.type=s.type; DEV.store.set('runs',RUNS); renderHome(); toast('오늘 훈련으로 기록'); } return; }
   if(e.target.closest('[data-tstr]')){ stOpen('stat'); return; }
 });
+/* '건너뛰기'로 정한 날 — 일정에서 지우지 않고(지난 기록·계획은 남긴다) '건너뜀'으로 표시한다.
+   예전엔 건너뛰기를 골라도 '못 한 날' 물음만 사라지고 홈·플랜에는 평소처럼 '오늘 훈련 ▶ 시작'으로 남아, 정한 것이 반영되지 않은 것처럼 보였다. 홈 카드와 플랜 줄이 이 하나를 본다 */
+const skippedDay=ds=>MISSSEEN[String(ds).slice(0,10)]==='skip';
 function todayCard(sess,idx){
   const T=TYPES[sess.type]||{}, g0=GL[sess.type]||{e:'뛰기',t:''}, adj=ADJ[sess.type]||0;
   const main=mainSeg(sess);
-  const done=RUNS.some(x=>x.planId===sess.d);
+  const done=RUNS.some(x=>x.planId===sess.d), skip=!done&&skippedDay(sess.d);
   const isTT=sess.type==='tt', what = sess.reps ? `${kmLab(sess.repLen)} × ${sess.reps}` : isTT?`앞뒤 천천히 · 가운데 ${fmtKm1(sess.ttKm||2)}km 힘껏`:'';
   const pace = isTT||hrOnly(sess) ? '' : sess.reps ? fmtPace(sess.repTarget+adj) : (main.tol==='ceil'&&main.pace?fmtPace(main.pace[0])+'↓':rangeText(main.pace));   /* TT는 목표 속도 없음 · TT 전 이지류는 심박만 */
   const _its=planItems(sess,adj), mins=_its.length?Math.round(_its[_its.length-1].t1/60):0;
@@ -9944,11 +9964,11 @@ function todayCard(sess,idx){
   const line=[isTT?`전체 ${fmtKm1(sess.dist)}km`:'',mins?mins+'분':'',pace&&pace!=='—'?pace:'',hz?'심박 '+hz+'↓':(zoneShort(sess.type)||'')].filter(Boolean).join(' · ');
   return `<section class="hero he" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
     <div class="he-row"><span class="he-ic" style="background:${(LOOK[sess.type]||LOOK.free).bg}">${symSVG(sess.type)}</span>
-      <div class="he-info"><div class="he-top"><em>오늘 훈련${sess.role?' · '+ESC(sess.role):''}</em></div>
+      <div class="he-info"><div class="he-top"><em>오늘 훈련${skip?' · 건너뜀':(sess.role?' · '+ESC(sess.role):'')}</em></div>
         <b>${sess.dist>0||isTT?`${ESC(g0.e)} <span class="num">${isTT?fmtKm1(sess.ttKm||2):sess.dist}km</span>`:ESC(sess.t)}${edited?'<small> · 바꿈</small>':''}</b>${what?`<i class="he-what">${what}</i>`:''}
         <span class="he-line num">${line||'&nbsp;'}</span></div>
-      <button class="he-go${done?' done':''}" id="goToday">${done?ic('check',16)+'다시':ic('play',16)+'시작'}</button></div>
-    <div class="hero-links"><button type="button" id="todayDet">상세</button>${sess.dist>0?'<button type="button" id="distEdit">거리 변경</button>':''}${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
+      <button class="he-go${done||skip?' done':''}" id="goToday">${done?ic('check',16)+'다시':skip?'그래도 뛰기':ic('play',16)+'시작'}</button></div>
+    <div class="hero-links"><button type="button" id="todayDet">상세</button>${sess.dist>0?'<button type="button" id="distEdit">거리 변경</button>':''}${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}${skip?'<button type="button" id="unskipToday">건너뛰기 취소</button>':''}</div>
     <div class="st-pair" style="margin:8px 0 2px"><button type="button" data-stgo="dyn">출발 전 동적 스트레칭 ▶</button><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">확인</button></div>
   </section>`;
@@ -13368,7 +13388,7 @@ function planListHTML0(src,monsIn){
         return `<div class="pd-row rest${ds<t?' past':''}${freeKm||closed?' did':''}${ds===t?' today':''}">${dn}<span class="pd-bar rest"><i style="height:${scored?Math.max(18,(closed||any?R.score:0)):0}%"></i></span><span class="pd-rest"><b class="pd-rl">${lab}</b>${sub?`<i>${sub}</i>`:''}</span>${st}${ds>t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`; }
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=(i>=0&&sessionOf(i))||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         const did=RUNS.some(r=>r.planId===sx.d), miss=!did&&ds<t, word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
-        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ok">✓${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
+        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ok">✓${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:(!did&&skippedDay(ds))?'<em class="pd-st miss">건너뜀</em>':miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" ${i>=0?`data-pgo="${i}"`:(()=>{ const r=RUNS.find(r=>r.planId===sx.d); return r?`data-wkrun="${ESC(r.rid)}"`:'disabled'; })()}><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
             <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${!sx.edited&&sx.capCut?`<small title="최근 30일 최장 +10% 한도">줄임 ${fmtKm1(sx.capCut.from)}→${fmtKm1(sx.capCut.to)}km</small>`:''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
