@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:5,log:[]};
+  window.GAJI_NATIVE={ver:6,log:[]};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -140,12 +140,45 @@
             if(!has){ var e=new Error('service not found'); e.name='NotFoundError'; throw e; }
             return { uuid:su, getCharacteristic:function(c){ return Promise.resolve(mkChar(su,uu(c))); } }; }); } };
       devs[id]=dev; return dev; };
+    var esc=function(t){ return String(t==null?'':t).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+    var pick=function(all){ return new Promise(function(res,rej){
+      var found={}, done=false, L=null, timer=null, t0=Date.now(), last=(known()[0]||{}).id;
+      var sh=document.getElementById('bleSheet'); if(!sh){ sh=document.createElement('div'); sh.id='bleSheet'; sh.className='msheet'; document.body.appendChild(sh); }
+      var finish=function(d,why){ if(done)return; done=true; clearInterval(timer); try{ L&&L.remove(); }catch(e){} BLE.stopLEScan().catch(function(){});
+        sh.classList.remove('up'); setTimeout(function(){ sh.hidden=true; sh.innerHTML=''; },200); sh.onclick=null;
+        if(d)res(d); else rej(new Error(why||'cancelled')); };
+      var render=function(){ if(done)return;
+        var arr=Object.keys(found).map(function(k){ return found[k]; }), named=arr.filter(function(d){ return d.name; }), anon=arr.length-named.length;
+        var list=(all?arr:named).sort(function(a,b){ return (b.id===last)-(a.id===last)||(b.hr-a.hr)||(!!b.name-!!a.name)||((b.rssi||-999)-(a.rssi||-999)); });
+        var rows=list.map(function(d){ return '<button type="button" data-ble="'+esc(d.id)+'" style="display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:13px 12px;margin:0 0 6px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:inherit;font-size:15px;font-weight:700">'
+          +'<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(d.name?esc(d.name):'이름 없는 기기 <i style="font-style:normal;font-weight:400;color:var(--ink-3);font-size:12px">'+esc(d.id)+'</i>')+'</span>'
+          +(d.id===last?'<em style="font-style:normal;font-size:11px;padding:2px 7px;border-radius:999px;background:var(--warn-bg);color:var(--warn-ink)">지난 기기</em>':'')
+          +(d.hr?'<em style="font-style:normal;font-size:11px;padding:2px 7px;border-radius:999px;background:var(--ok-bg);color:var(--ok-ink)">심박</em>':'')+'</button>'; }).join('');
+        var empty=!list.length?('<div class="meta" style="padding:10px 2px;line-height:1.7">'+((Date.now()-t0)<6000?'찾는 중…':'아직 안 보여요<br>워치·심박계에서 <b>심박 송출</b>을 켜고, 휴대폰 <b>블루투스</b>와 <b>위치</b>가 켜져 있는지 확인')+'</div>'):'';
+        var y=sh.querySelector('.ble-list'); var top=y?y.scrollTop:0;
+        sh.innerHTML='<div class="ms-card" role="dialog" aria-label="심박 기기 찾기"><div class="ms-hd"><b>심박 기기 찾기</b><button type="button" data-blex="1" aria-label="닫기">✕</button></div>'
+          +'<div class="meta" style="margin:0 0 10px;line-height:1.6">찾는 중… 연결할 기기를 누르세요'+(all?'':' · 이름 있는 기기만 표시')+'</div>'
+          +'<div class="ble-list" style="max-height:52vh;overflow:auto">'+rows+empty+'</div>'
+          +(!all&&anon?'<button type="button" class="hlink" data-bleall="1" style="margin-top:8px">이름 없는 기기 '+anon+'개도 보기</button>':'')
+          +'<div class="mile-act" style="margin-top:12px"><button type="button" class="btn ghost" data-blex="1">취소</button></div></div>';
+        var y2=sh.querySelector('.ble-list'); if(y2)y2.scrollTop=top; };
+      sh.onclick=function(e){ var t=e.target, b=t.closest&&t.closest('[data-ble]'); if(b){ var d=found[b.getAttribute('data-ble')]; if(d)finish({id:d.id,name:d.name}); return; }
+        if(t.closest&&t.closest('[data-bleall]')){ all=true; render(); return; }
+        if((t.closest&&t.closest('[data-blex]'))||t===sh)finish(null,'cancelled'); };
+      sh.hidden=false; render(); requestAnimationFrame(function(){ sh.classList.add('up'); });
+      L=C.addListener('BluetoothLe','onScanResult',function(r){ var d=r&&r.device; if(!d||!d.deviceId)return;
+        var p=found[d.deviceId]||{}, hr=((r.uuids||[]).concat(d.uuids||[])).some(function(u){ return String(u).toLowerCase()===NM.heart_rate; });
+        found[d.deviceId]={id:d.deviceId,name:r.localName||d.name||p.name||'',hr:!!(hr||p.hr),rssi:r.rssi}; });
+      timer=setInterval(render,700);
+      BLE.requestLEScan({allowDuplicates:false}).catch(function(e){ finish(null,String(e&&e.message||'scan failed')); });
+    }); };
     var bt={
       getAvailability:function(){ return Promise.resolve(true); },
-      /* 기기 고르기 — 휴대폰이 주변 기기 목록을 띄운다. 심박 서비스를 알리지 않는 워치가 많아 이름·서비스로 거르지 않는다 */
-      requestDevice:function(){ return init().then(function(){ return BLE.requestDevice({optionalServices:[NM.heart_rate,NM.battery_service]}); })
-        .then(function(d){ if(!d||!d.deviceId){ var e=new Error('cancelled'); e.name='NotFoundError'; throw e; }
-          remember(d.deviceId,d.name); return mkDev(d.deviceId,d.name); },
+      /* 기기 고르기 — 앱이 직접 한글 목록을 띄운다. 휴대폰 기본 목록은 영어이고 이름 없는 기기(Unknown)까지 전부 나와 고를 수가 없었다.
+         심박을 알리는 기기를 맨 위에, 이름 있는 기기만 보여 준다. 이름 없는 기기는 '전체 기기 검색'이나 아래 단추로 본다 */
+      requestDevice:function(o){ var all=!!(o&&o.acceptAllDevices);
+        return init().then(function(){ return pick(all); })
+        .then(function(d){ remember(d.id,d.name); return mkDev(d.id,d.name); },
           function(e){ note('ble pick '+(e&&e.message)); var x=new Error(String(e&&e.message||'cancelled')); x.name='NotFoundError'; throw x; }); },
       getDevices:function(){ var k=known(); if(!k.length)return Promise.resolve([]);
         return init().then(function(){ return k.map(function(x){ return mkDev(x.id,x.name); }); }); } };
