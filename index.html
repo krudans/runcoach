@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
 <head>
+<script>/* 웹앱 종료(2026-11-13 결정) — 브라우저로 열면 안내 화면(closed.html)으로 보낸다. 가지런은 안드로이드 앱 안에서만 쓴다. (127.0.0.1·localhost는 개발 시험용) */if(!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())&&!/^(127\.0\.0\.1|localhost)$/.test(location.hostname)){ try{ document.documentElement.style.display='none'; }catch(e){} location.replace('closed.html'); }</script>
 <script>/* 안드로이드 앱 안에서만 휴대폰 기능 다리를 싣는다 */if(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform())document.write('<script src="native.js"><\/script>')</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -2539,7 +2540,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.68';
+const APPVER='20.69';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
