@@ -2537,7 +2537,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.63';
+const APPVER='20.64';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9924,6 +9924,7 @@ function todayCard(sess,idx){
         <span class="he-line num">${line||'&nbsp;'}</span></div>
       <button class="he-go${done?' done':''}" id="goToday">${done?ic('check',16)+'다시':ic('play',16)+'시작'}</button></div>
     <div class="hero-links"><button type="button" id="todayDet">상세</button>${sess.dist>0?'<button type="button" id="distEdit">거리 변경</button>':''}${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}</div>
+    <div class="st-pair" style="margin:8px 0 2px"><button type="button" data-stgo="dyn">출발 전 동적 스트레칭 ▶</button><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">확인</button></div>
   </section>`;
 }
