@@ -2537,7 +2537,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.61';
+const APPVER='20.62';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6747,7 +6747,8 @@ $('wipeAll').onclick=async()=>{
       if(nk){ try{ await db.collection('nicks').doc(nk).delete(); }catch(e){ left.push('별명 예약'); } } } } }catch(e){ left.push('클라우드 기록'); }
   if(iid){ try{ await fetch(`${FSR}/installs/${encodeURIComponent(iid)}?key=${FSKEY}`,{method:'DELETE'}); }catch(e){ left.push('사용 현황'); } }
   if(FB.user){ try{ await firebase.auth().currentUser.delete(); }
-    catch(e){ if(/recent-login/.test(e.code||'')){ try{ const p=new firebase.auth.GoogleAuthProvider(); await firebase.auth().currentUser.reauthenticateWithPopup(p); await firebase.auth().currentUser.delete(); }catch(e2){ left.push('구글 로그인 계정'); } } else left.push('구글 로그인 계정'); }
+    catch(e){ if(/recent-login/.test(e.code||'')){ try{ if(window.GAJI_NATIVE&&GAJI_NATIVE.googleCred&&GAJI_NATIVE.canLogin())await firebase.auth().currentUser.reauthenticateWithCredential(await GAJI_NATIVE.googleCred());   /* 안드로이드 앱 — 팝업 대신 휴대폰의 구글 계정 창으로 다시 확인 */
+      else{ const p=new firebase.auth.GoogleAuthProvider(); await firebase.auth().currentUser.reauthenticateWithPopup(p); } await firebase.auth().currentUser.delete(); }catch(e2){ left.push('구글 로그인 계정'); } } else left.push('구글 로그인 계정'); }
     try{ await FB.signOut(); }catch(e){} }
   if(left.length){ try{ await askSheet({title:'일부를 지우지 못했어요',html:`${left.join(' · ')}<br><span class="meta">인터넷이 연결된 상태에서 다시 하거나, <a href="delete.html" target="_blank" rel="noopener">삭제 요청 페이지</a>에서 요청해 주세요. 폰 안의 데이터는 지금 지워요.</span>`,yes:'확인',no:'닫기'}); }catch(e){} }
   try{ await Promise.race([MDB.clear(),new Promise(r=>setTimeout(r,1500))]); }catch(e){}
