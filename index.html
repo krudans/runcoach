@@ -2534,7 +2534,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.58';
+const APPVER='20.59';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5156,6 +5156,8 @@ function onPosErr(e){$('rDot').className='dot bad'; try{ const q=S.gq||(S.gq={n:
   $('rGps').textContent=e.code===1?'위치 권한 거부됨':e.code===3?'GPS 신호 없음':'GPS 오류';}
 function onPos(pos){
   if(!S.running||S.paused)return;
+  /* 안드로이드 앱이 다른 앱 뒤에 있을 때 — 웹뷰가 타이머를 늦춘다(1초~1분에 한 번). 위치는 휴대폰이 계속 넘겨 주므로, 좌표가 올 때마다 화면 계산(거리·구간·음성 안내)을 직접 돌린다 */
+  if(document.hidden&&window.GAJI_NATIVE)Promise.resolve().then(()=>{ try{ onTick(); }catch(e){} });
   const c=pos.coords,now=pos.timestamp||Date.now(),acc=c.accuracy||99;
   S.lastFixAt=Date.now(); if(acc<=25)S.lastGoodAt=Date.now();
   { const q=S.gq||(S.gq={n:0,bad:0,sum:0,max:0,gapSec:0,rearm:0,err:0}); q.n++; q.sum+=Math.min(acc,999); if(acc>q.max)q.max=Math.round(acc); if(acc>25)q.bad++; }   /* GPS 품질 — 거리가 이상할 때 원인을 볼 수 있게 기록에 남긴다 */
@@ -6209,16 +6211,20 @@ function gqNote(r){ const q=r&&r.gq; if(!q||!q.n&&!q.gapSec&&!q.err)return q?'<p
   const badPct=q.n?Math.round(q.bad/q.n*100):0, per=r.sec&&q.n?(r.sec/q.n):0, warn=badPct>=30||q.gapSec>=60||(per>3);
   return `<p class="gqnote${warn?' bad':''}">GPS 좌표 ${q.n.toLocaleString()}개${per?` (${per<1.05?'1초마다':per.toFixed(1)+'초에 1개'})`:''} · 평균 정확도 ±${q.acc}m · 버린 좌표 ${badPct}%${q.gapSec>=10||q.gapN?` · 끊김 ${q.gapN||0}번 ${hidFmt(q.gapSec)}`:''}${q.rearm?` · 다시 연결 ${q.rearm}번`:''}${warn?' — 거리가 실제보다 짧을 수 있어요':''}</p>`; }
 function hidBanner(sec,tot){ let b=$('hidBan'); if(!b){ b=document.createElement('div'); b.id='hidBan'; b.setAttribute('role','alert'); document.body.appendChild(b); b.addEventListener('click',()=>{ b.hidden=true; }); }
-  b.innerHTML=`<b>위치를 못 받은 시간 ${hidFmt(sec)}</b><span>화면이 꺼지거나 다른 앱이 앞에 있었어요. 그 구간은 직선거리로만 이어져 실제보다 짧게 기록돼요.${tot>sec?` 오늘 합계 ${hidFmt(tot)}.`:''}</span><span>이 화면을 켜 둔 채로 뛰세요 · 눌러서 닫기</span>`; b.hidden=false; }
+  b.innerHTML=`<b>위치를 못 받은 시간 ${hidFmt(sec)}</b><span>${window.GAJI_NATIVE?'앱이 가려진 동안 휴대폰이 위치를 넘겨 주지 않았어요.':'화면이 꺼지거나 다른 앱이 앞에 있었어요.'} 그 구간은 직선거리로만 이어져 실제보다 짧게 기록돼요.${tot>sec?` 오늘 합계 ${hidFmt(tot)}.`:''}</span><span>${window.GAJI_NATIVE?'휴대폰 설정에서 가지런의 위치 권한·배터리 사용 제한 확인':'이 화면을 켜 둔 채로 뛰세요'} · 눌러서 닫기</span>`; b.hidden=false; }
 document.addEventListener('visibilitychange',()=>{ try{
   if(typeof S==='undefined'||!S.running)return;
-  if(document.hidden){ if(S.paused||S._fin)return; S.hidAt=Date.now();
-    DEV.buzz(BZ.off); DEV.speak('화면이 꺼졌어요. 이 상태로는 거리를 못 잽니다. 가지런 화면을 켜 두세요.',true,true); return; }
+  /* 안드로이드 앱은 화면이 꺼지거나 다른 앱 뒤에 있어도 위치를 계속 받는다('기록 중' 알림). 웹용 경고('화면을 켜 두세요')를 그대로 내보내 멀쩡한 기록을 못 쓰는 것처럼 알리던 것을 고침.
+     앱에서는 가려진 동안 실제로 좌표가 왔는지를 세어, 안 왔을 때만 알린다 */
+  const nat=!!window.GAJI_NATIVE;
+  if(document.hidden){ if(S.paused||S._fin)return; S.hidAt=Date.now(); S.hidFix0=(S.gq&&S.gq.n)||0;
+    if(!nat){ DEV.buzz(BZ.off); DEV.speak('화면이 꺼졌어요. 이 상태로는 거리를 못 잽니다. 가지런 화면을 켜 두세요.',true,true); } return; }
   if(!S.hidAt)return; const sec=Math.round((Date.now()-S.hidAt)/1000); S.hidAt=null;
   if(sec<20)return;   /* 잠깐 알림창 본 정도는 세지 않는다 */
+  if(nat&&((S.gq&&S.gq.n)||0)-(S.hidFix0||0)>=sec/4)return;   /* 앱 — 가려진 동안 좌표가 정상으로 왔다(4초에 1개 이상) → 빠진 구간 없음 */
   S.hidSec=(S.hidSec||0)+sec; S.hidN=(S.hidN||0)+1;
   hidBanner(sec,S.hidSec); DEV.buzz(BZ.off);
-  DEV.speak(`${hidFmt(sec)} 동안 위치를 못 받았어요. 그 구간은 거리가 짧게 기록됩니다. 화면을 켜 두세요.`,true,true);
+  DEV.speak(`${hidFmt(sec)} 동안 위치를 못 받았어요. 그 구간은 거리가 짧게 기록됩니다. ${nat?'휴대폰 설정에서 가지런의 위치 권한과 배터리 사용 제한을 확인하세요.':'화면을 켜 두세요.'}`,true,true);
 }catch(e){} });
 window.addEventListener('pagehide',liveSave);
 /* 앱을 다시 열었을 때 — 끝내지 못한 기록이 있으면 묻는다 */
