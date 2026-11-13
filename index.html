@@ -2535,7 +2535,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.65';
+const APPVER='20.66';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3293,6 +3293,8 @@ function fsDec(v){ if(!v)return null; if('stringValue' in v)return v.stringValue
   if('mapValue' in v){ const o={}; Object.entries(v.mapValue.fields||{}).forEach(([k,x])=>o[k]=fsDec(x)); return o; } return null; }
 function fsEnc(x){ if(x==null)return {nullValue:null}; if(typeof x==='boolean')return {booleanValue:x}; if(typeof x==='number')return Number.isInteger(x)?{integerValue:String(x)}:{doubleValue:x};
   if(x instanceof Date)return {timestampValue:x.toISOString()}; return {stringValue:String(x)}; }
+/* 쓰기 요청에는 로그인 증표를 붙인다 — 저장소 규칙이 '로그인한 사람만 쓰기'로 바뀌었다(2026-11-13). 로그인 전이면 증표 없이 보내고, 규칙이 막는다 */
+async function fsHdr(){ const h={'Content-Type':'application/json'}; try{ const u=window.firebase&&firebase.auth&&firebase.auth().currentUser; if(u)h.Authorization='Bearer '+await u.getIdToken(); }catch(e){} return h; }
 async function fsGet(path){ const r=await fetch(`${FSR}/${path}?key=${FSKEY}&pageSize=50`,{cache:'no-store'}); if(!r.ok)throw new Error('fs '+r.status); return r.json(); }
 var NOTICE=null;
 /* 하단 배너 — 관리자가 정한 제목·링크·게재 기간. 제목만 보이고 누르면 링크로 */
@@ -3326,7 +3328,7 @@ function openFeedback(){ let sh=$('fbSheet'); if(!sh){ sh=document.createElement
       if(e.target.closest('#fbGo')){ const t=$('fbT').value.trim(); if(!t)return toast('내용 입력');
         const em=$('fbE').checked?((FB.user&&FB.user.email)||(ACCT&&ACCT.email)||null):null;
         const body={fields:{text:fsEnc(t),email:fsEnc(em),uid:fsEnc($('fbE').checked&&FB.user?FB.user.uid:null),appVer:fsEnc(APPVER),at:fsEnc(new Date()),kind:fsEnc('app')}};
-        try{ const r=await fetch(`${FSR}/feedback?key=${FSKEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok)throw new Error(r.status);
+        try{ const r=await fetch(`${FSR}/feedback?key=${FSKEY}`,{method:'POST',headers:await fsHdr(),body:JSON.stringify(body)}); if(!r.ok)throw new Error(r.status);
           $('fbT').value=''; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); toast('보냈어요 — 고마워요'); }
         catch(err){ toast('전송 실패 · 연결 확인'); } } }); }
   const e=$('fbE'); if(e){ const em=(FB.user&&FB.user.email)||(ACCT&&ACCT.email); e.parentElement.hidden=!em; e.checked=!!em; }
@@ -3336,7 +3338,8 @@ document.addEventListener('click',e=>{ if(e.target.closest('#setFeedback'))openF
    보내는 것: 기기 ID(무작위)·처음/마지막 사용·버전·기기 종류·앱 설치 여부·목표 종류·기록 수/거리·(로그인했으면) 이메일.
    기록 내용(심박·경로·시각)은 보내지 않는다. 설정 › '사용 현황 보내기'로 끌 수 있다. 하루 한 번만 */
 function usageOn(){ try{ return localStorage.getItem('rc_usageOff')!=='1'; }catch(e){ return true; } }
-async function usagePing(force){ if(!usageOn())return; try{
+async function usagePing(force){ if(!usageOn())return; if(!(window.firebase&&firebase.auth&&firebase.auth().currentUser))return;   /* 로그인한 뒤에만 — 규칙이 로그인한 사람의 쓰기만 받는다 */
+  try{
     const last=+localStorage.getItem('rc_usageAt')||0; if(!force&&Date.now()-last<6*3600e3)return;
     let id=localStorage.getItem('rc_iid'); const isNew=!id; if(!id){ id=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2)).replace(/-/g,''); localStorage.setItem('rc_iid',id); }
     const ua=navigator.userAgent, plat=/iPhone|iPad|iPod/.test(ua)?'iOS':/Android/.test(ua)?'Android':/Mac/.test(ua)?'Mac':/Windows/.test(ua)?'Windows':'기타';
@@ -3350,7 +3353,7 @@ async function usagePing(force){ if(!usageOn())return; try{
     if(isNew||!localStorage.getItem('rc_usageFirst')){ F.first=new Date(); }
     const fields={}; Object.entries(F).forEach(([k,v])=>fields[k]=fsEnc(v));
     const mask=Object.keys(F).map(k=>'updateMask.fieldPaths='+k).join('&');
-    const r=await fetch(`${FSR}/installs/${id}?key=${FSKEY}&${mask}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});
+    const r=await fetch(`${FSR}/installs/${id}?key=${FSKEY}&${mask}`,{method:'PATCH',headers:await fsHdr(),body:JSON.stringify({fields})});
     if(r.ok){ localStorage.setItem('rc_usageAt',String(Date.now())); if(F.first)localStorage.setItem('rc_usageFirst','1'); }
   }catch(e){} }
 document.addEventListener('change',e=>{ if(e.target&&e.target.id==='usageOpt'){ try{ localStorage.setItem('rc_usageOff',e.target.checked?'0':'1'); }catch(x){} if(e.target.checked)usagePing(true); toast(e.target.checked?'사용 현황 전송':'사용 현황 전송 끔'); } });
@@ -6767,7 +6770,7 @@ $('wipeAll').onclick=async()=>{
       for(const sub of ['runs','acts']){ const ss=await r.collection(sub).get(); const docs=ss.docs; for(let i=0;i<docs.length;i+=400){ const bt=db.batch(); docs.slice(i,i+400).forEach(d=>bt.delete(d.ref)); await bt.commit(); } }
       await r.delete();
       if(nk){ try{ await db.collection('nicks').doc(nk).delete(); }catch(e){ left.push('별명 예약'); } } } } }catch(e){ left.push('클라우드 기록'); }
-  if(iid){ try{ await fetch(`${FSR}/installs/${encodeURIComponent(iid)}?key=${FSKEY}`,{method:'DELETE'}); }catch(e){ left.push('사용 현황'); } }
+  if(iid){ try{ await fetch(`${FSR}/installs/${encodeURIComponent(iid)}?key=${FSKEY}`,{method:'DELETE',headers:await fsHdr()}); }catch(e){ left.push('사용 현황'); } }
   if(FB.user){ try{ await firebase.auth().currentUser.delete(); }
     catch(e){ if(/recent-login/.test(e.code||'')){ try{ if(window.GAJI_NATIVE&&GAJI_NATIVE.googleCred&&GAJI_NATIVE.canLogin())await firebase.auth().currentUser.reauthenticateWithCredential(await GAJI_NATIVE.googleCred());   /* 안드로이드 앱 — 팝업 대신 휴대폰의 구글 계정 창으로 다시 확인 */
       else{ const p=new firebase.auth.GoogleAuthProvider(); await firebase.auth().currentUser.reauthenticateWithPopup(p); } await firebase.auth().currentUser.delete(); }catch(e2){ left.push('구글 로그인 계정'); } } else left.push('구글 로그인 계정'); }
@@ -7289,7 +7292,7 @@ async function nickCheck(){ const d=OB.d, nick=String(d.nick||'').trim(), key=ni
 /* 별명 예약 — 처음 만들 때만 성공(이미 있으면 규칙이 막음). 실패해도 앱은 진행 */
 async function nickReserve(nick){ try{ const key=nickKey(nick); if(!key)return; const iid=localStorage.getItem('rc_iid')||'', uid=(FB&&FB.user&&FB.user.uid)||null;
     const fields={iid:fsEnc(iid),at:fsEnc(new Date())}; if(uid)fields.uid=fsEnc(uid);
-    await fetch(`${FSR}/nicks?documentId=${encodeURIComponent(key)}&key=${FSKEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})}); }catch(e){} }
+    await fetch(`${FSR}/nicks?documentId=${encodeURIComponent(key)}&key=${FSKEY}`,{method:'POST',headers:await fsHdr(),body:JSON.stringify({fields})}); }catch(e){} }
 function saveBasics(d){ const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick; PROF=Object.assign({},PROF,{nick:lock?PROF.nick:String(d.nick||'').trim(),by:d.by||PROF.by||null,sex:d.sex||PROF.sex||null});
   if(PROF.nick)DEV.store.set('nickLock',{at:new Date().toISOString()});
   if(PROF.by&&!PROF.birth)PROF.birth=`${PROF.by}-07-01`;
