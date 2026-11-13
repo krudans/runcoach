@@ -27,6 +27,11 @@ async function list(params){
   }
   const races=[...all.values()].filter(r=>r.date>=today).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0)
     .map(r=>Object.assign(r,{area:r.area||null,open:!!r.open}));
+  /* 접수 마감 — 사이트는 '접수중'만 알려 준다. 어제 파일에서 접수중(또는 이미 마감)이었는데 오늘 접수중이 아니면 마감으로 적는다.
+     오늘 접수중이 하나도 안 읽혔으면(사이트 오류) 어제 표시를 그대로 둔다 */
+  { let prev={}; try{ for(const r of JSON.parse(fs.readFileSync(path.join(__dirname,'..','races.json'),'utf8')).races||[])prev[r.id]=r; }catch(e){}
+    const anyOpen=races.some(r=>r.open);
+    for(const r of races){ const p=prev[r.id]; if(r.open)continue; if(p&&(p.closed||(anyOpen&&p.open)))r.closed=true; } }
   if(races.length<20)throw new Error('너무 적게 읽힘: '+races.length+'개 — 사이트 형식이 바뀌었을 수 있음');
   const out={updated:new Date().toISOString(),source:'마라톤온라인 (roadrun.co.kr · marathon.pe.kr)',sourceUrl:'http://www.marathon.pe.kr/schedule_index.html',count:races.length,races};
   fs.writeFileSync(path.join(__dirname,'..','races.json'),JSON.stringify(out));
