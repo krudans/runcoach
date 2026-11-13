@@ -3,5 +3,6 @@
   "appName": "가지런",
   "webDir": "www",
   "server": { "url": "https://krudans.github.io/runcoach/", "errorPath": "offline.html" },
-  "android": { "useLegacyBridge": true }
+  "android": { "useLegacyBridge": true },
+  "plugins": { "SocialLogin": { "providers": { "google": true, "facebook": false, "apple": false, "twitter": false } } }
 }
