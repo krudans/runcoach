@@ -136,6 +136,9 @@ body.nonav #nav{display:none!important}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;
   -webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+/* 길게 누르는 조작(정지·잠금 풀기)에서 글자가 선택되고 '복사·모두 선택' 막대가 뜨지 않게 — 달리는 화면·잠금 화면·모든 버튼 */
+#run,#run *,#lockMask,#lockMask *,button,.btn,.tabbar,.tabbar *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#run,#lockMask{-webkit-tap-highlight-color:transparent}
 .num{font-family:var(--num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 button{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);background:var(--panel-2);
@@ -2534,7 +2537,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.59';
+const APPVER='20.60';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5151,6 +5154,8 @@ document.querySelector('.laphd').onclick=e=>{
   DEV.store.set('lapc',LAPC); paintLapChips(); renderLaps();
 };
 
+/* 달리는 화면·잠금 화면에서 길게 눌러도 휴대폰의 글자 선택·메뉴가 뜨지 않게(누르고 있기 조작이 가로채였다) */
+['contextmenu','selectstart'].forEach(ev=>document.addEventListener(ev,e=>{ try{ if(e.target&&e.target.closest&&e.target.closest('#run,#lockMask'))e.preventDefault(); }catch(x){} }));
 /* ───────── GPS ───────── */
 function onPosErr(e){$('rDot').className='dot bad'; try{ const q=S.gq||(S.gq={n:0,bad:0,sum:0,max:0,gapSec:0,rearm:0,err:0}); q.err++; q.errCode=e&&e.code; }catch(x){}
   $('rGps').textContent=e.code===1?'위치 권한 거부됨':e.code===3?'GPS 신호 없음':'GPS 오류';}
