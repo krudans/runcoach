@@ -2,13 +2,33 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 관리자 = 이 목록의 구글 계정 (이메일 인증된 것만)
+    // 대표 관리자 = krudans@gmail.com. 관리자 추가·해제는 이 계정만.
+    // 관리자 = 대표 관리자 + admins/{이메일} 에 등록된 계정. 로그인 후 12시간 안에만 권한이 있다.
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function fresh() {
+      return request.time < timestamp.value(request.auth.token.auth_time * 1000) + duration.value(12, 'h');
+    }
+    function isOwnerAdmin() {
+      return signedIn() && request.auth.token.email == 'krudans@gmail.com' && fresh();
+    }
     function isAdmin() {
-      return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email in ['krudans@gmail.com'];
+      return signedIn() && fresh()
+        && (request.auth.token.email == 'krudans@gmail.com'
+          || exists(/databases/$(database)/documents/admins/$(request.auth.token.email)));
     }
     function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    // 값 검사 — 칸이 없거나 비어 있으면 통과, 있으면 형식과 길이를 본다 (2026-11-13 추가)
+    function okStr(d, k, n) { return d.get(k, null) == null || (d[k] is string && d[k].size() <= n); }
+    function okNum(d, k) { return d.get(k, null) == null || d[k] is number; }
+    // 내 것인지 — uid 칸은 로그인한 본인, email 칸은 비었거나 본인 메일
+    function mine(d) {
+      return request.auth != null
+        && d.get('uid', null) == request.auth.uid
+        && (d.get('email', null) == null || d.email == request.auth.token.email);
+    }
 
     // 회원 데이터 — 본인은 읽고 쓰기, 관리자는 읽기만
     match /users/{uid} {
@@ -36,19 +56,73 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // 사용 현황 — 기기마다 한 줄(로그인 없이). 정해진 칸만 쓰기, 읽기·지우기는 관리자만
+    // 사용 현황 — 기기마다 한 줄. 로그인한 본인만 쓰기(2026-11-13: 전엔 로그인 없이 누구나), 정해진 칸·형식·길이만. 읽기는 관리자만
     match /installs/{id} {
-      allow create, update: if id.size() <= 40
-        && request.resource.data.keys().hasOnly(['first','last','ver','plat','pwa','onb','goal','gm','gdate','runs','km','lastRun','email','uid']);
-      allow read, delete: if isAdmin();
+      allow create, update: if id.size() >= 16 && id.size() <= 40
+        && request.resource.data.keys().hasOnly(['first','last','ver','plat','pwa','onb','goal','gm','gdate','runs','km','lastRun','email','uid','nick','by','sex','consent','mile','syncErr'])
+        && mine(request.resource.data)
+        && okStr(request.resource.data, 'ver', 20) && okStr(request.resource.data, 'plat', 20)
+        && okStr(request.resource.data, 'goal', 20) && okStr(request.resource.data, 'gdate', 10)
+        && okStr(request.resource.data, 'lastRun', 10) && okStr(request.resource.data, 'nick', 24)
+        && okStr(request.resource.data, 'sex', 8) && okStr(request.resource.data, 'syncErr', 200)
+        && okNum(request.resource.data, 'gm') && okNum(request.resource.data, 'runs')
+        && okNum(request.resource.data, 'km') && okNum(request.resource.data, 'mile')
+        && (okNum(request.resource.data, 'by') || okStr(request.resource.data, 'by', 4));
+      allow read: if isAdmin();
+      // 계정 삭제 — 기기 ID(추측할 수 없는 32자)를 아는 그 기기만. 목록은 관리자만 볼 수 있어 ID가 새지 않는다
+      allow delete: if isAdmin() || id.size() >= 16;
     }
 
-    // 의견 보내기 — 누구나 새 글만(2,000자까지), 읽기·처리는 관리자만
+    // 별명 중복 방지 — 별명마다 한 문서. 누구나 있는지 확인(읽기), 로그인한 본인이 없을 때만 새로 만들기, 지우기는 본인·관리자
+    match /nicks/{nick} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if request.auth != null
+        && nick.size() >= 2 && nick.size() <= 24
+        && request.resource.data.keys().hasOnly(['iid','uid','at'])
+        && request.resource.data.get('uid', null) == request.auth.uid
+        && okStr(request.resource.data, 'iid', 40);
+      allow update: if false;
+      // 계정 삭제 — 로그인한 본인 별명은 본인이 지운다
+      allow delete: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
+    }
+
+    // DB 상태 화면 — 관리자가 전체 기록 수를 센다(collection group count). 회원 각자의 규칙은 위 users/{uid}가 그대로 지킨다
+    match /{path=**}/runs/{id} {
+      allow list: if isAdmin();
+    }
+    match /{path=**}/acts/{id} {
+      allow list: if isAdmin();
+    }
+
+    // 관리자 명단 — 본인 것 확인(들어올 때)과 관리자 읽기. 추가·해제는 대표 관리자만
+    match /admins/{email} {
+      allow get: if signedIn() && request.auth.token.email == email;
+      allow read: if isAdmin();
+      allow create: if isOwnerAdmin() && email != 'krudans@gmail.com'
+        && request.resource.data.keys().hasOnly(['by','at']);
+      allow update: if false;
+      allow delete: if isOwnerAdmin();
+    }
+
+    // 의견 보내기 — 새 글만(2,000자까지), 읽기·처리는 관리자만.
+    // 앱에서는 로그인한 본인만. 로그인 없이 받는 것은 '계정 삭제 요청' 한 가지뿐(앱을 지운 사람도 요청할 수 있어야 한다 — delete.html)
     match /feedback/{id} {
       allow create: if request.resource.data.keys().hasOnly(['text','email','uid','appVer','at','kind'])
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 2000;
+        && request.resource.data.text.size() <= 2000
+        && okStr(request.resource.data, 'appVer', 20) && okStr(request.resource.data, 'kind', 20)
+        && okStr(request.resource.data, 'email', 200)
+        && (
+          (request.auth != null
+            && (request.resource.data.get('uid', null) == null || request.resource.data.uid == request.auth.uid)
+            && (request.resource.data.get('email', null) == null || request.resource.data.email == request.auth.token.email))
+          || (request.resource.data.get('kind', '') == 'delete'
+            && request.resource.data.get('appVer', '') == 'web-delete'
+            && request.resource.data.get('uid', null) == null
+            && request.resource.data.get('email', null) == null)
+        );
       allow read, update, delete: if isAdmin();
     }
   }
