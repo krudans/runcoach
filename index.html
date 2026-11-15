@@ -2540,7 +2540,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.70';
+const APPVER='20.71';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4948,8 +4948,7 @@ const WATCH_HELP=[
   ['어메이핏 · 샤오미 밴드','Zepp(또는 Mi Fitness) 앱 → 기기 → <b>심박수 공유</b> 켜기'],
   ['화웨이 · 아너','화웨이 헬스 앱 → 기기 → <b>심박수 데이터 송출</b> 켜기'],
   ['갤럭시워치','기본 기능엔 없음 → 워치 Play 스토어에서 심박 송출 앱(예: Heart for Bluetooth)을 깔고 켠 뒤 연결 · 나이키 런 클럽이 되는 건 워치에 나이키 전용 앱이 따로 깔려 폰과 직접 주고받기 때문 — 블루투스 심박 송출과는 다른 길'],
-  ['애플워치 · 핏빗 · 픽셀워치','심박을 밖으로 보내지 않아 연결 불가 → 가슴 심박계 사용'],
-  ['아이폰','아이폰 브라우저는 블루투스 연결 자체가 안 됨 (안드로이드 크롬만) → 심박 없이 속도 코칭']];
+  ['애플워치 · 핏빗 · 픽셀워치','심박을 밖으로 보내지 않아 연결 불가 → 가슴 심박계 사용']];
 function watchHelpHTML(open){ return `<details class="wh"${open?' open':''}><summary>워치가 목록에 안 보이면 — 기종별 심박 송출 켜는 법</summary><ul>${WATCH_HELP.map(([k,v])=>`<li><b>${k}</b><span>${v}</span></li>`).join('')}</ul><p>켠 다음 <b>기기 검색</b>. 그래도 안 보이면 <b>전체 보기</b>로 찾아 고르세요.</p></details>`; }
 document.querySelectorAll('.wh-slot').forEach(x=>x.innerHTML=watchHelpHTML(false));
 const btToggle=async()=>{
@@ -6492,7 +6491,8 @@ async function paintStore(){
     if(navigator.storage&&navigator.storage.persisted){
       let ok=await navigator.storage.persisted();
       if(!ok&&navigator.storage.persist)ok=await navigator.storage.persist();
-      msg+=ok?' · 영구 보관 켜짐':' · 영구 보관 미승인 (백업 권장)';
+      /* '영구 보관'은 브라우저 저장소 이야기다. 앱에서는 기록이 앱 안에 있고(앱을 지우면 함께 지워진다) 구글 계정에도 올라간다 */
+      msg+=window.GAJI_NATIVE?' · 앱 안에 보관 (앱을 지우면 폰에서는 지워짐 · 구글 계정에 저장된 기록은 남음)':(ok?' · 영구 보관 켜짐':' · 영구 보관 미승인 (백업 권장)');
     }
   }catch(e){}
   el.textContent=msg;
@@ -6729,7 +6729,9 @@ async function selfTest(){
         navigator.bluetooth?(BT.name?`지난 기기: ${BT.name}`:'사용 가능'):(window.GAJI_NATIVE?'준비 안 됨 — 앱 다시 열기':'미지원 — 크롬 사용'),
         navigator.bluetooth?'OK':'불가');
     { const N=window.GAJI_NATIVE, inApp=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
-      if(inApp||N) add(!!N,'앱 연결 (휴대폰 기능)', N?`다리 v${N.ver} · ${(N.log||[]).slice(-6).join(' / ')||'기록 없음'}`:'다리 파일을 못 실음 — 앱을 닫고 다시 열기', N?'OK':'불가'); }
+      if(inApp||N) add(!!N,'앱 연결 (휴대폰 기능)', N?`다리 v${N.ver} · ${(N.log||[]).slice(-6).join(' / ')||'기록 없음'}`:'다리 파일을 못 실음 — 앱을 닫고 다시 열기', N?'OK':'불가');
+      /* 설치본이 예전 것이면 이미지·파일 저장과 진동이 안 된다 — 화면만 새로 받아서는 안 되고 설치 파일을 새로 깔아야 한다 */
+      if(N) add(N.shell>=2,'앱 설치본', N.shell>=2?'최신 — 이미지·파일 저장, 진동 사용 가능':'예전 설치본 — 이미지·파일 저장과 진동이 안 됨 · 앱을 새로 받아 덮어 설치', N.shell>=2?'OK':'다시 설치'); }
     add(!!window.DeviceMotionEvent,'가속도계 (케이던스)',
         window.DeviceMotionEvent?'사용 가능':'없음', window.DeviceMotionEvent?'OK':'불가');
     add('speechSynthesis' in window,'음성 안내',
