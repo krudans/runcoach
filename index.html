@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.83';
+const APPVER='20.84';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4899,7 +4899,7 @@ const BT={
     /* 값이 30초 넘게 한 숫자로 그대로면 시계가 새로 재지 않고 마지막 값을 되풀이해 보내는 것이다(화면이 다른 데 가 있으면 시계가 측정을 쉬기도 한다).
        그 값은 화면에 '멈춤'으로만 보이고 판정·코칭·평균에는 쓰지 않는다. 숫자가 바뀌는 순간 다시 쓴다 (앱 규칙 C) */
     if(bpm!==S.hr.lastRaw){ S.hr.lastRaw=bpm; S.hr.sameSince=now; }
-    S.hr.raw=bpm; S.hr.at=now; S.hr.frozen=(now-(S.hr.sameSince||now))>30000;
+    S.hr.raw=bpm; S.hr.at=now; { const fz=(now-(S.hr.sameSince||now))>30000; if(fz&&!S.hr.frozen&&S.running&&S.hrD)S.hrD.frozen++; S.hr.frozen=fz; }
     /* 튀는 값 거르기 — 직전 값들(중앙값)보다 20 넘게 갑자기 뛰거나 안정심박보다 낮으면 이 값은 쓰지 않는다. 3번 연속이면 진짜 변화로 받아들인다 (센서 잡음 처리 관행 C) */
     { const H=S.hr.recent=(S.hr.recent||[]).filter(x=>now-x.t<8000), med=H.length>=3?H.map(x=>x.v).sort((a,b)=>a-b)[Math.floor(H.length/2)]:null, rh=(PROF&&PROF.rhr)||null;
       const odd=(med&&Math.abs(bpm-med)>20)||(rh&&bpm<rh-5); S.hr.oddN=odd?(S.hr.oddN||0)+1:0;
@@ -4918,10 +4918,12 @@ const BT={
         if(d){ BT.paint(`${BT.name} 연결 중…`); try{ r=await DEV.hr(b=>BT.feed(b), d); }catch(e){ r=null; } } }
       if(!r)r=await DEV.hr(b=>BT.feed(b), known);
       BT.dev=r.dev; BT.batt=r.batt; S.hr.dev=r.dev; BT.want=true; BT.tries=0;
+      if(S.running&&S.hrD&&(S.hrD.off+S.hrD.kick)>S.hrD.back)S.hrD.back++;
       BT.name=r.dev.name||'심박 기기'; DEV.store.set('btname',BT.name);
       if(!r.dev._rcHooked){
         r.dev._rcHooked=true;
         r.dev.addEventListener('gattserverdisconnected',()=>{
+          if(BT.kicking)BT.kicking=false; else if(S.running&&S.hrD)S.hrD.off++;   /* 앱이 일부러 끊은 것(값 멈춤 → 다시 붙이기)은 '연결 끊김'으로 세지 않는다 */
           BT.dev=null; S.hr.dev=null; S.hr.bpm=null; BT.lostAt=Date.now();
           if(BT.want)BT.retry(); else BT.paint();
         });
@@ -5102,7 +5104,7 @@ async function startRun(){
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,restHrCue:null,hrSoft:(S.factors||[]).length>0,hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
-    hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},
+    hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},hrD:{off:0,stall:0,frozen:0,kick:0,back:0},hrKickAt:0,
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]},stride:null,strideRef:null});
   S.act=(pendingIx<0&&ACT_MODE)?ACT_MODE:'run'; ACT_MODE=null;
   { const rr=$('rRail'); if(rr)rr.style.visibility=(s.d==='free')?'hidden':''; }   /* 자유 러닝엔 진행 막대가 의미 없다 */
@@ -5452,7 +5454,11 @@ function onTick(){
   { const u=$('rCadU'); if(u)u.textContent=(cadNow&&isFinite(p)&&p>0)?`보폭 ${(1000/p*60/cadNow).toFixed(2)}m`:'분당'; }
   if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
   /* 기기가 송출을 멈추면 마지막 값이 영원히 남는다 — 15초 넘게 새 값이 없으면 심박 없음으로 본다 */
-  if(S.hr.bpm&&S.hr.at&&Date.now()-S.hr.at>15000){ S.hr.bpm=null; }
+  if(S.hr.bpm&&S.hr.at&&Date.now()-S.hr.at>15000){ S.hr.bpm=null; if(S.hrD&&BT.dev)S.hrD.stall++; }
+  /* 연결은 된 채 20초 넘게 새 값이 없으면 끊고 다시 붙인다(다시 붙으면 값 보내기를 새로 신청한다) — 11/15에 심박이 2~3분씩 8번 '값 안 들어옴'으로 끊겼다.
+     연결이 끊긴 경우는 원래부터 스스로 다시 붙는다. 1분에 한 번까지만 */
+  try{ const nw=Date.now(); if(BT.dev&&BT.want&&S.hr.at&&nw-S.hr.at>20000&&(!S.hrKickAt||nw-S.hrKickAt>60000)){ S.hrKickAt=nw; if(S.hrD)S.hrD.kick++; BT.kicking=true;
+      try{ BT.dev.gatt.disconnect(); }catch(e){ BT.kicking=false; } } }catch(e){}
   /* 심박 1초 표본 — 마지막 값이 5초 안에 들어온 것일 때만(그보다 오래된 값으로 시간을 채우지 않는다) */
   { const sec=Math.floor(S.elapsed), last=S.hrSec==null?sec-1:S.hrSec, n=Math.min(60,sec-last);
     if(n>0){ S.hrSec=sec; if(S.hr.bpm&&!S.paused&&Date.now()-(S.hr.at||0)<=5000){ for(let k=0;k<(n>5?1:n);k++){   /* 오래 비었던 틱(앱이 뒤로 갔다 옴)은 한 값만 — 모르는 시간을 지금 값으로 채우지 않는다 */ S.hr.samples.push(S.hr.bpm); S.hr.segSamples.push(S.hr.bpm); } } } }
@@ -6143,7 +6149,7 @@ function renderSummary(completed){
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)), zoneB:zoneBounds(),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
-    completed,shoe:S.shoe,factors:(S.factors||[]).slice(),planKm:isFree?null:(+s.dist||null),extraKm:S.extra?+(km-S.extra.km).toFixed(2):0,hrSuspect:!!S.hrLocked,
+    completed,shoe:S.shoe,factors:(S.factors||[]).slice(),planKm:isFree?null:(+s.dist||null),extraKm:S.extra?+(km-S.extra.km).toFixed(2):0,hrSuspect:!!S.hrLocked,hrDiag:S.hrD&&(S.hrD.off||S.hrD.stall||S.hrD.frozen||S.hrD.kick)?Object.assign({},S.hrD):null,   /* 심박이 끊긴 까닭(자가 점검에 표시) */
     ceiling:s.ceiling||null, cadGoal:S.cadGoal||null, hrCap:(T.hrZone&&T.hrZone[1])||null, hour:new Date(S.t0||Date.now()).getHours(),
     th:{spread:TH.spread,ceil:TH.ceil,hrOver:TH.hrOver,dist:TH.dist},
     breath:S.breath?S.breath.blocks:null, act:S.act||'run',
@@ -6804,7 +6810,7 @@ async function selfTest(){
         const nSame=gaps.filter(g=>kind(g)==='same').length, nLost=gaps.length-nSame;
         const gl=gaps.slice(0,3).map(([a,b])=>`${mm(a)}분째부터 ${mm(b)}분`).join(', ')+(gaps.length?` · 원인: ${nSame?`같은 값 반복(시계가 새로 안 잼) ${nSame}번`:''}${nSame&&nLost?' / ':''}${nLost?`값 안 들어옴 ${nLost}번`:''}`:'');
         const bl=((window.GAJI_NATIVE&&GAJI_NATIVE.log)||[]).filter(x=>/ble (on|off)/.test(x)).slice(-4).join(' · ');
-        add(pct>=0.9,'지난번 달릴 때 심박',`${+d.slice(5,7)}.${+d.slice(8,10)} ${mm(tot)}분 중 심박 ${mm(cov)}분(${Math.round(pct*100)}%)${gaps.length?` · 끊김 ${gaps.length}번: ${gl}`:''}${bl?` · 연결 기록 ${bl}`:''}`, pct>=0.9?'OK':'끊김'); } }catch(e){}
+        add(pct>=0.9,'지난번 달릴 때 심박',`${+d.slice(5,7)}.${+d.slice(8,10)} ${mm(tot)}분 중 심박 ${mm(cov)}분(${Math.round(pct*100)}%)${gaps.length?` · 끊김 ${gaps.length}번: ${gl}`:''}${bl?` · 연결 기록 ${bl}`:''}${r.hrDiag?` · 그날 기록: 연결 끊김 ${r.hrDiag.off}번 · 연결된 채 값 멈춤 ${r.hrDiag.stall}번 · 같은 값 반복 ${r.hrDiag.frozen}번 · 앱이 다시 붙임 ${r.hrDiag.kick}번 · 다시 붙음 ${r.hrDiag.back}번`:''}`, pct>=0.9?'OK':'끊김'); } }catch(e){}
     add('speechSynthesis' in window,'음성 안내',
         ('speechSynthesis' in window)?'사용 가능':'없음', ('speechSynthesis' in window)?'OK':'불가');
     add(!!navigator.wakeLock,'화면 켜두기',navigator.wakeLock?'사용 가능':'없음',
