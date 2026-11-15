@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.82';
+const APPVER='20.83';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5010,21 +5010,36 @@ function cadAuto(){ const c=RUNS.filter(r=>r.cadAvg&&(r.act||'run')==='run').sli
 function strideAuto(){ const c=RUNS.filter(r=>r.cadAvg&&r.paceAvg&&r.paceAvg<720&&(r.act||'run')==='run').slice(-10).map(r=>1000/r.paceAvg*60/r.cadAvg);
   return c.length>=3 ? +(c.reduce((a,b)=>a+b,0)/c.length).toFixed(2) : null; }
 function strideUsual(){ const o=(typeof ovGet==='function')&&ovGet().stride; return o?+o:strideAuto(); }
+/* 걸음 세기 — 최근 6초 흔들림의 '되풀이 주기'(자기상관)로 1분 걸음 수를 낸다. 1초마다 다시 셈.
+   예전 방식(24개 묶음 평균을 위로 넘는 순간 = 한 걸음)은 묶음이 0.4초라 걸을 때(한 걸음 0.5~0.6초) 한 걸음을 둘로 세거나 놓쳤다
+   (모의 신호 312가지: 예전 걷기 192가지 중 178가지 4% 넘게 틀림 → 이 방식 11가지, 뛰기 120가지 중 16 → 0). 센서 빠르기(50~200번/초)와도 무관하다 */
+function cadAC(R,now){
+  const W=6000, t0=now-W; let k=0; while(k<R.length&&R[k][0]<t0)k++;
+  const P=R.slice(k); if(P.length<20||P[P.length-1][0]-P[0][0]<4000)return null;
+  const HZ=50, n=Math.floor((P[P.length-1][0]-P[0][0])/1000*HZ), x=new Array(n); let j=0;
+  for(let q=0;q<n;q++){ const t=P[0][0]+q*1000/HZ; while(j<P.length-2&&P[j+1][0]<t)j++; const a=P[j], b=P[j+1], f=b[0]>a[0]?(t-a[0])/(b[0]-a[0]):0; x[q]=a[1]+(b[1]-a[1])*Math.max(0,Math.min(1,f)); }
+  let m=0; for(const v of x)m+=v; m/=n; let vr=0; for(let q=0;q<n;q++){ x[q]-=m; vr+=x[q]*x[q]; } vr/=n;
+  if(Math.sqrt(vr)<0.25)return null;   /* 거의 안 흔들림 — 서 있거나 폰을 내려놓음 */
+  const lo=Math.round(0.27*HZ), hi=Math.round(1.05*HZ), r={};
+  for(let L=lo-1;L<=hi+1;L++){ let s2=0; for(let q=0;q+L<n;q++)s2+=x[q]*x[q+L]; r[L]=s2/((n-L)*vr); }
+  const pk=[]; for(let L=lo;L<=hi;L++)if(r[L]>=r[L-1]&&r[L]>=r[L+1]&&r[L]>0.2)pk.push(L);
+  if(!pk.length)return null;
+  const best=Math.max(...pk.map(L=>r[L])), L=pk.find(L=>r[L]>=0.7*best);   /* 짧은 주기(한 걸음)를 고른다 — 두 걸음(한 보) 주기를 고르면 반으로 나온다 */
+  const a=r[L-1], b=r[L], c=r[L+1], dn=a-2*b+c, d=dn?0.5*(a-c)/dn:0;
+  const spm=Math.round(60*HZ/(L+d)); return spm>=40&&spm<=240?spm:null; }
 function onMotion(e){
   if(!S.running||S.paused)return;
   const a=e.accelerationIncludingGravity; if(!a)return;
-  const mag=Math.hypot(a.x||0,a.y||0,a.z||0), b=S.cad.buf;
-  b.push(mag); if(b.length>24)b.shift(); if(b.length<12)return;
-  const mean=b.reduce((x,y)=>x+y,0)/b.length;
-  const sd=Math.sqrt(b.reduce((x,y)=>x+(y-mean)**2,0)/b.length);
-  const now=e.timeStamp||performance.now();
-  if(sd>0.45&&mag>mean+sd*0.6&&S.cad.last<=mean+sd*0.6&&now-S.cad.lastPeak>230){
-    S.cad.lastPeak=now; S.cad.steps++; S.cad.samples.push(now);}
-  S.cad.last=mag;
-  const cut=now-15000; while(S.cad.samples.length&&S.cad.samples[0]<cut)S.cad.samples.shift();
-  if(S.cad.samples.length>=4){
-    const span=(S.cad.samples[S.cad.samples.length-1]-S.cad.samples[0])/1000;   /* 첫 걸음~마지막 걸음 사이 실제 시간 */
-    S.cad.spm=span>2?Math.round((S.cad.samples.length-1)/span*60):null;}
+  const mag=Math.hypot(a.x||0,a.y||0,a.z||0), now=e.timeStamp||performance.now(), C=S.cad;
+  const R=C.raw||(C.raw=[]); R.push([now,mag]); C.lastAt=now;
+  if(R.length>1200||(R.length&&R[0][0]<now-8000)){ let k=0; while(k<R.length&&R[k][0]<now-8000)k++; R.splice(0,k); }
+  if(!C.acAt){ C.acAt=now; return; }
+  if(now-C.acAt<1000)return;
+  const dt=Math.min(2,(now-C.acAt)/1000); C.acAt=now;   /* 멈췄다 다시 가면 긴 틈을 걸음으로 채우지 않게 2초까지만 */
+  const v=cadAC(R,now); const H=C.hist||(C.hist=[]); H.push(v); if(H.length>3)H.shift();
+  const ok=H.filter(x=>x); C.spm=ok.length>=2?ok.slice().sort((p,q)=>p-q)[ok.length>>1]:null;   /* 1초짜리 세 번 중 가운데 값 — 한 번 튀는 값을 버린다 */
+  if(C.spm){ if(!C.stepsF&&R.length)C.stepsF=C.spm/60*Math.min(8,(now-R[0][0])/1000);   /* 처음 값이 나오기까지(약 6초) 걸은 걸음도 넣는다 */
+    C.stepsF=(C.stepsF||0)+C.spm/60*dt; C.steps=Math.round(C.stepsF); }
 }
 
 /* ───────── 시작 ───────── */
@@ -5326,15 +5341,11 @@ function onPos(pos){
    2) 사람 걸음 범위 밖 3) GPS 속도가 발로 낼 수 없는 속도 */
 function cadence(){
   const c=S.cad; if(!c||!c.spm)return null;
-  const sm=c.samples; if(!sm||sm.length<8)return null;
   /* 걸음 신호가 3초 넘게 안 오면(화면 꺼짐·센서 멈춤) 값 없음 — 예전엔 마지막 값이 계속 남아 평균에 섞였다 */
-  if(typeof performance!=='undefined'&&performance.now()-sm[sm.length-1]>3000)return null;
-  const iv=[]; for(let i=1;i<sm.length;i++)iv.push(sm[i]-sm[i-1]);
-  const m=iv.reduce((a,b)=>a+b,0)/iv.length;
-  const sd=Math.sqrt(iv.reduce((a,b)=>a+(b-m)**2,0)/iv.length);
-  if(!(m>0)||sd/m>0.25)return null;
-  const lo=(S.act==='walk'||S.act==='hike')?70:120;
-  if(c.spm<lo||c.spm>230)return null;
+  if(typeof performance!=='undefined'&&c.lastAt&&performance.now()-c.lastAt>3000)return null;
+  /* 아래 한계는 70 — 예전엔 달리기 훈련이면 120 아래를 버려서, 달리기 훈련 중에 걸은 날(11/15 리커버리런)·걷뛰기의 걷는 구간은
+     케이던스가 통째로 '—'가 됐다. 걷기도 걸음이다. 차를 탄 경우는 아래 속도·차량 판정으로 거른다 */
+  if(c.spm<70||c.spm>230)return null;
   if(S.overSince)return null;
   const p=curPace(); if(isFinite(p)&&p<143)return null;
   return c.spm;
@@ -6788,7 +6799,10 @@ async function selfTest(){
           if(!P[k].hr&&g0==null)g0=P[k-1].t||0; if(P[k].hr&&g0!=null){ if((P[k].t||0)-g0>=60)gaps.push([g0,(P[k].t||0)-g0]); g0=null; } }
         if(g0!=null&&tot-g0>=60)gaps.push([g0,tot-g0]);
         const d=ldate(r.date), pct=tot>0?cov/tot:0, mm=x=>Math.round(x/60);
-        const gl=gaps.slice(0,3).map(([a,b])=>`${mm(a)}분째부터 ${mm(b)}분`).join(', ');
+        /* 끊기기 직전 30초 값이 모두 같으면 '시계가 새로 재지 않고 같은 값을 되풀이'(앱이 그 값을 안 씀), 다르면 '값이 안 들어옴'(연결 끊김 등) */
+        const kind=([a])=>{ const pre=P.filter(p=>p.hr&&p.t<=a&&p.t>=a-35); return pre.length>=4&&pre.every(p=>p.hr===pre[0].hr)?'same':'lost'; };
+        const nSame=gaps.filter(g=>kind(g)==='same').length, nLost=gaps.length-nSame;
+        const gl=gaps.slice(0,3).map(([a,b])=>`${mm(a)}분째부터 ${mm(b)}분`).join(', ')+(gaps.length?` · 원인: ${nSame?`같은 값 반복(시계가 새로 안 잼) ${nSame}번`:''}${nSame&&nLost?' / ':''}${nLost?`값 안 들어옴 ${nLost}번`:''}`:'');
         const bl=((window.GAJI_NATIVE&&GAJI_NATIVE.log)||[]).filter(x=>/ble (on|off)/.test(x)).slice(-4).join(' · ');
         add(pct>=0.9,'지난번 달릴 때 심박',`${+d.slice(5,7)}.${+d.slice(8,10)} ${mm(tot)}분 중 심박 ${mm(cov)}분(${Math.round(pct*100)}%)${gaps.length?` · 끊김 ${gaps.length}번: ${gl}`:''}${bl?` · 연결 기록 ${bl}`:''}`, pct>=0.9?'OK':'끊김'); } }catch(e){}
     add('speechSynthesis' in window,'음성 안내',
@@ -13010,8 +13024,8 @@ function renderGuide(){
       fx(`평활 w = 1 − e<sup>−Δt/2.5</sup><br>지금 속도 = 최근 20초 Δ시간 ÷ (Δ거리/1000)<br>(12m 미만·5초 미만이면 표시 안 함)`)+
       note('궤적 대비 0.8~1.25배 밖 → 교체')+src('함수 onPos, curPace')),
     item('cad',ic('cad'),'케이던스 (발걸음)','폰 흔들림으로 걸음 측정','분당',
-      fx(`a = |가속도| · 24개 평균 m, sd<br>걸음 = a가 m + 0.6·sd를 위로 넘는 순간 (sd > 0.45, 230ms 간격)<br><b>spm = 15초 안 걸음 수 ÷ 걸린 초 × 60</b>`)+
-      kv([['표시 안 함','걸음 변동 25%↑ · 120↓/230↑ → 차량 의심'],['2배 보정','안 함 — 측정값 그대로'],['평균','최근 10번 달리기 평균']])+src('함수 onMotion, cadence')),
+      fx(`a = |가속도| · 최근 6초를 1초에 50개로 고르게<br>r(L) = a와 L만큼 밀린 a의 닮음(자기상관) · L = 0.27~1.05초<br><b>spm = 60 ÷ (r이 가장 높은 짧은 주기 L)</b> · 1초마다 · 세 번 중 가운데 값`)+
+      kv([['표시 안 함','흔들림 거의 없음 · 되풀이 주기 없음 · 70↓/230↑ · 차량 속도'],['2배 보정','안 함 — 측정값 그대로'],['평균','최근 10번 달리기 평균']])+src('함수 onMotion, cadence')),
     item('hr',ic('hrmax'),'심박','워치·가슴 스트랩 수신','BPM',
       kv([['연결','블루투스 표준 심박(0x180D)'],['상한 넘음','25초 이어지면 안내'],['위험',`최대의 95%(${pct(.95)}) 이상이 120초 누적 → "멈추세요"`],['심박 표류','10분+ 등속 · 후반 심박 +6↑']])+
       fx(`권장 = 1000 ÷ (v − (심박 − 상한 + 2) ÷ b)<br>(v = m/s · b = 기울기 · ≤90초)`)+src('onTick')),
