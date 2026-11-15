@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:8,log:[],shell:0};
+  window.GAJI_NATIVE={ver:9,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -203,6 +203,22 @@
     /* 설치본 판 — 2 이상이면 파일 저장·진동이 들어 있는 설치본. 답이 없으면 예전 설치본(1) */
     GF.info().then(function(r){ window.GAJI_NATIVE.shell=(r&&r.shell)||1; note('shell '+window.GAJI_NATIVE.shell); },
                    function(){ window.GAJI_NATIVE.shell=1; note('shell 1 (예전 설치본)'); });
+    /* ── 10. 걸음 센서: 앱 화면의 걸음 센서(devicemotion)는 화면이 꺼지면 멈춘다 — 휴대폰 센서를 직접 읽어 같은 모양으로 넘긴다(설치본 3판부터).
+          화면 쪽 계산(onMotion)은 그대로 쓴다. 시각은 화면 시계(performance.now)에 맞춰 넘긴다 ── */
+    try{ var mcbs=[], mL=null, mOff=null;
+      window.GAJI_NATIVE.motion={
+        start:function(cb){ if(mcbs.indexOf(cb)<0)mcbs.push(cb);
+          if(!mL){ mOff=null;
+            mL=C.addListener('GajiFile','motion',function(r){ var t=r&&r.t, m=r&&r.m; if(!t||!m||!t.length)return;
+              if(mOff==null)mOff=performance.now()-t[t.length-1];
+              for(var i=0;i<t.length;i++){ var ev={accelerationIncludingGravity:{x:m[i]/100,y:0,z:0},timeStamp:t[i]+mOff};
+                for(var k=0;k<mcbs.length;k++){ try{ mcbs[k](ev); }catch(e){} } } });
+            GF.motionStart({}).then(function(){ note('motion on'); },function(e){ note('motion fail '+(e&&e.message)); }); }
+          return true; },
+        stop:function(cb){ var i=mcbs.indexOf(cb); if(i>=0)mcbs.splice(i,1);
+          if(!mcbs.length&&mL){ try{ if(mL.remove)mL.remove(); else if(mL.then)mL.then(function(h){ h&&h.remove&&h.remove(); }); }catch(e){} mL=null;
+            GF.motionStop({}).then(function(){ note('motion off'); },function(){}); } } };
+    }catch(e){ note('motion define fail'); }
     /* ── 9. 진동: 앱 화면의 진동은 앱에 진동 권한이 없으면 울리지 않고, 화면이 꺼지면(화면이 가려지면) 울리지 않는다 — 휴대폰 진동을 직접 울린다 ── */
     try{ Object.defineProperty(navigator,'vibrate',{configurable:true,value:function(p){
       var a=(typeof p==='number')?[p]:(p&&p.length?Array.prototype.slice.call(p,0,40):[]);
