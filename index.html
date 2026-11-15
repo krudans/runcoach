@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.79';
+const APPVER='20.80';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7060,7 +7060,7 @@ const FB={
   /* 설정 문서 하나 + 기록은 한 건씩 따로.
      한 문서에 다 넣으면 1MB 한계에 금방 닿는다. */
   SETK:['prof','survey','shoes','props','adj','dist','hero','lapc','rhr','hikes','del','onboarded',
-        'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','extraSeen','sigSeen','consent'],
+        'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','extraSeen','sigSeen','consent','nickLock'],
   /* 합치는 항목 — map: {날짜/열쇠: 값}, list: [{id,d,…}] */
   MERGE:{missSeen:'map',extraSeen:'map',sigSeen:'map',restlog:'map',decs:'list'},
   canon(v){ const f=x=>Array.isArray(x)?x.map(f):(x&&typeof x==='object')?Object.keys(x).sort().reduce((o,k)=>{ o[k]=f(x[k]); return o; },{}):x; return JSON.stringify(f(v)); },
@@ -7370,11 +7370,15 @@ try{ window.alert=t=>{ try{ askSheet({title:'안내',html:ESC(String(t)).replace
 function ask(t,yes,danger){ return askSheet({title:'확인',html:ESC(String(t)).replace(/\n/g,'<br>'),yes:yes||'확인',no:'취소',danger:!!danger}); }
 /* 만 14세 미만 — 보호자 동의 절차 대신 만 14세가 되면 가입하도록 안내한다 */
 function u14Sheet(){ askSheet({title:'만 14세부터 쓸 수 있어요',html:`가지런은 달리기 기록과 심박 같은 건강 정보를 다뤄서 <b>만 14세 이상</b>만 가입할 수 있어요.<br><br>만 14세가 되면 그때 가입해서 함께 달려요.`,yes:'알겠어요',no:'닫기'}); }
+/* 별명은 한 번 정하면 잠긴다. 계정에 이미 별명이 있으면(새 폰·재설치·옛 계정) 이 폰에 잠금 기록이 없어도 잠긴 것으로 본다 — 예전엔 새 폰에서 동의를 다시 받을 때 별명 칸이 열려 있고, 내 별명을 '남의 별명'으로 막았다 */
+function nickLocked(){ return !!(PROF&&PROF.nick)&&(!!DEV.store.get('nickLock',null)||!!(typeof FB!=='undefined'&&FB.user)); }
 const nickKey=n=>String(n||'').trim().toLowerCase().replace(/\s+/g,'');
 /* 별명 중복 확인 — 서버의 nicks/{별명} 문서. 내 기기(iid)나 내 계정(uid)이 가진 별명이면 통과. 인터넷이 없으면 확인 못 함(그대로 진행) */
 async function nickCheck(){ const d=OB.d, nick=String(d.nick||'').trim(), key=nickKey(nick), note=$('obNickNote');
   if(!key||key.length<2)return '별명은 2~12자';
   if(d.nickOk===key)return true;
+  /* 내 계정에 이미 저장된 별명이면 내 것 — 새 폰·재설치에서는 기기 ID가 바뀌고, 로그인 전에 잡은 옛 예약에는 계정(uid)이 없어서 '남의 별명'으로 막혔다 */
+  if(PROF&&PROF.nick&&nickKey(PROF.nick)===key&&FB&&FB.user){ d.nickOk=key; if(note){ note.textContent='내 별명이에요 ✓'; note.style.color='var(--ok,#1E9B5C)'; } return true; }
   const iid=localStorage.getItem('rc_iid')||'', uid=(FB&&FB.user&&FB.user.uid)||'';
   if(note){ note.textContent='확인 중…'; note.style.color=''; }
   try{ const r=await fetch(`${FSR}/nicks/${encodeURIComponent(key)}?key=${FSKEY}`,{cache:'no-store'});
@@ -7391,7 +7395,7 @@ async function nickReserve(nick){ try{ const key=nickKey(nick); if(!key)return; 
 /* 별명을 바꾸면 앞 별명의 예약을 푼다 — 예전엔 예약이 그대로 남아 아무도 못 쓰는 별명이 쌓였다(내 계정이 잡은 예약만 규칙이 지우게 해 준다) */
 async function nickRelease(nick){ try{ const key=nickKey(nick); if(!key||!(FB&&FB.user))return;
     await fetch(`${FSR}/nicks/${encodeURIComponent(key)}?key=${FSKEY}`,{method:'DELETE',headers:await fsHdr()}); }catch(e){} }
-function saveBasics(d){ const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick; const prevNick=PROF.nick||'';
+function saveBasics(d){ const lock=nickLocked(); const prevNick=PROF.nick||'';
   PROF=Object.assign({},PROF,{nick:lock?PROF.nick:String(d.nick||'').trim(),by:d.by||PROF.by||null,sex:d.sex||PROF.sex||null});
   if(PROF.nick)DEV.store.set('nickLock',{at:new Date().toISOString()});
   if(PROF.by&&!PROF.birth)PROF.birth=`${PROF.by}-07-01`;
@@ -7405,7 +7409,7 @@ const OBSTEP=[
  {q:'먼저 기본 정보를<br>알려주세요',
   s:'별명 · 태어난 해 · 성별 — 코칭 기준과 기록에 쓰여요',
   body(){ const d=OB.d, Y=+todayStr().slice(0,4);
-    const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick;
+    const lock=nickLocked();
     return `<div class="oblab">별명 <span class="obreq">${lock?'확정됨':'필수'}</span></div>
       <input type="text" id="obNick" maxlength="12" placeholder="2~12자 · 다른 사람과 겹치면 안 돼요" value="${ESC(lock?PROF.nick:(d.nick||''))}" autocomplete="nickname"${lock?' readonly':''}>
       <div class="meta" id="obNickNote" style="margin-top:6px;min-height:18px">${lock?'별명은 한 번 정하면 바꿀 수 없어요 (설정 › 계정 초기화로만)':'한 번 정하면 바꿀 수 없어요'}</div>
@@ -7454,7 +7458,7 @@ const OBSTEP=[
     if(!d.agree)return {m:'개인정보 동의가 필요해요',f:'obAgree'};
     if(!d.age14)return {m:'만 14세 이상인지 확인해 주세요',f:'obAge14'};
     if(!d.health)return {m:'건강 정보 동의가 필요해요',f:'obHealth'};
-    const lock=!!DEV.store.get('nickLock',null)&&!!PROF.nick;
+    const lock=nickLocked();
     if(lock){ d.nick=PROF.nick; return true; }
     const r=await nickCheck(); if(r!==true)return {m:r,f:'obNick'};
     const ok=await askSheet({title:'별명 확정',html:`별명 <b style="font-size:20px">${ESC(nick)}</b><br><span class="meta">한 번 정하면 바꿀 수 없어요. 다른 사람도 이 별명을 못 씁니다.<br>바꾸려면 설정 › 계정 초기화 뒤 처음부터 다시 해야 해요.</span>`,yes:'이 별명으로 확정',no:'다시 입력'});
