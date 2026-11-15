@@ -2543,7 +2543,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.75';
+const APPVER='20.76';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6271,7 +6271,7 @@ function hidFmt(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), x=sec%
 function hidNote(r){ return r&&r.hidSec>=20?`<p class="hidnote">⚠ 화면 꺼짐·다른 앱 <b>${hidFmt(r.hidSec)}</b>${r.hidN>1?` (${r.hidN}번)`:''} — 그동안 위치를 못 받아 거리가 실제보다 짧을 수 있어요</p>`:''; }
 function gqNote(r){ const q=r&&r.gq; if(!q||!q.n&&!q.gapSec&&!q.err)return q?'<p class="gqnote bad">GPS 좌표를 하나도 받지 못했어요</p>':'';
   const badPct=q.n?Math.round(q.bad/q.n*100):0, per=r.sec&&q.n?(r.sec/q.n):0, warn=badPct>=30||q.gapSec>=60||(per>3);
-  return `<p class="gqnote${warn?' bad':''}">GPS 좌표 ${q.n.toLocaleString()}개${per?` (${per<1.05?'1초마다':per.toFixed(1)+'초에 1개'})`:''} · 평균 정확도 ±${q.acc}m · 버린 좌표 ${badPct}%${q.gapSec>=10||q.gapN?` · 끊김 ${q.gapN||0}번 ${hidFmt(q.gapSec)}`:''}${q.rearm?` · 다시 연결 ${q.rearm}번`:''}${warn?' — 거리가 실제보다 짧을 수 있어요':''}</p>`; }
+  return `<p class="gqnote${warn?' bad':''}">GPS 좌표 ${q.n.toLocaleString()}개${per?` (${per<0.9?'1초에 '+(1/per).toFixed(1)+'개':per<1.05?'1초마다':per.toFixed(1)+'초에 1개'})`:''} · 평균 정확도 ±${q.acc}m · 버린 좌표 ${badPct}%${q.gapSec>=10||q.gapN?` · 끊김 ${q.gapN||0}번 ${hidFmt(q.gapSec)}`:''}${q.rearm?` · 다시 연결 ${q.rearm}번`:''}${warn?' — 거리가 실제보다 짧을 수 있어요':''}</p>`; }
 function hidBanner(sec,tot){ let b=$('hidBan'); if(!b){ b=document.createElement('div'); b.id='hidBan'; b.setAttribute('role','alert'); document.body.appendChild(b); b.addEventListener('click',()=>{ b.hidden=true; }); }
   b.innerHTML=`<b>위치를 못 받은 시간 ${hidFmt(sec)}</b><span>${window.GAJI_NATIVE?'앱이 가려진 동안 휴대폰이 위치를 넘겨 주지 않았어요.':'화면이 꺼지거나 다른 앱이 앞에 있었어요.'} 그 구간은 직선거리로만 이어져 실제보다 짧게 기록돼요.${tot>sec?` 오늘 합계 ${hidFmt(tot)}.`:''}</span><span>${window.GAJI_NATIVE?'휴대폰 설정에서 가지런의 위치 권한·배터리 사용 제한 확인':'이 화면을 켜 둔 채로 뛰세요'} · 눌러서 닫기</span>`; b.hidden=false; }
 document.addEventListener('visibilitychange',()=>{ try{
@@ -14496,7 +14496,7 @@ function openMyGoal(){
    보이는 카드를 그대로 PNG로 만든다. 외부 라이브러리 없이: DOM 복제 → 계산된 스타일 인라인 → SVG foreignObject → 캔버스.
    아래에 가지런 로고 줄을 붙이고, 폰이면 공유창(navigator.share), 아니면 파일 저장. */
 const SNAP_HIDE='.mygoal summary,.gs-more>summary,.rv-tbl>summary,.rtb';   /* 지우면 details가 'Details' 기본 글자를 띄운다 — 숨기기만 */
-const SNAP_SKIP='button,.lapinfo span,.lapinfo br,.pw-cv,.pw-sum,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
+const SNAP_SKIP='button,.lapsw,.lapch,.lapinfo span,.lapinfo br,.pw-cv,.pw-sum,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
 function snapInline(src,dst){
   const cs=getComputedStyle(src); let css='';
   for(let i=0;i<cs.length;i++){ const k=cs[i]; if(/^(transition|animation|cursor|pointer-events|-webkit-tap)/.test(k))continue; css+=`${k}:${cs.getPropertyValue(k)};`; }
