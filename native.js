@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:12,log:[],shell:0};
+  window.GAJI_NATIVE={ver:13,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -219,21 +219,24 @@
     }catch(e){ note('media define fail'); }
     /* ── 10. 걸음 센서: 앱 화면의 걸음 센서(devicemotion)는 화면이 꺼지면 멈춘다 — 휴대폰 센서를 직접 읽어 같은 모양으로 넘긴다(설치본 3판부터).
           화면 쪽 계산(onMotion)은 그대로 쓴다. 시각은 화면 시계(performance.now)에 맞춰 넘긴다 ── */
-    try{ var mcbs=[], mL=null, mOff=null, mWeb=false;
+    try{ var mcbs=[], mL=null, mOff=null, mWeb=false, mst=null;
       window.GAJI_NATIVE.motion={
         start:function(cb){ if(mcbs.indexOf(cb)<0)mcbs.push(cb);
           if(!mL){ mOff=null;
-            mL=C.addListener('GajiFile','motion',function(r){ var t=r&&r.t, m=r&&r.m; if(!t||!m||!t.length)return;
+            mst={at:Date.now(),n:0,last:0,src:'휴대폰 센서',fail:''}; window.GAJI_NATIVE.mstat=mst;
+            mL=C.addListener('GajiFile','motion',function(r){ var t=r&&r.t, m=r&&r.m; if(!t||!m||!t.length)return; mst.n+=t.length; mst.last=Date.now();
               if(mOff==null)mOff=performance.now()-t[t.length-1];
               for(var i=0;i<t.length;i++){ var ev={accelerationIncludingGravity:{x:m[i]/100,y:0,z:0},timeStamp:t[i]+mOff};
                 for(var k=0;k<mcbs.length;k++){ try{ mcbs[k](ev); }catch(e){} } } });
             /* 휴대폰 센서를 못 켜면(센서 없음 등) 화면의 걸음 센서로 물러선다 — 아무것도 안 재는 것보다 낫다 */
-            GF.motionStart({}).then(function(){ note('motion on'); },function(e){ note('motion fail '+(e&&e.message)); mWeb=true;
+            GF.motionStart({}).then(function(){ note('motion on'); },function(e){ note('motion fail '+(e&&e.message)); mWeb=true; mst.fail=String(e&&e.message||e).slice(0,60); mst.src='화면 센서(휴대폰 센서 실패)';
               mcbs.forEach(function(f){ try{ window.addEventListener('devicemotion',f); }catch(x){} }); }); }
           else if(mWeb){ try{ window.addEventListener('devicemotion',cb); }catch(x){} }
           return true; },
         stop:function(cb){ var i=mcbs.indexOf(cb); if(i>=0)mcbs.splice(i,1); try{ window.removeEventListener('devicemotion',cb); }catch(x){} if(!mcbs.length)mWeb=false;
           if(!mcbs.length&&mL){ try{ if(mL.remove)mL.remove(); else if(mL.then)mL.then(function(h){ h&&h.remove&&h.remove(); }); }catch(e){} mL=null;
+            /* 지난번 걸음 센서가 값을 얼마나 줬는지 남긴다 — 케이던스가 '—'로 나왔을 때 센서 값이 안 온 것인지, 값은 왔는데 걸음으로 안 세어진 것인지 가른다(자가 점검에 표시) */
+            try{ if(mst&&Date.now()-mst.at>5000)localStorage.setItem('gaji_mstat',JSON.stringify({at:mst.at,sec:Math.round((Date.now()-mst.at)/1000),n:mst.n,src:mst.src,fail:mst.fail})); }catch(e){}
             GF.motionStop({}).then(function(){ note('motion off'); },function(){}); } } };
     }catch(e){ note('motion define fail'); }
     /* ── 9. 진동: 앱 화면의 진동은 앱에 진동 권한이 없으면 울리지 않고, 화면이 꺼지면(화면이 가려지면) 울리지 않는다 — 휴대폰 진동을 직접 울린다 ── */
