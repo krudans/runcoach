@@ -11,11 +11,11 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:11,log:[],shell:0};
+  window.GAJI_NATIVE={ver:12,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
-  var watchers={}, seq=0;
+  var watchers={}, seq=0, gLast=0;
   var toPos=function(l){ return { coords:{ latitude:l.latitude, longitude:l.longitude, accuracy:l.accuracy,
       altitude:l.altitude, altitudeAccuracy:l.altitudeAccuracy, heading:l.bearing, speed:l.speed }, timestamp:l.time||Date.now() }; };
   var geo={
@@ -26,6 +26,9 @@
         function(loc,e){
           var w0=watchers[id]; if(!w0||w0.dead)return;
           if(e){ note('geo err '+(e.code||e.message)); if(err)err({code:e.code==='NOT_AUTHORIZED'?1:2,message:e.message||''}); return; }
+          /* 좌표가 1초에 두세 번씩 들어올 때가 있다(실제 기록: 42분에 5,299개 — 휴대폰이 그렇게 준 것인지 받는 통로가 겹친 것인지는 모른다).
+             화면 쪽 계산은 1초에 한 번을 기준으로 만들어져 있어, 어느 통로로 왔든 0.9초 안에 또 온 것은 버린다 */
+          if(loc){ var tt=+loc.time||Date.now(); if(gLast&&tt>=gLast&&tt-gLast<900)return; gLast=tt; }
           if(loc&&ok)ok(toPos(loc));
         }).then(function(nid){ var w=watchers[id]; if(!w)return; w.native=nid; note('geo on');
           if(w.dead){ BG.removeWatcher({id:nid}); delete watchers[id]; } })
