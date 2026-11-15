@@ -11,8 +11,8 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:14,log:[],shell:0};
-  var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
+  window.GAJI_NATIVE={ver:15,log:[],shell:0};
+  var note=function(m){ try{ var L=window.GAJI_NATIVE.log, d=new Date(), p=function(x){ return (x<10?'0':'')+x; }; L.push(p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+' '+m);   /* 폰 시각으로 — 예전엔 세계 표준시(한국 −9시간)로 찍혀 자가 점검의 시각이 실제와 달랐다 */ if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
   var watchers={}, seq=0, gLast=0;
