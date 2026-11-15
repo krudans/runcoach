@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:6,log:[]};
+  window.GAJI_NATIVE={ver:7,log:[]};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -187,6 +187,19 @@
 
   /* ── 7. 종료: 웹의 창 닫기(window.close)는 앱 화면에서 아무 일도 하지 않는다 — 종료 단추가 앱을 실제로 끝내게 한다 ── */
   try{ var APP=reg('App'); window.close=function(){ note('exit'); APP.exitApp().catch(function(e){ note('exit '+(e&&e.message)); }); }; }catch(e){ note('exit define fail'); }
+
+  /* ── 8. 파일 저장·보내기: 앱 화면에는 브라우저의 '내려받기'·'공유'가 없다 — 휴대폰 저장소(갤러리/내 파일)에 직접 쓰고, 휴대폰 공유창을 연다.
+        앱 껍데기에 이 기능(GajiFile)이 들어 있어야 한다(2026-11-15 빌드부터). 예전 설치본은 실패로 답하고, 화면이 '다시 설치'를 안내한다 ── */
+  try{ var GF=reg('GajiFile');
+    var b64=function(blob){ return new Promise(function(res,rej){ var fr=new FileReader();
+      fr.onload=function(){ res(String(fr.result).split(',')[1]||''); }; fr.onerror=function(){ rej(new Error('read failed')); }; fr.readAsDataURL(blob); }); };
+    var send=function(m,blob,name){ return b64(blob).then(function(d){
+      return Promise.race([ GF[m]({name:String(name||'file'),mime:blob.type||'application/octet-stream',data:d}),
+        new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('SAVE_TIMEOUT')); },15000); }) ]); })
+      .then(function(r){ note(m+' ok '+name); return r; },function(e){ note(m+' fail '+(e&&e.message)); throw e; }); };
+    window.GAJI_NATIVE.saveFile=function(blob,name){ return send('save',blob,name); };
+    window.GAJI_NATIVE.shareFile=function(blob,name){ return send('share',blob,name); };
+  }catch(e){ note('file define fail'); }
 
   note('native bridge ready');
 })();
