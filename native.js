@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:13,log:[],shell:0};
+  window.GAJI_NATIVE={ver:14,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -93,7 +93,7 @@
     try{ if(typeof FB!=='undefined'&&FB&&FB.signIn){
       var webOut=FB.signOut;
       FB.signIn=function(){
-        if(!hasSL()){ try{ toast('앱을 새 버전으로 설치하면 로그인돼요 · 지금은 폰에 저장돼요'); }catch(e){} return Promise.resolve(null); }
+        if(!hasSL()){ try{ toast('이 설치본에는 로그인 기능이 없어요 · 새 설치 파일로 다시 설치해 주세요'); }catch(e){} return Promise.resolve(null); }
         return Promise.resolve(FB.init()).then(function(ok){ if(!ok)throw new Error(FB.err||'Firebase 설정값 먼저');
           return googleCred(); }).then(function(cred){ return firebase.auth().signInWithCredential(cred); })
           .then(function(res){ if(res&&res.user)FB.user=res.user; note('login ok'); return (res&&res.user)||firebase.auth().currentUser||null; },
