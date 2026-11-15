@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.80';
+const APPVER='20.81';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3182,16 +3182,18 @@ var GOAL = DEV.store.get('goal', null);   /* var — 선언 전에 typeof로 들
 let PLAN = DEV.store.get('plan', null);      /* {made, weeks, why[], goal, base} */
 let CUSTOM = DEV.store.get('custom', {});    /* 받아적은 훈련 — 날짜별로 그날 일정을 덮는다 */
 
+/* 목표 종류 이름 — 목표 고르기 화면(GOALS)과 홈·플랜·결정 기록이 모두 이 이름을 쓴다. 예전엔 같은 목표가 '체중 감량'/'체중', '1km 더 빠르게'/'1km 속도', '쉬었다 다시 시작'/'다시 시작', '직접 목표 설정'/'직접 세운 계획'/'직접 세운 목표'로 화면마다 달랐다 */
+const GKIND={start:'처음 시작',custom:'직접 세운 계획',aero:'편한 달리기 능력',race:'대회 기록',finish:'완주',pace:'1km 더 빠르게',weight:'체중 감량',health:'건강하게 꾸준히',back:'쉬었다 다시 시작'};
 const GOALS = [
-  {k:'start',  nm:'처음 시작',      d:'체크 → 걷뛰기 → 30분 연속', ico:'🌱'},
-  {k:'custom', nm:'직접 목표 설정', d:'하루 → 주간 → 4주 구성', ico:'✍️'},
-  {k:'race',   nm:'대회 기록', d:'목표 시간 있음',  ico:'🏅'},
-  {k:'finish', nm:'완주',         d:'완주 우선',    ico:'🎯'},
-  {k:'pace',   nm:'1km 더 빠르게',    d:'1km 페이스만',      ico:'⚡'},
-  {k:'weight', nm:'체중 감량',        d:'오래 천천히, 자주',            ico:'🔥'},
-  {k:'aero',   nm:'편한 달리기 능력',   d:'같은 심박에 더 빠르게 · 같은 속도에 낮은 심박', ico:'♡'},
-  {k:'health', nm:'건강하게 꾸준히',    d:'무리 없는 습관',        ico:'☀️'},
-  {k:'back',   nm:'쉬었다 다시 시작',   d:'예전 수준 회복',            ico:'↩'}
+  {k:'start', nm:GKIND.start,      d:'체크 → 걷뛰기 → 30분 연속', ico:'🌱'},
+  {k:'custom', nm:GKIND.custom, d:'하루 → 주간 → 4주 구성', ico:'✍️'},
+  {k:'race', nm:GKIND.race, d:'목표 시간 있음',  ico:'🏅'},
+  {k:'finish', nm:GKIND.finish,         d:'완주 우선',    ico:'🎯'},
+  {k:'pace', nm:GKIND.pace,    d:'1km 페이스만',      ico:'⚡'},
+  {k:'weight', nm:GKIND.weight,        d:'오래 천천히, 자주',            ico:'🔥'},
+  {k:'aero', nm:GKIND.aero,   d:'같은 심박에 더 빠르게 · 같은 속도에 낮은 심박', ico:'♡'},
+  {k:'health', nm:GKIND.health,    d:'무리 없는 습관',        ico:'☀️'},
+  {k:'back', nm:GKIND.back,   d:'예전 수준 회복',            ico:'↩'}
 ];
 const GDIST=[{l:'5km',v:5000},{l:'10km',v:10000},{l:'하프',v:21097},{l:'풀',v:42195}];
 
@@ -4621,7 +4623,8 @@ function renderRunTab(){
     </div></div>`;
   $('rtGo').onclick=()=>openConfirm(idx);
 }
-$('btnFree').onclick=()=>{ ACT_MODE=null; FREE_MODE=true; openConfirm(-1); };
+/* 러닝 탭 '자유 러닝'도 홈의 '달리기'와 같은 길(startAct) — 예전엔 계획 있는 날에도 묻지 않고 바로 기록만 시작해, 같은 프리런이 어디서 누르느냐에 따라 달랐다 */
+$('btnFree').onclick=()=>startAct('run');
 
 /* ───── 플랜 탭 ───── */
 function renderPlan(){
@@ -4638,7 +4641,7 @@ function renderPlan(){
   if(hd){
     if(PLAN&&PLAN.why&&PLAN.why.length){
       const g=PLAN.goal||{}, G=GOALS.find(x=>x.k===g.kind);
-      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${g.m&&g.sec?`${gdLabel(g.m)} ${fmtClock(g.sec)}`:G?G.nm:'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`${(()=>{ const m=planMons()[0]; return m?wkLab(m):'1주차'; })()} ${(()=>{ const m=planMons()[0], w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
+      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${G||g.m?ESC(goalLabel(g)):'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`${(()=>{ const m=planMons()[0]; return m?wkLab(m):'1주차'; })()} ${(()=>{ const m=planMons()[0], w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
         <ul>${planChecks(PLAN,BLOCK).why.map(x=>`<li>${x}</li>`).join('')}</ul></details>`+
         /* 시간 한계 같은 경고는 접어 두지 않는다 — 일정이 왜 안 늘어나는지 바로 보이게 */
         /* 경고는 한 카드로 — 원인(쓸 수 있는 시간)을 그 자리에서 바꿀 수 있게 */
@@ -4820,8 +4823,13 @@ async function loginGate(why){
     return loggedIn();
   } finally { LOGIN_ASKING=false; }
 }
+/* 코칭 설정(음성·케이던스·화면 켜둠)은 이 폰에 기억한다 — 예전엔 꺼도 앱을 다시 켜면 모두 켜짐으로 돌아갔다 */
+function coptLoad(){ let o=null; try{ o=JSON.parse(localStorage.getItem('rc_copt')||'null'); }catch(e){} if(!o)return;
+  [['optVoice','voice'],['optCad','cad'],['optWake','wake']].forEach(([id,k])=>{ const el=$(id); if(el&&typeof o[k]==='boolean')el.checked=o[k]; }); }
+['optVoice','optCad','optWake'].forEach(id=>{ const el=$(id); if(el)el.addEventListener('change',()=>{ try{ localStorage.setItem('rc_copt',JSON.stringify({voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked})); }catch(e){} }); });
 function openConfirm(i){
   if(!loggedIn()){ loginGate().then(ok=>{ if(ok)openConfirm(i); }); return; }
+  try{ coptLoad(); }catch(e){}
   pendingIx=i; const s=sessionOf(i), T=TYPES[s.type]||{};
   const adj=ADJ[s.type]||0;
   if(i>=0)FREE_MODE=false;
@@ -8008,6 +8016,8 @@ function goalStart(){
   GB.d.days=(SURVEY&&SURVEY.days&&SURVEY.days.length)?SURVEY.days.slice():null;
   delete GB.d.final;
   if(GOAL&&GOAL.kind==='pace'&&GOAL.perKm)GB.d.sec=GOAL.perKm;
+  /* 처음 설정에서 '심장·혈압 관련 진단'에 체크했으면 처음 시작의 건강 확인은 '있어요'로 이어 받는다 — 같은 걸 두 번 묻고, 다르게 답할 수 있었다 */
+  if(GB.d.stSym==null&&SURVEY&&SURVEY.f&&SURVEY.f.heart)GB.d.stSym=2;
   gPaint(); show('goal');
 }
 /* 설문상 거의 안 뛰는 사람 — 앱 기록이 없고 '주 0~1번' 또는 주 5km 미만 */
@@ -8019,7 +8029,7 @@ function startBody(){ const d=GB.d, grid=(key,opts,cols)=>`<div class="obgrid c$
       :`<div class="meta" style="margin:6px 0 0;line-height:1.6">모르거나 1분이면 <b>상태 체크</b> 2번 → 단계 결정</div>`}
     <div class="oblab">달리는 이유</div>${grid('stWhy',[['건강 · 습관',1],['체중',2],['기분 · 스트레스',3],['오래 뛰기',4],['대회 나가기',5]],3)}
     <div class="meta" style="margin:6px 0 0;line-height:1.6">졸업(30분 연속) 후 목표</div>
-    <div class="oblab">가슴 통증·어지럼·실신, 심장·혈압 진단?</div>${grid('stSym',[['없어요',1],['있어요',2]],2)}
+    <div class="oblab">가슴 통증·어지럼·실신, 심장·혈압 진단?</div>${grid('stSym',[['없어요',1],['있어요',2]],2)}${SURVEY&&SURVEY.f&&SURVEY.f.heart?`<div class="meta" style="margin:6px 0 0">처음 설정에서 '심장·혈압 관련 진단'에 체크해 '있어요'로 골라 뒀어요</div>`:''}
     ${d.stSym===2?`<div class="note red" style="margin:8px 0 0;line-height:1.7"><b>시작 전에 의사와 상의해 주세요</b><br>운동 중 가슴 통증·어지럼·숨이 비정상으로 차면 바로 멈춰요 (ACSM 2015 운동 전 확인, B)</div>`
       :`<div class="meta" style="margin:6px 0 0;line-height:1.6">있으면 의사 상담 (ACSM 2015 운동 전 확인, B)</div>`}`; }
 function startReview(p){ const st=starterState(), first=p.sessions.slice(0,6);
@@ -8468,7 +8478,11 @@ function aeroWire(){ const m=$('gAeroMode'); if(!m)return;
   m.onclick=e=>{ const b=e.target.closest('[data-am]'); if(!b)return; aeroRead();
     const keep=GB.d.aero&&GB.d.aero.hrCap; GB.d.aero=aeroSuggest(b.dataset.am); if(keep)GB.d.aero.hrCap=keep; gPaint(); };
   ['aCap','aPT','aRef','aHT','aC0','aCT','aR0','aRT'].forEach(id=>{ const el=$(id); if(el)el.onchange=()=>{ aeroRead(); const a=GB.d.aero||{}, ct=$('aCT');
-    if(id==='aC0'&&ct&&a.cad0){ a.cadT=Math.round(a.cad0*1.075); ct.value=a.cadT; } }; }); }
+    /* 지금 케이던스를 넣으면 목표 칸을 +7.5%로 채워 준다 — 단, 목표 칸이 비어 있을 때만. 예전엔 목표를 이미 적었어도 덮어썼고,
+       목표 칸을 누르는 순간 채워져서 그 뒤에 친 숫자가 뒤에 붙었다(172 → '172170' → '10% 이내' 안내만 뜸) */
+    if(id==='aC0'&&ct&&a.cad0&&!String(ct.value).trim()){ a.cadT=Math.round(a.cad0*1.075); ct.value=a.cadT; if(document.activeElement===ct)try{ ct.select(); }catch(e){} } }; });
+  /* 제안값이 들어 있는 칸을 누르면 통째로 골라 둔다 — 새로 치면 바뀐다(뒤에 붙지 않게) */
+  ['aCap','aPT','aRef','aHT','aC0','aCT','aR0','aRT'].forEach(id=>{ const el=$(id); if(el)el.addEventListener('focus',()=>{ try{ el.select(); }catch(e){} }); }); }
 /* 날짜 — 직접 치기와 달력 고르기 둘 다. '2026-11-14', '2026.11.14', '11/14', '11월 14일', '1114', '20261114' 모두 받는다 */
 function parseDateLoose(v){
   const t=String(v||'').trim(); if(!t)return null;
@@ -9619,6 +9633,9 @@ function startAct(k){
         opts:[{k:'A',t:'따로 기록',rec:true,d:'계획 유지',apply:()=>{ setTimeout(()=>{FREE_MODE=true;openConfirm(-1);},60); return null; }},
               {k:'B',t:'오늘 계획 대체',d:'\'그냥 뛰기로 대체\'',apply:()=>{ FREE_INSTEAD=s.d; setTimeout(()=>{FREE_MODE=true;openConfirm(-1);},60); return null; }}],
         back:'home'}); }
+    /* 일정 안의 쉬는 날 — '그래도 뛰고 싶으세요?'(참기·걷기·리커버리런 20분)를 먼저 보여 준다. 쉬는 날 카드를 새로 만들 때 이 버튼이 빠져,
+       쉬는 날에 '달리기'를 누르면 아무 안내 없이 바로 기록만 시작됐다(이 선택 화면은 어디서도 열리지 않았다) */
+    if(!s&&hasPlan()&&BLOCK.length&&t>=BLOCK[0].d.slice(0,10)&&t<=BLOCK[BLOCK.length-1].d.slice(0,10)&&!RUNS.some(r=>isRun(r)&&ldate(r.date).slice(0,10)===t)&&!(RESTLOG[t]&&RESTLOG[t].chose))return openWantRun();
     FREE_MODE=true; return openConfirm(-1); }
   ACT_MODE=k; FREE_MODE=true;
   openConfirm(-1);
@@ -9876,7 +9893,7 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-homeall]'
 function homeTiles(sess){ try{
   const g=(PLAN&&PLAN.goal)||GOAL, t=todayStr();
   const dday=g&&g.date?Math.round((Date.parse(g.date.slice(0,10)+'T00:00:00')-Date.parse(t+'T00:00:00'))/864e5):null;
-  const gl=g?(g.kind==='aero'?'편한 달리기':g.kind==='custom'?'직접 세운 목표':g.m?`${gdLabel(g.m)}${g.sec?' '+fmtClock(g.sec):''}`:(GKIND[g.kind]||'목표')):'목표 없음';   /* 처음 시작·건강 등 거리 없는 목표도 이름으로(전엔 \'목표 · 설정됨\') */
+  const gl=g?goalLabel(g):'목표 없음';   /* 목표 이름은 goalLabel 하나 — 홈만 따로 짓던 이름('풀코스'·'편한 달리기')이 플랜·목표 목록과 달랐다 */   /* 처음 시작·건강 등 거리 없는 목표도 이름으로(전엔 \'목표 · 설정됨\') */
   weekStrip();   /* WEEK_PCT 갱신 */
   const W=WEEK_PCT, wkRuns=RUNS.filter(r=>isRun(r)&&weekMonday(ldate(r.date).slice(0,10))===weekMonday(t)), wkKm=wkRuns.reduce((a,r)=>a+(+r.km||0),0);
   const pb=rlogPB(), best=pb[5000]||pb[10000]||pb[21097]||pb[42195], bestLab=best?`${rlLab(best.m)} ${fmtClock(best.sec)}`:'기록 없음';
@@ -12159,11 +12176,13 @@ const PATHWHY={A:'목표 유지 · 가능 기록 연습 · 4주 재측정',
   B:'기록 유지 · 날짜 연기 · 기존 대회 연습',
   C:'빠른 날 +1 · 주간 거리 3주 10%↑ · 근거 없음 · 부상 위험↑',
   D:'A 훈련 · 대회만 목표 속도 → 후반 감속 위험'};
-const GKIND={start:'처음 시작',custom:'직접 세운 계획',aero:'편한 달리기 능력',race:'대회 기록',finish:'완주',pace:'1km 속도',weight:'체중',health:'건강하게 꾸준히',back:'다시 시작'};
+
 function goalLabel(g){ if(!g)return '목표 없음';
   if(g.kind==='aero'&&aeroX(g.aero))return aeroView(g.aero).goal;
-  if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`♥${a.hrCap}에서 ${fmtPace(a.pace0)} → ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)}에서 ♥${a.hr0} → ♥${a.hrT}`; }
+  /* 아직 잰 값이 없으면 '측정 전' — 예전엔 '♥null', '--'--"'가 그대로 보였다(케이던스·호흡 목표와 같은 말로) */
+  if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`♥${a.hrCap}에서 ${a.pace0?fmtPace(a.pace0):'측정 전'} → ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)}에서 ${a.hr0?'♥'+a.hr0:'측정 전'} → ♥${a.hrT}`; }
   if(g.m&&(g.final||g.sec))return `${gdLabel(g.m)} ${fmtClock(g.final||g.sec)}${g.kind==='pace'&&g.perKm?` (1km ${fmtPace(g.perKm)})`:''}`;
+  if(g.kind==='finish'&&g.m)return `${gdLabel(g.m)} 완주`;   /* 예전엔 '완주'만(어느 거리인지 없음) — 목표 목록은 '풀코스 완주', 홈은 '풀코스'로 서로 달랐다 */
   return GKIND[g.kind]||'목표'; }
 function goalSnap(g,p,fz,days,adj){
   const w={}; (p.sessions||[]).forEach(x=>{ w[x.wk]=(w[x.wk]||0)+(x.dist||0); });
@@ -14829,8 +14848,7 @@ function glogCheck(){ if(!GLOG)GLOG=DEV.store.get('goals',[]);   /* 부팅 중 �
   const raceG=a.goal&&a.goal.kind==='race'&&a.goal.m, rr=PROF.race||{};
   const hit=glogHit(a);
   if(hit&&!a.doneAt){ a.doneAt=todayStr(); a.status='done'; a.vEnd=raceG?rr.sec:m.now; glogSave(); try{ toast('🎉 목표 달성! 새 목표 설정'); }catch(e){} } }
-function glogTitle(g){ try{ if(g.kind==='aero'&&aeroX(g.aero))return aeroView(g.aero).title; if(g.kind==='aero'&&g.aero){ const a=g.aero; return a.mode==='speed'?`심박 ${a.hrCap}시 페이스 ${fmtPace(a.paceT)}`:`${fmtPace(a.ref)} 페이스 시 심박 ${a.hrT}`; }
-  if(g.m&&(g.final||g.sec))return `${gdLabel(g.m)} ${fmtClock(g.final||g.sec)}${g.kind==='race'?'':''}`; if(g.kind==='finish'&&g.m)return `${gdLabel(g.m)} 완주`; return GKIND[g.kind]||'목표'; }catch(e){ return '목표'; } }
+function glogTitle(g){ try{ return goalLabel(g); }catch(e){ return '목표'; } }   /* 목표 목록 이름도 goalLabel 하나로 */
 function glogList(){
   if(!GLOG.length)return '';
   const ico=g=>g.kind==='aero'?'❤️':g.kind==='race'?'🏅':g.kind==='finish'?'🏁':g.kind==='weight'?'🔥':g.kind==='health'?'🌱':'🎯';
