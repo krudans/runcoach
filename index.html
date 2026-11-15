@@ -2541,7 +2541,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.72';
+const APPVER='20.73';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6736,7 +6736,7 @@ async function selfTest(){
     { const N=window.GAJI_NATIVE, inApp=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
       if(inApp||N) add(!!N,'앱 연결 (휴대폰 기능)', N?`다리 v${N.ver} · ${(N.log||[]).slice(-6).join(' / ')||'기록 없음'}`:'다리 파일을 못 실음 — 앱을 닫고 다시 열기', N?'OK':'불가');
       /* 설치본이 예전 것이면 이미지·파일 저장과 진동이 안 된다 — 화면만 새로 받아서는 안 되고 설치 파일을 새로 깔아야 한다 */
-      if(N) add(N.shell>=3,'앱 설치본', N.shell>=3?`최신(${N.shell}판) — 이미지·파일 저장, 진동, 화면 꺼져도 케이던스`:N.shell===2?'2판 — 화면이 꺼지면 케이던스가 멈춤 · 앱을 새로 받아 덮어 설치':'예전 설치본 — 이미지·파일 저장과 진동이 안 됨 · 앱을 새로 받아 덮어 설치', N.shell>=3?'OK':'다시 설치'); }
+      if(N) add(N.shell>=4,'앱 설치본', N.shell>=4?`최신(${N.shell}판) — 이미지·파일 저장, 진동, 화면 꺼져도 케이던스, 음악 재생 알림`:N.shell>=2?`${N.shell}판 — ${N.shell<3?'화면 꺼지면 케이던스 멈춤 · ':''}음악 재생 알림 없음 · 앱을 새로 받아 덮어 설치`:'예전 설치본 — 이미지·파일 저장과 진동이 안 됨 · 앱을 새로 받아 덮어 설치', N.shell>=4?'OK':'다시 설치'); }
     add(!!window.DeviceMotionEvent,'가속도계 (케이던스)',
         window.DeviceMotionEvent?'사용 가능':'없음', window.DeviceMotionEvent?'OK':'불가');
     add('speechSynthesis' in window,'음성 안내',
@@ -12481,11 +12481,22 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     const a=this.a=new Audio(); a.preload='auto';
     try{ a.volume=0.5; this.canVol=Math.abs(a.volume-0.5)<0.01; a.volume=this.st.vol; }catch(e){ this.canVol=false; }
     a.addEventListener('ended',()=>{ if(this.st.rep==='one'){ a.currentTime=0; a.play().catch(()=>{}); } else this.next(true); });
-    ['play','pause'].forEach(ev=>a.addEventListener(ev,()=>this.paint()));
+    ['play','pause'].forEach(ev=>a.addEventListener(ev,()=>{ this.paint(); this.nat(ev==='play'); }));
     a.addEventListener('timeupdate',()=>{ this.paintPos(); const n=Date.now(); if(!this.posT||n-this.posT>3000){ this.posT=n; this.savePos(); } });
     a.addEventListener('pause',()=>this.savePos());
     a.addEventListener('error',()=>{ if(this.cur){ this.toast('재생 불가 — 다음 곡'); setTimeout(()=>this.next(true),400); } });
-    this.media(); return a; },
+    this.media();
+    { const M=this.natM(); if(M)M.on(act=>{ const x=this.a; if(!x)return;
+        if(act==='play'){ if(x.paused){ this.userPaused=false; this.natOff=false; if(this.cur)x.play().catch(()=>{}); else this.toggle(); } }
+        else if(act==='pause'){ if(!x.paused){ this.userPaused=true; x.pause(); } }
+        else if(act==='next')this.next(); else if(act==='prev')this.prev(); }); }
+    return a; },
+  /* 앱(설치본 4판부터) — 휴대폰 재생 알림. 잠금 화면·알림창에 이전/재생/다음 단추가 뜨고, 앱이 가려져도 '음악 재생 중'으로 남아 끊기지 않는다.
+     앱 화면에는 브라우저가 띄워 주던 재생 알림이 없다. 음악을 끄면(halt·달리기 종료·삭제) 알림도 내린다 */
+  natM(){ const N=window.GAJI_NATIVE; return N&&N.media&&N.shell>=4?N.media:null; },
+  nat(playing){ const M=this.natM(); if(!M||!this.cur)return; if(playing)this.natOff=false; if(this.natOff)return;
+    const f=this.files[this.cur], L=this.list(); M.update({title:this.title(f)||'',album:L?L.nm:'',playing:!!playing}); },
+  natStop(){ this.natOff=true; const M=this.natM(); if(M)M.stop(); },
   /* ── 라이브러리 ── */
   async init(){ try{ const fs=await MDB.all('files'); this.files={}; fs.forEach(f=>{ this.files[f.id]={id:f.id,name:f.name,path:f.path,size:f.size,title:f.title}; });
       const m3u=(await MDB.get('kv','m3u'))||[]; this.build(m3u); this.restorePos(); }catch(e){ this.lists=[]; }
@@ -12506,23 +12517,33 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     if(fs.length)L.unshift({id:'all',nm:'전체',ids:fs.map(f=>f.id),kind:'all'});
     this.lists=L;
     if(this.st.sel&&!L.some(x=>x.id===this.st.sel)){ this.st.sel=L.length?L[0].id:null; this.save(); } },
-  async add(fileList){ const arr=[...fileList]; const au=arr.filter(f=>!M3U_EXT.test(f.name)&&(MUS_EXT.test(f.name)||/^audio\//.test(f.type))), pl=arr.filter(f=>M3U_EXT.test(f.name));
-    if(!au.length&&!pl.length){ this.toast('음악 파일 없음'); return; }
+  /* 앱 — 휴대폰의 폴더 고르기를 직접 연다(앱 화면의 폴더 고르기는 기기에 따라 열리지 않는다). 파일을 하나씩 읽어 담는다(한꺼번에 읽으면 메모리가 모자란다) */
+  async addNative(){ const N=window.GAJI_NATIVE; let r;
+    try{ r=await N.pickFolder(); }catch(e){ if(!/CANCELLED/.test(String(e&&e.message)))this.toast('폴더를 열지 못했어요'); return; }
+    const fs=(r&&r.files)||[]; if(!fs.length){ this.toast('음악 파일 없음'); return; }
+    let n=0, fail=0; const tot=fs.length;
+    for(const x of fs){ this.busy(`담는 중 ${n+fail}/${tot}`);
+      try{ const res=await fetch(N.fileUrl(x.uri)); if(!res.ok)throw new Error('read '+res.status); const b=await res.blob();
+        const f=new File([b],x.name,{type:x.mime||b.type||'audio/mpeg'}); try{ Object.defineProperty(f,'webkitRelativePath',{value:x.path}); }catch(e){}
+        const got=await this.add([f],true); if(got===false){ fail++; break; } n++; }catch(e){ fail++; } }
+    this.busy(null); this.toast(n?`${n}개 추가${fail?` · ${fail}개 못 읽음`:''}`:'파일을 읽지 못했어요'); this.paint(); },
+  async add(fileList,quiet){ const arr=[...fileList]; const au=arr.filter(f=>!M3U_EXT.test(f.name)&&(MUS_EXT.test(f.name)||/^audio\//.test(f.type))), pl=arr.filter(f=>M3U_EXT.test(f.name));
+    if(!au.length&&!pl.length){ if(!quiet)this.toast('음악 파일 없음'); return; }
     try{ if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist(); }catch(e){}
     const need=au.reduce((a,f)=>a+f.size,0);
-    try{ if(navigator.storage&&navigator.storage.estimate){ const e=await navigator.storage.estimate(); if(e.quota&&e.usage+need>e.quota*0.9){ this.toast('저장 공간 부족'); return; } } }catch(e){}
-    this.busy(`담는 중 0/${au.length}`);
+    try{ if(navigator.storage&&navigator.storage.estimate){ const e=await navigator.storage.estimate(); if(e.quota&&e.usage+need>e.quota*0.9){ this.toast('저장 공간 부족'); return false; } } }catch(e){}
+    if(!quiet)this.busy(`담는 중 0/${au.length}`);
     let n=0;
     for(const f of au){ const path=f.webkitRelativePath||f.name, id=path+'|'+f.size;
       let blob=f; try{ await MDB.put('files',{id,name:f.name,path,size:f.size,type:f.type,blob}); }
       catch(e){ try{ blob=new Blob([await f.arrayBuffer()],{type:f.type||'audio/mpeg'}); await MDB.put('files',{id,name:f.name,path,size:f.size,type:f.type,blob}); }catch(e2){ continue; } }
-      this.files[id]={id,name:f.name,path,size:f.size}; n++; this.busy(`담는 중 ${n}/${au.length}`); }
+      this.files[id]={id,name:f.name,path,size:f.size}; n++; if(!quiet)this.busy(`담는 중 ${n}/${au.length}`); }
     const m3u=(await MDB.get('kv','m3u'))||[];
     for(const f of pl){ try{ const text=await f.text(); const i=m3u.findIndex(x=>x.name===f.name); const v={name:f.name,text}; if(i>=0)m3u[i]=v; else m3u.push(v); }catch(e){} }
     try{ await MDB.put('kv',m3u,'m3u'); }catch(e){}
     this.build(m3u); if(!this.st.sel&&this.lists.length){ this.st.sel=this.lists[0].id; this.save(); }
-    this.busy(null); this.toast(`${n}곡${pl.length?` · 목록 ${pl.length}개`:''} 추가`); this.paint(); },
-  async wipe(){ this.stop(); await MDB.clear().catch(()=>{}); this.pend=null; try{ DEV.store.set('musPos',null); }catch(e){} this.files={}; this.lists=[]; this.st.sel=null; this.save(); this.paint(); },
+    if(!quiet){ this.busy(null); this.toast(`${n}곡${pl.length?` · 목록 ${pl.length}개`:''} 추가`); this.paint(); } },
+  async wipe(){ this.natStop(); this.stop(); await MDB.clear().catch(()=>{}); this.pend=null; try{ DEV.store.set('musPos',null); }catch(e){} this.files={}; this.lists=[]; this.st.sel=null; this.save(); this.paint(); },
   list(id){ return this.lists.find(x=>x.id===(id||this.st.sel)); },
   /* ── 듣던 곳 기억 — 앱을 다시 열어도 듣던 곡·위치부터 ── */
   savePos(){ if(!this.cur||!this.q.length)return; try{ DEV.store.set('musPos',{sel:this.st.sel,q:this.q,i:this.i,cur:this.cur,t:Math.floor((this.a&&this.a.currentTime)||0)}); }catch(e){} },
@@ -12542,10 +12563,10 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
     a.src=this.url; this.applyVol();
     if(seek>0){ await new Promise(r=>{ const f=()=>{ a.removeEventListener('loadedmetadata',f); try{ if(!a.duration||seek<a.duration-2)a.currentTime=seek; }catch(e){} r(); }; a.addEventListener('loadedmetadata',f); setTimeout(f,3000); }); }
     if(autoplay){ try{ await a.play(); }catch(e){} }
-    this.meta(); this.paint(); },
+    this.meta(); this.nat(!a.paused); this.paint(); },
   play(id,startId){ if(this.pend&&!startId&&(!id||id===this.st.sel))return this.resume(); if(!this.queue(id,startId))return this.open(); this.userPaused=false; this.dockOn=true; this.load(0); },
   toggle(){ const a=this.el(); if(!this.cur){ return this.pend?this.resume():this.play(); } this.dockOn=true; if(a.paused){ this.userPaused=false; a.play().catch(()=>{}); } else { this.userPaused=true; a.pause(); } },
-  halt(){ const a=this.a; this.userPaused=true; if(a){ a.pause(); this.savePos(); } this.dockOn=false; this.paint(); },
+  halt(){ const a=this.a; this.userPaused=true; this.natStop(); if(a){ a.pause(); this.savePos(); } this.dockOn=false; this.paint(); },
   next(auto){ if(!this.q.length)return; if(this.i>=this.q.length-1){ if(auto&&this.st.rep==='off'){ this.a.pause(); this.paint(); return; }
       if(this.st.shuf){ const last=this.q[this.i]; this.queue(this.st.sel); if(this.q[0]===last&&this.q.length>1)this.q.push(this.q.shift()); return this.load(0); } }
     this.load(this.i+1); },
@@ -12577,7 +12598,7 @@ const MUS={a:null,url:null,lists:[],files:{},q:[],i:-1,cur:null,
       artwork:[{src:'gaji-icon-192.png',sizes:'192x192',type:'image/png'},{src:'gaji-icon-512.png',sizes:'512x512',type:'image/png'}]}); }catch(e){} },
   /* ── 달리기와 연결 ── */
   onRunStart(){ if(this.st.auto&&this.st.sel&&this.list()&&(!this.a||this.a.paused)){ if(this.cur&&this.q.length)this.a.play().catch(()=>{}); else if(this.pend)this.resume(); else this.play(this.st.sel); } },
-  onRunEnd(){ this.stop(true); },
+  onRunEnd(){ this.natStop(); this.stop(true); },
   /* ── 화면 ── */
   toast(t){ try{ if(typeof toast==='function')return toast(t); }catch(e){} const d=$('musToast'); if(!d)return; d.textContent=t; d.hidden=false; clearTimeout(this.tt); this.tt=setTimeout(()=>d.hidden=true,2200); },
   busy(t){ const b=$('musBusy'); if(b){ b.hidden=!t; b.textContent=t||''; } },
@@ -12657,7 +12678,7 @@ const MIC=(()=>{ const s=(d,f)=>`<svg viewBox="0 0 24 24" aria-hidden="true" ${f
     if(!m)return; const k=m.dataset.m;
     if(k==='toggle')MUS.toggle(); else if(k==='next')MUS.next(); else if(k==='prev')MUS.prev();
     else if(k==='shuf')MUS.setShuf(!MUS.st.shuf); else if(k==='rep')MUS.cycleRep();
-    else if(k==='dir')inp(true); else if(k==='files')inp(false);
+    else if(k==='dir'){ const N=window.GAJI_NATIVE; if(N&&N.pickFolder&&N.shell>=4)MUS.addNative(); else inp(true); } else if(k==='files')inp(false);
     else if(k==='wipe'){ if(m.dataset.sure){ MUS.wipe(); } else { m.dataset.sure='1'; m.textContent='한 번 더 누르면 삭제'; setTimeout(()=>{ if(m.isConnected){ delete m.dataset.sure; m.textContent='담은 음악 삭제'; } },3000); } }
   });
   document.addEventListener('input',e=>{ if(e.target.classList&&e.target.classList.contains('mus-pos')&&MUS.a&&MUS.a.duration){
