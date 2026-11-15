@@ -2540,7 +2540,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.69';
+const APPVER='20.70';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2642,11 +2642,25 @@ const DEV = {
     return {dev,batt};
   },
   async knownDevices(){ try{ return await navigator.bluetooth.getDevices(); }catch(e){ return []; } },
-  saveFile(name,text,mime){
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([text],{type:mime})); a.download=name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  /* 파일 저장은 전부 이 하나(saveBlob)를 거친다 — 이미지·꾸민 사진·백업·GPX·캘린더.
+     앱에서는 브라우저의 '내려받기'가 없다(앱 화면에는 내려받기를 받아 주는 장치가 없어 파일이 그냥 버려졌다 — 그런데도 '저장됨'이라고 떴다. 2026-11-15).
+     앱: 휴대폰 저장소에 직접 쓴다(사진 → 갤러리 '가지런' 앨범, 그 밖 → 내 파일 Download/가지런). 돌려주는 값 = 저장된 곳 이름. 실패하면 던진다. */
+  async saveBlob(blob,name){
+    if(window.GAJI_NATIVE){
+      if(!GAJI_NATIVE.saveFile){ const e=new Error('NO_BRIDGE'); throw e; }
+      const r=await GAJI_NATIVE.saveFile(blob,name);
+      return /^image\//.test(blob.type)?'갤러리 › 가지런':'내 파일 › Download › 가지런'; }
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),6000);
+    return '다운로드';
+  },
+  saveErr(e){ const m=String(e&&e.message||e||'');
+    return /NO_BRIDGE|not implemented|unable to find plugin|GajiFile|SAVE_TIMEOUT/i.test(m)?'저장 안 됨 — 앱을 새로 받아 덮어 설치해야 저장돼요'
+      :/OLD_ANDROID/.test(m)?'저장 안 됨 — 안드로이드 10 이상에서만 저장돼요':'저장 실패 — '+m.slice(0,60); },
+  /* 글자 파일(백업·GPX·캘린더) — 성공하면 true */
+  async saveFile(name,text,mime){
+    try{ const w=await DEV.saveBlob(new Blob([text],{type:mime}),name); toast('저장됨 · '+w); return true; }
+    catch(e){ toast(DEV.saveErr(e)); return false; }
   },
 };
 
@@ -6359,8 +6373,7 @@ if($('btnIcs'))$('btnIcs').onclick=()=>{
     out.push(cur); return out.join('\r\n '); };
   DEV.saveFile(`가지런_훈련일정_${stampFile()}.ics`,
     ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//가지런//KR','CALSCALE:GREGORIAN',ev,'END:VCALENDAR'].join('\r\n').split('\r\n').map(fold).join('\r\n'),
-    'text/calendar');
-  alert('캘린더 파일 저장\n열면 캘린더 추가 · 전날 밤 알림');
+    'text/calendar').then(ok=>{ if(ok)alert('캘린더 파일 저장\n열면 캘린더 추가 · 전날 밤 알림'); });
 };
 
 /* ───────── 기록 탭 ───────── */
@@ -11188,10 +11201,12 @@ function paintShare(){
   const jpg=SH.tpl!=='sticker';   /* 스티커는 투명 배경이라 PNG, 나머지는 JPG */
   const blob=()=>new Promise(res=>jpg?$('shCv').toBlob(res,'image/jpeg',0.92):$('shCv').toBlob(res,'image/png'));
   const fname=()=>`가지런_${SH.tpl}_${stampFile()}.${jpg?'jpg':'png'}`;
-  $('shSave').onclick=async()=>{ const bl=await blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(bl); a.download=fname(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); toast(jpg?'JPG 저장됨':'PNG 저장됨'); };
+  $('shSave').onclick=async()=>{ const bl=await blob(); try{ const w=await DEV.saveBlob(bl,fname()); toast((jpg?'JPG':'PNG')+' 저장됨 · '+w); }catch(e){ toast(DEV.saveErr(e)); } };
   $('shSend').onclick=async()=>{ const bl=await blob(); const f=new File([bl],fname(),{type:jpg?'image/jpeg':'image/png'});
-    if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:'가지런'}); }catch(e){} }
-    else { $('shSave').onclick(); toast('공유 불가 → 사진 저장'); } };
+    /* 앱 화면에는 브라우저의 공유(navigator.share)가 없다 — 휴대폰 공유창을 직접 연다 */
+    if(window.GAJI_NATIVE&&GAJI_NATIVE.shareFile){ try{ await GAJI_NATIVE.shareFile(bl,fname()); }catch(e){ toast(DEV.saveErr(e)); } }
+    else if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:'가지런'}); }catch(e){} }
+    else { $('shSave').onclick(); } };
   $('shBack').onclick=()=>history.length&&SH.back?go(SH.back):show(SH.fromView||'sum');
 }
 
@@ -14550,11 +14565,12 @@ async function snapCard(el,name,title){
     x.textAlign='left'; x.textBaseline='alphabetic';
     const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지 생성 실패'); return; } files.push(bl); }
   /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다. 여러 쪽이면 차례대로(이름에 쪽 번호) */
+  let where='';
   for(let i=0;i<files.length;i++){ const fn=`가지런_${String(title||name).replace(/[\s·/\\:]+/g,'')}_${stampFile()}${N>1?`_${i+1}-${N}`:''}.jpg`;
-    const a=document.createElement('a'); a.href=URL.createObjectURL(files[i]); a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),6000);
+    try{ where=await DEV.saveBlob(files[i],fn); }catch(e){ toast(DEV.saveErr(e)); return; }   /* 저장이 안 됐으면 '저장됨'이라 하지 않는다 */
     if(i<files.length-1)await new Promise(r=>setTimeout(r,450)); }
   window.__snapPages=files;   /* 검사용 */
-  toast(N>1?`JPG ${N}장 저장 · 쪽 순 업로드`:'JPG 저장됨');
+  toast((N>1?`JPG ${N}장 저장`:'JPG 저장됨')+' · '+where);
 }
 function snapBtn(sel,name,title,cls){ return `<button type="button" class="snapb ${cls||''}" data-snap="${sel}" data-snapn="${name}" data-snapt="${title}" aria-label="이미지로 저장">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'} 이미지</button>`; }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-snap]'); if(!b)return; const el=b.closest(b.dataset.snap)||document.querySelector(b.dataset.snap); snapCard(el,b.dataset.snapn,b.dataset.snapt); });
