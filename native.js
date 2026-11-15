@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:7,log:[]};
+  window.GAJI_NATIVE={ver:8,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -190,6 +190,7 @@
 
   /* ── 8. 파일 저장·보내기: 앱 화면에는 브라우저의 '내려받기'·'공유'가 없다 — 휴대폰 저장소(갤러리/내 파일)에 직접 쓰고, 휴대폰 공유창을 연다.
         앱 껍데기에 이 기능(GajiFile)이 들어 있어야 한다(2026-11-15 빌드부터). 예전 설치본은 실패로 답하고, 화면이 '다시 설치'를 안내한다 ── */
+  var nv_warned=false;
   try{ var GF=reg('GajiFile');
     var b64=function(blob){ return new Promise(function(res,rej){ var fr=new FileReader();
       fr.onload=function(){ res(String(fr.result).split(',')[1]||''); }; fr.onerror=function(){ rej(new Error('read failed')); }; fr.readAsDataURL(blob); }); };
@@ -199,6 +200,15 @@
       .then(function(r){ note(m+' ok '+name); return r; },function(e){ note(m+' fail '+(e&&e.message)); throw e; }); };
     window.GAJI_NATIVE.saveFile=function(blob,name){ return send('save',blob,name); };
     window.GAJI_NATIVE.shareFile=function(blob,name){ return send('share',blob,name); };
+    /* 설치본 판 — 2 이상이면 파일 저장·진동이 들어 있는 설치본. 답이 없으면 예전 설치본(1) */
+    GF.info().then(function(r){ window.GAJI_NATIVE.shell=(r&&r.shell)||1; note('shell '+window.GAJI_NATIVE.shell); },
+                   function(){ window.GAJI_NATIVE.shell=1; note('shell 1 (예전 설치본)'); });
+    /* ── 9. 진동: 앱 화면의 진동은 앱에 진동 권한이 없으면 울리지 않고, 화면이 꺼지면(화면이 가려지면) 울리지 않는다 — 휴대폰 진동을 직접 울린다 ── */
+    try{ Object.defineProperty(navigator,'vibrate',{configurable:true,value:function(p){
+      var a=(typeof p==='number')?[p]:(p&&p.length?Array.prototype.slice.call(p,0,40):[]);
+      a=a.map(function(n){ n=+n||0; return n<0?0:(n>10000?10000:Math.round(n)); });
+      GF.buzz({pattern:a}).catch(function(e){ if(!nv_warned){ nv_warned=true; note('buzz '+(e&&e.message)); } });
+      return true; }}); }catch(e){ note('buzz define fail'); }
   }catch(e){ note('file define fail'); }
 
   note('native bridge ready');
