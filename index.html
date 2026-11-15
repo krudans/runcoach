@@ -2525,7 +2525,15 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .ol-empty{font-size:13px;color:var(--ink-2);margin:8px 0}
 
 /* v20.16 저장 그림 빈자리 채우기 */
-.snap-fill{margin-top:12px}.snap-fill .sf-hd{font-size:14px;font-weight:700;color:var(--ink-2);margin:0 2px 6px}
+.snap-fill{margin-top:12px}
+.gp-wrap{margin-top:0;padding-top:14px}
+.gp{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 14px 14px}
+.gp-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}.gp-hd b{font-size:17px;font-weight:800;color:var(--ink)}.gp-hd span{font-size:11.5px;color:var(--ink-3);font-weight:600}
+.gp-goal{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;background:var(--pri-bg,#EFE8F7);border-radius:12px;padding:10px 12px;margin-bottom:8px}.gp-goal i{font-style:normal;font-size:11.5px;font-weight:700;color:var(--pri,#5B2D8C)}.gp-goal b{font-size:20px;font-weight:800;color:var(--ink)}.gp-goal em{font-style:normal;font-size:12.5px;font-weight:700;color:var(--ink-2);margin-left:auto}
+.gp-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px;margin-bottom:10px}.gp-tiles>div{background:var(--panel-2);border-radius:10px;padding:8px 9px;min-width:0}.gp-tiles i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:600;margin-bottom:2px}.gp-tiles b{display:block;font-size:15.5px;font-weight:800;color:var(--ink);white-space:nowrap}.gp-tiles b.ok{color:#0E7A52}.gp-tiles em{display:block;font-style:normal;font-size:10.5px;font-weight:700;margin-top:2px;color:var(--ink-3)}.gp-tiles em.ok{color:#0E7A52}.gp-tiles em.mid{color:#8A6400}.gp-tiles em.bad{color:#B3261E}
+.gp-prog{margin:0 2px 12px}.gp-pk{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);margin-bottom:5px}.gp-pk b{color:var(--ink);font-weight:700}.gp-bar{height:10px;border-radius:6px;background:var(--panel-2);overflow:hidden}.gp-bar i{display:block;height:100%;border-radius:6px;background:var(--pri,#5B2D8C)}.gp-pe{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3);margin-top:3px}
+.gp-eqh{font-size:12.5px;font-weight:700;color:var(--ink-2);margin:0 2px 6px}.gp-eqs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px}.gp-eqs>div{border:1px solid var(--line);border-radius:10px;padding:7px 4px;text-align:center;min-width:0}.gp-eqs>div.on{border-color:var(--pri,#5B2D8C);background:var(--pri-bg,#EFE8F7)}.gp-eqs i{display:block;font-style:normal;font-size:10.5px;color:var(--ink-3);font-weight:600}.gp-eqs b{display:block;font-size:12.5px;font-weight:800;color:var(--ink);white-space:nowrap;letter-spacing:-.3px}
+.gp-opt{margin-top:10px}.gp-opt .ol-card{margin-bottom:0}.gp-opt .lcard{margin:0!important}.snap-fill .sf-hd{font-size:14px;font-weight:700;color:var(--ink-2);margin:0 2px 6px}
 .snap-fill .ol-card{margin-bottom:0}.snap-fill>.wstrip,.snap-fill>.lcard{margin-left:0!important;margin-right:0!important}   /* 채움 카드도 위 카드와 같은 폭 */
 </style>
 <div class="view" id="tplan"><div class="bar"><button class="sub" id="tpBack">← 홈</button><h1 style="text-align:center">오늘 계획</h1><span class="sub" style="visibility:hidden">←</span></div><div class="pad" id="tpBody" style="padding-bottom:110px"></div></div>
@@ -2543,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.76';
+const APPVER='20.78';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6633,7 +6641,11 @@ async function selfTest(){
     await wait();
     const sp=[475,458,476,487,473,464,465,418,410,414,404,398];   /* 그날 실제 1km 스플릿 */
     const i=BLOCK.findIndex(x=>x.type==='recovery'&&x.dist>=12);
-    const sess=sessionOf(i>=0?i:0), T=TYPES[sess.type];
+    /* 이 재생은 '상한보다 빠르게 뛴 시간이 10%를 넘으면 잡아내는가'를 본다. 예전엔 지금 내 일정의 상한을 그대로 써서,
+       실력이 올라 상한이 그날 속도보다 빨라지면 초과 0%가 되어 '놓침'으로 나왔다(판정이 틀린 것이 아니라 시험이 내 일정에 묶여 있었다).
+       그날 기준(리커버리런 12km · 상한 7'25")을 시험에 고정한다 — 내 일정에 무엇이 있든 같은 조건으로 본다 */
+    const sess=Object.assign({},sessionOf(i>=0?i:0),{t:'리커버리런 12km',type:'recovery',dist:12,ceiling:445,reps:0,
+      segs:[{to:12,nm:'리커버리런',pace:[445,520],tol:'ceil'}]}), T=TYPES.recovery;
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
       hrLocked:false,hrLockSaid:false,lockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,
@@ -6711,7 +6723,10 @@ async function selfTest(){
       /* 상한 분모 — 계획이 부풀어도 상한은 같이 안 부푼다 */
       SURVEY={wk:20};
       const plan=plannedWeekKm('2026-10-15'), base=baseWeekKm('2026-10-15');
-      add(base<=20.001,'질 구간 상한 분모',
+      /* 상한 분모는 '계획'과 '최근 실제 주간 거리' 중 작은 쪽이다. 예전 시험은 기록이 없다고 치고 20km 이하만 통과시켜,
+         실제로 주 30km를 뛰는 사람에게는 맞는 값(30.8)인데도 실패로 나왔다 → 실제 주간 거리(없으면 설문 20km)를 넘지 않는지로 본다 */
+      const actWk=recentWeekKm();
+      add(base<=Math.max(20,actWk)+0.001&&(!(plan>0)||base<=plan+0.001),'질 구간 상한 분모',
           `계획 ${plan.toFixed(1)}km 대신 실제 ${base.toFixed(1)}km 기준`,
           `${base.toFixed(1)}km`);
       /* 프로필 반영 */
@@ -6747,6 +6762,16 @@ async function selfTest(){
       if(N) add(N.shell>=4,'앱 설치본', N.shell>=4?`최신(${N.shell}판) — 이미지·파일 저장, 진동, 화면 꺼져도 케이던스, 음악 재생 알림`:N.shell>=2?`${N.shell}판 — ${N.shell<3?'화면 꺼지면 케이던스 멈춤 · ':''}음악 재생 알림 없음 · 앱을 새로 받아 덮어 설치`:'예전 설치본 — 이미지·파일 저장과 진동이 안 됨 · 앱을 새로 받아 덮어 설치', N.shell>=4?'OK':'다시 설치'); }
     add(!!window.DeviceMotionEvent,'가속도계 (케이던스)',
         window.DeviceMotionEvent?'사용 가능':'없음', window.DeviceMotionEvent?'OK':'불가');
+    /* 걸음 센서가 실제로 값을 주는지 2초 동안 세어 본다 — '사용 가능'은 기능이 있다는 뜻일 뿐, 값이 오는지는 따로 봐야 한다.
+       케이던스가 '—'로 나왔을 때 센서 값이 안 온 것인지, 값은 왔는데 걸음으로 안 세어진 것인지 가르는 데 쓴다 */
+    try{ let n=0; const cb=()=>{ n++; }; const nat=!!(window.GAJI_NATIVE&&GAJI_NATIVE.motion&&GAJI_NATIVE.shell>=3);
+      DEV.motion.start(cb); await new Promise(r=>setTimeout(r,2200)); DEV.motion.stop(cb);
+      const per=Math.round(n/2.2);
+      add(per>=20,'걸음 센서 2초 시험',`${nat?'휴대폰 센서':'화면 센서'} · 1초에 ${per}개${per>=20?'':' — 값이 거의 안 옴(케이던스를 못 잼)'}`, per>=20?'OK':'값 없음');
+      let ms=null; try{ ms=JSON.parse(localStorage.getItem('gaji_mstat')||'null'); }catch(e){}
+      if(ms&&ms.sec>0){ const hh=new Date(ms.at), rate=Math.round(ms.n/ms.sec);
+        add(rate>=20,'지난번 달릴 때 걸음 센서',`${hh.getMonth()+1}.${hh.getDate()} ${String(hh.getHours()).padStart(2,'0')}:${String(hh.getMinutes()).padStart(2,'0')}부터 ${Math.round(ms.sec/60)}분 · ${ms.src||''} · 1초에 ${rate}개${ms.fail?' · '+ms.fail:''}`, rate>=20?'OK':'값 없음'); }
+    }catch(e){ add(false,'걸음 센서 2초 시험','시험 실패 — '+String(e.message||e).slice(0,50),'오류'); }
     add('speechSynthesis' in window,'음성 안내',
         ('speechSynthesis' in window)?'사용 가능':'없음', ('speechSynthesis' in window)?'OK':'불가');
     add(!!navigator.wakeLock,'화면 켜두기',navigator.wakeLock?'사용 가능':'없음',
@@ -14550,11 +14575,53 @@ function snapFills(name){
   let mc=''; try{ mc=`<div class="lcard mile" style="margin:10px 16px 0">${mileCharts(mileage())}</div>`; }catch(e){}
   const mGoal=()=>pick(mc,r=>{ const c=r.firstElementChild; if(!c)return null; [...c.children].forEach((x,i)=>{ if(i>1)x.remove(); }); return c; });   /* 다음 목표 + 주별 거리 */
   const ol=()=>{ try{ const h=outlookChart(); return /기록이 생기면/.test(h)?'':h; }catch(e){ return ''; } };   /* 아직 빈 전망(안내 문구뿐)은 채움으로 안 쓴다 */
+  if(name==='__parts')return {ol,pmc,mGoal,wk,zone,days};
   name=String(name||'').replace(/\d+$/,''); if(name==='rest')name='today';
-  const L=name==='result'||name==='review'?[ol,pmc,wk,zone,days,mGoal]
+  const L=name==='result+goal'?[wk,zone,days]:name==='result'||name==='review'?[ol,pmc,wk,zone,days,mGoal]
     :name==='today'?[days,pmc,mGoal,wk]:name==='plan'||name==='week'?[days,pmc,mGoal,wk,ol]
     :name==='race'?[ol,pmc,mGoal]:[wk,pmc,mGoal,ol];
   return L.map(f=>f()).filter(Boolean); }
+/* 결과 그림의 마지막 장 — '내 목표와 지금'. 화면에는 없고 저장 그림에만 들어간다.
+   오늘 날짜 기준으로: 목표(종목·기록·대회일·남은 날) / 지금 예상 / 목표까지 차이 / 대회일 예상 / 준비 기간 진행 / 지금 실력으로 거리별 예상 / 전망 그래프 / 주별 거리 / 체력·피로.
+   숫자는 전부 다른 화면과 같은 계산(predRange·outlookChart·mileCharts)을 그대로 쓴다. 목표도 검증된 기록도 없으면 만들지 않는다.
+   'gp-opt' 칸은 한 쪽에 안 들어가면 뒤에서부터 뺀다 */
+function goalPageHTML(){ try{
+  const g=(PLAN&&PLAN.goal)||GOAL||{}, m=g.m||42195, gs=g.final||g.sec||null, hasGoal=!!(g.m&&(g.sec||g.final))||!!g.date;
+  const ver=raceVerified(PROF.race)||fitPoints().length>0;
+  if(!hasGoal&&!ver)return '';
+  if(!(VDOT>0))return '';
+  const P=predRange(VDOT,m), t=todayStr(), dl=g.date?daysLeft(g.date):null;
+  const gd=g.date?String(g.date).slice(0,10):addDays(t,84), wks=Math.max(1,daysLeft(gd)/7);
+  const fut={lo:predRange(VDOT+RATE_HI*wks,m).lo,hi:predRange(VDOT+RATE_LO*wks,m).hi};
+  const dot=d=>`${d.slice(0,4)}.${+d.slice(5,7)}.${+d.slice(8,10)}`;
+  /* 목표까지 — 지금 예상의 느린 쪽(보수적)과 목표의 차이 */
+  const gapS=gs?P.hi-gs:null, gapT=gs==null?'':gapS<=0?(P.lo<=gs&&P.hi<=gs?'이미 목표 안':'목표 가능권'):fmtGap(gapS);
+  const reach=gs?(fut.lo<=gs?(fut.hi<=gs?['ok','대회일 예상이 목표 안']:['mid','대회일 예상이 목표에 걸침']):['bad','대회일 예상이 목표 밖']):null;
+  let prog=''; try{ const st=PLAN&&PLAN.start?String(PLAN.start).slice(0,10):null; if(st&&g.date&&st<gd){ const a=Date.parse(st+'T12:00:00'), b=Date.parse(gd+'T12:00:00'), n=Date.parse(t+'T12:00:00');
+      const f=Math.max(0,Math.min(1,(n-a)/(b-a))), totW=Math.max(1,Math.round((b-a)/6048e5)), curW=Math.max(1,Math.min(totW,Math.floor((n-a)/6048e5)+1));
+      prog=`<div class="gp-prog"><div class="gp-pk"><span>준비 기간</span><b>${totW}주 중 ${curW}주째 · ${Math.round(f*100)}%</b></div><div class="gp-bar"><i style="width:${(f*100).toFixed(1)}%"></i></div><div class="gp-pe"><span>${dot(st)}</span><span>${dot(gd)}</span></div></div>`; } }catch(e){}
+  const eq=RL_D.map(([d,l])=>{ const q=predRange(VDOT,d); return `<div class="${rlDist(m)===d?'on':''}"><i>${l}</i><b class="num">${Math.abs(q.hi-q.lo)<60?fmtClock(q.lo):fmtHMr(q.lo)+'~'+fmtHMr(q.hi)}</b></div>`; }).join('');
+  /* 최근 8주 주간 거리 — 작은 막대(이번 주는 진하게). 얼마나 쌓아 왔는지 한눈에 */
+  let wkBars=''; try{ const mon0=weekMonday(t), W8=[]; for(let i=7;i>=0;i--){ const mon=addDays(mon0,-7*i); W8.push({mon,km:0}); }
+    (RUNS||[]).forEach(r=>{ if((r.act||'run')!=='run')return; const w=W8.find(x=>x.mon===weekMonday(ldate(r.date).slice(0,10))); if(w)w.km+=(+r.km||0); });
+    const mx=Math.max(...W8.map(x=>x.km)); if(mx>0){ const BW=340,BH=66,P=6,bw=(BW-P*2)/8, B0=46;
+      wkBars=`<div class="gp-opt gp-wk"><div class="gp-eqh">최근 8주 달린 거리</div><svg viewBox="0 0 ${BW} ${BH}" role="img" aria-label="최근 8주 주간 거리" style="display:block;width:100%">
+        ${W8.map((x,i)=>{ const h=x.km>0?Math.max(3,x.km/mx*30):0, cx=P+bw*i+bw/2, cur=i===7;
+          return `${h?`<rect x="${(cx-bw*0.32).toFixed(1)}" y="${(B0-h).toFixed(1)}" width="${(bw*0.64).toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${cur?'#5B2D8C':'#C9B8E0'}"/>`:`<line x1="${(cx-bw*0.32).toFixed(1)}" x2="${(cx+bw*0.32).toFixed(1)}" y1="${B0}" y2="${B0}" stroke="#D9D2E3" stroke-width="2"/>`}
+            <text x="${cx.toFixed(1)}" y="${(B0-h-4).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${cur?'#2A1638':'#6B6078'}">${x.km>0?(x.km>=10?Math.round(x.km):x.km.toFixed(1)):''}</text>
+            <text x="${cx.toFixed(1)}" y="${B0+14}" text-anchor="middle" font-size="9.5" fill="#8A8096" font-weight="${cur?700:500}">${cur?'이번 주':(+x.mon.slice(5,7))+'.'+(+x.mon.slice(8,10))}</text>`; }).join('')}
+      </svg></div>`; } }catch(e){}
+  const pr=snapFills('__parts'); let ol='', mg='', pmc=''; try{ ol=pr.ol().replace(/<div class="ol-now">[\s\S]*?<\/div>\s*(?=<svg)/,''); }catch(e){}   /* 지금·대회일 예상은 위 칸에 이미 있다 — 그래프만 */ try{ mg=pr.mGoal(); }catch(e){} try{ pmc=pr.pmc(); }catch(e){}
+  return `<section class="gp">
+    <div class="gp-hd"><b>내 목표와 지금</b><span>${dot(t)} 기준</span></div>
+    ${hasGoal?`<div class="gp-goal"><i>목표</i><b>${gdLabel(m)}${gs?' '+fmtClock(gs):''}</b>${g.date?`<em>${dot(gd)}${dl!=null?(dl>0?` · D-${dl}`:dl===0?' · 오늘':' · 지남'):''}</em>`:''}</div>`:''}
+    <div class="gp-tiles"><div><i>지금 ${gdLabel(m)} 예상</i><b class="num">${predText(P)}</b>${ver?'':'<em>검증된 기록 없음 · 추정</em>'}</div>
+      ${gs?`<div><i>목표까지</i><b class="num${gapS<=0?' ok':''}">${gapT}</b></div>`:''}
+      <div><i>${g.date?'대회일':'12주 뒤'} 예상</i><b class="num">${fmtHMr(fut.lo)}~${fmtHMr(fut.hi)}</b>${reach?`<em class="${reach[0]}">${reach[1]}</em>`:''}</div></div>
+    ${prog}
+    <div class="gp-eqh">지금 실력으로 뛰면</div><div class="gp-eqs">${eq}</div>
+    ${ol?`<div class="gp-opt">${ol}</div>`:''}${wkBars}${mg?`<div class="gp-opt">${mg}</div>`:''}${pmc?`<div class="gp-opt">${pmc}</div>`:''}
+  </section>`; }catch(e){ return ''; } }
 async function snapCard(el,name,title){
   if(!el)return; toast('이미지 만드는 중…');
   let W=el.offsetWidth; const H=el.offsetHeight, clone=el.cloneNode(true);
@@ -14597,7 +14664,8 @@ async function snapCard(el,name,title){
   /* 마지막 쪽(한 장짜리 포함)이 4분의 1 넘게 비면 — 관련 카드(이번 주·날마다·체력·마일리지·전망)로 채운다. 저장 그림에만 들어가고 화면엔 없다 */
   /* 테두리 있는 카드(오늘 훈련 등)는 채움 카드를 테두리 밖에 — 카드 아래에 나란히 놓는다 */
   let oS=src, oC=clone; const pairs=[];
-  const fills=best.cuts.length>=2?snapFills(name):[], used=new Set();
+  const isRes=String(name||'').replace(/\d+$/,'')==='result'; let gpH=''; if(isRes){ try{ gpH=goalPageHTML(); }catch(e){} }
+  const fills=best.cuts.length>=2?snapFills(gpH?'result+goal':name):[], used=new Set();
   /* 가운데 쪽의 빈 곳도 채운다 — 큰 카드는 쪽 사이에서 가르지 않아서, 다음 카드가 안 들어가면 쪽 아래가 4분의 1~3분의 1씩 비었다(3쪽짜리 결과 그림이 쪽마다 휑했다).
      그 쪽의 마지막 카드 바로 아래(다음 쪽 첫 카드 앞)에 관련 카드를 끼운다. 빈 곳에 들어가는 것만, 같은 카드는 한 번만. 뒤쪽 자르는 선은 끼운 높이만큼 민다 */
   if(best.cuts.length>2){ const CHw=snapCH(W); let bS=src, bC=clone;
@@ -14621,6 +14689,20 @@ async function snapCard(el,name,title){
       const a=mk(); oS.appendChild(a); const hh=oS.offsetHeight-best.h;
       if(hh>free-4){ a.remove(); continue; }
       const b=mk(); oC.appendChild(b); kFix(a); if(oS!==src)pairs.push([a,b]); best.h=oS.offsetHeight; best.cuts[best.cuts.length-1]=best.h; } }
+  /* 결과 그림 — 마지막에 '내 목표와 지금' 한 장. 앞 내용이 끝난 자리에서 쪽을 나누고 새 쪽에 통째로 넣는다. 한 쪽에 안 들어가면 뒤 칸(gp-opt)부터 뺀다 */
+  if(gpH){ const CHw=snapCH(W);
+    if(oS===src){ const ws=document.createElement('div'), wc=document.createElement('div');
+      src.parentNode.insertBefore(ws,src); ws.appendChild(src); clone.parentNode.insertBefore(wc,clone); wc.appendChild(clone); oS=ws; oC=wc; }
+    const mk=()=>{ const d=document.createElement('div'); d.className='snap-fill gp-wrap'; d.innerHTML=gpH; d.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); return d; };
+    const a=mk(), b=mk(), h0=best.h; oS.appendChild(a);
+    /* 그래프 칸(gp-opt)은 하나씩 넣어 보고 쪽을 넘기면 그 칸만 뺀다 — 뒤에서부터 통째로 빼면 들어갈 수 있는 작은 칸까지 빠졌다 */
+    const ga=a.querySelector('.gp'), gb=b.querySelector('.gp'), ex=[...a.querySelectorAll('.gp-opt')].map(x=>x.outerHTML);
+    a.querySelectorAll('.gp-opt').forEach(x=>x.remove()); b.querySelectorAll('.gp-opt').forEach(x=>x.remove());
+    let hh=oS.offsetHeight-h0;
+    if(ga&&gb)for(const h of ex){ ga.insertAdjacentHTML('beforeend',h); const n2=oS.offsetHeight-h0;
+      if(n2>CHw-4){ ga.lastElementChild.remove(); continue; } gb.insertAdjacentHTML('beforeend',h); hh=n2; }
+    if(hh>0&&hh<=CHw-4){ oC.appendChild(b); kFix(a); pairs.push([a,b]); best.cuts[best.cuts.length-1]=h0; best.cuts.push(h0+hh); best.h=h0+hh; }
+    else a.remove(); }
   snapInline(src,clone); pairs.forEach(([a,b])=>snapInline(a,b)); clone.style.margin='0'; clone.style.width=W+'px'; if(oC!==clone){ oC.style.width=W+'px'; oC.style.background=getComputedStyle(document.body).backgroundColor; }
   const h2=best.h; probe.remove();
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${h2}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml">${new XMLSerializer().serializeToString(oC)}</div></foreignObject></svg>`;
