@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:10,log:[],shell:0};
+  window.GAJI_NATIVE={ver:11,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -47,7 +47,9 @@
   var synth={ speaking:false, pending:false, paused:false, onvoiceschanged:null,
     getVoices:function(){ return [{lang:'ko-KR',name:'기본 한국어',default:true,localService:true,voiceURI:'native-ko'}]; },
     speak:function(u){ if(!u||!u.text)return; var my=++q; synth.speaking=true;
-      var end=function(ev){ if(my!==q)return; synth.speaking=false; try{ var f=u[ev]; if(typeof f==='function')f({}); }catch(e){} };
+      var done=false, end=function(ev){ if(my!==q||done)return; done=true; synth.speaking=false; try{ var f=u[ev]; if(typeof f==='function')f({}); }catch(e){} };
+      /* 휴대폰이 '다 말했다'고 답하지 않아도 끝난 것으로 친다(글자 수로 넉넉히 잡은 시간) — 답이 안 오면 '말하는 중'이 풀리지 않아 음악 소리가 줄어든 채로 남았다 */
+      setTimeout(function(){ if(!done){ note('tts 답 없음'); end('onend'); } },4000+String(u.text).length*260);
       TTS.speak({ text:String(u.text), lang:u.lang||'ko-KR', rate:Math.max(0.5,Math.min(2,u.rate||1)), pitch:u.pitch||1, volume:u.volume==null?1:u.volume, category:'playback' })
         .then(function(){ end('onend'); }).catch(function(e){ note('tts '+(e&&e.message)); end('onerror'); }); },
     cancel:function(){ q++; synth.speaking=false; TTS.stop().catch(function(){}); },
@@ -214,7 +216,7 @@
     }catch(e){ note('media define fail'); }
     /* ── 10. 걸음 센서: 앱 화면의 걸음 센서(devicemotion)는 화면이 꺼지면 멈춘다 — 휴대폰 센서를 직접 읽어 같은 모양으로 넘긴다(설치본 3판부터).
           화면 쪽 계산(onMotion)은 그대로 쓴다. 시각은 화면 시계(performance.now)에 맞춰 넘긴다 ── */
-    try{ var mcbs=[], mL=null, mOff=null;
+    try{ var mcbs=[], mL=null, mOff=null, mWeb=false;
       window.GAJI_NATIVE.motion={
         start:function(cb){ if(mcbs.indexOf(cb)<0)mcbs.push(cb);
           if(!mL){ mOff=null;
@@ -222,9 +224,12 @@
               if(mOff==null)mOff=performance.now()-t[t.length-1];
               for(var i=0;i<t.length;i++){ var ev={accelerationIncludingGravity:{x:m[i]/100,y:0,z:0},timeStamp:t[i]+mOff};
                 for(var k=0;k<mcbs.length;k++){ try{ mcbs[k](ev); }catch(e){} } } });
-            GF.motionStart({}).then(function(){ note('motion on'); },function(e){ note('motion fail '+(e&&e.message)); }); }
+            /* 휴대폰 센서를 못 켜면(센서 없음 등) 화면의 걸음 센서로 물러선다 — 아무것도 안 재는 것보다 낫다 */
+            GF.motionStart({}).then(function(){ note('motion on'); },function(e){ note('motion fail '+(e&&e.message)); mWeb=true;
+              mcbs.forEach(function(f){ try{ window.addEventListener('devicemotion',f); }catch(x){} }); }); }
+          else if(mWeb){ try{ window.addEventListener('devicemotion',cb); }catch(x){} }
           return true; },
-        stop:function(cb){ var i=mcbs.indexOf(cb); if(i>=0)mcbs.splice(i,1);
+        stop:function(cb){ var i=mcbs.indexOf(cb); if(i>=0)mcbs.splice(i,1); try{ window.removeEventListener('devicemotion',cb); }catch(x){} if(!mcbs.length)mWeb=false;
           if(!mcbs.length&&mL){ try{ if(mL.remove)mL.remove(); else if(mL.then)mL.then(function(h){ h&&h.remove&&h.remove(); }); }catch(e){} mL=null;
             GF.motionStop({}).then(function(){ note('motion off'); },function(){}); } } };
     }catch(e){ note('motion define fail'); }
