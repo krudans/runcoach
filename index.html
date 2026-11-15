@@ -1018,6 +1018,8 @@ details.noti .sigc{margin:6px 0}
 .rroute .rmapbox .rmap{height:250px}
 .mapx{position:absolute;top:10px;right:10px;z-index:2;width:38px;height:38px;border-radius:12px;border:none;background:var(--panel);box-shadow:var(--sh);color:var(--ink);display:flex;align-items:center;justify-content:center}
 .lapbar{margin:8px 0 0}
+.lapsw{display:inline-flex;gap:2px;padding:3px;margin:0 0 6px 2px;border-radius:12px;background:var(--panel-2)}.lapsw button{border:0;border-radius:9px;background:transparent;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink-3);padding:6px 12px}.lapsw button.on{background:var(--panel);color:var(--ink);box-shadow:var(--sh)}
+.lapch.seg button{min-width:0;padding-left:11px;padding-right:11px}.lapch.seg button b{font-size:12.5px;white-space:nowrap}
 .lapch{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.lapch::-webkit-scrollbar{display:none}
 .lapch button{flex:none;position:relative;min-width:54px;padding:6px 8px 8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:1px;font:inherit;color:var(--ink)}
 .lapch button b{font-size:14px;font-weight:800;line-height:1.15}.lapch button b small{font-size:9px;font-weight:700;color:var(--ink-3);margin-left:2px}
@@ -1083,7 +1085,7 @@ body.mf-on{overflow:hidden}
 .sgr[hidden]{display:none}
 .sgh{font-size:11px;color:var(--ink-3);border-bottom:1px solid var(--line)}.sgr{border-bottom:1px solid var(--line)}.sgr:last-child{border-bottom:none}
 .sgr.hard span:first-child{color:var(--fast);font-weight:700}.sgr .ok{color:var(--ok-ink)}.sgr .bad{color:var(--bad-ink)}
-.spr{display:grid;grid-template-columns:22px 1fr 54px 44px 50px;gap:6px;align-items:center;font-size:12px;padding:3px 0}.spr i small{font-size:11px;margin-left:1px}
+.spr{display:grid;grid-template-columns:46px 1fr 54px 44px 50px;gap:6px;align-items:center;font-size:12px;padding:3px 0}.spr>span{white-space:nowrap}.spr i small{font-size:11px;margin-left:1px}
 .spr u{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}.spr s{display:block;height:100%;background:var(--accent);border-radius:4px}
 .spr b{font-family:var(--num)}.spr i{font-style:normal;color:var(--ink-3);font-size:11px}
 .grow1{font-size:12px;line-height:1.6;color:var(--ink-2)}.grow1 b{color:var(--ink);display:block;margin-bottom:2px}
@@ -2541,7 +2543,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.73';
+const APPVER='20.74';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10330,10 +10332,13 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
     let sub='', right='', act='';
     if(ran){ const km=rs.reduce((a,r)=>a+(+r.km||0),0), sec=rs.reduce((a,r)=>a+(+r.sec||0),0), hr=rs.find(r=>r.hrAvg), man=rs.some(r=>r.manual);
       sub=`${fmtKm1(km)}km · ${fmtClock(sec)} · 1km ${fmtPace(sec/Math.max(.01,km))}${hr?` · ♥${hr.hrAvg}`:''}${man?' · 직접 입력':''}`; act=` data-wkrun="${ESC(rs[rs.length-1].rid)}"`; }
-    else if(x.s){ sub=`계획 ${fmtKm1(+x.km||0)}km${x.plan?` · 부하 약 ${x.plan}`:''}`; }
+    const skip=!!x.s&&!ran&&skippedDay(x.d);   /* '건너뛰기'로 정한 날 — 플랜·홈 카드와 같은 말로 */
+    if(ran){}
+    else if(x.s){ sub=skip?`계획 ${fmtKm1(+x.km||0)}km`:`계획 ${fmtKm1(+x.km||0)}km${x.plan?` · 부하 약 ${x.plan}`:''}`; }
     else sub=x.rk&&x.rk.k!=='plain'?restMissions(x.rk.k).filter(m=>m.pts).map(m=>m.s).join(' · '):'플랜 밖 쉬는 날';
     const band=x.sc!=null?(x.sc>=80?'ok':x.sc>=50?'mid':'bad'):'';
     if(x.sc!=null) right=`<b class="wl-sc sc-${band}">${x.sc}<small>점</small></b>`;
+    else if(skip) right='<em class="wl-soon">건너뜀</em>';
     else if(x.s&&!ran&&x.d<t) right=`<button type="button" class="wl-miss" data-pman="${x.s.d}">놓침 <u>+ 기록</u></button>`;
     else if(now) right='<em class="wl-now">오늘</em>';
     else if(x.d===addDays(t,1)) right='<em class="wl-soon">내일</em>';
@@ -10834,27 +10839,44 @@ function routeBoxHTML(full){
   return `<div class="rmapbox${full?' mf-map':''}"><div class="rmap"></div><div class="mapsw"><button type="button" data-mm="seg">구간</button><button type="button" data-mm="pace">페이스</button></div>
     ${full?'<div class="mf-zoom"><button type="button" data-z="-1" aria-label="확대">+</button><button type="button" data-z="1" aria-label="축소">−</button></div>':'<button type="button" class="mapx" data-mapx aria-label="지도 크게 보기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button>'}</div>
     <div class="lapbar" hidden></div><div class="rleg"></div>`; }
+/* 지도 아래 골라 보기 — 거리별(1km씩, 모든 기록) · 구간별(훈련 구간이 있는 기록).
+   예전엔 같은 곳을 도는 코스로 판정될 때만 '바퀴' 단추가 나오고, 일직선 코스는 골라 볼 것이 아예 없었다(2026-11-15).
+   묶음 모양은 바퀴 때와 같다({laps:[[처음,끝,덜]],cm}) — 지도 그리기·저장 그림이 같은 규칙을 그대로 쓴다 */
+function routeGroups(r){ const tr=r.track||[]; if(tr.length<8)return {km:null,seg:null};
+  const cm=trackCum(tr), n=tr.length-1, tot=cm[n];
+  const kmL=[]; { let a=0, k=1; for(let i=1;i<=n;i++){ if(cm[i]>=k*1000){ kmL.push([a,i,0,String(k)]); a=i; k++; } }
+    const rest=tot-cm[a]; if(rest>=50&&a<n)kmL.push([a,n,1,(rest/1000).toFixed(rest<95?2:1)]); }
+  const segs=r.segments||[], sgL=[]; { let a=0, cur=tr[0].seg;
+    for(let i=1;i<=n;i++){ const g=tr[i].seg; if(g!==cur||i===n){ const b=i===n&&g===cur?n:i; if(cur!=null&&segs[cur]&&cm[b]-cm[a]>=20)sgL.push([a,b,0,String(segs[cur].nm||'구간')]); a=i; cur=g; } } }
+  const mk=L=>({laps:L,pre:0,post:n,cm,med:1000});
+  return {km:kmL.length>=2?mk(kmL):null, seg:sgL.length>=2?mk(sgL):null}; }
 function routeWire(root,r,st,full){
   const mh=root.querySelector('.rmap'), sw=root.querySelector('.mapsw'), lg=root.querySelector('.rleg'), lb=root.querySelector('.lapbar');
-  const pcd=paceColored(r.track,r.splits), LP=lapsCached(r.track), LS=LP?lapStats(r.track,LP):null;
-  const fullOK=LS?LS.filter(x=>!x.part&&x.pace):[], fast=fullOK.length?fullOK.reduce((m,x)=>x.pace<m.pace?x:m):null;
-  if(!pcd.lo)st.mode='seg'; if(LP&&st.sel!=null&&st.sel>=LP.laps.length)st.sel=null;
+  const pcd=paceColored(r.track,r.splits), GR=routeGroups(r);
+  if(!st.grp){ try{ st.grp=localStorage.getItem('mapGrp')||'km'; }catch(e){ st.grp='km'; } }
+  const grp=()=>GR[st.grp]?st.grp:GR.km?'km':GR.seg?'seg':null;
+  if(!pcd.lo)st.mode='seg';
   const pcol=v=>{ const f=Math.max(0,Math.min(1,(pcd.hi-v)/Math.max(10,pcd.hi-pcd.lo))); return PACE_COLS[Math.round(f*(PACE_COLS.length-1))]; };
-  const paint=()=>{ const pace=st.mode==='pace'&&!!pcd.lo;
+  const paint=()=>{ const pace=st.mode==='pace'&&!!pcd.lo, g=grp(), G=g?GR[g]:null;
+    if(G&&st.sel!=null&&st.sel>=G.laps.length)st.sel=null; if(!G)st.sel=null;
+    const LS=G?lapStats(r.track,G):null, fullOK=LS&&g==='km'?LS.filter(x=>!x.part&&x.pace):[], fast=fullOK.length>1?fullOK.reduce((m,x)=>x.pace<m.pace?x:m):null;
     sw.hidden=!pcd.lo; sw.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.mm===st.mode));
-    paintMap(mh,pace?pcd.tr:r.track,r.segments,null,{laps:LP,sel:st.sel,full,onTap:full?null:()=>routeFull(r,st,paint)});
+    paintMap(mh,pace?pcd.tr:r.track,r.segments,null,{laps:st.sel!=null?G:null,sel:st.sel,full,onTap:full?null:()=>routeFull(r,st,paint)});
     if(pace) lg.innerHTML=`<span class="pgl">더 느림 ${fmtPace(pcd.hi)}</span><span class="pgr">${PACE_COLS.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="pgl">${fmtPace(pcd.lo)} 더 빠름</span>`;
     else { const has=new Set(r.track.map(p=>ptColor(p,r.segments)));
-      lg.innerHTML=SEG_LEG.filter(([c])=>has.has(c)).map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')+(LP&&st.sel==null?'':'<span>① km</span>'); }
-    if(!LP){ lb.hidden=true; return; }
-    const s=st.sel!=null?LS[st.sel]:null;
+      lg.innerHTML=SEG_LEG.filter(([c])=>has.has(c)).map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')+'<span>① km</span>'; }
+    if(!G){ lb.hidden=true; return; }
+    const s=st.sel!=null?LS[st.sel]:null, nm=x=>G.laps[x.j][3], unit=g==='km';
+    const lab=x=>unit?(x.part?nm(x)+'km':nm(x)+'km'):nm(x);
     lb.hidden=false;
-    lb.innerHTML=`<div class="lapch" role="group" aria-label="바퀴 고르기"><button type="button" data-lap="all" class="${s?'':'on'}"><b>전체</b><i>${LP.laps.length}바퀴</i></button>${LS.map(x=>`<button type="button" data-lap="${x.j}" class="${s&&s.j===x.j?'on':''}${fast&&fast.j===x.j?' best':''}"><b>${x.j+1}${x.part?'<small>덜</small>':''}</b><i>${x.part?(x.m/1000).toFixed(1)+'km':x.pace?fmtPace(x.pace):(x.m/1000).toFixed(2)+'km'}</i>${pace&&x.pace?`<u style="background:${pcol(x.pace)}"></u>`:''}</button>`).join('')}</div>
-      <div class="lapinfo">${s?`<b>${s.j+1}바퀴${s.part?' (덜 돈 바퀴)':''}</b> · ${(s.m/1000).toFixed(2)}km${s.dt?` · ${fmtClock(s.dt)}`:''}${s.pace?` · 1km ${fmtPace(s.pace)}`:''}${s.hr?` · 평균 심박 ${s.hr}`:''}`
-        :`<b>${LS.filter(x=>!x.part).length}바퀴</b>${LS.some(x=>x.part)?` + ${(LS[LS.length-1].m/1000).toFixed(1)}km`:''} · 한 바퀴 약 ${(LP.med/1000).toFixed(2)}km${fast?` · 가장 빠른 바퀴 <b>${fast.j+1}</b> (${fmtPace(fast.pace)})`:''}<br><span>선 한 줄 = 한 바퀴 · 바퀴를 누르면 따로 봐요</span>`}</div>`;
+    lb.innerHTML=`${GR.km&&GR.seg?`<div class="lapsw" role="group" aria-label="나눠 보는 기준"><button type="button" data-grp="km" class="${g==='km'?'on':''}">거리별</button><button type="button" data-grp="seg" class="${g==='seg'?'on':''}">구간별</button></div>`:''}
+      <div class="lapch${unit?'':' seg'}" role="group" aria-label="${unit?'거리별':'구간별'} 고르기"><button type="button" data-lap="all" class="${s?'':'on'}"><b>전체</b><i>${(+r.km||G.cm[G.cm.length-1]/1000).toFixed(1)}km</i></button>${LS.map(x=>`<button type="button" data-lap="${x.j}" class="${s&&s.j===x.j?'on':''}${fast&&fast.j===x.j?' best':''}"><b>${ESC(unit?nm(x):nm(x))}${unit&&x.part?'<small>km</small>':''}</b><i>${x.pace?fmtPace(x.pace):(x.m/1000).toFixed(2)+'km'}</i>${pace&&x.pace?`<u style="background:${pcol(x.pace)}"></u>`:''}</button>`).join('')}</div>
+      <div class="lapinfo">${s?`<b>${ESC(unit?(s.part?'마지막 '+nm(s)+'km':nm(s)+'km째'):nm(s))}</b> · ${(s.m/1000).toFixed(2)}km${s.dt?` · ${fmtClock(s.dt)}`:''}${s.pace?` · 1km ${fmtPace(s.pace)}`:''}${s.hr?` · 평균 심박 ${s.hr}`:''}`
+        :`<b>${unit?'거리별':'구간별'}</b> · ${unit?'1km씩':'훈련 구간씩'} ${LS.length}칸${fast?` · 가장 빠른 1km <b>${nm(fast)}km째</b> (${fmtPace(fast.pace)})`:''}<br><span>칸을 누르면 그 부분만 지도에 보여요</span>`}</div>`;
     const on=lb.querySelector('.lapch .on'); if(on&&on.scrollIntoView&&st.sel!=null)try{ on.scrollIntoView({block:'nearest',inline:'center'}); }catch(e){} };
   sw.querySelectorAll('button').forEach(b=>b.onclick=()=>{ st.mode=b.dataset.mm; try{ localStorage.setItem('mapMode',st.mode); }catch(e){} paint(); });
-  lb.onclick=e=>{ const c=e.target.closest('[data-lap]'); if(!c)return; const v=c.dataset.lap; st.sel=v==='all'||st.sel===+v?null:+v; paint(); };
+  lb.onclick=e=>{ const gb=e.target.closest('[data-grp]'); if(gb){ st.grp=gb.dataset.grp; st.sel=null; try{ localStorage.setItem('mapGrp',st.grp); }catch(x){} paint(); return; }
+    const c=e.target.closest('[data-lap]'); if(!c)return; const v=c.dataset.lap; st.sel=v==='all'||st.sel===+v?null:+v; paint(); };
   const x=root.querySelector('[data-mapx]'); if(x)x.onclick=()=>routeFull(r,st,paint);
   root.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{ const m=mh._map, d=+b.dataset.z;
     if(m){ m.setLevel(Math.max(1,m.getLevel()+d),{animate:true}); return; }
@@ -14565,8 +14587,24 @@ async function snapCard(el,name,title){
   /* 마지막 쪽(한 장짜리 포함)이 4분의 1 넘게 비면 — 관련 카드(이번 주·날마다·체력·마일리지·전망)로 채운다. 저장 그림에만 들어가고 화면엔 없다 */
   /* 테두리 있는 카드(오늘 훈련 등)는 채움 카드를 테두리 밖에 — 카드 아래에 나란히 놓는다 */
   let oS=src, oC=clone; const pairs=[];
+  const fills=best.cuts.length>=2?snapFills(name):[], used=new Set();
+  /* 가운데 쪽의 빈 곳도 채운다 — 큰 카드는 쪽 사이에서 가르지 않아서, 다음 카드가 안 들어가면 쪽 아래가 4분의 1~3분의 1씩 비었다(3쪽짜리 결과 그림이 쪽마다 휑했다).
+     그 쪽의 마지막 카드 바로 아래(다음 쪽 첫 카드 앞)에 관련 카드를 끼운다. 빈 곳에 들어가는 것만, 같은 카드는 한 번만. 뒤쪽 자르는 선은 끼운 높이만큼 민다 */
+  if(best.cuts.length>2){ const CHw=snapCH(W); let bS=src, bC=clone;
+    while(bS.children.length===1&&bS.children[0].children.length&&bC.children.length===1){ bS=bS.children[0]; bC=bC.children[0]; }
+    for(let i=0;i<best.cuts.length-2;i++){
+      for(let fi=0;fi<fills.length;fi++){ if(used.has(fi)||!fills[fi])continue;
+        const gap=CHw-(best.cuts[i+1]-best.cuts[i]); if(gap<CHw*0.18)break;
+        const cr=src.getBoundingClientRect(), kids=[...bS.children];
+        const idx=kids.findIndex(e=>{ const r=e.getBoundingClientRect(); return r.height>0.5&&Math.abs(Math.round(r.top-cr.top-6)-best.cuts[i+1])<=1; });
+        if(idx<0||!bC.children[idx])break;
+        const mk=()=>{ const d=document.createElement('div'); d.className='snap-fill'; d.innerHTML=fills[fi]; d.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); return d; };
+        const a=mk(), h0=src.offsetHeight; bS.insertBefore(a,kids[idx]); const hh=src.offsetHeight-h0;
+        if(hh<=0||hh>gap-4){ a.remove(); continue; }
+        bC.insertBefore(mk(),bC.children[idx]); kFix(a);
+        for(let j=i+1;j<best.cuts.length;j++)best.cuts[j]+=hh; best.h+=hh; used.add(fi); } } }
   if(best.cuts.length>=2){ const CHw=snapCH(W);
-    for(const f of snapFills(name)){ if(!f)continue; const lastH=best.h-best.cuts[best.cuts.length-2], free=CHw-lastH; if(free<CHw*0.25)break;
+    for(const [fi,f] of fills.entries()){ if(!f||used.has(fi))continue; const lastH=best.h-best.cuts[best.cuts.length-2], free=CHw-lastH; if(free<CHw*0.25)break;
       if(oS===src){ const cs=getComputedStyle(src); if(cs.borderTopWidth!=='0px'||cs.boxShadow!=='none'){ const ws=document.createElement('div'), wc=document.createElement('div');
         src.parentNode.insertBefore(ws,src); ws.appendChild(src); clone.parentNode.insertBefore(wc,clone); wc.appendChild(clone); oS=ws; oC=wc; } }
       const mk=()=>{ const d=document.createElement('div'); d.className='snap-fill'; d.innerHTML=f; d.querySelectorAll(SNAP_SKIP).forEach(x=>x.remove()); return d; };
