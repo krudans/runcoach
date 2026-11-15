@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.78';
+const APPVER='20.79';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7060,7 +7060,7 @@ const FB={
   /* 설정 문서 하나 + 기록은 한 건씩 따로.
      한 문서에 다 넣으면 1MB 한계에 금방 닿는다. */
   SETK:['prof','survey','shoes','props','adj','dist','hero','lapc','rhr','hikes','del','onboarded',
-        'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','extraSeen','sigSeen'],
+        'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','extraSeen','sigSeen','consent'],
   /* 합치는 항목 — map: {날짜/열쇠: 값}, list: [{id,d,…}] */
   MERGE:{missSeen:'map',extraSeen:'map',sigSeen:'map',restlog:'map',decs:'list'},
   canon(v){ const f=x=>Array.isArray(x)?x.map(f):(x&&typeof x==='object')?Object.keys(x).sort().reduce((o,k)=>{ o[k]=f(x[k]); return o; },{}):x; return JSON.stringify(f(v)); },
@@ -7647,7 +7647,9 @@ $('introGoogle').onclick=async()=>{
   er.style.display='none'; bt.disabled=true; bt.textContent='잠시만요…';
   try{
     const u=await FB.signIn();
-    if(!u)return;                         /* 구글 창으로 넘어간 경우 — 돌아와서 afterLogin()이 잇는다 */
+    if(!u){ /* 웹: 구글 창으로 넘어간 경우 — 돌아와서 afterLogin()이 잇는다. 앱: 계정 고르기 창을 닫은 것 — 예전엔 아무 말 없이 첫 화면에 그대로였다 */
+      try{ if(window.GAJI_NATIVE&&GAJI_NATIVE.canLogin&&GAJI_NATIVE.canLogin()&&!loggedIn()){ er.textContent='로그인 창을 닫았어요 · 다시 눌러 주세요'; er.style.display='block'; } }catch(e){}
+      return; }
     await afterLogin();
   }catch(e){
     const c=String((e&&(e.code||e.message))||e);   /* 구글 오류 원문(영어) 대신 할 일 */
@@ -7661,16 +7663,20 @@ $('introGoogle').onclick=async()=>{
 };
 /* 로그인 직후: 클라우드를 끝까지 받고 나서 홈인지 설문인지 정한다.
    못 받았으면 설문으로 보내지 않는다 — 설문을 다시 하면 클라우드 기록을 덮어쓴다. */
+const consentNeeded=()=>{ const c=DEV.store.get('consent',null); return !c||c.ver!==CONSENT_VER; };
 async function afterLogin(){
   const er=$('introErr');
   try{ await FB.sync(); }
   catch(e){
-    if(er){ er.textContent='구글 불러오기 실패 ('+(e.message||e)+') 인터넷 확인 · 재시도';
+    if(er){ const c=String((e&&e.message)||e);   /* 클라우드 오류 원문(영어)을 그대로 보여 주던 것 → 할 일로 */
+      er.textContent=/offline|network|unavailable|fetch|timeout/i.test(c)?'기록을 불러오지 못했어요 · 인터넷 연결을 확인하고 다시 눌러 주세요':'기록을 불러오지 못했어요 · 잠시 뒤 다시 눌러 주세요 ('+c.slice(0,60)+')';
       er.style.display='block'; }
     show('intro'); return;
   }
   if(DEV.store.get('onboarded',false)){
     renderHome(); go('home');
+    /* 쓰던 계정인데 이 계정에 동의 기록이 없거나 고지가 바뀌었으면 — 예전엔 일단 홈으로 보내고 '다음에 앱을 열 때' 동의 화면이 떴다. 로그인한 그 자리에서 받는다 */
+    if(consentNeeded()){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }
     const got=[`기록 ${RUNS.length}건`];
     if(SURVEY&&SURVEY.days&&SURVEY.days.length)got.push('설문');
     if(PROF&&PROF.race&&PROF.race.sec)got.push('대회 기록');
@@ -12482,7 +12488,14 @@ function goalBadge(){
      안 그러면 로그인 안 쓰는 사람도 열 때마다 400KB를 받는다 */
   let authWait=false; try{ authWait=!!localStorage.getItem('rc_authWait'); }catch(e){}
   if(FBCFG&&(ACCT.uid||authWait))FB.init().then(async()=>{
-    if(!authWait)return;
+    /* 이미 로그인된 폰인데 설문을 마치기 전에 앱을 껐다 켜면(또는 첫 로그인 때 클라우드를 못 받았으면) 첫 화면에서 '구글 계정으로 시작'을 또 눌러야 했다.
+       그 사이 뒤에서 클라우드를 받아 '설문 끝남'이 되어도 화면은 첫 화면에 멈춰 있었다 → 로그인이 살아 있으면 누르지 않아도 이어서 불러온다 */
+    if(!authWait){ if(DEV.store.get('onboarded',false)||!ACCT.uid||!window.firebase)return;
+      for(let i=0;i<25&&!FB.user;i++)await new Promise(r=>setTimeout(r,200));
+      if(!FB.user||CURVIEW!=='intro')return;
+      const bt=$('introGoogle'), was=bt?bt.innerHTML:''; if(bt){ bt.disabled=true; bt.textContent='이어서 불러오는 중…'; }
+      try{ await afterLogin(); }finally{ if(bt){ bt.disabled=false; bt.innerHTML=was; } }
+      return; }
     try{ localStorage.removeItem('rc_authWait'); }catch(e){}
     const u=window.firebase&&firebase.auth().currentUser;
     if(u){ FB.user=u; await afterLogin(); }
@@ -12490,7 +12503,7 @@ function goalBadge(){
   }).catch(()=>{});
   if(!DEV.store.get('onboarded',false)){ show('intro'); }
   else if(!loggedIn()&&!authWait)setTimeout(()=>{ try{ if(!loggedIn()&&!S.running)loginGate('이제 가지런은 구글 계정으로 로그인해서 써요.'); }catch(e){} },2600);   /* 로그인 없이 쓰던 사람 — 열 때 한 번 안내(닫아도 기록은 볼 수 있다) */
-  else if(!DEV.store.get('consent',null)||DEV.store.get('consent',{}).ver!==CONSENT_VER){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 고지가 바뀌면 한 번 다시 */
+  else if(consentNeeded()){ try{ obStart(true); OB.only=true; obPaint(); show('onb'); }catch(e){} }   /* 기존 사용자 — 고지가 바뀌면 한 번 다시 */
   splashRun();
   setTimeout(()=>{ try{ liveCheck(); }catch(e){ console.warn('live',e); } },1300);   /* 끝내지 못한 기록 복구 */
   setTimeout(()=>{ try{ noticeLoad(); }catch(e){} try{ bannerLoad(); }catch(e){} try{ usagePing(); }catch(e){} const u=$('usageOpt'); if(u)u.checked=usageOn(); },1500);   /* 공지·사용 현황 — 화면이 뜬 뒤 조용히 */
