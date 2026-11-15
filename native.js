@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:9,log:[],shell:0};
+  window.GAJI_NATIVE={ver:10,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log; L.push(new Date().toISOString().slice(11,19)+' '+m); if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -203,6 +203,15 @@
     /* 설치본 판 — 2 이상이면 파일 저장·진동이 들어 있는 설치본. 답이 없으면 예전 설치본(1) */
     GF.info().then(function(r){ window.GAJI_NATIVE.shell=(r&&r.shell)||1; note('shell '+window.GAJI_NATIVE.shell); },
                    function(){ window.GAJI_NATIVE.shell=1; note('shell 1 (예전 설치본)'); });
+    /* ── 11. 음악: 재생 알림(잠금 화면·알림창 단추, 앱이 가려져도 끊기지 않게)과 폴더 고르기(설치본 4판부터) ── */
+    try{ window.GAJI_NATIVE.media={ _cb:null, _L:null,
+        on:function(cb){ this._cb=cb; if(!this._L)this._L=C.addListener('GajiFile','media',function(r){ var f=window.GAJI_NATIVE.media._cb;
+          if(f&&r&&r.action){ note('media '+r.action); try{ f(r.action); }catch(e){} } }); },
+        update:function(o){ return GF.mediaUpdate(o).catch(function(e){ note('media fail '+(e&&e.message)); }); },
+        stop:function(){ return GF.mediaStop({}).catch(function(){}); } };
+      window.GAJI_NATIVE.pickFolder=function(){ return GF.pickFolder({}); };
+      window.GAJI_NATIVE.fileUrl=function(u){ return C.convertFileSrc?C.convertFileSrc(u):u; };
+    }catch(e){ note('media define fail'); }
     /* ── 10. 걸음 센서: 앱 화면의 걸음 센서(devicemotion)는 화면이 꺼지면 멈춘다 — 휴대폰 센서를 직접 읽어 같은 모양으로 넘긴다(설치본 3판부터).
           화면 쪽 계산(onMotion)은 그대로 쓴다. 시각은 화면 시계(performance.now)에 맞춰 넘긴다 ── */
     try{ var mcbs=[], mL=null, mOff=null;
