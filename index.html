@@ -1583,7 +1583,7 @@ body.mf-on{overflow:hidden}
 .mpick.on{border-style:solid;border-color:var(--accent);color:var(--accent)}
 .mbar{display:flex;align-items:center;gap:4px;width:100%;max-width:420px;background:var(--panel-2);border-radius:14px;padding:4px 6px 4px 14px}
 .mbar .mb-t{flex:1;min-width:0;text-align:left;background:none;border:none;font:inherit;font-size:13px;font-weight:700;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:10px 0;cursor:pointer}
-.mbar.on .mb-t{color:var(--ink)}.rv-note{margin:0 0 10px;padding:8px 10px;border-radius:10px;background:var(--panel-2);font-size:12px;color:var(--ink-2);line-height:1.5}.mbar.empty [data-m]{display:none}
+.mbar.on .mb-t{color:var(--ink)}.sum-saved{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:var(--ok-bg,#E3F4EC);color:var(--ok,#167A4F);font-size:13px;font-weight:700}.rv-note{margin:0 0 10px;padding:8px 10px;border-radius:10px;background:var(--panel-2);font-size:12px;color:var(--ink-2);line-height:1.5}.mbar.empty [data-m]{display:none}
 .mbar [data-m]{width:40px;height:40px;border:none;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;border-radius:10px}
 .mbar [data-m] svg{width:20px;height:20px}.mbar [data-m=toggle]{background:var(--accent);color:#fff}
 .msheet{position:fixed;inset:0;z-index:80;background:rgba(42,22,56,.38);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .2s}
@@ -1796,6 +1796,7 @@ body.mf-on{overflow:hidden}
 
 <div class="view" id="sum"><div class="bar"><h1>세션 결과</h1><span class="sub" id="sumDate">—</span></div>
   <div class="pad">
+    <p class="sum-saved" id="sSaved" hidden></p>
     <!-- 끝나고 정적 스트레칭 — 결과 맨 위에서 바로 열 수 있게(아래 카드는 그대로) -->
     <div class="st-pair" style="margin:0 0 12px"><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
     <div id="sNew"></div>
@@ -2551,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.94';
+const APPVER='20.95';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4455,6 +4456,8 @@ let CURVIEW='home';
 const TABOF={share:'log',rview:'log',dec:'home',tplan:'home',run:'home',confirm:'home',sum:'log',settings:'home',alerts:'home',runtab:'home',
   paste:'plan',review:'home'};
 function show(id){
+  /* 결과 화면을 '확인' 없이 떠남 — 기록은 이미 저장됨. TT·대회 새 기준만 알림으로 남긴다 */
+  try{ if(CURVIEW==='sum'&&id!=='sum')sumLeave(); }catch(e){}
   /* 설정의 '내 정보'는 '내 정보 저장'을 눌러야 바뀐다. 예전엔 고르는 순간 앱 안의 값(PROF)이 바뀌어, 저장 안 하고 나가도
      그 앱을 켜 둔 동안은 다른 화면이 바뀐 값을 썼고, 다른 저장(달린 뒤 최대 심박 갱신 등)에 섞여 몰래 저장될 수 있었다. 다시 켜면 옛 값 — 화면마다 값이 달랐다 */
   try{ if(CURVIEW==='settings'&&id!=='settings'){ const st=DEV.store.get('prof',null);
@@ -5977,6 +5980,8 @@ function finish(completed){
   else closeSegAt();
   renderSummary(completed);
   S._fin={completed:!!completed}; liveSave();
+  try{ if(autoSaveOk(S.result))commitRun(); }catch(e){ console.error('auto save',e); }   /* 정지하면 바로 저장 — 실수로 켰다 끈 것만 묻는다 */
+  try{ sumButtons(); }catch(e){}
   DEV.speak(completed?`완료. ${(S.dist/1000).toFixed(1)}킬로미터, ${fmtTimeVoice(S.elapsed)}. 수고하셨습니다.`:'세션을 종료했습니다.',true);
 
   show('sum');
@@ -6272,34 +6277,42 @@ function simplify(pts,max){
   return out;
 }
 $('sRPE').onclick=e=>{const b=e.target.closest('button');if(!b)return;rpeVal=+b.dataset.v;
-  $('sRPE').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));};
+  $('sRPE').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); sumUpdate();};
 let feelVal=null, painVal=false;
-if($('sFeel'))$('sFeel').onclick=e=>{const b=e.target.closest('[data-fl]');if(!b)return;feelVal=b.dataset.fl;$('sFeel').querySelectorAll('[data-fl]').forEach(x=>x.classList.toggle('on',x===b));};
-if($('sPain'))$('sPain').onclick=()=>{painVal=!painVal;$('sPain').classList.toggle('on',painVal);};
+if($('sFeel'))$('sFeel').onclick=e=>{const b=e.target.closest('[data-fl]');if(!b)return;feelVal=b.dataset.fl;$('sFeel').querySelectorAll('[data-fl]').forEach(x=>x.classList.toggle('on',x===b)); sumUpdate();};
+if($('sPain'))$('sPain').onclick=()=>{painVal=!painVal;$('sPain').classList.toggle('on',painVal); sumUpdate();};
 if($('sTalk'))$('sTalk').onclick=e=>{const b=e.target.closest('[data-tk]');if(!b)return;talkVal=+b.dataset.tk;
-  $('sTalk').querySelectorAll('[data-tk]').forEach(x=>x.classList.toggle('on',x===b));};
+  $('sTalk').querySelectorAll('[data-tk]').forEach(x=>x.classList.toggle('on',x===b)); sumUpdate();};
 $('sTerrain').onclick=e=>{const b=e.target.closest('button');if(!b)return;terrainVal=b.dataset.t;
-  $('sTerrain').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));};
+  $('sTerrain').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); sumUpdate();};
 $('sWeather').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   weatherVal=(weatherVal===b.dataset.w)?null:b.dataset.w;
-  $('sWeather').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.w===weatherVal));};
-$('btnSave').onclick=()=>{
-  if(!S.result)return;
-  S.result._saved=true; liveClear(); S._fin=null;
-  Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,talk:talkVal,note:$('sNote').value.trim()},S.result.rw?{feel:feelVal,pain:painVal}:{});
+  $('sWeather').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.w===weatherVal)); sumUpdate();};
+$('sNote').addEventListener('input',()=>sumUpdate());
+/* ───────── 끝나면 바로 저장 (v20.95) ─────────
+   전엔 결과 화면 맨 아래 '기록 저장'을 눌러야 저장됐다 — 안 누르고 나가면 이 폰에만 임시로 남고(클라우드·이어서 뛰기 안 됨), 앱 자료가 지워지면 사라졌다.
+   이제 정지하면 바로 저장한다(commitRun). 결과 화면에서 고르는 힘든 정도·지형·날씨·메모는 고를 때마다 저장된 기록에 바로 넣는다(sumUpdate).
+   실수로 켰다 끈 것(200m 미만 또는 2분 미만)만 저장할지 묻는다. 맨 아래 '확인'은 저장 뒤 할 일(TT·대회 새 기준, 훈련 돌아보기)을 연다 —
+   안 누르고 나가면 새 기준은 알림('새 훈련 기준 대기 중')에 남긴다. */
+function sumFields(){ if(!S.result)return; Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,talk:talkVal,note:($('sNote').value||'').trim()},S.result.rw?{feel:feelVal,pain:painVal}:{}); }
+const autoSaveOk=r=>!!(r&&(+r.km||0)>=0.2&&(+r.sec||0)>=120);
+function commitRun(){
+  if(!S.result||S.result._saved)return false;
+  S.result._saved=true; liveClear(); S._fin=null; S._post={};
+  sumFields();
   if(!S.result.rid)S.result.rid=newRid(S.result);
   if(S.result.act&&S.result.act!=='run'){
     ACTS.push(S.result); if(ACTS.length>400)ACTS=ACTS.slice(-400);
     if(!DEV.store.set('acts',ACTS)){ ACTS.forEach(r=>{ if(r.track&&r.track.length>300)r.track=simplify(r.track,300); }); DEV.store.set('acts',ACTS); }
     if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
-    go('home'); toast(`${ACTK[S.result.act].nm} 기록 저장 — 거리 제외`); return;
+    S._post.act=true; return true;
   }
   if(S.result.planId&&!(S.result.km>=0.5&&S.result.sec>=120)){ S.result.planId=null; S.result.tooShort=true; }
   /* 그때 쓴 기준값을 기록에 박아 둔다 — 역치·최대심박·안정심박. 뒤에 기준이 바뀌어도 이 기록의 점수(rTSS·TRIMP)는 이 값으로 */
   try{ S.result.base={T:Math.round(Z.T),tv:2,hrmax:HRMAX,rhr:restHr()}; }catch(e){}
   RUNS.push(S.result);
   if(S.result.contOf){ contMerge(S.result.contOf); CONT=null; }   /* 이어서 뛴 조각 — 앞 기록의 판정을 합친 값으로 */
-  try{ setTimeout(()=>{ try{ usagePing(true); }catch(e){} },2500); }catch(e){}   /* 관리자 사용자 목록의 기록 수·거리 — 전엔 앱을 열 때(6시간에 한 번)만 보내, 뛰고 나서도 다음에 열 때까지 0으로 보였다 */
+  try{ setTimeout(()=>{ try{ usagePing(true); }catch(e){} },2500); }catch(e){}
   if(!DEV.store.set('runs',RUNS)){ RUNS.forEach(r=>{if(r.track&&r.track.length>300)r.track=simplify(r.track,300);});
     DEV.store.set('runs',RUNS); }
   if(S.result.shoe){const sh=SHOES.find(x=>x.name===S.result.shoe);
@@ -6316,17 +6329,34 @@ $('btnSave').onclick=()=>{
     if(S.result.learnNote)DEV.store.set('runs',RUNS);
   }catch(e){ console.error(e); }
   if(FREE_INSTEAD&&S.result.type==='free'){ S.result.planId=FREE_INSTEAD; S.result.instead=true; FREE_INSTEAD=null; DEV.store.set('runs',RUNS); }
-  /* 테스트 러닝이면 그 기록으로 실력을 확정하고 일정을 다시 만든다 */
-  const bc=basisFromTT(S.result);   /* TT면 결과 시트 — 적용·나중에·적용 안 함 */
-  if(bc){ if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); go('home'); setTimeout(()=>basisOpen(bc),250); return; }
-  /* 신청한 대회 날 뛴 기록 → 대회 기록(러닝일지)에 넣고, 실력 기준으로 쓸지 TT처럼 묻는다.
-     예전엔 대회 날 기록이 '프리런'으로만 남아 대회 기록·실력이 그대로였다 — 대회 앞 TT를 빼는 근거(대회가 측정을 대신)가 성립하지 않았다(2026-11-16 시험).
-     거리는 대회 공인 거리, 시간은 뛴 시간 — GPS는 코스보다 길게 재는 경우가 많다. 공인 거리의 95% 이상 뛰었을 때만 */
-  if(S.result.race&&S.result.race.m&&S.result.km*1000>=S.result.race.m*0.95&&S.result.sec>=210){
+  /* 테스트 러닝이면 새 기준 후보(적용은 '확인' 뒤 결과 시트에서 고른다) */
+  S._post.bc=basisFromTT(S.result);
+  /* 신청한 대회 날 뛴 기록 → 대회 기록(러닝일지)에 넣고, 실력 기준으로 쓸지 TT처럼 묻는다. 거리는 대회 공인 거리, 시간은 뛴 시간 — 공인 거리의 95% 이상 뛰었을 때만 */
+  if(!S._post.bc&&S.result.race&&S.result.race.m&&S.result.km*1000>=S.result.race.m*0.95&&S.result.sec>=210){
     try{ const rc=S.result.race, it=rlogAdd({date:ldate(S.result.date).slice(0,10),m:rc.m,sec:S.result.sec,name:rc.name||'',kind:'race',src:'manual'});
-      if(it){ S.result.raceLog=it.id; DEV.store.set('runs',RUNS); const c=basisFromRace(it); if(c)c.fromRun=true; if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); go('home');
-        setTimeout(()=>{ toast(`대회 기록 저장 — ${rlLab(rc.m)} ${fmtClock(S.result.sec)}`); if(c)basisOpen(c); },250); return;   /* TT와 같은 결과 시트 — 적용·나중에·적용 안 함 */ } }catch(e){ console.warn('race log',e); } }
+      if(it){ S.result.raceLog=it.id; DEV.store.set('runs',RUNS); const c=basisFromRace(it); if(c)c.fromRun=true; S._post.race={c,lab:`대회 기록 저장 — ${rlLab(rc.m)} ${fmtClock(S.result.sec)}`}; } }catch(e){ console.warn('race log',e); } }
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
+  return true;
+}
+/* 결과 화면에서 고친 값 — 저장된 기록에 바로 */
+let SUMUPT=null;
+function sumUpdate(){ if(!S.result||!S.result._saved)return; sumFields();
+  clearTimeout(SUMUPT); SUMUPT=setTimeout(()=>{ try{ if(S.result.act&&S.result.act!=='run')DEV.store.set('acts',ACTS); else DEV.store.set('runs',RUNS); if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); }catch(e){} },700); }
+/* 결과 화면을 '확인' 없이 떠날 때 — 새 기준은 알림으로 */
+function sumLeave(){ const P=S._post; if(!P||P.done)return; P.done=true;
+  try{ const c=P.bc||(P.race&&P.race.c); if(c)DEV.store.set('basisPend',c); }catch(e){} }
+function sumButtons(){ const sv=!!(S.result&&S.result._saved), b=$('btnSave'), d=$('btnDone');
+  if(b)b.textContent=sv?'확인':'기록 저장'; if(d)d.textContent=sv?'이 기록 지우기':'저장 없이 닫기';
+  const n=$('sSaved'); if(n){ n.hidden=!sv; n.textContent=sv?'저장됨 · 아래 고르는 것도 바로 저장돼요':''; } }
+$('btnSave').onclick=()=>{
+  if(!S.result)return;
+  if(!S.result._saved){ commitRun(); }
+  else sumFields();
+  const P=S._post||{}; if(P.done&&!P.act&&!P.bc&&!P.race){ go('home'); return; }
+  P.done=true;
+  if(P.act){ go('home'); toast(`${ACTK[S.result.act].nm} 기록 저장 — 거리 제외`); return; }
+  if(P.bc){ go('home'); setTimeout(()=>basisOpen(P.bc),250); return; }
+  if(P.race){ go('home'); setTimeout(()=>{ toast(P.race.lab); if(P.race.c)basisOpen(P.race.c); },250); return; }
   if(S.result.contOf){ const f=RUNS.find(x=>x.rid===S.result.contOf); go('home'); toast(f?`앞 기록에 이어 붙임 · 합계 ${fmtKm1(contTotal(f))}km`:'기록 저장됨'); return; }
   if(S.result.tooShort){ go('home'); toast('너무 짧음 · 훈련 제외'); return; }
   if(S.result.extraKm>=0.5){ const ex=extraInfo(S.result); if(ex&&ex.over>=0.5)setTimeout(()=>toast(`계획 +${S.result.extraKm.toFixed(1)}km — 홈 제안 확인`),900); }
@@ -6401,7 +6431,7 @@ function liveResume(o,ix){
   Object.assign(S,o);
   if(typeof ix==='number')pendingIx=ix;
   if(S.hr)S.hr.dev=null;
-  if(S._fin){ S.running=false; renderSummary(!!S._fin.completed); show('sum'); return; }
+  if(S._fin){ S.running=false; renderSummary(!!S._fin.completed); try{ if(autoSaveOk(S.result))commitRun(); }catch(e){} try{ sumButtons(); }catch(e){} show('sum'); return; }   /* 끝난 뒤 저장 안 된 채 남은 것(예전 판에서 넘어옴 포함)도 바로 저장 */
   /* 이어서 — 꺼져 있던 동안은 멈춘 것으로. 다시 시작하면 그 자리부터 잰다 */
   S.running=true; S.paused=true; S._p=Date.now();
   S.pausedAt=(Date.now()-S.t0)/1000-(S.elapsed||0);
@@ -6421,6 +6451,11 @@ function liveResume(o,ix){
 }
 /* 저장 없이 닫기 — 한 번 더 묻는다 */
 $('btnDone').onclick=async()=>{
+  if(S.result&&S.result._saved){   /* 이미 저장됨 — 지울지 한 번 묻고 지운다 */
+    const r=S.result;
+    if(r.act&&r.act!=='run'){ const j=ACTS.indexOf(r); if(j<0||!(await ask('이 기록을 삭제할까요?','삭제',true)))return; ACTS.splice(j,1); DEV.store.set('acts',ACTS); try{ markDeleted&&markDeleted(r.rid); }catch(e){} if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); }
+    else { const i=RUNS.indexOf(r); if(i<0)return; const n0=RUNS.length; await deleteRun(i); if(RUNS.length===n0)return; }
+    S._post={done:true}; S.result=null; go('home'); toast('기록을 지웠어요'); return; }
   if(S.result&&!S.result._saved){
     const km=(S.result.km||0);
     const ok=await askSheet({title:'저장하지 않고 닫을까요?',danger:true,text:`${km.toFixed(2)}km 기록이 지워지고 되돌릴 수 없어요.`,yes:'저장 없이 닫기',no:'돌아가기'});
@@ -10270,8 +10305,23 @@ function contParts(rid){ return RUNS.filter(x=>x&&x.contOf===rid); }
 function contTotal(r){ return +((((r.own?r.own.km:r.km)||0)+contParts(r.rid).reduce((a,x)=>a+(+x.km||0),0))).toFixed(3); }
 function contLeft(r){ if(!r||!r.planKm||r.contOf)return 0; return Math.max(0,+(r.planKm-contTotal(r)).toFixed(1)); }
 function contCan(r,sess){ return !!(r&&sess&&r.planId===sess.d&&ldate(r.date).slice(0,10)===todayStr()&&CONT_T.includes(r.type)&&!r.manual&&!r.rw&&contLeft(r)>=0.5); }
-function contSess(b){ const ms=mainSeg(b)||{}, left=CONT.left;
-  return Object.assign({},b,{dist:left,t:`${String(b.t||'').replace(/\s*\d+(?:\.\d+)?km/,'').trim()} 이어서 ${fmtKm1(left)}km`,segs:[{to:left,nm:ms.nm||tm('easy'),pace:ms.pace||PACE.easy,tol:ms.tol||20}],cont:CONT.rid}); }
+/* 이어서 뛸 일정 — 원래 일정에서 이미 뛴 거리 뒤의 구간을 그대로 이어 붙인다(쿨다운·LSD 후반 목표 속도 등).
+   전엔 남은 거리를 이지런 한 구간으로만 만들어 쿨다운이 사라졌다(2026-11-16 실제 기기).
+   멈춘 지 20분 넘었으면 웜업을 다시 넣는다 — 웜업 효과(근육 온도)는 쉬고 15~20분이면 대부분 사라진다(Bishop 2003, Sports Med). 웜업 거리는 남은 본 구간에서 뺀다(총 거리 그대로) */
+function contSess(b){ const ms=mainSeg(b)||{}, left=CONT.left, r=RUNS.find(x=>x.rid===CONT.rid);
+  const tot=(+b.dist||0)||(r&&r.planKm)||left, done=Math.max(0,tot-left), G=(b.segs||[]).filter(g=>g&&isFinite(g.to));
+  let segs=[]; let prev=0;
+  G.forEach(g=>{ const a=prev, z=+g.to; prev=z; if(z<=done+0.05)return; const len=z-Math.max(a,done); if(len<0.05)return;
+    segs.push(Object.assign({},g,{len})); });
+  if(!segs.length) segs=[{nm:ms.nm||tm('easy'),pace:ms.pace||PACE.easy,tol:ms.tol||20,len:left}];
+  /* 쉰 시간 — 앞 기록(과 이어 뛴 조각들) 중 가장 늦게 끝난 때부터 */
+  const P=r?[r].concat(contParts(r.rid)):[], endAt=P.reduce((m,x)=>Math.max(m,Date.parse(x.date)+(+x.sec||0)*1000),0), gap=endAt?(Date.now()-endAt)/60000:0;
+  const W=G.find(g=>g.nm===tm('warm')), hasW=segs[0]&&segs[0].nm===tm('warm');
+  if(W&&!hasW&&gap>=20){ const wl=Math.min(1,+W.to||1), mi=segs.findIndex(g=>!isCool(g)&&g.nm!==tm('warm')&&!g.hard);
+    if(mi>=0&&segs[mi].len-wl>=1){ segs[mi].len-=wl; segs.unshift(Object.assign({},W,{len:wl,again:true})); } }
+  let acc=0; segs=segs.map(g=>{ acc+=g.len; const o=Object.assign({},g,{to:+acc.toFixed(3)}); delete o.len; return o; });
+  segs[segs.length-1].to=left;   /* 반올림 끝을 남은 거리에 맞춘다 */
+  return Object.assign({},b,{dist:left,t:`${String(b.t||'').replace(/\s*\d+(?:\.\d+)?km/,'').trim()} 이어서 ${fmtKm1(left)}km`,segs,cont:CONT.rid,contGap:Math.round(gap)}); }
 /* 앞 기록에 조각을 합친다 — 앞 기록 자신의 값은 own에 남겨 두고(조각을 지우면 되돌린다), 판정에 쓰는 비율만 합친 값으로 */
 function contMerge(rid){ const r=RUNS.find(x=>x.rid===rid); if(!r)return;
   const P=contParts(rid);
