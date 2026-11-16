@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.87';
+const APPVER='20.88';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9431,7 +9431,10 @@ function inPlan(ds){ if(!hasPlan()||!BLOCK.length)return false; const b0=BLOCK[0
   return ds>=st&&ds<=addDays(BLOCK[BLOCK.length-1].d.slice(0,10),1); }
 /* 약속이 시작된 날 — 지난 4주가 있으면 그 첫날, 없으면 일정을 만든 날. 그 전 날의 일정 칸은 약속이 아니었다 */
 function planFrom(){ const p0=PLAN&&PLAN.past&&PLAN.past.length?String(PLAN.past[0].d).slice(0,10):null;   /* 지난 4주가 있으면 그 첫날부터가 약속 */
-  return p0||(PLAN&&(PLAN.since||PLAN.made)?ldate(PLAN.since||PLAN.made).slice(0,10):null); }
+  const f=p0||(PLAN&&(PLAN.since||PLAN.made)?ldate(PLAN.since||PLAN.made).slice(0,10):null);
+  /* 처음 목표를 세운 날보다 앞은 약속이 아니었다 — 목표를 바꾸면 '지난 4주'가 그 앞 날까지 덮어, 이미 '일정 전'이던 날이 '못 함'으로 바뀌었다(지난 판정이 바뀜, 2026-11-16 시험) */
+  let g0=null; try{ (GLOG||[]).forEach(g=>{ const m=g&&g.made?(String(g.made).length>10?ldate(g.made):String(g.made)).slice(0,10):null; if(m&&(!g0||m<g0))g0=m; }); }catch(e){}
+  return f&&g0&&g0>f?g0:f; }
 function dayStatus(ds){
   const today=todayStr();
   if(ds>today)return 'future';
@@ -9691,7 +9694,8 @@ function restMissions(k){
 var MISSIONS=restMissions('str');
 function MIS_ALL(){ const o={}; ['str','recov','race'].forEach(k=>restMissions(k).forEach(x=>{ if(!o[x.k])o[x.k]=x; })); return Object.values(o); }   /* 옛 코드 호환 */
 function restMis(ds){ const r=RESTLOG[ds]||{}; return r.m||{}; }
-function restScore(ds){ const K=restKind(ds); if(K.k==='plain')return null; const M=restMissions(K.k), m=restMis(ds);
+function restScore(ds){ const K=restKind(ds); if(K.k==='plain')return null;
+  { const pf=planFrom(); if(pf&&ds<pf)return null; }   /* 일정을 만들기 전 쉬는 날은 점수 없음 — 전엔 '0점'으로 찍혔다 */ const M=restMissions(K.k), m=restMis(ds);
   /* 그날 뛰었으면: 가볍게(심박·속도 상한 안) = '뛰지 않기'만 잃음, 빠르게 = 0 */
   const runs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds);
   let got=0; const parts=[]; M.forEach(x=>{ if(!x.pts)return; let ok=!!m[x.k]; if(x.k==='norun'&&runs.length)ok=false; if(ok)got+=x.pts; parts.push([x.t.split(' — ')[0],ok?x.pts:0,x.pts]); });
@@ -10157,6 +10161,20 @@ function heroShape(sess,k1,k2){
   return `<button type="button" class="hero-shape" data-plan="1" aria-label="오늘 계획 자세히 보기"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${bars}</svg></button>`;
 }
 
+/* 프리런을 나중에 '오늘 훈련으로 기록' — 판정에 쓰는 값(약속 거리·거리 비율·속도 상한·상한보다 빨랐던 시간·심박)을 그 훈련 기준으로 다시 잰다.
+   예전엔 계획 칸만 붙이고 이 값들이 비어, 3km를 빨리 뛰어도 '가지런했습니다 — 약속대로 · 빨랐던 시간 0%'로 나왔다.
+   뛸 때 1초마다 잰 기록이 아니라 1km 기록(없으면 평균)으로 재므로 r.linkJudge로 표시해 둔다 */
+function linkToPlan(r,s){
+  const T=TYPES[s.type]||{}, pk=sKm(s)||null;
+  Object.assign(r,{planId:s.d,title:s.t||r.title,planKm:pk,distRatio:pk?+(r.km/pk).toFixed(3):null,ceiling:s.ceiling||null,hrCap:(T.hrZone&&T.hrZone[1])||null,linkJudge:true});
+  if(!r.type||r.type==='free')r.type=s.type;
+  const sp=(r.splits||[]).filter(x=>x&&x.pace&&x.time), tot=sp.reduce((a,x)=>a+x.time,0);
+  if(r.ceiling){ r.ceilRatio=tot>0?+(sp.filter(x=>x.pace<r.ceiling).reduce((a,x)=>a+x.time,0)/tot).toFixed(3):(r.paceAvg&&r.paceAvg<r.ceiling?1:0); r.ceilSec=Math.round(r.ceilRatio*(r.sec||0)); }
+  /* 심박 — 경로에 심박이 있으면 상한+3을 넘은 시간 비율 */
+  const tr=(r.track||[]).filter(p=>p&&p.hr&&p.t!=null);
+  if(r.hrCap&&tr.length>10){ let over=0, all=0; for(let i=1;i<tr.length;i++){ const dt=tr[i].t-tr[i-1].t; if(!(dt>0&&dt<60))continue; all+=dt; if(tr[i].hr>r.hrCap+3)over+=dt; } if(all>0){ r.hrOverRatio=+(over/all).toFixed(3); r.hrOverSec=Math.round(over); } }
+  else if(r.hrOverRatio==null) r.hrOverRatio=0;
+}
 /* ───────── 이어서 뛰기 ─────────
    오늘 훈련을 뛰고 끝냈는데 거리가 모자라면, 같은 날 남은 거리를 나중에(다른 시간·다른 장소) 이어 뛴다 — 미리 정하지 않아도 된다(2026-11-16 요청).
    뒤 기록(조각)은 contOf로 앞 기록에 붙고, 판정·점수는 앞 기록에서 합친 값으로 한 번. 마일리지·주간 거리·신발은 두 기록이 각자 들어가 합이 맞다.
@@ -10211,7 +10229,7 @@ document.addEventListener('click',e=>{
   const c=e.target.closest('[data-tcont]'); if(c){ const r=RUNS.find(x=>x.rid===c.dataset.tcont), ix=r?BLOCK.findIndex(b=>b.d===r.planId):-1; if(r&&ix>=0&&contLeft(r)>=0.5){ CONT={rid:r.rid,ix,left:contLeft(r)}; openConfirm(ix); } return; }
   const at=e.target.closest('[data-tattach]'); if(at){ const x=RUNS.find(y=>y.rid===at.dataset.tattach), f=RUNS.find(y=>y.rid===at.dataset.to);
     if(x&&f){ x.contOf=f.rid; x.planId=null; contMerge(f.rid); DEV.store.set('runs',RUNS); afterRunsChanged(); toast(`이어 붙임 · 합계 ${fmtKm1(contTotal(f))}km`); } return; }
-  const l=e.target.closest('[data-tlink]'); if(l){ const r=RUNS.find(x=>x.rid===l.dataset.tlink), s=planOn(todayStr()); if(r&&s){ r.planId=s.d; if(!r.type||r.type==='free')r.type=s.type; DEV.store.set('runs',RUNS); renderHome(); toast('오늘 훈련으로 기록'); } return; }
+  const l=e.target.closest('[data-tlink]'); if(l){ const r=RUNS.find(x=>x.rid===l.dataset.tlink), s=planOn(todayStr()); if(r&&s){ linkToPlan(r,s); DEV.store.set('runs',RUNS); afterRunsChanged(); toast('오늘 훈련으로 기록'); } return; }
   if(e.target.closest('[data-tstr]')){ stOpen('stat'); return; }
 });
 /* '건너뛰기'로 정한 날 — 일정에서 지우지 않고(지난 기록·계획은 남긴다) '건너뜀'으로 표시한다.
@@ -11200,7 +11218,7 @@ function promiseRows(r,s){
   if(kind==='kept'&&T.judgeBy!=='distance'&&r.distRatio!=null&&r.distRatio<th.dist)kind='keptShort';
   return {rows,kind};
 }
-const VERD={rwkept:['완주 — 가지런했습니다','ok'],rwshort:['중도 종료 — 다음 반영','mid'],rwpain:['통증 → 다음 단계↓','mid'],short0:['짧아 판정 없음','mid'],kept:['가지런했습니다 — 약속대로','ok'],keptShort:['속도는 약속대로 · 거리는 모자람','mid'],softfast:['회차 가지런 · 빠름','mid'],fast:['거리 지킴 · 속도 초과','bad'],spread:['뒤 회차 늦어짐','bad'],
+const VERD={rwkept:['완주 — 가지런했습니다','ok'],rwshort:['중도 종료 — 다음 반영','mid'],rwpain:['통증 → 다음 단계↓','mid'],short0:['짧아 판정 없음','mid'],kept:['가지런했습니다 — 약속대로','ok'],keptShort:['속도는 약속대로 · 거리는 모자람','mid'],softfast:['회차 가지런 · 빠름','mid'],fast:['속도 초과','bad'],spread:['뒤 회차 늦어짐','bad'],
   slow:['회차 목표 미달','mid'],off:['구간 속도 미달','mid'],short:['거리 미달','mid'],hr:['심박 초과','mid'],easyreps:['고르고 가볍게 끝남','ok']};
 
 /* ───────── 결과 화면 ─────────
@@ -13876,11 +13894,14 @@ function futureListHTML(){
     const max=Math.max(1,...items.map(x=>x.dist||0));
     const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>x.d.slice(0,10)===ds&&x.type!=='off');
       const dn=`<span class="pd-dt"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`;
+      /* 신청한 대회(내 대회) — 예상 주에도 보인다. 예전엔 목표 대회만 표시해, 추가한 대회가 이 주가 확정될 때까지 일정 어디에도 안 보였다 */
+      const ur=uprAll().find(r=>r.date===ds&&!(g&&g.date&&g.date.slice(0,10)===ds));
+      if(ur)return `<div class="pd-row race">${dn}<span class="pd-rest" style="color:var(--bad-ink);font-weight:700">★ 신청한 대회 — ${ESC(ur.name||UPR_NM(ur.m))}${ur.sec?' '+fmtClock(ur.sec):''} · ${UPR_TAG[uprRole(ur)]?UPR_TAG[uprRole(ur)][0]:''}</span></div>`;
       if(!L.length)return g&&g.date&&g.date.slice(0,10)===ds?`<div class="pd-row race">${dn}<span class="pd-rest" style="color:var(--bad-ink);font-weight:700">★ 대회 — ${g.m?gdLabel(g.m):''}${g.sec?' '+fmtClock(g.sec):''}</span></div>`:`<div class="pd-row rest">${dn}<span class="pd-rest">쉬는 날</span></div>`;
       return L.map(x=>{ const col=(TYPES[x.type]||{}).col||'#5B2D86';
         return `<div class="pd-row" style="--tc:${col}">${dn}<span class="pd-main" style="cursor:default"><span class="pd-bar"><i style="height:${Math.max(18,(x.dist||0)/max*100)}%"></i></span>
           <span class="pd-tx"><b>${ESC(String(x.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${boldNums(summary(x))}</i></span></span></div>`; }).join(''); }).join('');
-    return `<section class="pw pw-f fu${pwFold(mon,false)?' fold':''}" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b><span class="pw-role fu">예상</span>${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
+    return `<section class="pw pw-f fu${pwFold(mon,false)?' fold':''}" data-pwm="${mon}"><header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b><span class="pw-role fu">예상</span>${uprAll().some(r=>r.date>=mon&&r.date<=sun)?'<span class="pw-role">대회 · 확정 때 맞춰 조정</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
       <i>${mon.slice(5).replace('-','.')} – ${sun.slice(5).replace('-','.')}</i></div></div><span class="pw-km"><b class="num">${fmtKm1(km)}</b>km</span></header><div class="pw-rows">${rows}</div></section>`; }).join('');
 }
 function pgU(h){ return String(h).replace(/(\d)(km|m)(?![a-z])/g,'$1<small>$2</small>'); }   /* 좁은 칸: 단위만 작게 — 숫자가 두 줄로 깨지지 않게 */
