@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.96';
+const APPVER='20.97';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4244,6 +4244,7 @@ function voiceClean(t){ return String(t||'')
   .replace(/\s*[→⇒➜]\s*/g,', ').replace(/\s*[—–]\s*/g,', ')
   .replace(/([^\s,])\s*↑/g,'$1 늘어남').replace(/([^\s,])\s*↓/g,'$1 줄어듦').replace(/[↑↓]/g,'')
   .replace(/♥\s*/g,'심박 ').replace(/\/km/g,' 킬로당').replace(/(\d)\s*~\s*(\d)/g,'$1에서 $2').replace(/~/g,'')
+  .replace(/(\d+)\s*×\s*(\d[\d.]*\s*(?:km|m|분|초))/g,'$2 $1번').replace(/\s*×\s*(\d+)(?:\s*(?:회|번))?(?![\d.:'"]|\s*(?:m|km|분|초|킬로|미터))/g,' $1번').replace(/(\S)\s+\+\s+(?=\S)/g,'$1, ')   /* '뛰기 1분 + 걷기 2분 × 5' → '뛰기 1분, 걷기 2분 5번' — 전엔 ×가 지워져 '2분 5'로 읽혔다 */
   .replace(/\s*·\s*/g,', ').replace(/[✓✔✗✕×▶⏸•※★☆]/g,' ').replace(/[%]/g,'퍼센트')
   .replace(/(,\s*){2,}/g,', ').replace(/^\s*,\s*/,''); }
 const fmtPaceVoice=s=>{const r=Math.round(s),m=Math.floor(r/60),x=r%60;return x?`${m}분 ${x}초`:`${m}분`;};
@@ -5388,6 +5389,8 @@ function cadence(){
    창 길이는 GPS 정확도에 맞춘다: 좋으면 15초, 나쁘면 30초 — 잡음이 클수록 길게 평균 낸다 */
 /* 구간이 바뀐 뒤 이 시간 안에는 속도로 판정·교정하지 않는다 — 지금 페이스는 최근 30초(PACE_SPAN)로 재서 앞 구간 속도가 섞인다.
    전엔 회차 20초·쉬는 구간 15초·쿨다운 30초로 제각각이라, 회차 20~30초에 '느려요'가 나갔다(2026-11-17 시험) */
+/* 심박이 걸음을 읽는지는 뛰는 걸음 수(1분 130보 이상)에서만 본다 — 걷는 걸음 수(100~130보, Tudor-Locke 2019)는 걷는 심박과 우연히 겹쳐, 멀쩡한 심박을 버렸다(2026-11-17 시험) */
+const LOCK_CAD=130;
 const PACE_SPAN=30, segSettled=()=>(S.elapsed-((S.segStart&&S.segStart.t)||0))>=PACE_SPAN;
 function curPace(){
   if(S.gpsGap||(S.gapEndEl&&S.elapsed-S.gapEndEl<20))return NaN;   /* 돌아온 직후 15초는 창이 비어 있어 느리게 나온다 — 그동안도 멈춤. GPS가 끊긴 동안은 페이스를 계산하지 않는다 — 시간만 흐르고 거리가 안 늘어 '어마어마하게 느린' 값이 나왔다 */
@@ -5446,7 +5449,7 @@ function onTick(){
       /* 계획을 다 뛰었다고 멈추지 않는다 — 더 뛰면 기록·1km 안내·심박을 그대로 이어간다. 끝내는 건 사용자가 정지로 */
       closeSegAt(); S.extra={km,t:S.elapsed,ceil0:S.ceilSec,hr0:S.hrOverSec}; DEV.buzz([250,90,250]);
       if(s.rw) DEV.speak(`${s.rw.check?'기본 상태 체크':'걷기와 달리기'} 완료, 시간 ${fmtTimeVoice(S.elapsed)}. 수고했어요.`,false,true); else
-      DEV.speak(`${s.dist%1?(+s.dist).toFixed(1):s.dist}킬로 완료, ${fmtTimeVoice(S.elapsed)}. 끝내려면 정지하세요.`,false,true); }
+      DEV.speak(`${s.dist%1?(+s.dist).toFixed(1):s.dist}킬로 완료, ${fmtTimeVoice(S.elapsed)}. 끝내려면 일시정지 뒤 종료를 길게 누르세요.`,false,true); }
   }
   /* 계획 전체 기준 — 절반 지점, 거의 다 왔을 때 */
   if(S.act==='run'&&s.type!=='free'&&s.dist>=2&&!S.extra){ const pk=+s.dist, left=pk-km, avgP=km>0?S.elapsed/km:NaN;
@@ -5499,7 +5502,7 @@ function onTick(){
   if(!S.hr.bpm&&!S.hr.frozen){ $('rHR').textContent='—'; $('rHRZ').textContent=(S.hr.dev||BT.dev)?'연결됨 · 대기':'미연결'; }
   if(S.hr.frozen&&S.hr.raw){ $('rHR').textContent=S.hr.raw; $('rHRZ').textContent='값 멈춤 · 미사용';
     if(!S.frozenCue&&S.running){ S.frozenCue=true; DEV.speak('심박이 30초째 같아요. 운동 모드를 켜세요. 판정은 멈춰요.'); } }
-  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':S.hrLocked?'걸음과 같음 · 미사용':(S.cad&&S.cad.spm&&S.hr.bpm>100&&Math.abs(S.hr.bpm-S.cad.spm)<=3)?'걸음 수와 같음 · 확인 중':hrZone(S.hr.bpm);
+  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':S.hrLocked?'걸음과 같음 · 미사용':(S.cad&&S.cad.spm>=LOCK_CAD&&S.hr.bpm>100&&Math.abs(S.hr.bpm-S.cad.spm)<=3)?'걸음 수와 같음 · 확인 중':hrZone(S.hr.bpm);
     /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다.
        심박이 걸음 박자를 따라가는 동안(잠김)은 세지 않는다 — 전엔 판정에선 빼고 존 시간엔 넣어, 결과에 '상한 37/40'과 'Z4 이상 82%'가 같이 나왔다(2026-11-16 실제 기기) */
     if(S.hrLocked&&!S.paused)S.lockedSec+=Math.min(TD,5);
@@ -5536,7 +5539,7 @@ function onTick(){
   /* 심박은 1~3분 늦게 올라온다 — 처음 5분(빠른 구간 제외)은 심박으로 판정하지 않는다 (생리 B) */
   const hrWarm=!tg.hard&&S.elapsed<300;
   /* 심박이 지금 걸음 수와 같다(±3) — 잠김인지 확인하는 60초 동안은 심박으로 판정·경고하지 않는다. 전엔 이 사이에 빨간 화면·'늦추세요'가 먼저 나가고 잠김 뒤 초록으로 바뀌었다 */
-  const hrLockPend=!!(S.hr.bpm&&!S.hrLocked&&S.cad&&S.cad.spm&&Math.abs(S.hr.bpm-S.cad.spm)<=3&&S.hr.bpm>100);
+  const hrLockPend=!!(S.hr.bpm&&!S.hrLocked&&S.cad&&S.cad.spm>=LOCK_CAD&&Math.abs(S.hr.bpm-S.cad.spm)<=3&&S.hr.bpm>100);
   if(S.hr.bpm&&!S.hrLocked&&!hrLockPend&&!hrWarm&&HZ&&HZ[1]){
     if(S.hr.bpm>HZ[1]+3){ if(!repInfoOnly)S.hrOverSec+=Math.min(TD,5); S.hrHoldSec+=Math.min(TD,5); hrOver=true; }   /* 판정 누적도 음성 큐와 같은 여유(+3) — 참고만 하는 구간은 누적하지 않는다 */
     else S.hrHoldSec=0;
@@ -5615,7 +5618,7 @@ function onTick(){
     if(S.extra&&!S.extraWarned){ const main=Math.max(0,(+s.dist||0)-((segs[0]&&segs[0].to)||0)), lim=Math.max(2,main*0.2), ex=km-S.extra.km;
       if(ex>=lim){ S.extraWarned=true; DEV.speak(`${ex.toFixed(1)}킬로 초과, 끝내도 돼요.`,true); } } }
   /* 심박 = 케이던스 잠김 — 60초 넘게 심박이 걸음 수와 ±3 안으로 붙어 있으면 심박을 판정에 쓰지 않는다 (C) */
-  if(S.hr.bpm&&S.cad&&S.cad.spm){ const lk=Math.abs(S.hr.bpm-S.cad.spm)<=3; S.lockSec=lk?(S.lockSec||0)+TD:Math.max(0,(S.lockSec||0)-TD*2);
+  if(S.hr.bpm&&S.cad&&S.cad.spm&&!T.noHR){ const lk=S.cad.spm>=LOCK_CAD&&Math.abs(S.hr.bpm-S.cad.spm)<=3; S.lockSec=lk?(S.lockSec||0)+TD:Math.max(0,(S.lockSec||0)-TD*2);
     if(S.lockSec>60&&!S.hrLocked){ S.hrLocked=true; S.unlockSec=0;
       { const back=Math.min(60,S.lockSec), zi=Math.min(4,hrZoneIx(S.hr.bpm)-1); if(S.zoneSec){ const mv=Math.min(back,S.zoneSec[zi]); S.zoneSec[zi]-=mv; S.lockedSec+=mv; } }   /* 감지하는 동안 쌓인 값도 걸음이었다 */ if(!S.hrLockSaid){ S.hrLockSaid=true; DEV.speak('심박이 걸음 수와 같아요. 심박계가 걸음을 읽는 중이라 속도로 코칭합니다.',true); } }
     /* 풀림 — 심박과 걸음 수가 8 넘게 90초 이어서 갈라지면 다시 심박으로. 전엔 한 번 잠기면 끝까지 잠겨 있었다 */
@@ -5772,7 +5775,7 @@ function onTick(){
       else if(T.primary==='hr'&&S.hrLocked&&!lg.hard){ msg+='느림 허용. '; verdictTxt='목표대로'; }   /* 심박을 못 믿는 쉬운 날 — 진짜 심박이 높을 수 있으니 빨리 뛰라고 하지 않는다 */
       else { msg+=`${d}초 느려요. 속도를 올리세요. `; verdictTxt=`${d}초 느림`; }
       if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly&&!S.hrLocked)msg+=`심박 ${lapHR}, 상한 ${HZ[1]}보다 높아요. `;
-    } else if(lapHR){ msg+=`평균 심박 ${lapHR}. `; }
+    } else if(lapHR&&!S.hrLocked){ msg+=`평균 심박 ${lapHR}. `; }   /* 걸음을 읽는 심박은 숫자로도 말하지 않는다 */
     /* 1km 안내는 사용자가 무조건 듣기로 한 것 — 조용히·간격 제한에 걸리지 않게 critical로 낸다 */
     if(!(S.act&&S.act!=='run')){ DEV.speak(msg,false,true); DEV.buzz(BZ.tick); }   /* 앞말을 끊지 않고 뒤에 이어서 — 걷기·등산·자전거는 actTick이 따로 짧게 말한다 */
     S.liveRows.push({kind:'lap',nm:`${S.lapKm}km`,actual:lapPace,time:dt,hr:lapHR,cad:lapCad,note:verdictTxt});
@@ -5983,7 +5986,7 @@ function finish(completed){
   else closeSegAt();
   renderSummary(completed);
   S._fin={completed:!!completed}; liveSave();
-  try{ if(autoSaveOk(S.result))commitRun(); }catch(e){ console.error('auto save',e); }   /* 정지하면 바로 저장 — 실수로 켰다 끈 것만 묻는다 */
+  try{ if(autoSaveOk(S.result))commitRun(); }catch(e){ console.error('auto save',e); }   /* 종료하면 바로 저장 — 실수로 켰다 끈 것만 묻는다 */
   try{ sumButtons(); }catch(e){}
   DEV.speak(completed?`완료. ${(S.dist/1000).toFixed(1)}킬로미터, ${fmtTimeVoice(S.elapsed)}. 수고하셨습니다.`:'세션을 종료했습니다.',true);
 
@@ -10579,6 +10582,8 @@ function goalStrip(){
    판정 기준은 결과 화면과 같은 judgeTh()의 숫자. 잴 수 없는 항목은 빼고 100으로 환산한다 ───────── */
 function runScore(r,s){ try{
   if(!r||!isRun(r)||r.type==='free')return null;
+  /* 걷기+달리기·상태 체크 — 약속은 '끝까지 하기'(judgeBy:'complete')다. 전엔 거리 계획이 0이라 '거리 0/40'으로 완주해도 50점이 나왔다(2026-11-17 시험) */
+  if(r.rw){ const tot=+r.rw.totSec||0, v=r.rw.done?100:tot?Math.round(100*Math.min(0.99,(+r.sec||0)/tot)):0; return {score:v,parts:[['계획 완주',v,100]]}; }
   const th=r.th||judgeTh(), T=TYPES[r.type]||{}, P=[];
   const ratio=r.distRatio!=null?r.distRatio:(s&&s.dist?r.km/s.dist:null);
   if(ratio!=null) P.push(['거리',Math.round(40*Math.min(1,ratio/th.dist)),40]);
@@ -11247,7 +11252,10 @@ function routeWire(root,r,st,full){
   const pcol=v=>{ const f=Math.max(0,Math.min(1,(pcd.hi-v)/Math.max(10,pcd.hi-pcd.lo))); return PACE_COLS[Math.round(f*(PACE_COLS.length-1))]; };
   const paint=()=>{ const pace=st.mode==='pace'&&!!pcd.lo, g=grp(), G=g?GR[g]:null;
     if(G&&st.sel!=null&&st.sel>=G.laps.length)st.sel=null; if(!G)st.sel=null;
-    const LS=G?lapStats(r.track,G):null, fullOK=LS&&g==='km'?LS.filter(x=>!x.part&&x.pace):[], fast=fullOK.length>1?fullOK.reduce((m,x)=>x.pace<m.pace?x:m):null;
+    const LS=G?lapStats(r.track,G):null;
+    /* 거리별 칸의 1km 페이스는 1km 기록표(r.splits)와 같은 값으로 — 경로 점으로 다시 재면 몇 초씩 달랐다(음성 10분 8초 · 칸 10'04", 2026-11-17 시험) */
+    if(LS&&g==='km')LS.forEach(x=>{ if(x.part)return; const sp=(r.splits||[]).find(z=>z&&!z.part&&+z.km===x.j+1&&z.pace>0); if(sp){ x.pace=sp.pace; if(sp.time)x.dt=sp.time; x.m=1000; if(sp.hr)x.hr=sp.hr; } });
+    const fullOK=LS&&g==='km'?LS.filter(x=>!x.part&&x.pace):[], fast=fullOK.length>1?fullOK.reduce((m,x)=>x.pace<m.pace?x:m):null;
     sw.hidden=!pcd.lo; sw.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.mm===st.mode));
     paintMap(mh,pace?pcd.tr:r.track,r.segments,null,{laps:st.sel!=null?G:null,sel:st.sel,full,onTap:full?null:()=>routeFull(r,st,paint)});
     if(pace) lg.innerHTML=`<span class="pgl">더 느림 ${fmtPace(pcd.hi)}</span><span class="pgr">${PACE_COLS.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="pgl">${fmtPace(pcd.lo)} 더 빠름</span>`;
@@ -11837,13 +11845,13 @@ function voiceTick(km,tg,segs,p){
   else { leftM=(tg.to-km)*1000; leftS=leftM/Math.max(0.5,spd); }
   /* 다음이 '빠르게' 회차일 때만 미리 알린다 */
   if(nx&&nx.hard&&VOPT.pre){
-    const L=repLabel(nx,segs);
+    const L=repLabel(nx,segs), Lv=L==='마지막'?'마지막 회차':L;
     if(leftM!=null){
       const segLen=(tg.to-(S.segIx?segs[S.segIx-1].to:0))*1000;
-      if(!c.p300&&segLen>=500&&leftM<=300&&leftM>110){ c.p300=1; DEV.speak(`300미터 뒤 ${L} 시작입니다.`); }
-      if(!c.p100&&leftM<=100&&leftS>7){ c.p100=1; DEV.speak(`100미터 뒤 ${L}입니다.${hrNote()}`); }
+      if(!c.p300&&segLen>=500&&leftM<=300&&leftM>110){ c.p300=1; DEV.speak(`300미터 뒤 ${Lv} 시작입니다.`); }
+      if(!c.p100&&leftM<=100&&leftS>7){ c.p100=1; DEV.speak(`100미터 뒤 ${Lv}입니다.${hrNote()}`); }
     } else {
-      if(!c.s30&&leftS<=30&&leftS>12&&tg.sec>=45){ c.s30=1; DEV.speak(`${L} 30초 전입니다.${hrNote()}`); }
+      if(!c.s30&&leftS<=30&&leftS>12&&tg.sec>=45){ c.s30=1; DEV.speak(`30초 뒤 ${Lv} 시작입니다.${hrNote()}`)   /* 전엔 '마지막 30초 전입니다' — 끝나기 30초 전으로 들렸다. 거리 예고('300미터 뒤 … 시작입니다')와 같은 꼴로 */; }
       if(!c.s10&&leftS<=10&&leftS>6){ c.s10=1; DEV.speak(`10초 전입니다.`); }
     }
     if(VOPT.count&&!c.cd&&leftS<=5.2&&leftS>0.5){ c.cd=1; VC.counted=S.segIx; const cs=S.segIx;
@@ -14480,7 +14488,7 @@ function openDebrief(r,s){
       <div class="db-btns"><button type="button" class="btn" id="dbOk">반영</button><button type="button" class="btn ghost" id="dbNo">그대로</button>${snapBtn('#dbBody','debrief','훈련 돌아보기','wide')}</div></div>`
       :`<div class="db-btns one"><button type="button" class="btn" id="dbNo">확인</button>${snapBtn('#dbBody','debrief','훈련 돌아보기','wide')}</div>`}`;
   const sh=$('dbSheet'); sh.hidden=false; sh.scrollTop=0; requestAnimationFrame(()=>sh.classList.add('up'));
-  try{ const g=P.good[0], b=P.bad[0]; DEV.speak(`${vd?vd[0]:'수고했어요'}. ${g?`${g[0]} ${g[1]}.`:''} ${b?`${b[0]} ${b[1]}.`:''}`,true); }catch(e){}
+  try{ const g=P.good[0], b=P.bad[0]; DEV.speak(`${vd?vd[0]:'수고했어요'}. ${g?`${g[0]}, ${g[1]}.`:''} ${b?`${b[0]}, ${b[1]}.`:''}`,true); }catch(e){}
 }
 function closeDebrief(applied){ const sh=$('dbSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200);
   try{ BLOCK=loadPlan(); }catch(e){} go('home'); if(applied)setTimeout(()=>toast(applied),80); DBF=null; }
