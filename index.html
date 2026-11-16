@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.90';
+const APPVER='20.91';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4732,7 +4732,7 @@ function renderAlerts(){
       if(k==='miss'){ const m=missedDay(); if(m)openMissed(m); }
       else if(k==='tmiss'){ const m=todayUndone(); if(m)openMissed(m); }
       else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
-      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); };
+      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); else if(k==='goalEnd')openGoalEnd(); };
     ph.appendChild(b); });
   /* 지난 결정 — 예전 플랜의 '결정 기록' 탭을 여기로 합쳤다 */
   renderDecLog($('alDone'));
@@ -6186,7 +6186,8 @@ function renderSummary(completed){
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
   $('sWeather').innerHTML=WEATHER.map(w=>`<button class="tag" data-w="${w}">${w}</button>`).join('');
   if(S.contOf){ S.result.contOf=S.contOf; S.result.planId=null; }
-  if(s&&s.race)S.result.race=Object.assign({},s.race);   /* 신청한 대회 날 — 저장할 때 대회 기록으로 남긴다 */   /* 이어서 뛴 조각 — 계획 칸은 앞 기록이 가진다 */
+  if(s&&s.race)S.result.race=Object.assign({},s.race);
+  else if(!S.act||S.act==='run'){ try{ const g=GOAL; if(g&&g.m&&(g.kind==='race'||g.kind==='finish')&&g.date&&String(g.date).slice(0,10)===ldate(S.result.date).slice(0,10)&&!S.contOf)S.result.race={goal:true,name:goalLabel(g),role:'goal',m:g.m}; }catch(e){} }   /* 일정에 대회 칸이 없던 예전 일정도 목표 날 기록은 대회로 */   /* 신청한 대회 날 — 저장할 때 대회 기록으로 남긴다 */   /* 이어서 뛴 조각 — 계획 칸은 앞 기록이 가진다 */
   if(S.act&&S.act!=='run'){ Object.assign(S.result,{act:S.act,title:ACTK[S.act].nm,name:ACTK[S.act].nm,steps:(S.cad&&S.cad.steps)||null}); }
   try{ SH.fromView='sum'; if(S.act&&S.act!=='run')renderActResult($('sNew'),S.result); else renderResult($('sNew'),S.result,(s.d==='free'||S.contOf)?null:s,{noPoints:s.d!=='free'}); }catch(e){ console.error(e); $('sOld').hidden=false; }
   /* 이어서 뛴 조각 — 이 조각만으로 판정하지 않고, 합친 거리를 먼저 보여 준다 */
@@ -9238,7 +9239,15 @@ function uprFix(p){ try{
   const ranOn=d=>RUNS.some(r=>{ try{ return ldate(r.date).slice(0,10)===d; }catch(e){ return false; } });
   const mids=uprAll().filter(r=>(r.date>=t||(r.date>=addDays(t,-14)&&ranOn(r.date)))&&(!gd||r.date<gd)&&lastD&&weekMonday(r.date)<=weekMonday(lastD));
   /* 지운 대회·날짜가 바뀐 대회의 칸은 뺀다 */
-  p.sessions.slice().forEach(x=>{ if(!x.race||ran(x)||d10(x)<t)return; const r=mids.find(q=>q.id===x.race.id); if(!r||r.date!==d10(x)||uprRole(r)!==x.race.role)p.sessions.splice(p.sessions.indexOf(x),1); });
+  /* 목표 대회 날 칸 — 예전엔 일정이 목표 날 하루 전에서 끝나, 대회 날 뛴 기록이 '프리런'으로만 남았다(대회 기록·목표 달성 판정 없음, 2026-11-16 시험) */
+  if(gd&&gd>=t&&lastD&&weekMonday(gd)<=weekMonday(lastD)&&g.m&&!p.sessions.some(x=>x.race&&x.race.goal&&d10(x)===gd)){
+    p.sessions.slice().forEach(x=>{ if(x.race&&x.race.goal&&!ran(x))p.sessions.splice(p.sessions.indexOf(x),1); });   /* 날짜가 바뀐 옛 칸 */
+    p.sessions.slice().forEach(x=>{ if(d10(x)===gd&&!ran(x)&&!x.race&&x.type!=='off')drop(x,null); });
+    const mon=weekMonday(gd), nb=p.sessions.find(x=>weekMonday(d10(x))===mon), wk=nb?nb.wk:Math.max(1,Math.floor(uprGap(weekMonday(String(p.start||t).slice(0,10)),mon)/7)+1);
+    const tpl=p.sessions.find(x=>String(x.d).length>10), ds=tpl?gd+String(tpl.d).slice(10):gd;
+    const ns=peBuild(ds,wk,'free',Math.round(g.m/100)/10); ns.d=ds; ns.wk=wk; ns.t=`대회 · ${goalLabel(g)}`; ns.race={goal:true,name:goalLabel(g),role:'goal',m:g.m}; ns.edited=1;
+    p.sessions.push(ns); n++; }
+  p.sessions.slice().forEach(x=>{ if(!x.race||x.race.goal||ran(x)||d10(x)<t)return; const r=mids.find(q=>q.id===x.race.id); if(!r||r.date!==d10(x)||uprRole(r)!==x.race.role)p.sessions.splice(p.sessions.indexOf(x),1); });
   mids.forEach(r=>{ const role=uprRole(r), D=UPR_D(r.m), by=r.id;
     /* 대회 앞의 TT(전력으로 재기) — 대회가 곧 측정이다. 대회 앞 7일(기록 도전 대회는 10일) 안의 TT는 짧은 빠른 자극(1km × 3)으로 바꾼다:
        강도는 지키고 양만 줄인다 — 테이퍼 메타분석(Bosquet 2007, MSSE 39: 8~14일 · 양 41~60%↓ · 강도·횟수 유지, B).
@@ -9686,6 +9695,8 @@ function restKind(ds){
   if(!inPlan(ds)||planOn(ds))return {k:'plain',lab:'쉬는 날',why:''};
   const g=(PLAN&&PLAN.goal)||GOAL||{}, rd=g.date?g.date.slice(0,10):null;
   if(rd&&ds<=rd&&Date.parse(rd)-Date.parse(ds)<=6*864e5)return {k:'race',lab:'쉬는 날 · 대회 주',why:`대회 ${rd.slice(5).replace('-','.')}`};
+  /* 대회 뒤 쉬는 날(UPR_REC 쉼 기간) — 근력이 아니라 회복. 예전엔 10km 대회 다음 날 '근력 6동작×3'이 나왔다 (Pfitzinger·Daniels 관행, C) */
+  { const rr=RUNS.find(r=>isRun(r)&&r.race&&r.race.m&&(()=>{ const k=uprGap(ldate(r.date).slice(0,10),ds); return k>=1&&k<=Math.max(1,UPR_REC[UPR_D(r.race.m)].rest); })()); if(rr)return {k:'recov',lab:'쉬는 날 · 대회 뒤 회복',why:`${ldate(rr.date).slice(5,10).replace('-','.')} 대회`}; }
   const pv=planOn(addDays(ds,-1)), nx=planOn(addDays(ds,1));
   const longs=BLOCK.filter(x=>x.type==='long').map(sKm), bigL=g.m>=42000?28:Math.round(Math.max(0,...longs)*0.9);
   /* '회복'은 어제 실제로 뛴 기록이 있을 때만 — 계획만 보고 '어제 TT'라 하면 안 뛴 날에도 그렇게 말한다 */
@@ -9977,13 +9988,30 @@ function homeSignals(){
   const ex=extraPending(); if(ex)sig.push(['extra',`계획보다 ${ex.r.extraKm.toFixed(1)}km 초과`,`이번 주 ${fmtKm1(ex.proj)}km(+${ex.pct}%) — 일정 결정`]);
   const open=PROPS.filter(x=>!x.done); open.forEach(p=>sig.push(['prop',p.title,'답하기',p]));
   { const bp=basisPend(); if(bp)sig.push(['basis',`새 훈련 기준 대기 중 · 실력 점수 ${bp.v.toFixed(1)}`,'적용 · 적용 안 함 선택']); }
+  { const ge=goalEndInfo(); if(ge&&!sigSeen('goalEnd:'+ge.x.id,3650))sig.push(['goalEnd',ge.hit?`목표 달성 — ${goalLabel(ge.x.goal)}`:`목표 기간 끝 — ${goalLabel(ge.x.goal)}`,'결과 보기 · 다음 목표']); }
   if(typeof reviewDue==='function'&&reviewDue())sig.push(['review','지난주 결산','지난주 점검 → 이번 주']);
   }catch(e){ console.warn('homeSignals',e); }
   return sig; }
 function pendingCount(){ return homeSignals().length; }
 const SC={goal:'#5B2D86',train:'#1E9B5C',rec:'#C98A00',body:'#3B82C4',ana:'#D9731A'};
 function SEC(c,t,sub,inner,act){ if(!inner||!String(inner).trim())return ''; return `<section class="sec" style="--sc:${SC[c]||c}"><div class="sec-hd"><b>${t}</b>${act||''}${sub?`<i>${sub}</i>`:''}</div>${inner}</section>`; }
+/* 목표가 끝났을 때 — 기한이 지난 목표(최근 3주)의 결과와 회복 안내. 예전엔 목표 날이 지나도 '진행 중'으로 남고 홈은 '아직 계획 없음 · 기록이 3번 쌓이면…'만 보였다(2026-11-16 시험).
+   회복: UPR_REC — 풀 3일 쉼·2주 가볍게 / 하프 2일·1주 / 10km 1일·3일 / 5km 1일·2일 (Pfitzinger·Daniels 관행, C) */
+function goalEndInfo(){ try{ const t=todayStr();
+  const x=(GLOG||[]).filter(g=>g&&['done','missed'].includes(g.status)&&g.end&&uprGap(g.end,t)>=0&&uprGap(g.end,t)<=21).sort((a,b)=>String(a.end).localeCompare(String(b.end))).pop(); if(!x)return null;
+  const g=x.goal||{}, D=g.m?UPR_D(g.m):null, rec=D?UPR_REC[D]:null;
+  const race=(RLOG||[]).filter(q=>q&&g.m&&q.m===g.m&&String(q.date)>=String(x.start||'')&&String(q.date)<=x.end).sort((a,b)=>a.sec-b.sec)[0]||null;
+  return {x,g,hit:x.status==='done',race,rec,restTo:rec?addDays(x.end,rec.rest):null,easyTo:rec?addDays(x.end,rec.win):null}; }catch(e){ return null; } }
+function openGoalEnd(){ const I=goalEndInfo(); if(!I)return; const key='goalEnd:'+I.x.id, lab=goalLabel(I.g), md=d=>d.slice(5).replace('-','.');
+  openDec({kind:'goalEnd',kicker:`목표 결과 · ${md(I.x.end)}`,title:I.hit?`목표 달성 — ${lab}`:`목표 기간 끝 — ${lab}`,
+    rows:[['목표',ESC(lab)],['결과',I.race?`${fmtClock(I.race.sec)} · ${md(I.race.date)}${I.g.sec?(I.race.sec<=(I.g.final||I.g.sec)?' — 목표 안':` — 목표보다 ${fmtClock(I.race.sec-(I.g.final||I.g.sec))} 느림`):''}`:'목표 거리 대회 기록 없음'],
+      ...(I.rec?[['회복',`${md(I.restTo)}까지 쉼 → ${md(I.easyTo)}까지 가볍게 (Pfitzinger·Daniels 관행, C)`]]:[])],
+    say:I.hit?'회복 뒤 다음 목표':'회복 뒤 다시 도전하거나 새 목표',
+    opts:[{k:'A',t:'새 목표 세우기',rec:true,d:I.rec?`시작은 ${md(I.easyTo)} 뒤가 좋아요`:'다음 목표',apply:()=>{ sigMark(key); setTimeout(()=>{ try{ goalStart(); }catch(e){} },60); return null; }},
+          {k:'B',t:'나중에',d:'홈에 회복 안내를 남겨 둠',apply:()=>{ sigMark(key); return '확인'; }}],
+    back:'home'}); }
 function renderHome(){
+  try{ glogTick(); }catch(e){}   /* 기한이 지난 목표를 닫는다 — 전엔 목표 목록을 열 때만 닫혀, 홈은 끝난 목표를 '진행 중'으로 봤다 */
   const today=todayStr(), d=new Date();
   $('tlDate').textContent=`${d.getMonth()+1}월 ${d.getDate()}일 ${dowOf(today)}요일`;
   const cur=BLOCK.find(x=>x.d.slice(0,10)===today);
@@ -10022,7 +10050,9 @@ function renderHome(){
   else if(sess) hw+=todayCard(sess,idx);
   else if(inP) hw+=restCard(today);
   else hw+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
-      <span class="tchip">아직 계획 없음</span><div class="ttl">그냥 뛰어도<br>됩니다</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">기록이 3번 쌓이면 내 페이스·심박으로 목표를 제안해요</div>
+      ${(()=>{ const I=goalEndInfo(); if(!I)return `<span class="tchip">아직 계획 없음</span><div class="ttl">그냥 뛰어도<br>됩니다</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">기록이 3번 쌓이면 내 페이스·심박으로 목표를 제안해요</div>`;
+        const md=d=>d.slice(5).replace('-','.'), rest=I.rec&&today<=I.restTo, easy=I.rec&&today<=I.easyTo;
+        return `<span class="tchip">${I.hit?'목표 달성':'목표 기간 끝'}</span><div class="ttl">${rest?'오늘은<br>쉬어요':easy?'가볍게<br>회복':'다음 목표를<br>정할 때'}</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">${ESC(goalLabel(I.g))}${I.race?` · ${fmtClock(I.race.sec)}`:''}${I.rec?` · ${md(I.restTo)}까지 쉼 → ${md(I.easyTo)}까지 가볍게 (Pfitzinger·Daniels 관행)`:''}</div>`; })()}
       <button class="tgo" id="hGoal">목표 세우기</button></div></div>`;
   /* 3. 다음 훈련 한 줄 (훈련 날·계획 없는 날 — 쉬는 날 카드는 자체에 있음) */
   /* 다음 3일 — 날짜·모양·제목·거리. 줄을 누르면 그날 훈련, 머리 글자를 누르면 플랜 전체 */
@@ -10128,7 +10158,7 @@ function wireHome(sess,idx){
     else if(k==='tmiss'){ const x=todayUndone(); if(x)openMissed(x); }
     else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
     else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift();
-    else if(k==='prop')go('alerts'); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); });
+    else if(k==='prop')go('alerts'); else if(k==='goalEnd')openGoalEnd(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); });
   m.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ try{ DEV.store.set('lastAct',b.dataset.act); }catch(e){} startAct(b.dataset.act); });
   m.querySelectorAll('[data-qact]').forEach(b=>b.onclick=()=>{ const k=b.dataset.qact;
     m.querySelectorAll('[data-qact]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-checked',x===b); });
@@ -15038,7 +15068,10 @@ function glogMergeSame(){ try{ if(!GLOG||!GLOG.length)return; const a=GLOG.find(
 /* 목표 '달성' 판단은 이 하나 — 대회 목표는 예상 기록이 아니라 그 거리의 실제 기록(대회·TT)이 목표 안에 들어왔을 때만.
    예전엔 목표를 바꿀 때만 예상 기록으로 판단해 10km 70분 목표가 5km TT 한 번으로 '달성'이 됐다 */
 function glogHit(x){ if(!x||!x.goal)return false; const g=x.goal;
-  if(g.kind==='race'&&g.m){ const rr=PROF.race||{}; return !!(rr.m===g.m&&rr.sec&&String(rr.at||'')>=String(x.start||'')&&rr.sec<=(g.final||g.sec||0)); }
+  if(g.kind==='race'&&g.m){ const rr=PROF.race||{}; if(rr.m===g.m&&rr.sec&&String(rr.at||'')>=String(x.start||'')&&rr.sec<=(g.final||g.sec||0))return true;
+    /* 대회 기록(러닝일지)에 목표 거리·기간 안·목표 기록 안이 있으면 달성 — 실력 기준을 '적용 안 함'으로 둬도 대회 결과는 결과다 */
+    return (RLOG||[]).some(q=>q&&q.m===g.m&&q.kind!=='solo'&&String(q.date)>=String(x.start||'')&&(!x.end||String(q.date)<=x.end)&&q.sec<=(g.final||g.sec||0)); }
+  if(g.kind==='finish'&&g.m){ if((RLOG||[]).some(q=>q&&q.m===g.m&&String(q.date)>=String(x.start||'')&&(!x.end||String(q.date)<=x.end)))return true; }
   return glogReached(glogMetric(g)); }
 function glogPush(g,plan){
   const t=todayStr();
