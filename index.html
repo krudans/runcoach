@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.91';
+const APPVER='20.92';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9067,6 +9067,14 @@ function applyReview(act,v){
   o.fromReview=true;
   /* 지금 4주가 아직 안 끝났으면 처음부터 다시 짜지 않는다 — 시작일 그대로, 남은 날의 양만 조절 (전엔 월요일 결산마다 오늘부터 새 4주가 됐다) */
   { const last=BLOCK.length?BLOCK[BLOCK.length-1].d.slice(0,10):null; if(PLAN&&PLAN.start&&last&&last>=addDays(todayStr(),6)){ o.start=PLAN.start; o.keepDays=true; } }
+  /* '쉽게'(빠른 날 −1 · 거리 −5%)는 지금 일정을 줄인다 — 예전엔 지난주 계획 거리로 새로 짜서, 회복 주 다음이면 오히려 '예정대로'보다 거리가 늘고(30.5→32.5km, 47→48km) 빠른 날 수도 그대로였다(2026-11-16 시험).
+     이번 주·다음 주: 거리 −5%(주간 조절과 같은 길, 누적 ±20% 안) + 남은 빠른 날 하나를 같은 거리 쉬운 달리기로. 피로할 때 강도부터 줄이는 것이 과훈련 합의문의 권고(Meeusen 2013, C) */
+  if(act==='easier'){ const t=todayStr(), m0=weekMonday(t), mons=[m0,addDays(m0,7)];
+    mons.forEach(m=>{ try{ weekScale(m,0.95); }catch(e){} });
+    peSave(list=>{ mons.forEach(m=>{ const H=list.filter(x=>weekMonday(x.d)===m&&x.d.slice(0,10)>=t&&!x.race&&!RUNS.some(r=>r.planId===x.d)&&['threshold','interval','goalpace','rep','hill','mpace'].includes(x.type)); if(!H.length)return;
+      const x=H.sort((a,b)=>sKm(b)-sKm(a))[0], i=list.indexOf(x), ns=peBuild(x.d,x.wk,'easy',Math.max(3,Math.round(sKm(x)*2)/2)); ns.d=x.d; ns.wk=x.wk; ns.orig=x.orig||JSON.parse(JSON.stringify(x)); ns.edited=true; list[i]=ns; try{ delete DIST[x.d]; }catch(e){} }); });
+    try{ DEV.store.set('dist',DIST); }catch(e){}
+    DEV.store.set('rvSeen',v.mon); BLOCK=loadPlan(); toast('이번 주·다음 주 쉽게 — 거리 −5% · 빠른 날 하나 → 쉬운 달리기'); go('plan'); return; }
   if(act==='repeat'){ o.baseOverride=Math.max(6,v.planKm/1); o.growOverride=1.0; }
   else if(act==='shrink'){ o.baseOverride=Math.max(6,v.ranKm||v.planKm*0.7); }
   else if(act==='easier'){ o.baseOverride=Math.max(6,v.planKm*0.95); o.hardMinus=1; }
