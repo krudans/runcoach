@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.95';
+const APPVER='20.96';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5386,13 +5386,16 @@ function cadence(){
 /* 실시간 페이스 — 1km 결산과 같은 재료(앱 시계 S.elapsed · 거리 S.dist)로 잰다.
    예전엔 GPS가 찍어 준 시각으로 쟀는데, 폰에 따라 그 시각이 늦게 오거나 뭉쳐 와서 실시간만 틀어졌다.
    창 길이는 GPS 정확도에 맞춘다: 좋으면 15초, 나쁘면 30초 — 잡음이 클수록 길게 평균 낸다 */
+/* 구간이 바뀐 뒤 이 시간 안에는 속도로 판정·교정하지 않는다 — 지금 페이스는 최근 30초(PACE_SPAN)로 재서 앞 구간 속도가 섞인다.
+   전엔 회차 20초·쉬는 구간 15초·쿨다운 30초로 제각각이라, 회차 20~30초에 '느려요'가 나갔다(2026-11-17 시험) */
+const PACE_SPAN=30, segSettled=()=>(S.elapsed-((S.segStart&&S.segStart.t)||0))>=PACE_SPAN;
 function curPace(){
   if(S.gpsGap||(S.gapEndEl&&S.elapsed-S.gapEndEl<20))return NaN;   /* 돌아온 직후 15초는 창이 비어 있어 느리게 나온다 — 그동안도 멈춤. GPS가 끊긴 동안은 페이스를 계산하지 않는다 — 시간만 흐르고 거리가 안 늘어 '어마어마하게 느린' 값이 나왔다 */
   const w=S.win; if(!w||w.length<2)return NaN;
   const b=w[w.length-1];
   /* 거리가 8초 넘게 안 늘면(서 있음) 페이스 없음 — 멈추기 직전 속도를 계속 보여주면 신호등에서 '너무 빠릅니다'가 나간다 */
   if(S.elapsed-(S.lastMoveEl||0)>8)return NaN;
-  const span=30;   /* 모의 GPS로 15·20·30·40초를 비교해 30초가 가장 안정적이었다 */
+  const span=PACE_SPAN;   /* 모의 GPS로 15·20·30·40초를 비교해 30초가 가장 안정적이었다 */
   let a=w[0]; for(let i=w.length-1;i>=0;i--){ if(b.t-w[i].t>=span){ a=w[i]; break; } if(i===0)a=w[0]; }
   const dm=b.d-a.d, dt=b.t-a.t;
   return (dm<12||dt<5)?NaN:dt/(dm/1000);
@@ -5448,7 +5451,7 @@ function onTick(){
   /* 계획 전체 기준 — 절반 지점, 거의 다 왔을 때 */
   if(S.act==='run'&&s.type!=='free'&&s.dist>=2&&!S.extra){ const pk=+s.dist, left=pk-km, avgP=km>0?S.elapsed/km:NaN;
     if(!S.planHalf&&km>=pk/2){ S.planHalf=true;
-      DEV.speak(`절반 지났습니다. ${left.toFixed(1)}킬로 남았습니다.${isFinite(avgP)?` 평균 페이스 ${fmtPaceVoice(avgP)}.`:''}${s.talkCheck?` 숨 확인입니다. 1킬로미터 ${fmtPaceVoice(s.talkCheck)}로 달리며 한 문장 말하세요.`:''}`,false,true); }
+      DEV.speak(`전체 절반 지났습니다. ${left.toFixed(1)}킬로 남았습니다.${isFinite(avgP)?` 평균 페이스 ${fmtPaceVoice(avgP)}.`:''}${s.talkCheck?` 숨 확인입니다. 1킬로미터 ${fmtPaceVoice(s.talkCheck)}로 달리며 한 문장 말하세요.`:''}`,false,true); }
     const nearAt=0.5;
     if(!S.planNear&&left<=nearAt&&left>0.05){ S.planNear=true;
       DEV.speak(`${left<1?Math.round(left*100)*10+'미터':'1킬로'} 남았습니다.`,false,true); } }
@@ -5590,10 +5593,10 @@ function onTick(){
   }
   /* 사이 쉬기를 너무 빨리 — 결과표엔 ✗가 뜨는데 뛰는 중엔 말이 없었다 */
   /* '~보다 천천히' 구간(웜업 등)은 결과 판정(segPass: 구간 속도 −5초)과 같은 선에서 뛰는 중에도 알린다 — 화면엔 '좋아요', 결과엔 ✗이던 어긋남 */
-  if(!ceilOver&&state==='ok'&&!hrRules&&isFinite(p)&&!tg.hard&&tg.tol==='ceil'&&tg.pace&&p<tg.pace[0]-5&&(S.elapsed-S.segStart.t)>15){
+  if(!ceilOver&&state==='ok'&&!hrRules&&isFinite(p)&&!tg.hard&&tg.tol==='ceil'&&tg.pace&&p<tg.pace[0]-5&&segSettled()){
     state='fast'; pill=`${tg.nm} — 속도 늦추기`; say=`${tg.nm}은 1km ${fmtPace(tg.pace[0])}보다 천천히 가요.`; }
-  if(!tg.hard&&/사이 쉬기|회복 조깅|레스트/.test(tg.nm)&&tg.pace&&isFinite(p)&&p<tg.pace[0]-5&&(S.elapsed-S.segStart.t)>15){
-    if(state==='ok'||state==='soon'){ state='fast'; pill='쉬는 구간 — 천천히'; say=`${fmtPace(p)} · 휴식은 ${fmtPace(tg.pace[0])}보다 느리게`; }
+  if(!tg.hard&&/사이 쉬기|회복 조깅|레스트/.test(tg.nm)&&tg.pace&&isFinite(p)&&p<tg.pace[0]-5&&segSettled()){
+    if(state==='ok'||state==='soon'){ state='fast'; pill='쉬는 구간 — 속도 늦추기'; say=`${fmtPace(p)} · 휴식은 ${fmtPace(tg.pace[0])}보다 느리게`; }
     if(Date.now()-(S.lastRestCue||0)>60000&&Date.now()-(S.lastAnyCue||0)>30000){ S.lastRestCue=Date.now(); S.lastAnyCue=Date.now(); DEV.buzz(BZ.off);
       DEV.speak(`쉬는 구간이에요. 속도를 늦추세요.`,true); }
   }
@@ -5605,7 +5608,7 @@ function onTick(){
   /* 쿨다운·계획 뒤 더 뛰는 거리 — 쉬운 날 상한보다 빠르면 알린다. 예전엔 빠른 날의 쿨다운과 계획 뒤 거리는 아무 판정도 없었다.
      쿨다운 거리는 2km 또는 본 운동의 20% 중 큰 쪽이면 충분 (Daniels: 쿨다운 10~20분, C) */
   { const cc=(!S.extra&&isCool(tg)&&tg.pace&&tg.pace[0])?Math.round(tg.pace[0]):PACE&&PACE.easyCeil?Math.round(PACE.easyCeil):null;   /* 쿨다운은 그 구간 속도 범위의 빠른 끝, 계획 뒤는 쉬운 날 상한 */
-    if((isCool(tg)||S.extra)&&cc&&isFinite(p)&&p<cc-5&&(S.elapsed-S.segStart.t)>30&&state!=='hr'){
+    if((isCool(tg)||S.extra)&&cc&&isFinite(p)&&p<cc-5&&segSettled()&&state!=='hr'){
       state='fast'; pill=S.extra?'더 뛰는 중 — 천천히':'쿨다운 — 천천히'; say=`${S.extra?'계획 완료.':'쿨다운이에요.'} 1km ${fmtPace(cc)}보다 느리게 · 식히기`;
       if((S.coolCueN||0)<3&&Date.now()-(S.lastCoolCue||0)>[0,120000,240000][Math.min(2,S.coolCueN||0)]&&Date.now()-(S.lastAnyCue||0)>30000){ S.lastCoolCue=Date.now(); S.lastAnyCue=Date.now(); S.coolCueN=(S.coolCueN||0)+1; DEV.buzz(BZ.tick);
         DEV.speak(S.coolCueN===1?`${S.extra?'계획은 끝났어요':'쿨다운이에요'}. 1킬로미터 ${fmtPaceVoice(cc)}보다 느리게, 속도를 늦추세요.`:'빨라요. 속도를 늦추세요.',true); } }
@@ -5641,7 +5644,7 @@ function onTick(){
   const nearCap=hrPrimary&&!repInfoOnly&&!S.hrLocked&&!hrLockPend&&HZ&&HZ[1]&&S.hr.bpm>HZ[1]&&state!=='hr';
   if(nearCap&&(state==='ok'||state==='okhr')){ state='soon'; pill=`심박 ${S.hr.bpm} · 상한 ${HZ[1]} 바로 위`; say='조금 속도 늦추기'; }
   else if(state==='okhr')state='ok';
-  else if(state==='ok'&&repInfoOnly&&hrOver){ pill='속도 기준 · 좋아요'; say=S.repHrNote||''; }
+  else if(state==='ok'&&repInfoOnly&&hrOver){ pill='속도로 판정 · 좋아요'; say=S.repHrNote||''; }
   else if(state==='ok'){
     const left = tg.end==='time' ? (tg.sec-(S.elapsed-S.segStart.t))*1000/Math.max(200,p||400)
                                  : (tg.to-km)*1000;
@@ -5778,8 +5781,8 @@ function onTick(){
 }
 function checkOff(dir){
   const g=S.session&&S.session.segs[S.segIx];
-  /* 회차 시작 20초는 말하지 않는다 — GPS 속도가 아직 안 잡혔고, 사람은 출발에 집중한다 */
-  if(g&&(g.hard?VOPT.quiet20:true)&&(S.elapsed-S.segStart.t)<(S.segIx?20:30))return;
+  /* 구간 시작 30초는 속도로 판정하지 않는다 — 페이스에 앞 구간이 섞여 있고, 사람은 출발에 집중한다 */
+  if(g&&!segSettled())return;
   if(dir!==S.lastOffDir){S.offCount=0;S.lastOffDir=dir;}
   if(++S.offCount<2)return;
   /* 같은 말 반복은 소음이다 — 회차 안은 15초, 천천히 구간은 45초에 한 번 */
@@ -6291,7 +6294,7 @@ $('sWeather').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 $('sNote').addEventListener('input',()=>sumUpdate());
 /* ───────── 끝나면 바로 저장 (v20.95) ─────────
    전엔 결과 화면 맨 아래 '기록 저장'을 눌러야 저장됐다 — 안 누르고 나가면 이 폰에만 임시로 남고(클라우드·이어서 뛰기 안 됨), 앱 자료가 지워지면 사라졌다.
-   이제 정지하면 바로 저장한다(commitRun). 결과 화면에서 고르는 힘든 정도·지형·날씨·메모는 고를 때마다 저장된 기록에 바로 넣는다(sumUpdate).
+   이제 종료(3초 길게)를 누르면 바로 저장한다(commitRun). 일시정지는 저장하지 않는다. 결과 화면에서 고르는 힘든 정도·지형·날씨·메모는 고를 때마다 저장된 기록에 바로 넣는다(sumUpdate).
    실수로 켰다 끈 것(200m 미만 또는 2분 미만)만 저장할지 묻는다. 맨 아래 '확인'은 저장 뒤 할 일(TT·대회 새 기준, 훈련 돌아보기)을 연다 —
    안 누르고 나가면 새 기준은 알림('새 훈련 기준 대기 중')에 남긴다. */
 function sumFields(){ if(!S.result)return; Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,talk:talkVal,note:($('sNote').value||'').trim()},S.result.rw?{feel:feelVal,pain:painVal}:{}); }
@@ -11813,7 +11816,9 @@ function voiceSegMsg(done,nx,actual,plan,segs){
   let m='';
   if(done.hard){
     const dl=repLabel(done,segs);
-    m=`${dl}${dl==='마지막'?'이':'가'} 끝났습니다. ${isFinite(actual)?`1킬로미터에 ${fmtPaceVoice(actual)}. `:''}`;
+    /* 회차 판정 한 마디 — 결과 화면 구간표와 같은 기준(목표 범위의 가까운 끝, 범위 안 0) */
+    const pl=done.pace?[done.pace[0]+(S.adj||0),done.pace[1]+(S.adj||0)]:null, df=(isFinite(actual)&&pl)?paceOff(actual,pl):null;
+    m=`${dl}${dl==='마지막'?'이':'가'} 끝났습니다. ${isFinite(actual)?`1킬로미터에 ${fmtPaceVoice(actual)}${df==null?'':df===0?', 목표 범위 안':`, 목표보다 ${Math.abs(df)}초 ${df<0?'빨라요':'느려요'}`}. `:''}`;
     const len=nx.end==='time'?vSec(nx.sec):kmLabVoice(Math.max(0,nx.to-done.to));
     if(nx.hard) m+=`이어서 ${repLabel(nx,segs)}.`;
     else m+=`${vnm(nx.nm)} ${len}.`;
@@ -11854,9 +11859,9 @@ function voiceTick(km,tg,segs,p){
   /* 회차 안에서 */
   if(tg.hard){
     if(VOPT.half&&leftM!=null){ const len=(tg.to-(S.segIx?segs[S.segIx-1].to:0))*1000;
-      if(!c.half&&len>=500&&leftM<=len/2&&inSeg>20){ c.half=1; DEV.speak('절반 왔습니다.'); }
+      if(!c.half&&len>=500&&leftM<=len/2&&inSeg>20){ c.half=1; DEV.speak('이번 회차 절반.'); }   /* 전체 절반('전체 절반 지났습니다')과 헷갈리지 않게 */
       if(len>=400&&!c.l100&&leftM<=100&&leftM>20){ c.l100=1; DEV.speak('100미터 남았습니다.'); } }
-    if(tg.end==='time'&&VOPT.half&&!c.half&&inSeg>=tg.sec/2&&tg.sec>=60){ c.half=1; DEV.speak('절반 왔습니다.'); }
+    if(tg.end==='time'&&VOPT.half&&!c.half&&inSeg>=tg.sec/2&&tg.sec>=60){ c.half=1; DEV.speak('이번 회차 절반.'); }
     /* 첫 회차 과속 경고 — 뛴 뒤 결정에서 켠 경우 */
     if(VOPT.firstGuard&&!c.fg&&(tg.rep===1)&&inSeg>30&&isFinite(p)&&tg.pace&&p<midPace(tg.pace)+S.adj-5){   /* 설명대로 '목표보다 5초' — 빠른 끝이 아니라 목표 가운데 기준 */
       c.fg=1; DEV.speak(`${Math.round(midPace(tg.pace)+S.adj-p)}초 빨라요. 속도를 늦추세요.`,true); }
@@ -11866,7 +11871,7 @@ function hrNote(){ const h=S.hr&&S.hr.bpm, e=S.lastHrEnd; if(!h||!e)return '';
   return (e-h)<10?' 심박 미회복 · 30초 여유':''; }
 function voiceOptsHTML(){
   const it=[['pre','미리 알림','다음 회차 300m·100m 전, 또는 30초·10초 전'],['count','5·4·3·2·1','삐 소리와 숫자 신호'],
-    ['quiet20','회차 시작 20초는 조용히','속도 미정, 교정 없음'],
+    ['quiet20','구간 시작 30초는 속도 교정 없음','늘 적용 — 페이스를 최근 30초로 재서 앞 구간 속도가 섞임'],
     ['half','절반 · 100m 남음','회차 안에서'],['firstGuard','첫 회차 과속 경고','첫 회차가 목표보다 5초 넘게 빠르면']];
   return `<details class="vopt"><summary>음성 안내 설정</summary>${it.map(x=>`<label class="vrow"><input type="checkbox" data-vo="${x[0]}"${VOPT[x[0]]?' checked':''}><span><b>${x[1]}</b><i>${x[2]}</i></span></label>`).join('')}
     <div class="vrow"><span><b>말 빠르기</b></span><select data-vr><option value="0.95"${VOPT.rate<1?' selected':''}>천천히</option><option value="1.05"${VOPT.rate>=1&&VOPT.rate<1.15?' selected':''}>보통</option><option value="1.2"${VOPT.rate>=1.15?' selected':''}>빠르게</option></select></div>
