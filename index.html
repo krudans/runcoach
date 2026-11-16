@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.92';
+const APPVER='20.93';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9665,10 +9665,10 @@ function openMissed(m){
       apply:()=>{ MISSSEEN[ds]='tomorrow'; DEV.store.set('missSeen',MISSSEEN); moveSession(s.d,tmr); return `내일 ${s.t}`; }});
   /* 남은 일정을 하루씩 미루기 — 아무것도 빠지지 않는다 */
   const shiftN=isToday?1:addDaysDiff(ds,t);
-  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}일 연기`:'남은 일정 하루씩 연기',rec:isHard&&!canSwap&&!slot,d:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 ${shiftN}일 연기 — 총 ${shiftN}일 연장`,
+  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}칸씩 뒤로`:'남은 일정 한 칸씩 뒤로',rec:isHard&&!canSwap&&!slot,d:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 다음 운동하는 날로 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`,   /* '1일 연기'라고 했지만 실제로는 운동하는 요일 칸으로 밀려(화 → 목) 말과 결과가 달랐다(2026-11-16 시험) */
       tags:[['빠지는 훈련 없음','ok'],['대회 날은 그대로','']],
       apply:()=>{ MISSSEEN[ds]='shift'; DEV.store.set('missSeen',MISSSEEN); const n=shiftFrom(ds,isToday?1:addDaysDiff(ds,t));
-        return `${n}개 ${shiftN}일 연기`; }});
+        return `${n}개 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} 뒤로`; }});
   if(isToday){ opts.forEach(o=>{ if(o.k==='A'){ o.t='오늘 건너뛰기'; o.rec=!hardT.includes(s.type); o.d='몰아하기 없음 · 그대로'; } }); }
   if(slot&&!isToday){ const isTod=slot===t; opts.splice(isTod?1:opts.length,0,{k:canSwap?'C':'B',t:isTod?'오늘(쉬는 날) 진행':`${dowOf(slot)}요일(쉬는 날)로 이동`,rec:isTod&&isHard,d:isTod?`오늘 ${s.t} · 휴식 −1일`:`${dowOf(slot)}요일 진행 · 휴식 −1일`,
       tags:[['쉬는 날 1일 감소','bad']].concat(isTod&&isHard?[['핵심 훈련 유지','ok']]:[]),
@@ -13804,7 +13804,8 @@ function planListHTML0(src,monsIn){
     const nPlan=items.filter(x=>x.type!=='off'&&!isPre(x)).length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!isPre(x)&&!RUNS.some(r=>r.planId===x.d)&&!skippedDay(x.d.slice(0,10))).length;
     /* 쉬는 날도 훈련 — 할 일이 있는 쉬는 날(근력·회복)을 마감했는지 같이 센다 */
     const rD=[0,1,2,3,4,5,6].map(k=>addDays(mon,k)).filter(ds=>ds<t&&!(pf&&ds<pf)&&!items.some(x=>x.d.slice(0,10)===ds&&x.type!=='off')&&(()=>{ try{ return restKind(ds).k!=='plain'; }catch(e){ return false; } })());
-    const rK=rD.filter(ds=>RESTLOG[ds]&&RESTLOG[ds].closed).length;
+    /* 지킨 쉬는 날 = 달력 ☾·홈과 같은 기준(dayStatus 'restKept' — 그날 뛰지 않음) 또는 마감. 전엔 '마감'을 누른 날만 세어, 지나간 쉬는 날은 달력에 ☾인데 여기는 0/3이었다(2026-11-16 시험) */
+    const rK=rD.filter(ds=>(RESTLOG[ds]&&RESTLOG[ds].closed)||dayStatus(ds)==='restKept').length;
     const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${rD.length?` · 쉬는 날 <b>${rK}</b> / ${rD.length}`:''}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
     return `<section class="pw pw-f${cur?' cur':''}${past?' past':''}${pwFold(mon,cur)?' fold':''}" id="pw${wk}" data-pwm="${mon}">
       <header><div class="pw-hr"><span class="pw-cv"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span><div><b>${wkLab(mon)}</b>${cur?'<span class="pw-now">이번 주</span>':''}${wkNo(mon)<1?'<span class="pw-role">이전 목표</span>':''}${role?`<span class="pw-role">${role==='대회 전 줄이기'?'대회 전':'회복 주'}</span>`:''}
@@ -13981,7 +13982,7 @@ function planGridHTML(){
   { const P=(PLAN&&PLAN.past)||[], pm=[...new Set(P.map(x=>weekMonday(x.d)))].filter(m=>!mons.includes(m)).sort();
     const prow=pm.map(mon=>{ const items=P.filter(x=>weekMonday(x.d)===mon), wkm=items.reduce((a,x)=>a+(+x.dist||0),0), dn=items.filter(x=>RUNS.some(r=>r.planId===x.d)).length;
       const cells=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), L=items.filter(x=>String(x.d).slice(0,10)===ds);
-        if(!L.length){ const ok=!!(RESTLOG[ds]&&RESTLOG[ds].closed); return `<td class="r past${ok?' kept':''}"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`; }   /* 지금 주 표와 같은 기준 — 마감한 쉬는 날 표시 */
+        if(!L.length){ const ok=!!(RESTLOG[ds]&&RESTLOG[ds].closed)||dayStatus(ds)==='restKept'; return `<td class="r past${ok?' kept':''}"><i>${+ds.slice(8,10)}</i><span>${tm('off')}</span></td>`; }   /* 지금 주 표와 같은 기준 — 마감한 쉬는 날 표시 */
         return `<td>${L.map(x=>{ const did=RUNS.some(r=>r.planId===x.d), lab=PSHORT[x.type]||String(x.t||'').split(' ')[0];
           return `<div class="pg-s${did?' did':' miss'}" style="--tc:${(TYPES[x.type]||{}).col||'#5B2D86'}"><i>${+ds.slice(8,10)}</i><b class="${lab.length>3?'lg':''}">${pgName(lab)}</b><span>${pgU(x.dist?fmtKm1(x.dist)+'km':'')}</span></div>`; }).join('')}</td>`; }).join('');
       return `<tr class="past"><th><b>${wkLab(mon,'주')}</b><span>${fmtKm1(wkm)}km</span>${items.length?`<u><s style="width:${Math.round(dn/items.length*100)}%"></s></u>`:''}</th>${cells}</tr>`; }).join('');
