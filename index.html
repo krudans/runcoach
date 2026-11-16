@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.88';
+const APPVER='20.89';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9232,6 +9232,14 @@ function uprFix(p){ try{
   /* 지운 대회·날짜가 바뀐 대회의 칸은 뺀다 */
   p.sessions.slice().forEach(x=>{ if(!x.race||ran(x)||d10(x)<t)return; const r=mids.find(q=>q.id===x.race.id); if(!r||r.date!==d10(x)||uprRole(r)!==x.race.role)p.sessions.splice(p.sessions.indexOf(x),1); });
   mids.forEach(r=>{ const role=uprRole(r), D=UPR_D(r.m), by=r.id;
+    /* 대회 앞의 TT(전력으로 재기) — 대회가 곧 측정이다. 대회 앞 7일(기록 도전 대회는 10일) 안의 TT는 짧은 빠른 자극(1km × 3)으로 바꾼다:
+       강도는 지키고 양만 줄인다 — 테이퍼 메타분석(Bosquet 2007, MSSE 39: 8~14일 · 양 41~60%↓ · 강도·횟수 유지, B).
+       예전엔 10km 기록 도전 대회 5일 앞에 TT 9km(전력 5km)가 그대로 남았다(2026-11-16 시험). 이틀 안이면 아래 규칙대로 쉬운 달리기로 */
+    { const win=role==='pr'?10:7;
+      p.sessions.slice().forEach(x=>{ if(!free(x)||x.type!=='tt'||!(PROF&&PROF.race&&PROF.race.sec))return;   /* 기록이 하나도 없으면 첫 TT는 남긴다 — 속도 기준이 없다 */
+        const k=uprGap(d10(x),r.date); if(k<3||k>win)return;
+        const i=p.sessions.indexOf(x), ns=peBuild(x.d,x.wk,'interval',6,3,1); ns.d=x.d; ns.wk=x.wk; ns.fix=1; if(x.role)ns.role=x.role; ns.uprOrig=keep(x,by); ns.ttMoved=1; p.sessions[i]=ns; try{ delete DIST[x.d]; }catch(e){} n++;
+        (p.why=p.why||[]).push(`${x.d.slice(5,10).replace('-','.')} TT → 1km × 3 — ${r.name||'대회'}(${r.date.slice(5).replace('-','.')})가 곧 기록 측정 · 대회 앞은 강도 유지·양 줄임 (Bosquet 2007, B)`); }); }
     if(r.date>=t&&!p.sessions.some(x=>x.race&&x.race.id===r.id)){
       p.sessions.slice().forEach(x=>{ if(d10(x)===r.date&&d10(x)>=t&&!ran(x)&&!x.race&&x.type!=='off')drop(x,by); });   /* 그날 직접 옮겨 둔 훈련도 대회에 자리를 내준다(지우면 돌아온다) */
       const mon=weekMonday(r.date), nb=p.sessions.find(x=>weekMonday(d10(x))===mon), wk=nb?nb.wk:Math.max(1,Math.floor(uprGap(weekMonday(String(p.start||t).slice(0,10)),mon)/7)+1);
