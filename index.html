@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.85';
+const APPVER='20.86';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4103,6 +4103,8 @@ function planSince(){ let g0=null; try{ g0=(typeof GLOG!=='undefined'&&GLOG||[])
   if(g0&&P.start&&goalKey(P.goal)===goalKey(g0.goal)&&String(P.start)<String(st))st=P.start;   /* 지금 일정이 같은 목표로 더 일찍 시작했으면 그날부터 */
   return weekMonday(st); }
 function wkNo(mon){ return Math.round((Date.parse(mon)-Date.parse(planSince()))/6048e5)+1; }
+/* 일정 머리줄의 주 — 이번 주가 일정 안이면 이번 주, 아니면 첫 주. 예전엔 늘 첫 주라, 3주차(24km)인 날에도 머리줄은 '1주차 41km'로 아래 목록과 달랐다 */
+function planHeadMon(){ const M=planMons(), m=weekMonday(todayStr()); return M.includes(m)?m:M[0]; }
 function wkLab(mon,suf){ const n=wkNo(mon); return n>=1?`${n}${suf||'주차'}`:`${+mon.slice(5,7)}.${+mon.slice(8,10)} 주`; }
 function pastSessOn(ds){ return ((PLAN&&PLAN.past)||[]).find(x=>String(x.d).slice(0,10)===ds&&x.type!=='off')||null; }
 function loadPlan(){
@@ -4646,7 +4648,7 @@ function renderPlan(){
   if(hd){
     if(PLAN&&PLAN.why&&PLAN.why.length){
       const g=PLAN.goal||{}, G=GOALS.find(x=>x.k===g.kind);
-      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${G||g.m?ESC(goalLabel(g)):'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`${(()=>{ const m=planMons()[0]; return m?wkLab(m):'1주차'; })()} ${(()=>{ const m=planMons()[0], w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
+      hd.innerHTML=`<details class="plh"><summary><b>${G?G.ico+' ':''}${G||g.m?ESC(goalLabel(g)):'일정'}</b><i>${g.date?g.date.slice(5,10).replace('-','.')+'까지':''}${PLAN.ladder?` · 목표 ${fmtClock(PLAN.ladder)}`:''} · ${PLAN.starter?`주 ${(PLAN.days||[]).length}번 · 1회 30분 안팎`:`${(()=>{ const m=planHeadMon(); return m?wkLab(m):'1주차'; })()} ${(()=>{ const m=planHeadMon(), w1=m?wkKmOf(BLOCK,m):0; return w1?fmtKm1(w1):fmtKm1(PLAN.base); })()}km`}</i><em>왜 ▾</em></summary>
         <ul>${planChecks(PLAN,BLOCK).why.map(x=>`<li>${x}</li>`).join('')}</ul></details>`+
         /* 시간 한계 같은 경고는 접어 두지 않는다 — 일정이 왜 안 늘어나는지 바로 보이게 */
         /* 경고는 한 카드로 — 원인(쓸 수 있는 시간)을 그 자리에서 바꿀 수 있게 */
@@ -6587,9 +6589,10 @@ $('bkFile').onchange=async e=>{
     if(!j.data||typeof j.data!=='object'||Array.isArray(j.data))throw new Error('백업 내용 없음');
     ['runs','acts','shoes','rhr'].forEach(k=>{ if(j.data[k]!=null&&!Array.isArray(j.data[k]))throw new Error(`${k} 형식 오류`); });
     const cnt=(j.data.runs||[]).length;
-    if(!(await ask(`${j.at?ldate(j.at):'날짜 미상'} 백업 ${cnt}건\n\n지금 기록을 덮어써요`,'덮어쓰기',true)))return;
+    if(!(await ask(`${j.at?ldate(j.at):'날짜 미상'} 백업 ${cnt}건\n\n지금 기록을 덮어써요${(typeof FB!=='undefined'&&FB.user)?'\n로그인돼 있어 다른 폰의 설정·목표도 이 백업으로 바뀌어요 (러닝 기록은 지워지지 않아요)':''}`,'덮어쓰기',true)))return;
     /* 백업 항목만 되돌린다 — 파일에 API 키·계정·Firebase 설정이 끼어 있어도 쓰지 않는다 */
-    Object.entries(j.data).filter(([k])=>BK_KEYS.includes(k)).forEach(([k,v])=>localStorage.setItem('rc_'+k,JSON.stringify(v)));
+    /* '바꾼 것'으로 적어 둔다(DEV.store.set) — 예전엔 저장소에 바로 써서 바꾼 시각이 안 남아, 로그인한 폰에서는 다음 동기화 때 클라우드 값과 엇갈렸다(이 폰은 백업 값, 다른 폰은 그 전 값으로 끝내 다름) */
+    Object.entries(j.data).filter(([k])=>BK_KEYS.includes(k)).forEach(([k,v])=>DEV.store.set(k,v));
     alert('복원 완료 · 재시작'); location.reload();
   }catch(err){ alert('불러오기 실패 — '+err.message); }
 };
@@ -7127,7 +7130,9 @@ const FB={
   mergeItems(k,loc,cl,mL,mC,lt,ct){ const kind=FB.ITEM[k], A=FB.imap(kind,loc), B=FB.imap(kind,cl), pick={}, st={};
     new Set([...Object.keys(A),...Object.keys(B),...Object.keys(mL||{}),...Object.keys(mC||{})]).forEach(i=>{
       const tA=+(mL||{})[i]||0, tB=+(mC||{})[i]||0, inA=i in A, inB=i in B;
-      let w; if(tA||tB)w=tB>tA?'B':'A'; else if(inA&&inB)w=FB.canon(A[i])===FB.canon(B[i])?'A':(ct>lt?'B':'A'); else w=inA?'A':'B';
+      let w; if((tA||tB)&&tA!==tB)w=tB>tA?'B':'A';
+      /* 시각이 같은데 값이 다르면(백업 불러오기처럼 시각 없이 바뀐 경우) 두 폰이 같은 쪽을 고르게 정해진 규칙으로 — 예전엔 각자 자기 값을 지켜 끝내 달랐다 */
+      else if(tA||tB)w=(inA&&inB)?(FB.canon(A[i])>=FB.canon(B[i])?'A':'B'):(inA?'A':'B'); else if(inA&&inB)w=FB.canon(A[i])===FB.canon(B[i])?'A':(ct>lt?'B':'A'); else w=inA?'A':'B';
       const src=w==='A'?A:B; if(i in src)pick[i]=src[i]; if(tA||tB)st[i]=Math.max(tA,tB); });
     let v;
     if(kind==='obj'){ if(!(loc&&typeof loc==='object')&&!(cl&&typeof cl==='object'))return {v:loc,st}; v={}; Object.keys(pick).forEach(i=>{ v[i]=pick[i]; }); }
@@ -9410,14 +9415,16 @@ function planOn(ds){ if(!hasPlan())return null; return BLOCK.find(x=>x.d.slice(0
 function inPlan(ds){ if(!hasPlan()||!BLOCK.length)return false; const b0=BLOCK[0].d.slice(0,10), p0=(PLAN&&PLAN.past&&PLAN.past.length)?String(PLAN.past[0].d).slice(0,10):null;
   const st=[b0,(PLAN&&PLAN.sessions&&PLAN.start&&PLAN.start<b0)?PLAN.start:null,p0].filter(Boolean).sort()[0];
   return ds>=st&&ds<=addDays(BLOCK[BLOCK.length-1].d.slice(0,10),1); }
+/* 약속이 시작된 날 — 지난 4주가 있으면 그 첫날, 없으면 일정을 만든 날. 그 전 날의 일정 칸은 약속이 아니었다 */
+function planFrom(){ const p0=PLAN&&PLAN.past&&PLAN.past.length?String(PLAN.past[0].d).slice(0,10):null;   /* 지난 4주가 있으면 그 첫날부터가 약속 */
+  return p0||(PLAN&&(PLAN.since||PLAN.made)?ldate(PLAN.since||PLAN.made).slice(0,10):null); }
 function dayStatus(ds){
   const today=todayStr();
   if(ds>today)return 'future';
   const s=planOn(ds), runs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds);
   if(!inPlan(ds))return runs.length?'free':'none';
   /* 일정을 만들기 전 날(같은 주 월요일부터 세는 일정)은 약속이 아니었다 — '못 함'·'쉼'으로 세지 않는다 */
-  const p0=PLAN&&PLAN.past&&PLAN.past.length?String(PLAN.past[0].d).slice(0,10):null;   /* 지난 4주가 있으면 그 첫날부터가 약속 */
-  const made=p0||(PLAN&&(PLAN.since||PLAN.made)?ldate(PLAN.since||PLAN.made):null);
+  const made=planFrom();
   if(made&&ds<made&&!(s&&RUNS.some(x=>x.planId===s.d)))return runs.length?'free':'none';
   if(s){
     const r=RUNS.find(x=>x.planId===s.d);
@@ -13666,15 +13673,17 @@ function planListHTML0(src,monsIn){
         const st=freeKm?`<em class="pd-st ok">✓ 프리런 ${fmtKm1(freeKm)}km</em>`:!scored?'':closed?`<em class="pd-st ok">☾ ${R.score}점 ✓</em>`:ds===t?`<em class="pd-st now">오늘${any?` · ${R.score}점`:''}</em>`:ds<t?(any?`<em class="pd-st rest">☾ ${R.score}점</em>`:'<em class="pd-st rest">기록 없음</em>'):'';
         return `<div class="pd-row rest${ds<t?' past':''}${freeKm||closed?' did':''}${ds===t?' today':''}">${dn}<span class="pd-bar rest"><i style="height:${scored?Math.max(18,(closed||any?R.score:0)):0}%"></i></span><span class="pd-rest"><b class="pd-rl">${lab}</b>${sub?`<i>${sub}</i>`:''}</span>${st}${ds>t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`; }
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=(i>=0&&sessionOf(i))||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
-        const did=RUNS.some(r=>r.planId===sx.d), miss=!did&&ds<t, word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
-        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ok">✓${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:(!did&&skippedDay(ds))?'<em class="pd-st miss">건너뜀</em>':miss?'<em class="pd-st miss">놓침</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
+        /* 놓침 = 홈·알림과 같은 기준 — 일정을 만들기 전 날은 놓침이 아니고(전엔 만든 날이 목요일이면 그 주 화요일도 '놓침'), 건너뛰기로 정한 날은 '건너뜀'으로만 센다 */
+        const did=RUNS.some(r=>r.planId===sx.d), pre=!did&&ds<t&&!!planFrom()&&ds<planFrom(), miss=!did&&ds<t&&!pre&&!skippedDay(ds), word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
+        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ok">✓${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:(!did&&skippedDay(ds))?'<em class="pd-st miss">건너뜀</em>':miss?'<em class="pd-st miss">놓침</em>':pre?'<em class="pd-st">일정 전</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" ${i>=0?`data-pgo="${i}"`:(()=>{ const r=RUNS.find(r=>r.planId===sx.d); return r?`data-wkrun="${ESC(r.rid)}"`:'disabled'; })()}><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
             <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${!sx.edited&&sx.capCut?`<small title="최근 30일 최장 +10% 한도">줄임 ${fmtKm1(sx.capCut.from)}→${fmtKm1(sx.capCut.to)}km</small>`:''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
-          ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:miss?`<button type="button" class="pd-add" data-pman="${sx.d}" aria-label="기록 직접 넣기">+</button>`:''}</div>`; }).join(''); }).join('');
-    const nPlan=items.filter(x=>x.type!=='off').length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!RUNS.some(r=>r.planId===x.d)).length;
+          ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:(miss||(!did&&ds<t&&!pre&&skippedDay(ds)))?`<button type="button" class="pd-add" data-pman="${sx.d}" aria-label="기록 직접 넣기">+</button>`:''}</div>`; }).join(''); }).join('');
+    const pf=planFrom(), isPre=x=>!RUNS.some(r=>r.planId===x.d)&&!!pf&&x.d.slice(0,10)<pf&&x.d.slice(0,10)<t;
+    const nPlan=items.filter(x=>x.type!=='off'&&!isPre(x)).length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!isPre(x)&&!RUNS.some(r=>r.planId===x.d)&&!skippedDay(x.d.slice(0,10))).length;
     /* 쉬는 날도 훈련 — 할 일이 있는 쉬는 날(근력·회복)을 마감했는지 같이 센다 */
-    const rD=[0,1,2,3,4,5,6].map(k=>addDays(mon,k)).filter(ds=>ds<t&&!items.some(x=>x.d.slice(0,10)===ds&&x.type!=='off')&&(()=>{ try{ return restKind(ds).k!=='plain'; }catch(e){ return false; } })());
+    const rD=[0,1,2,3,4,5,6].map(k=>addDays(mon,k)).filter(ds=>ds<t&&!(pf&&ds<pf)&&!items.some(x=>x.d.slice(0,10)===ds&&x.type!=='off')&&(()=>{ try{ return restKind(ds).k!=='plain'; }catch(e){ return false; } })());
     const rK=rD.filter(ds=>RESTLOG[ds]&&RESTLOG[ds].closed).length;
     const sum=past?`<i class="pw-sum">뛴 날 <b>${nDid}</b> / ${nPlan}${rD.length?` · 쉬는 날 <b>${rK}</b> / ${rD.length}`:''}${nMiss?` · 놓침 <em>${nMiss}</em>`:''}</i>`:'';
     return `<section class="pw pw-f${cur?' cur':''}${past?' past':''}${pwFold(mon,cur)?' fold':''}" id="pw${wk}" data-pwm="${mon}">
