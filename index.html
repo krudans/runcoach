@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.97';
+const APPVER='20.98';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4236,7 +4236,7 @@ let DIST=DEV.store.get('dist',{});   // 세션별 거리 임의 수정값
 const pad=n=>String(n).padStart(2,'0');
 const fmtPace=s=>{if(!isFinite(s)||s<=0||s>1800)return "--'--\"";
   const r=Math.round(s);return Math.floor(r/60)+"'"+pad(r%60)+'"';};
-const fmtTimeVoice=s=>{ s=Math.round(s); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?`${h}시간 `:'')+(m?`${m}분 `:'')+(!h&&x?`${x}초`:'').trim()||'0초'; };
+const fmtTimeVoice=s=>{ s=Math.round(s); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return ((h?`${h}시간 `:'')+(m?`${m}분 `:'')+(!h&&x?`${x}초`:'')).trim()||'0초'; };   /* 전엔 끝의 trim이 초에만 걸려 '1시간 2분 .'처럼 빈칸이 남았다 */
 /* 화면 글자를 소리로 읽을 말로 — 휴대폰 음성은 기호를 이름으로 읽는다('→' = '화살표'). 2026-11-16 실제 기기에서 '보폭 화살표' */
 function voiceClean(t){ return String(t||'')
   .replace(/(\d+'\d{1,2}")\s*~\s*(\d+'\d{1,2}")/g,'$1에서 $2 사이')
@@ -5152,7 +5152,7 @@ async function startRun(){
   if(S.watchId==null)$('rGps').textContent='GPS 사용 불가';
   S.tick=setInterval(onTick,500);
   const g=s.segs[0];
-  if(S.act!=='run'){ DEV.speak(`${ACTK[S.act].nm} 판정 없이 기록해요.`,true); return; }
+  if(S.act!=='run'){ DEV.speak(`${ACTK[S.act].nm}, 판정 없이 기록해요.`,true); return; }
   startVoice(s,T,g);
 };
 /* ───────── 오늘 미션 진행바 ─────────
@@ -5464,7 +5464,7 @@ function onTick(){
   $('rSegName').textContent=S.extra?'계획 완료':`${String(tg.nm).replace(/\s*\([^)]*\)/g,'')} ${S.segIx+1}/${segs.length}`;
   if(!S.extra&&s.rw){ $('rSegTgt').textContent = tg.rwk==='run' ? `천천히 · ${rwMin(tg.sec)}` : tg.rwk==='walk' ? `편하게 걷기 · 숨 고르기 ${rwMin(tg.sec)}` : `편하게 걷기 · ${rwMin(tg.sec)}`; }
   else if(!S.extra){ const hrCap=(T.primary==='hr'&&T.hrZone&&T.hrZone[1])?T.hrZone[1]:null;
-    $('rSegTgt').textContent = tg.hard ? `${rangeText(tgPace)} 로 ${tg.end==='time'?fmtClock(tg.sec):''}`.trim()
+    $('rSegTgt').textContent = tg.hard ? `${tgPace?rangeText(tgPace)+' 로':'힘껏'} ${tg.end==='time'?fmtClock(tg.sec):''}`.trim()   /* 목표 속도 없는 빠른 구간(TT)은 '자유 로'가 아니라 '힘껏' */
       : tg.tol==='ceil' ? `${fmtPace(tgPace[0])}보다 천천히${hrCap?` · ♥${hrCap} 아래`:''}`
       : hrCap ? `♥${hrCap} 아래 · ${rangeText(tgPace)}` : `${rangeText(tgPace)} 유지`; }
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
@@ -11769,9 +11769,13 @@ const ORDN=['','첫','두','세','네','다섯','여섯','일곱','여덟','아�
 const vCount=n=>`${KN[n]||n} 번`, vOrd=k=>`${ORDN[k]||k} 번째`;
 const vSec=x=>{x=Math.round(x); const m=Math.floor(x/60), r=x%60; return m?(r?`${m}분 ${r}초`:`${m}분`):`${r}초`;};
 const vnm=nm=>String(nm||'').replace(/\s*\([^)]*\)/g,'').trim();
+/* 이/가 — 받침 있으면 '이'. 'km'·숫자로 끝나면 '가'(킬로미터가) */
+const vJosa=w=>{ const c=String(w||'').trim().slice(-1).charCodeAt(0); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?'이':'가'; };
 function repLabel(g,segs){
   if(!g||!g.hard)return g?vnm(g.nm):'';
   const n=segs.filter(x=>x.hard).length, k=g.rep||(segs.filter(x=>x.hard).indexOf(g)+1);
+  /* 빠른 구간이 하나뿐이면(TT·이어 뛰는 템포런) '첫 번째'라 하지 않고 구간 이름으로 — 전엔 TT에서 '첫 번째가 끝났습니다'(2026-11-17 시험) */
+  if(n===1){ const v=vnm(g.nm); return /^\d+\s*회차$/.test(v)||!v?'빠른 구간':v; }
   return k===n&&n>1?'마지막':vOrd(k);
 }
 function cadGoal(s){ if(s&&s.cadT&&['easy','long','recovery'].includes(s.type))return s.cadT;   /* 케이던스 개선 일정 */
@@ -11826,7 +11830,7 @@ function voiceSegMsg(done,nx,actual,plan,segs){
     const dl=repLabel(done,segs);
     /* 회차 판정 한 마디 — 결과 화면 구간표와 같은 기준(목표 범위의 가까운 끝, 범위 안 0) */
     const pl=done.pace?[done.pace[0]+(S.adj||0),done.pace[1]+(S.adj||0)]:null, df=(isFinite(actual)&&pl)?paceOff(actual,pl):null;
-    m=`${dl}${dl==='마지막'?'이':'가'} 끝났습니다. ${isFinite(actual)?`1킬로미터에 ${fmtPaceVoice(actual)}${df==null?'':df===0?', 목표 범위 안':`, 목표보다 ${Math.abs(df)}초 ${df<0?'빨라요':'느려요'}`}. `:''}`;
+    m=`${dl}${vJosa(dl)} 끝났습니다. ${isFinite(actual)?`1킬로미터에 ${fmtPaceVoice(actual)}${df==null?'':df===0?', 목표 범위 안':`, 목표보다 ${Math.abs(df)}초 ${df<0?'빨라요':'느려요'}`}. `:''}`;
     const len=nx.end==='time'?vSec(nx.sec):kmLabVoice(Math.max(0,nx.to-done.to));
     if(nx.hard) m+=`이어서 ${repLabel(nx,segs)}.`;
     else m+=`${vnm(nx.nm)} ${len}.`;
@@ -11837,7 +11841,7 @@ function voiceSegMsg(done,nx,actual,plan,segs){
 }
 function voiceTick(km,tg,segs,p){
   if(!S.vc||S.vc.seg!==S.segIx){ S.vc={seg:S.segIx,cued:{}}; }
-  const c=S.vc.cued, nx=segs[S.segIx+1], inSeg=S.elapsed-S.segStart.t;
+  const c=S.vc.cued, nx=segs[S.segIx+1], inSeg=S.elapsed-S.segStart.t, halfSay=segs.filter(x=>x.hard).length===1?'이 구간 절반.':'이번 회차 절반.';
   const plan=tg.pace?midPace(tg.pace):(p||420);
   const spd=isFinite(p)&&p>0?1000/p:1000/plan;            /* m/s */
   let leftM=null, leftS=null;
@@ -11867,9 +11871,9 @@ function voiceTick(km,tg,segs,p){
   /* 회차 안에서 */
   if(tg.hard){
     if(VOPT.half&&leftM!=null){ const len=(tg.to-(S.segIx?segs[S.segIx-1].to:0))*1000;
-      if(!c.half&&len>=500&&leftM<=len/2&&inSeg>20){ c.half=1; DEV.speak('이번 회차 절반.'); }   /* 전체 절반('전체 절반 지났습니다')과 헷갈리지 않게 */
+      if(!c.half&&len>=500&&leftM<=len/2&&inSeg>20){ c.half=1; DEV.speak(halfSay); }   /* 전체 절반('전체 절반 지났습니다')과 헷갈리지 않게 */
       if(len>=400&&!c.l100&&leftM<=100&&leftM>20){ c.l100=1; DEV.speak('100미터 남았습니다.'); } }
-    if(tg.end==='time'&&VOPT.half&&!c.half&&inSeg>=tg.sec/2&&tg.sec>=60){ c.half=1; DEV.speak('이번 회차 절반.'); }
+    if(tg.end==='time'&&VOPT.half&&!c.half&&inSeg>=tg.sec/2&&tg.sec>=60){ c.half=1; DEV.speak(halfSay); }
     /* 첫 회차 과속 경고 — 뛴 뒤 결정에서 켠 경우 */
     if(VOPT.firstGuard&&!c.fg&&(tg.rep===1)&&inSeg>30&&isFinite(p)&&tg.pace&&p<midPace(tg.pace)+S.adj-5){   /* 설명대로 '목표보다 5초' — 빠른 끝이 아니라 목표 가운데 기준 */
       c.fg=1; DEV.speak(`${Math.round(midPace(tg.pace)+S.adj-p)}초 빨라요. 속도를 늦추세요.`,true); }
@@ -14425,8 +14429,9 @@ function debriefPoints(r,s){
   /* 후반 비교는 본 구간만 — 웜업(느리게 시작)·쿨다운(느리게 끝)을 넣으면 계획대로 뛰어도 '후반이 느려졌다'가 나온다 */
   const sg=r.segments||[]; let wK=0,cK=0; for(const g of sg){ if(/웜업|준비/.test(g.nm||''))wK+=+g.km||0; else break; } for(const g of sg.slice().reverse()){ if(g.extra||/쿨다운|마무리|^추가/.test(g.nm||''))cK+=+g.km||0; else break; }
   const totK=+r.km||0, sp=(r.splits||[]).filter(x=>x.pace&&!x.part&&!x.est&&(x.km-1)>=wK-0.05&&x.km<=totK-cK+0.05);
-  if(sp.length>=4){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
-    const d=Math.round(a-b); if(d>=3)good.push(['후반',`네거티브 스플릿 ${d}초/km`]); else if(d<=-8&&!['interval','threshold','rep'].includes(r.type))bad.push(['후반',`후반 1km ${-d}초 느려짐 — 초반 과속?`]); }
+  /* 빠른 회차가 여럿인 훈련(인터벌·템포런·페이스주)은 앞뒤 절반 비교를 하지 않는다 — 사이 쉬기·쿨다운이 섞인 1km가 들어가 계획대로 뛰어도 '후반 느려짐 — 초반 과속?'이 나왔다(페이스주, 2026-11-17 시험). 회차끼리는 '회차 고르게'가 본다 */
+  if(sp.length>=4&&sg.filter(g=>g.hard).length<2){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
+    const d=Math.round(a-b); if(d>=3)good.push(['후반',`네거티브 스플릿 ${d}초/km`]); else if(d<=-8)bad.push(['후반',`후반 1km ${-d}초 느려짐 — 초반 과속?`]); }
   /* 같은 종류의 최근 러닝과 비교 — 인터벌과 이지런의 케이던스는 원래 다르다 */
   const same=RUNS.filter(x=>x!==r&&x.type===r.type&&x.cadAvg).slice(-5), cu=same.length>=3?Math.round(same.reduce((a,x)=>a+x.cadAvg,0)/same.length):null;
   if(r.cadAvg&&cu){ if(r.cadAvg>=cu+3)good.push(['케이던스',`${r.cadAvg} — ${tm(r.type)} 5번 평균 ${cu}보다 가벼움`]); else if(r.cadAvg<140||r.cadAvg<=cu-25)bad.push(['케이던스',`${r.cadAvg} — 평소(${tm(r.type)} 5번 평균 ${cu})보다 크게 낮음 · 걸은 시간이 섞였거나 걸음 센서가 덜 잰 것`]);
