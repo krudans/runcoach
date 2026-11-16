@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.84';
+const APPVER='20.85';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2620,7 +2620,7 @@ const DEV = {
              예전엔 쓸 때마다 알려서, 동기화가 끝날 때마다 다시 쓰는 '지운 기록 목록'(값은 그대로)이 '바뀜'으로 찍혔고,
              v20.68에서 넣은 '바꾸면 1.5초 뒤 올리기'와 맞물려 앱을 켜 둔 동안 1.5초마다 동기화가 끝없이 돌았다(2026-11-15 시험에서 발견) */
           set(k,v){ let s, old=null; try{ s=JSON.stringify(v); old=localStorage.getItem('rc_'+k); localStorage.setItem('rc_'+k,s); }catch(e){ return false; }
-            try{ if(s!==old&&window.__rcTouch)window.__rcTouch(k); }catch(e){} return true; } },
+            try{ if(s!==old&&window.__rcTouch)window.__rcTouch(k,old,s); }catch(e){} return true; } },
   async hr(onBpm, known){
     if(!navigator.bluetooth) throw new Error(window.GAJI_NATIVE?'블루투스 준비 안 됨 → 앱을 완전히 닫고 다시 열기':'블루투스 미지원 → 크롬');
     // 중요 — 어메이핏 GTR 2e 등 상당수 워치는 표준 심박 서비스(0x180D)를
@@ -4434,7 +4434,12 @@ let CURVIEW='home';
    하위 화면(러닝 중·세션 확인·결과·설정)은 속한 탭에 불이 들어온다. */
 const TABOF={share:'log',rview:'log',dec:'home',tplan:'home',run:'home',confirm:'home',sum:'log',settings:'home',alerts:'home',runtab:'home',
   paste:'plan',review:'home'};
-function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
+function show(id){
+  /* 설정의 '내 정보'는 '내 정보 저장'을 눌러야 바뀐다. 예전엔 고르는 순간 앱 안의 값(PROF)이 바뀌어, 저장 안 하고 나가도
+     그 앱을 켜 둔 동안은 다른 화면이 바뀐 값을 썼고, 다른 저장(달린 뒤 최대 심박 갱신 등)에 섞여 몰래 저장될 수 있었다. 다시 켜면 옛 값 — 화면마다 값이 달랐다 */
+  try{ if(CURVIEW==='settings'&&id!=='settings'){ const st=DEV.store.get('prof',null);
+    if(st){ const K=['by','birth','sex','w','rhr','hrmaxSrc']; if(K.some(k=>(PROF[k]??null)!==(st[k]??null))){ K.forEach(k=>{ PROF[k]=st[k]??null; }); { const a=ageOf(PROF.birth); if(a)PROF.age=a; } toast('저장 안 한 내 정보는 그대로 두었어요'); } } } }catch(e){}
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id===id));
   try{ if(typeof MUS!=='undefined')setTimeout(()=>MUS.paint(),0); }catch(e){}
   CURVIEW=id;
   /* 달리는 중엔 화면 확대를 막는다 — 빗방울·주머니 터치로 두 번 탭되면 화면이 커진 채 깨졌다 */
@@ -5234,7 +5239,7 @@ $('rDots').onclick=e=>{ const d=e.target.closest('span'); if(d)runPage(+d.datase
 })();
 
 /* 구간별 기록에 띄울 항목 — 헤더의 칩으로 켜고 끈다 */
-let LAPC=DEV.store.get('lapc',{pace:1,time:1,hr:1,cad:1});
+let LAPC=DEV.store.get('lapc',{pace:1,time:1,hr:1,cad:1}); try{ if(localStorage.getItem('rc_lapc')==null)localStorage.setItem('rc_lapc',JSON.stringify(LAPC)); }catch(e){}   /* 기본값 미리 — 말 빠르기와 같은 이유 */
 function paintLapChips(){
   document.querySelectorAll('.laphd .cg').forEach(b=>b.classList.toggle('on',!!LAPC[b.dataset.c]));
 }
@@ -6528,7 +6533,7 @@ $('btnFresh').onclick=async()=>{
    영구 보관을 요청해 두고(기기 용량이 부족해도 먼저 지워지지 않는다),
    언제든 파일로 빼고 되돌릴 수 있게 한다. */
 const BK_KEYS=['lastAct','runs','shoes','rhr','hikes','dist','prof','props','adj','btname','hero','lapc','survey','onboarded','del',
-  'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','notiSeen','extraSeen','sigSeen','planPrev','fix24','seasonUp'];   /* 목표와 일정도 함께 — 폰을 바꿔도 일정이 남아야 한다 */
+  'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','notiSeen','extraSeen','sigSeen','planPrev','fix24','seasonUp','nickLock','consent'];   /* 별명 잠금·동의도 — 빠져 있어 백업으로 옮긴 폰에서 별명을 다시 바꿀 수 있었고 동의를 또 물었다 */   /* 목표와 일정도 함께 — 폰을 바꿔도 일정이 남아야 한다 */
 /* API 키는 백업에 넣지 않는다 — 파일로 새어나가면 안 되는 값이다 */
 async function paintStore(){
   const el=$('storeState'); if(!el)return;
@@ -6964,7 +6969,10 @@ $('pInfoSave').onclick=()=>{
   if(!PROF.sex)return toast('성별을 골라 주세요');
   PROF=Object.assign({},PROF,{w:+$('pW').value||null,rhr:+$('pRHR').value||null});
   /* 안정 심박을 넣으면 오늘 측정으로도 남긴다 — 예전 '아침 안정시 심박' 칸의 7일 평균·높을 때 알림이 그대로 돈다 */
-  { const v=+$('pRHR').value; if(v>25&&v<140){ RHR=(RHR||[]).filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v}); DEV.store.set('rhr',RHR); } }
+  { const v=+$('pRHR').value; if(v>25&&v<140){ RHR=(RHR||[]).filter(x=>x.date!==todayStr()); RHR.push({date:todayStr(),bpm:v,src:'set'}); DEV.store.set('rhr',RHR); }
+    /* 칸을 비우면 이 칸으로 넣었던 값도 뺀다 — 예전엔 칸은 비었는데 오늘 넣은 50이 '아침에 잰 값'으로 남아 계속 쓰였다 */
+    else if(!$('pRHR').value.trim()){ const old=+(DEV.store.get('prof',{})||{}).rhr||0, n0=(RHR||[]).length;
+      RHR=(RHR||[]).filter(x=>!(x.src==='set'||(x.date===todayStr()&&old&&x.bpm===old))); if(RHR.length!==n0)DEV.store.set('rhr',RHR); } }
   if(!PROF.by&&PROF.birth)PROF.by=+String(PROF.birth).slice(0,4);
   if(!(PROF.hrmaxSrc==='measured'&&PROF.hrmax))PROF.hrmax=null;
   DEV.store.set('prof',PROF);
@@ -7099,7 +7107,33 @@ const FB={
   /* 설정 문서 하나 + 기록은 한 건씩 따로.
      한 문서에 다 넣으면 1MB 한계에 금방 닿는다. */
   SETK:['prof','survey','shoes','props','adj','dist','hero','lapc','rhr','hikes','del','onboarded',
-        'goal','plan','custom','rvSeen','decs','acts','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','extraSeen','sigSeen','consent','nickLock'],
+        'goal','plan','custom','rvSeen','decs','restlog','missSeen','vopt','breath','holdGrow','bestStreak','cadTry','timePref','races','goals','myraces','extraSeen','sigSeen','consent','nickLock'],
+  /* 걷기·자전거·등산(acts)은 설정 문서에서 뺐다 — 기록 한 건씩 따로 모으는데(acts 모음) 설정 문서에도 통째로 들어 있어,
+     먼저 동기화한 폰의 목록이 아직 안 올린 폰의 목록을 덮었다(그 폰에서 방금 저장한 걷기가 사라짐). 1MB 한계에도 가까워졌다 */
+  /* 항목별로 합치는 설정 — 두 폰에서 서로 다른 칸(체중·성별, 신발 하나씩, 대회 기록 하나씩)을 바꿔도 둘 다 남는다.
+     'obj' = 칸 이름별, 그 밖 = 목록에서 그 이름의 값으로 한 줄씩 구분. 칸·줄마다 '바꾼 시각'(modf)을 따로 적어 더 나중 것을 쓴다 */
+  ITEM:{prof:'obj',vopt:'obj',survey:'obj',adj:'obj',lapc:'obj',shoes:'name',rhr:'date',races:'id',goals:'id',myraces:'id',props:'id'},
+  modf(){ try{ return JSON.parse(localStorage.getItem('rc_modf'))||{}; }catch(e){ return {}; } },
+  modfSave(m){ try{ localStorage.setItem('rc_modf',JSON.stringify(m)); }catch(e){} },
+  imap(kind,v){ const m={};
+    if(kind==='obj'){ if(v&&typeof v==='object'&&!Array.isArray(v))Object.keys(v).forEach(i=>{ m[i]=v[i]; }); }
+    else if(Array.isArray(v))v.forEach(x=>{ const id=(x&&typeof x==='object'&&x[kind]!=null)?String(x[kind]):'#'+FB.canon(x); m[id]=x; });
+    return m; },
+  stamp(k,oldS,newS){ const kind=FB.ITEM[k]; if(!kind)return; let o=null,n=null; try{ o=JSON.parse(oldS); }catch(e){} try{ n=JSON.parse(newS); }catch(e){}
+    const a=FB.imap(kind,o), b=FB.imap(kind,n), M=FB.modf(), now=Date.now(), mk=M[k]=M[k]||{}; let ch=false;
+    new Set([...Object.keys(a),...Object.keys(b)]).forEach(i=>{ if(FB.canon(a[i]===undefined?null:a[i])!==FB.canon(b[i]===undefined?null:b[i])){ mk[i]=now; ch=true; } });
+    if(ch){ const ks=Object.keys(mk); if(ks.length>600)ks.sort((x,y)=>mk[x]-mk[y]).slice(0,ks.length-600).forEach(i=>delete mk[i]); FB.modfSave(M); } },
+  /* 한 칸·한 줄씩 — 바꾼 시각이 있는 쪽 중 더 나중 것. 지운 줄도 시각이 남아 다른 폰에서도 지워진다. 둘 다 시각이 없으면 같으면 그대로, 다르면 설정 전체 시각으로, 한쪽에만 있으면 남긴다(모르는 채 지우지 않는다) */
+  mergeItems(k,loc,cl,mL,mC,lt,ct){ const kind=FB.ITEM[k], A=FB.imap(kind,loc), B=FB.imap(kind,cl), pick={}, st={};
+    new Set([...Object.keys(A),...Object.keys(B),...Object.keys(mL||{}),...Object.keys(mC||{})]).forEach(i=>{
+      const tA=+(mL||{})[i]||0, tB=+(mC||{})[i]||0, inA=i in A, inB=i in B;
+      let w; if(tA||tB)w=tB>tA?'B':'A'; else if(inA&&inB)w=FB.canon(A[i])===FB.canon(B[i])?'A':(ct>lt?'B':'A'); else w=inA?'A':'B';
+      const src=w==='A'?A:B; if(i in src)pick[i]=src[i]; if(tA||tB)st[i]=Math.max(tA,tB); });
+    let v;
+    if(kind==='obj'){ if(!(loc&&typeof loc==='object')&&!(cl&&typeof cl==='object'))return {v:loc,st}; v={}; Object.keys(pick).forEach(i=>{ v[i]=pick[i]; }); }
+    else { const order=[...Object.keys(A),...Object.keys(B).filter(i=>!(i in A))]; v=order.filter(i=>i in pick).map(i=>pick[i]);
+      if(kind==='date'||k==='races')v.sort((x,y)=>String(x.date||'').localeCompare(String(y.date||''))); }
+    return {v,st}; },
   /* 합치는 항목 — map: {날짜/열쇠: 값}, list: [{id,d,…}] */
   MERGE:{missSeen:'map',extraSeen:'map',sigSeen:'map',restlog:'map',decs:'list'},
   canon(v){ const f=x=>Array.isArray(x)?x.map(f):(x&&typeof x==='object')?Object.keys(x).sort().reduce((o,k)=>{ o[k]=f(x[k]); return o; },{}):x; return JSON.stringify(f(v)); },
@@ -7143,6 +7177,11 @@ const FB={
         /* 날짜·항목별로 쌓이는 것(결정 기록, 못 한 날 결정, 쉬는 날 기록, 본 알림)은 통째로 바꾸지 않고 합친다.
            예전엔 두 기기가 각자 다른 날을 정한 뒤 동기화하면 나중에 바꾼 쪽이 통째로 이겨, 앞 기기의 결정이 사라졌다.
            같은 날·같은 항목이 서로 다르면 더 나중에 바꾼 쪽 값. 합친 결과가 클라우드와 다르면 지금 바꾼 것으로 쳐서 올린다(다른 기기도 받게) */
+        if(FB.ITEM[k]){ const loc=DEV.store.get(k,null), MF=FB.modf(), r=FB.mergeItems(k,loc,cloud[k],MF[k]||{},(cloud.modf||{})[k]||{},lt,ct), sM=FB.canon(r.v), sL=FB.canon(loc);
+          if(sM!==sL){ DEV.store.set(k,r.v); took=true; }
+          MF[k]=r.st; FB.modfSave(MF);
+          myMod[k]=sM===FB.canon(cloud[k])?ct:sM===sL?Math.max(ct,lt):Math.max(ct,lt)+1;
+          return; }
         if(FB.MERGE[k]&&+cMod[k]){ const loc=DEV.store.get(k,null);
           if(loc&&typeof loc==='object'&&cloud[k]&&typeof cloud[k]==='object'&&Array.isArray(loc)===Array.isArray(cloud[k])){
             const m=FB.mergeSet(FB.MERGE[k],loc,cloud[k],ct>lt), sM=FB.canon(m), sL=FB.canon(loc);
@@ -7186,6 +7225,8 @@ const FB={
     const as=await getSince('acts');
     const haveA=new Set(ACTS.map(x=>x.rid));
     as.forEach(d=>{ const v=fsUnpackObj(d.data()); if(!v||!v.rid||del.has(v.rid)||haveA.has(v.rid))return; delete v._at; ACTS.push(v); haveA.add(v.rid); aAdd++; pulled.push(['acts',v]); });
+    /* 예전 버전이 설정 문서에 통째로 올려 둔 목록 — 덮지 않고, 없는 것만 더한다(다음 push가 한 건씩 모음에 올린다) */
+    (Array.isArray(cloud.acts)?cloud.acts:[]).forEach(v=>{ if(!v||!v.rid||del.has(v.rid)||haveA.has(v.rid))return; ACTS.push(v); haveA.add(v.rid); aAdd++; });
     if(aAdd||aCut||aFix){ ACTS.sort((a,b)=>String(a.date).localeCompare(String(b.date))); DEV.store.set('acts',ACTS); }
     /* 신발 누적 — 두 폰이 각자 더한 값은 설정째 덮이면 한쪽이 사라진다. 기록에서 다시 센 값보다 작으면 올린다 */
     if(added||took){ let ch=false; SHOES.forEach(sh=>{ const k=+RUNS.filter(x=>x.shoe===sh.name).reduce((a,x)=>a+(x.km||0),0).toFixed(3);
@@ -7198,6 +7239,8 @@ const FB={
     const o={updatedAt:Date.now()};
     FB.SETK.forEach(k=>{ const v=DEV.store.get(k,null); if(v!==null)o[k]=fsPack(v); });
     o.modk=DEV.store.get('modk',{})||{};
+    o.modf=FB.modf();
+    o.acts=null;   /* 설정 문서 속 옛 목록을 비운다 — 기록은 acts 모음에 한 건씩 있다 */
     o.email=(FB.user&&FB.user.email)||null;
     /* 관리자 통계용 요약 — 기록 전체를 읽지 않아도 회원별 기록 수·거리를 볼 수 있게 */
     try{ const t7=addDays(todayStr(),-6), R=RUNS.filter(isRun); o.appVer=APPVER;
@@ -7268,7 +7311,8 @@ try{ const n0=RUNS.length; RUNS=RUNS.filter(r=>!isSeedRun(r)); if(RUNS.length!==
 const newRid=r=>String((r&&r.date)||todayStr()).replace(/[^0-9]/g,'').slice(0,14)
   +'-'+Math.random().toString(36).slice(2,8);
 /* 설정 항목을 이 폰에서 바꾼 시각 — 동기화 때 항목별로 새 쪽을 고른다 (끌어와서 쓰는 중에는 세지 않는다) */
-window.__rcTouch=k=>{ if(FB._pulling||!FB.SETK.includes(k))return;
+window.__rcTouch=(k,oldS,newS)=>{ if(FB._pulling||!FB.SETK.includes(k))return;
+  try{ if(FB.ITEM[k])FB.stamp(k,oldS,newS); }catch(e){}
   let m={}; try{ m=JSON.parse(localStorage.getItem('rc_modk'))||{}; }catch(e){}
   m[k]=Date.now(); try{ localStorage.setItem('rc_modk',JSON.stringify(m)); }catch(e){}
   /* 바꾼 것은 곧바로(1.5초 뒤 한 번에) 올린다 — 예전엔 '오늘 건너뛰기' 같은 결정이 이 폰에만 남고, 앱을 다시 볼 때까지 올라가지 않았다 */
@@ -10763,6 +10807,8 @@ function renderDecLog(hostIn,lim){
 
 /* 음성 설정 — 뛰는 중 안내 */
 let VOPT=Object.assign({pre:true,count:true,quiet20:true,kmBuzzOnly:true,half:true,firstGuard:false,vol:1,rate:1.05},DEV.store.get('vopt',{}));
+/* 기본값을 미리 적어 둔다(바꾼 것으로 치지 않음) — 안 그러면 처음 한 칸을 바꿀 때 기본값 전부가 '방금 바꾼 값'이 되어, 다른 폰에서 바꾼 칸(예: 말 빠르기)을 기본값으로 덮었다 */
+try{ if(localStorage.getItem('rc_vopt')==null)localStorage.setItem('rc_vopt',JSON.stringify(VOPT)); }catch(e){}
 /* ══════════ 결과 화면 · 지도 · 공유 이미지 · 뛴 뒤 결정 ══════════ */
 /* 카카오맵 — 무료(일 30만 회, 카드 등록 없음). 등록한 도메인(krudans.github.io)에서만 열린다.
    이 키는 웹 SDK용 공개 키라 화면 코드에 들어가도 되지만, 백업 파일에는 쓰지 않는다. */
@@ -11320,7 +11366,7 @@ function drawShare(cv){
   const dt=new Date(r.date);
   const kindNm=(r.act&&r.act!=='run'&&ACTK[r.act])?ACTK[r.act].nm:(T.nm||'달리기');
   x.font=F('700',40); T2(`${dt.getFullYear()}.${dt.getMonth()+1}.${dt.getDate()} · ${kindNm}`,72,120);
-  x.font=F('900',64); T2(String(r.title||'').slice(0,22),72,200);
+  x.font=F('900',64); T2(String((r.act&&r.act!=='run'&&ACTK[r.act])?actTitle(r):(r.title||'')).slice(0,22),72,200);
   /* 경로 */
   const top=tpl==='sticker'?300:250, mh=tpl==='sticker'?900:(tpl==='reps'?380:560);
   if(o.map&&r.track&&r.track.length>3&&tpl!=='reps'){
@@ -11353,7 +11399,9 @@ function drawShare(cv){
   const by=H-(tpl==='sticker'?380:260);
   x.font=F('900',150); T2(r.km.toFixed(2),72,by); const kw=x.measureText(r.km.toFixed(2)).width;
   x.font=F('800',56); T2('km',72+kw+16,by);
-  const cells=[[fmtClock(r.sec),'시간'],[fmtPace(r.paceAvg),'평균 /km']]; if(o.hr&&r.hrAvg)cells.push([String(r.hrAvg),'평균 심박']);
+  /* 걷기·자전거·등산은 결과 화면과 같은 숫자 — 자전거에 '2'47\" /km', 등산에 '16'43\" /km'가 찍혔다 */
+  const ak=(r.act&&r.act!=='run'&&ACTK[r.act])?r.act:null, kmh=r.sec>0?r.km/(r.sec/3600):0;
+  const cells=[[fmtClock(r.sec),'시간'], ak==='bike'?[kmh.toFixed(1),'평균 km/h']:ak==='hike'?[`+${r.asc||0}`,'오른 높이 m']:ak==='walk'?[String(r.steps||'—'),'걸음']:[fmtPace(r.paceAvg),'평균 /km']]; if(o.hr&&r.hrAvg)cells.push([String(r.hrAvg),'평균 심박']);
   cells.forEach((c,i)=>{ const X=72+i*320; x.font=F('900',64); T2(c[0],X,by+110); x.font=F('700',30); x.globalAlpha=STK?1:.85; T2(c[1],X,by+152); x.globalAlpha=1; });
   x.font=F('900',32); x.globalAlpha=.92; x.textAlign='right'; T2('가지런하다',W-60,H-52); const tw=x.measureText('가지런하다').width; x.textAlign='left';
   drawBrand(x,W-60-tw-50,H-88,46,'#fff',null); x.globalAlpha=1; x.shadowBlur=0;
@@ -11440,29 +11488,33 @@ function openRunView(rid){
 }
 
 /* 걷기·자전거·등산 결과 — 판정 없이 기록만. 등산은 오른 높이가 가운데 */
+/* 걷기·자전거·등산 제목 — '기록 고치기'에서 바꾼 제목을 결과·기록 목록·공유 그림 모두 같이 쓴다 (전엔 공유 그림만 바뀐 제목, 나머지는 '걷기 기록'·'걷기') */
+function actTitle(r){ const a=ACTK[r&&r.act]||ACTK.walk, t=String((r&&r.title)||'').trim(); return t&&t!==a.nm?t:`${a.nm} 기록`; }
 function renderActResult(host,r){
   const a=ACTK[r.act]||ACTK.walk, dt=new Date(r.date);
   const kmh=r.sec>0?(r.km/(r.sec/3600)):0;
+  /* 설정 › 등산 기록(시간만)으로 넣은 것 — 거리·오른 높이는 잰 적이 없다. 예전엔 '+0 m 오른 높이 · 0.00 km · 시간당 0m'로 보였다 */
+  const tOnly=!!r.manual&&!(r.km>0)&&!(r.track&&r.track.length);
   const alts=(r.track||[]).map(p=>p.alt).filter(v=>v!=null);
-  const big = r.act==='hike' ? [`+${r.asc||0}`,'m 오른 높이'] : r.act==='bike' ? [kmh.toFixed(1),'km/h 평균'] : [r.km.toFixed(2),'km'];
+  const big = tOnly ? [fmtClock(r.sec),'시간 (직접 입력)'] : r.act==='hike' ? [`+${r.asc||0}`,'m 오른 높이'] : r.act==='bike' ? [kmh.toFixed(1),'km/h 평균'] : [r.km.toFixed(2),'km'];
   const spm=r.steps&&r.sec>60?Math.round(r.steps/(r.sec/60)):(r.cadAvg||null), hr=[r.hrAvg||'—','평균 심박'];
   /* 운동마다 맞는 숫자 — 등산에 1km 페이스는 의미가 없고, 자전거에 걸음은 없다 */
-  const tiles = r.act==='hike' ? [[r.km.toFixed(2),'km'],[fmtClock(r.sec),'시간'],[r.sec>600?Math.round((r.asc||0)/(r.sec/3600)):'—','시간당 오른 m'],hr]
+  const tiles = tOnly ? [['—','km'],['—','오른 높이 m'],hr] : r.act==='hike' ? [[r.km.toFixed(2),'km'],[fmtClock(r.sec),'시간'],[r.sec>600?Math.round((r.asc||0)/(r.sec/3600)):'—','시간당 오른 m'],hr]
               : r.act==='bike' ? [[r.km.toFixed(2),'km'],[fmtClock(r.sec),'시간'],[`+${r.asc||0}`,'오른 높이 m'],hr]
               : [[fmtClock(r.sec),'시간'],[r.steps||'—','걸음'],[spm||'—','분당 걸음 (평균)'],hr];
-  const note = r.act==='walk'&&spm ? (spm>=100?`분당 ${spm}걸음 — 중강도 · 100 경계 (Tudor-Locke 2018, B).`:`분당 ${spm} — 저강도 · 100↑ 중강도 (Tudor-Locke 2018, B) · 멈춤 포함`)
+  const note = tOnly ? '시간만 입력한 기록 — 거리·오른 높이는 재지 않았어요' : r.act==='walk'&&spm ? (spm>=100?`분당 ${spm}걸음 — 중강도 · 100 경계 (Tudor-Locke 2018, B).`:`분당 ${spm} — 저강도 · 100↑ 중강도 (Tudor-Locke 2018, B) · 멈춤 포함`)
              : r.act==='hike'&&r.sec>600 ? `시간당 고도 · 늘면 체력↑` : '';
   host.innerHTML=`<div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} · <span class="tchip2" style="background:${a.col}">${a.nm}</span></div>
-    <h2 class="rt">${a.nm} 기록</h2>
+    <h2 class="rt">${ESC(actTitle(r))}</h2>
     ${SEC(a.col,'기록','달리기 거리에는 안 들어감',`<div class="actbig" style="margin:0"><b class="num">${big[0]}</b><i>${big[1]}</i></div>
     <div class="rsm">${tiles.map(t=>`<div><b class="num">${t[0]}</b><i>${t[1]}</i></div>`).join('')}</div>
     ${note?`<p class="meta" style="line-height:1.7;margin:8px 4px 2px">${note}</p>`:''}`)}
     ${r.track&&r.track.length>3?SEC('train','경로','',`<div class="rmap"></div>`):'<div class="rmap" hidden></div>'}
     ${alts.length>3&&r.act!=='walk'?SEC('ana','높이',`▲${r.asc||0}m ▼${r.desc||0}m`,`<div class="rcard">${spark(alts,300,70,false,'#3F6E3A').replace('class="spk"','class="spk" style="width:100%;height:80px" preserveAspectRatio="none"')}</div>`):''}
-    <button class="btn ghost" data-rs="share" style="margin-top:14px">사진 공유</button>`;
+    ${tOnly?'':`<button class="btn ghost" data-rs="share" style="margin-top:14px">사진 공유</button>`}`;
   /* 달리기와 같은 지도(카카오 지도 + 경로). 지도를 못 불러오면 경로 그림만 */
   const m=host.querySelector('.rmap'); if(r.track&&r.track.length>3){ paintMap(m,r.track,null,({hike:'#3F6E3A',bike:'#D9761E',walk:'#2F7FD0'})[r.act]||'#3F6E3A'); }
-  host.querySelector('[data-rs="share"]').onclick=()=>openShare(r,null);
+  { const sb=host.querySelector('[data-rs="share"]'); if(sb)sb.onclick=()=>openShare(r,null); }
 }
 
 /* ══════════ 뛰는 중 음성 대본 ══════════
@@ -12162,8 +12214,8 @@ function logList(){
       <div class="s">${MIS_ALL().filter(x=>r.m[x.k]).map(x=>x.s).join(' · ')}</div></div></div>`;
     if(k!=='run'){ const a=ACTK[k]||ACTK.walk;
       return `<div class="li" data-rid="${r.rid}"><div class="map" data-maprid="${ESC(r.rid||'')}">${routeSVG(r.track,null,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:'#8C6D46'})}</div>
-        <div class="m"><b>${a.nm}</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#8C6D46">${a.nm}</span><span class="chip n">판정 없음</span></div>
-        <div class="s">${fmtClock(r.sec)} · ${k==='hike'?'오르막 +'+(r.asc||0)+'m':r.km.toFixed(1)+'km'}</div></div></div>`; }
+        <div class="m"><b>${ESC(actTitle(r))}</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#8C6D46">${a.nm}</span><span class="chip n">판정 없음</span></div>
+        <div class="s">${fmtClock(r.sec)} · ${r.manual&&!(r.km>0)?'시간만 입력':k==='hike'?'오르막 +'+(r.asc||0)+'m':r.km.toFixed(1)+'km'}</div></div></div>`; }
     const T=TYPES[r.type]||{}, v=runPass(r), pr=promiseRows(r,{dist:r.planKm||(r.distRatio?r.km/r.distRatio:0),ceiling:r.ceiling});
     const chip=r.manual?'<span class="chip n">직접 입력</span>':r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
     const sp=paceBars(r);
