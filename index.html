@@ -2551,7 +2551,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.89';
+const APPVER='20.90';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6185,7 +6185,8 @@ function renderSummary(completed){
   $('sRPE').innerHTML=[1,2,3,4,5,6,7,8,9,10].map(n=>`<button data-v="${n}">${n}</button>`).join('');
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
   $('sWeather').innerHTML=WEATHER.map(w=>`<button class="tag" data-w="${w}">${w}</button>`).join('');
-  if(S.contOf){ S.result.contOf=S.contOf; S.result.planId=null; }   /* 이어서 뛴 조각 — 계획 칸은 앞 기록이 가진다 */
+  if(S.contOf){ S.result.contOf=S.contOf; S.result.planId=null; }
+  if(s&&s.race)S.result.race=Object.assign({},s.race);   /* 신청한 대회 날 — 저장할 때 대회 기록으로 남긴다 */   /* 이어서 뛴 조각 — 계획 칸은 앞 기록이 가진다 */
   if(S.act&&S.act!=='run'){ Object.assign(S.result,{act:S.act,title:ACTK[S.act].nm,name:ACTK[S.act].nm,steps:(S.cad&&S.cad.steps)||null}); }
   try{ SH.fromView='sum'; if(S.act&&S.act!=='run')renderActResult($('sNew'),S.result); else renderResult($('sNew'),S.result,(s.d==='free'||S.contOf)?null:s,{noPoints:s.d!=='free'}); }catch(e){ console.error(e); $('sOld').hidden=false; }
   /* 이어서 뛴 조각 — 이 조각만으로 판정하지 않고, 합친 거리를 먼저 보여 준다 */
@@ -6286,6 +6287,13 @@ $('btnSave').onclick=()=>{
   /* 테스트 러닝이면 그 기록으로 실력을 확정하고 일정을 다시 만든다 */
   const bc=basisFromTT(S.result);   /* TT면 결과 시트 — 적용·나중에·적용 안 함 */
   if(bc){ if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); go('home'); setTimeout(()=>basisOpen(bc),250); return; }
+  /* 신청한 대회 날 뛴 기록 → 대회 기록(러닝일지)에 넣고, 실력 기준으로 쓸지 TT처럼 묻는다.
+     예전엔 대회 날 기록이 '프리런'으로만 남아 대회 기록·실력이 그대로였다 — 대회 앞 TT를 빼는 근거(대회가 측정을 대신)가 성립하지 않았다(2026-11-16 시험).
+     거리는 대회 공인 거리, 시간은 뛴 시간 — GPS는 코스보다 길게 재는 경우가 많다. 공인 거리의 95% 이상 뛰었을 때만 */
+  if(S.result.race&&S.result.race.m&&S.result.km*1000>=S.result.race.m*0.95&&S.result.sec>=210){
+    try{ const rc=S.result.race, it=rlogAdd({date:ldate(S.result.date).slice(0,10),m:rc.m,sec:S.result.sec,name:rc.name||'',kind:'race',src:'manual'});
+      if(it){ S.result.raceLog=it.id; DEV.store.set('runs',RUNS); const c=basisFromRace(it); if(c)c.fromRun=true; if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); go('home');
+        setTimeout(()=>{ toast(`대회 기록 저장 — ${rlLab(rc.m)} ${fmtClock(S.result.sec)}`); if(c)basisOpen(c); },250); return;   /* TT와 같은 결과 시트 — 적용·나중에·적용 안 함 */ } }catch(e){ console.warn('race log',e); } }
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
   if(S.result.contOf){ const f=RUNS.find(x=>x.rid===S.result.contOf); go('home'); toast(f?`앞 기록에 이어 붙임 · 합계 ${fmtKm1(contTotal(f))}km`:'기록 저장됨'); return; }
   if(S.result.tooShort){ go('home'); toast('너무 짧음 · 훈련 제외'); return; }
@@ -8039,7 +8047,7 @@ function basisOpen(c,opts){
   sh.innerHTML=`<div class="ms-card bs" role="dialog" aria-label="${title}">
     <div class="bs-eb">${c.src==='tt'?'TT 결과':'대회 기록'} · ${c.at.slice(5).replace('-','.')}</div>
     <h2 class="bs-h">${title}</h2><p class="bs-sub">${sub}</p>
-    <div class="bs-run"><i style="background:${ic}">${symSVG(c.src==='tt'?'tt':'race')}</i><div><b>${nm}</b><span>${hr||(c.src==='tt'?'':'날짜를 넣어 올린 기록')}</span></div><strong class="num">${fmtClock(c.sec)}</strong></div>
+    <div class="bs-run"><i style="background:${ic}">${symSVG(c.src==='tt'?'tt':'race')}</i><div><b>${nm}</b><span>${hr||(c.src==='tt'?'':c.fromRun?'대회 날 뛴 기록 · 거리는 대회 공인 거리':'날짜를 넣어 올린 기록')}</span></div><strong class="num">${fmtClock(c.sec)}</strong></div>
     ${warn?`<p class="bs-warn">${warn}</p>`:''}
     <div class="bs-lv go"><small>실력 점수</small><span class="bs-old num">${v0.toFixed(1)}</span><span class="bs-arr">→</span><span class="bs-v num">${v1.toFixed(1)}</span><span class="bs-dv show ${Math.abs(dv)<0.05?'same':dv>0?'up':'dn'}">${Math.abs(dv)<0.05?'그대로':(dv>0?'+':'−')+Math.abs(dv).toFixed(1)}</span></div>
     <p class="bs-crit"><b>판정</b> 전력 TT·대회의 거리+시간 → VDOT 공식<br>입력만 한 기록·평소 훈련 제외 · 1점 ≈ 풀코스 4분</p>
@@ -10218,7 +10226,7 @@ function todayResultCard(r,sess){
   const rows=(pr.rows||[]).slice(0,4).map(x=>`<li class="${x[2]||''}"><span>${x[0]}</span><b>${x[1]}</b></li>`).join('');
   const map=r.track&&r.track.length>3?routeSVG(r.track,r.segments,{w:96,h:96,pad:8,sw:4,marks:false,ends:true}):'';
   return `<section class="tres" style="--tc:${col}" aria-label="오늘 결과">
-    <div class="tr-top"><span class="tr-chip">${ic('check',14)}</span><span class="tr-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span></div>
+    <div class="tr-top"><span class="tr-chip">${ic('check',14)}</span><span class="tr-type">${r.race?'대회':(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span></div>
     <div class="tr-main"><div><b class="num">${(r.own?contTotal(r):+r.km).toFixed(2)}</b><span>km${r.cont?` · ${r.cont.rids.length+1}번에 나눠`:''}</span></div>${map?`<div class="tr-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}</div>
     <div class="tr-stats"><span>${ic('clock')}<b class="num">${fmtClock(r.own?r.own.sec+r.cont.sec:r.sec)}</b></span><span>${ic('pace')}<b class="num">${fmtPace(r.own?Math.round((r.own.sec+r.cont.sec)/Math.max(0.01,contTotal(r))):r.paceAvg)}</b>/km</span>${r.hrAvg?`<span>${ic('heart')}<b class="num">${r.hrAvg}</b> <small>${zLab(r.hrAvg)}</small></span>`:''}${r.cadAvg?`<span>👣<b class="num">${r.cadAvg}</b></span>`:''}</div>
     ${hidNote(r)}
@@ -10464,6 +10472,8 @@ function dayScore(d){ /* 그날 점수 — 계획과 짝이 맞는 기록 우선
   const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d);
   if(!rs.length||!planOn(d)){ const R=restScore(d); if(R)return {score:R.score,parts:R.parts,rest:R.kind}; if(!rs.length)return null; }
   const b=BLOCK.find(x=>x.d.slice(0,10)===d&&x.type!=='off')||pastSessOn(d); const r=rs.find(x=>b&&x.planId===b.d)||rs[0];   /* 지난 4주 날도 그날 계획으로 점수 */
+  /* 신청한 대회 날 — 대회는 '속도 약속'이 아니라 완주가 약속이다. 공인 거리 95% 이상 뛰면 100점(전엔 점수가 없어 주간 '훈련 0/4'에 안 셌다) */
+  if(b&&b.race&&r&&r.planId===b.d){ const ok=b.race.m&&(+r.km*1000>=b.race.m*0.95); return {score:ok?100:Math.round(Math.min(1,(+r.km*1000)/(b.race.m||1))*100),parts:[['대회 완주',ok?100:0,100]],race:true}; }
   return runScore(r,runSess(r,b)); }
 /* 기록 하나의 '그날 약속' — 점수를 내는 곳(일정·주간·기록 화면)이 모두 이것 하나로 같은 점수를 낸다 */
 function runSessOf(r){ return BLOCK.find(x=>x.d===r.planId)||((PLAN&&PLAN.past)||[]).find(x=>x.d===r.planId)||null; }
