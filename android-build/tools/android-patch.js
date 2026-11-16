@@ -54,5 +54,7 @@ for(const f in JAVA) fs.writeFileSync(path.join(jdir,f),JAVA[f]);
   for(const p of ['VIBRATE','WAKE_LOCK','FOREGROUND_SERVICE','FOREGROUND_SERVICE_MEDIA_PLAYBACK']) if(!new RegExp('android\\.permission\\.'+p+'"').test(m)) m=m.replace('</manifest>','    <uses-permission android:name="android.permission.'+p+'" />\n</manifest>');   /* WAKE_LOCK — 화면이 꺼져도 걸음 센서를 읽는다 */
   /* 음악 재생 알림 서비스 — 음악을 트는 동안 '음악 재생 중'으로 등록한다 */
   if(!/GajiMediaService/.test(m)) m=m.replace('</application>','    <service android:name="io.github.krudans.gajirun.GajiMediaService" android:exported="false" android:foregroundServiceType="mediaPlayback" />\n    </application>');
+  /* 화면 세로 고정 — 달리면서 폰을 기울이면 화면이 가로로 돌아갔다(2026-11-16 실제 기기). 달리기 화면은 세로용으로만 짜여 있다 */
+  if(!/android:screenOrientation=/.test(m)) m=m.replace('android:name=".MainActivity"','android:name=".MainActivity"\n            android:screenOrientation="portrait"');
   fs.writeFileSync(mf,m); }
 console.log('안드로이드 설정 적용 — versionName',v,'versionCode',code);
