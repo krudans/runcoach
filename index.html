@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.19';
+const APPVER='21.20';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4255,7 +4255,10 @@ function voiceClean(t){ return String(t||'')
   .replace(/♥\s*/g,'심박 ').replace(/(\d+)초\/km/g,'1킬로미터에 $1초').replace(/\/km/g,' 킬로당').replace(/(\d)\s*~\s*(\d)/g,'$1에서 $2').replace(/~/g,'')
   .replace(/(\d+)\s*×\s*(\d[\d.]*\s*(?:km|m|분|초))/g,'$2 $1번').replace(/\s*×\s*(\d+)(?:\s*(?:회|번))?(?![\d.:'"]|\s*(?:m|km|분|초|킬로|미터))/g,' $1번').replace(/(\S)\s+\+\s+(?=\S)/g,'$1, ')   /* '뛰기 1분 + 걷기 2분 × 5' → '뛰기 1분, 걷기 2분 5번' — 전엔 ×가 지워져 '2분 5'로 읽혔다 */
   .replace(/\s*·\s*/g,', ').replace(/[✓✔✗✕×▶⏸•※★☆]/g,' ').replace(/[%]/g,'퍼센트')
-  .replace(/(,\s*){2,}/g,', ').replace(/^\s*,\s*/,''); }
+  .replace(/(,\s*){2,}/g,', ')  /* '5번'·'1번째'는 우리말 수로 — 읽는 엔진이 '오 번'·'일 번째'로 읽는다(2026-11-18). 20까지만 */
+  .replace(/(\d+)\s*번째/g,(m,n)=>(typeof ORDN!=='undefined'&&ORDN[+n])?ORDN[+n]+' 번째':m)
+  .replace(/(\d+)\s*번(?!째|호)/g,(m,n)=>(typeof KN!=='undefined'&&+n>0&&KN[+n])?KN[+n]+' 번':m)
+  .replace(/^\s*,\s*/,''); }
 const fmtPaceVoice=s=>{const r=Math.round(s),m=Math.floor(r/60),x=r%60;return x?`${m}분 ${x}초`:`${m}분`;};
 /* 목표 속도는 화면처럼 범위로 말한다 — 가운데 한 값만 말하면 뒤의 'N초 빠름'(범위 끝 기준)과 숫자가 안 맞았다 */
 const paceRangeVoice=p=>{const a=Math.round(Math.min(p[0],p[1])),b=Math.round(Math.max(p[0],p[1]));return a===b?fmtPaceVoice(a):`${fmtPaceVoice(a)}에서 ${fmtPaceVoice(b)} 사이`;};
@@ -5872,8 +5875,8 @@ function advanceSeg(){
   const vm=S.session.rw?null:voiceSegMsg(done,nx,actual,plan,segs);
   if(vm)msg=vm;
   if(S.session.rw){ const runs=segs.filter(g=>g.rwk==='run'), k=nx.rep||0;
-    msg = nx.rwk==='run' ? `이제 달립니다. ${rwMin(nx.sec)} 동안, 대화할 수 있는 속도로 가세요.${runs.length>1?` 전체 ${runs.length}번 중 ${k}번째입니다.`:''}${S.session.rw.check&&k===3?' 달리면서 한 문장을 말해 보세요.':''}`
-        : nx.rwk==='walk' ? `이제 걷습니다. ${rwMin(nx.sec)} 동안 숨을 고르세요.${runs.length-(done.rep||0)>0?` 달리기가 ${runs.length-(done.rep||0)}번 남았습니다.`:''}`
+    msg = nx.rwk==='run' ? `이제 달립니다. ${rwMin(nx.sec)} 동안, 대화할 수 있는 속도로 가세요.${runs.length>1?` 전체 ${vCount(runs.length).replace(' 번','')} 번 중 ${vOrd(k)}입니다.`:''}${S.session.rw.check&&k===3?' 달리면서 한 문장을 말해 보세요.':''}`
+        : nx.rwk==='walk' ? `이제 걷습니다. ${rwMin(nx.sec)} 동안 숨을 고르세요.${runs.length-(done.rep||0)>0?` 달리기가 ${vCount(runs.length-(done.rep||0))} 남았습니다.`:''}`
         : `달리기가 모두 끝났습니다. ${rwMin(nx.sec)} 동안 걸으며 마무리하세요.`;
     if(nx.rwk==='run'){ try{ VC.beep(1046,420); }catch(e){} DEV.buzz([400]); } }
   if(nx.hard&&VC.counted===S.segIx-1){ VC.beep(1046,420); DEV.buzz([400]); }
@@ -12009,7 +12012,7 @@ function breathTick(km){
   if(B.gap&&S.elapsed-B.gap<20)return;
   const ratio=B.plan[B.blocks.length], [a,b]=BRIDX(ratio);
   B.cur={ratio,t0:S.elapsed,d0:km,h0:S.hr.samples.length};
-  DEV.speak(`호흡 실험 ${B.blocks.length+1}번째 구간입니다. ${ratio} 호흡입니다. ${a}걸음 동안 들이쉬고, ${b}걸음 동안 내쉬세요. 높은 소리에 들이쉽니다.`,true);
+  DEV.speak(`호흡 실험 ${vOrd(B.blocks.length+1)} 구간입니다. ${a} 대 ${b} 호흡입니다. ${KN[a]||a} 걸음 동안 들이쉬고, ${KN[b]||b} 걸음 동안 내쉬세요. 높은 소리에 들이쉽니다.`,true);   /* '2:2'·'1번째'는 읽는 엔진에 따라 '2시 2분'·'일번째'로 읽힐 수 있어 풀어 쓴다 */
   setTimeout(()=>{ if(S.breath&&S.breath.cur&&S.breath.cur.ratio===ratio)breathBeatStart(ratio); },5500);
 }
 /* 같은 날 안에서의 차이로 비교 — 날씨·컨디션이 빠진다 */
@@ -13772,7 +13775,7 @@ STR_COL.str='#7A4CC2'; STR_COL.core='#3B82C4';
 /* 동작을 소리로 안내하는 문장 — 화면 글('팔 뻗어 앞 · 뒤로')을 그대로 읽으면 낱말만 들린다(2026-11-18). 내용은 화면 글과 같다 */
 const MOVE_SAY={
   'dyn:arm':'팔을 곧게 뻗어 앞으로, 그리고 뒤로 크게 돌리세요.','dyn:waist':'손을 허리에 올리고 골반으로 원을 그리세요.',
-  'dyn:legswing':'다리를 시계추처럼 앞뒤로 흔드세요. 한쪽에 10번씩 합니다.','dyn:sideswing':'몸 앞에서 다리를 좌우로 흔드세요. 한쪽에 10번씩 합니다.',
+  'dyn:legswing':'다리를 시계추처럼 앞뒤로 흔드세요. 한쪽에 열 번씩 합니다.','dyn:sideswing':'몸 앞에서 다리를 좌우로 흔드세요. 한쪽에 열 번씩 합니다.',
   'dyn:toekick':'다리를 차올려 반대쪽 손으로 발끝을 터치하세요.','dyn:gateOpen':'무릎을 들어 옆으로 90도 열었다 닫으세요. 양쪽을 번갈아 합니다.',
   'dyn:lunge':'큰 걸음으로 나가며 골반을 낮추세요.','dyn:sweep':'무릎을 편 채 손으로 바닥을 쓸듯이 숙이세요. 양쪽을 번갈아 합니다.',
   'stat:calf':'벽을 밀며 뒤꿈치를 바닥에 누르세요.','stat:ham':'뒤꿈치를 바닥에 대고 몸을 앞으로 숙이세요.','stat:quad':'발목을 잡고 두 무릎을 모으세요.',
@@ -13806,7 +13809,7 @@ function stStart(){ const S=STR[ST.kind], m=S.moves[ST.i]; ST.t=stTotal(); if(ST
 function stTick(){ if(ST.paused)return; ST.t--; const S=STR[ST.kind];
   if(ST.t===3)try{ VC.beep(660,120); }catch(e){}
   if(ST.t<=0){ if(S.moves[ST.i][4]&&!ST.side){ ST.side=1; return stStart(); }
-    ST.side=0; ST.i++; if(ST.i>=S.moves.length){ if((S.rounds||1)>ST.round){ ST.round++; ST.i=0; try{ DEV.speak(`${ST.round}바퀴째입니다.`,true); }catch(e){} return stStart(); } return stDone(); } return stStart(); }
+    ST.side=0; ST.i++; if(ST.i>=S.moves.length){ if((S.rounds||1)>ST.round){ ST.round++; ST.i=0; try{ DEV.speak(`${KN[ST.round]||ST.round} 바퀴째입니다.`,true); }catch(e){} return stStart(); } return stDone(); } return stStart(); }
   stPaint(); }
 function stDone(){ clearInterval(ST.timer); try{ DEV.speak(ST.kind==='dyn'?'준비 운동이 끝났습니다. 이제 달려 볼까요.':ST.kind==='str'?'근력 운동이 끝났습니다. 잘하셨습니다.':ST.kind==='core'?'코어 운동이 끝났습니다. 수고하셨습니다.':'정리 운동이 끝났습니다. 수고하셨습니다.',true); }catch(e){}
   try{ const k='stlog'; const L=DEV.store.get(k,{}); L[todayStr()]=Object.assign({},L[todayStr()],{[ST.kind]:true}); DEV.store.set(k,L); }catch(e){}
