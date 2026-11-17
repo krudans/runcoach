@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.12';
+const APPVER='21.13';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6374,7 +6374,7 @@ $('btnSave').onclick=()=>{
   if(P.act){ go('home'); toast(`${ACTK[S.result.act].nm} 기록 저장 — 거리 제외`); return; }
   if(P.bc){ go('home'); setTimeout(()=>basisOpen(P.bc),250); return; }
   if(P.race){ go('home'); setTimeout(()=>{ toast(P.race.lab); if(P.race.c)basisOpen(P.race.c); },250); return; }
-  if(S.result.contOf){ const f=RUNS.find(x=>x.rid===S.result.contOf); go('home'); toast(f?`앞 기록에 이어 붙임 · 합계 ${fmtKm1(contTotal(f))}km`:'기록 저장됨'); return; }
+  if(S.result.contOf){ const f=RUNS.find(x=>x.rid===S.result.contOf); go('home'); toast(f?`앞 기록에 이어 붙임 · 합계 ${contTotal(f).toFixed(2)}km`:'기록 저장됨'); return; }
   if(S.result.tooShort){ go('home'); toast('너무 짧음 · 훈련 제외'); return; }
   if(S.result.extraKm>=0.5){ const ex=extraInfo(S.result); if(ex&&ex.over>=0.5)setTimeout(()=>toast(`계획 +${S.result.extraKm.toFixed(1)}km — 홈 제안 확인`),900); }
   if(S.result.planId&&S.session&&S.session.d!=='free'){ openDebrief(S.result,S.session); return; }
@@ -10382,7 +10382,7 @@ document.addEventListener('click',e=>{
   const a=e.target.closest('[data-tres]'); if(a){ openRunView(a.dataset.tres); const b=$('rvwBack'); if(b)b.onclick=()=>go('home'); return; }
   const c=e.target.closest('[data-tcont]'); if(c){ const r=RUNS.find(x=>x.rid===c.dataset.tcont), ix=r?BLOCK.findIndex(b=>b.d===r.planId):-1; if(r&&ix>=0&&contLeft(r)>=0.5){ CONT={rid:r.rid,ix,left:contLeft(r)}; openConfirm(ix); } return; }
   const at=e.target.closest('[data-tattach]'); if(at){ const x=RUNS.find(y=>y.rid===at.dataset.tattach), f=RUNS.find(y=>y.rid===at.dataset.to);
-    if(x&&f){ x.contOf=f.rid; x.planId=null; contMerge(f.rid); DEV.store.set('runs',RUNS); afterRunsChanged(); toast(`이어 붙임 · 합계 ${fmtKm1(contTotal(f))}km`); } return; }
+    if(x&&f){ x.contOf=f.rid; x.planId=null; contMerge(f.rid); DEV.store.set('runs',RUNS); afterRunsChanged(); toast(`이어 붙임 · 합계 ${contTotal(f).toFixed(2)}km`); } return; }
   const l=e.target.closest('[data-tlink]'); if(l){ const r=RUNS.find(x=>x.rid===l.dataset.tlink), s=planOn(todayStr()); if(r&&s){ linkToPlan(r,s); DEV.store.set('runs',RUNS); afterRunsChanged(); toast('오늘 훈련으로 기록'); } return; }
   if(e.target.closest('[data-tstr]')){ stOpen('stat'); return; }
 });
@@ -11365,7 +11365,8 @@ function promiseRows(r,s){
     /* 심박이 기준인 날은 심박으로 판정하고 속도 줄은 참고로만 — 목록·달력(runPass)과 같은 결론 */
     if(hj&&r.hrCap&&r.hrCap>HRMAX*0.82) rows.push([`쉬운 날 심박 상한 ${r.hrCap}`,`최대 ${HRMAX}의 ${Math.round(r.hrCap/HRMAX*100)}% — 쉬운 날(80%, ${Math.round(HRMAX*0.8)})↑ · 88%↑ = 역치(템포) (Daniels, B)`,'bad']);
     if(hj) rows.push([`심박 ${r.hrCap+3} 넘은 시간 (상한 ${r.hrCap} + 3)`,`${Math.round(r.hrOverRatio*100)}% (기준 ${Math.round(th.hrOver*100)}%)`,r.hrOverRatio>th.hrOver?'bad':'ok']);
-    if(ce){ rows.push([`1km ${fmtPace(ce)}보다 느리게`,`평균 ${fmtPace(r.paceAvg)}${hj?' · 참고':''}`,hj?'':r.paceAvg&&r.paceAvg<ce?'bad':'ok']);
+    if(ce){ const pa=(r.cont&&r.own&&contTotal(r)>0)?(r.own.sec+r.cont.sec)/contTotal(r):r.paceAvg;   /* 나눠 뛴 훈련은 평균도 합친 값 — 전엔 '판정은 합친 값'이라면서 이 줄만 앞 기록의 평균(13'46")을 보였다(2026-11-17 시험) */
+      rows.push([`1km ${fmtPace(ce)}보다 느리게`,`평균 ${fmtPace(pa)}${r.cont?` (${r.cont.rids.length+1}번 합쳐)`:''}${hj?' · 참고':''}`,hj?'':pa&&pa<ce?'bad':'ok']);
       rows.push(['약속보다 빨랐던 시간',`${Math.round((r.ceilRatio||0)*100)}% (기준 ${Math.round(th.ceil*100)}%)${hj?' · 참고':''}`,hj?'':(r.ceilRatio||0)>th.ceil?'bad':'ok']); }
     if(hj){ if(r.hrOverRatio>th.hrOver)kind='hr'; }
     else if((r.ceilRatio||0)>th.ceil)kind='fast';
@@ -11511,7 +11512,7 @@ function renderResult(host,r,s,opt){
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(runTitle(r))}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
-    ${r.cont?`<div class="note green" style="margin:0 0 10px">${r.cont.rids.length+1}번에 나눠 뛴 훈련 — 합계 <b>${fmtKm1(contTotal(r))}km · ${fmtClock(r.own.sec+r.cont.sec)}</b> (이 기록 ${fmtKm1(r.own.km)}km + 이어서 ${fmtKm1(r.cont.km)}km) · 판정은 합친 값</div>`:r.contOf?(()=>{ let f=null; try{ f=RUNS.find(x=>x.rid===r.contOf); }catch(e){} return `<div class="note blue cont-frag" style="margin:0 0 10px">앞 기록에 이어서 뛴 조각${f?` — 합계 <b>${(contTotal(f)+(RUNS.includes(r)?0:(+r.km||0))).toFixed(2)}km</b>${f.planKm?` / 약속 ${fmtKm1(f.planKm)}km`:''}`:''} · 판정은 앞 기록과 합쳐서 한 번</div>`; })():''}
+    ${r.cont?`<div class="note green" style="margin:0 0 10px">${r.cont.rids.length+1}번에 나눠 뛴 훈련 — 합계 <b>${contTotal(r).toFixed(2)}km · ${fmtClock(r.own.sec+r.cont.sec)}</b> (이 기록 ${(+r.own.km).toFixed(2)}km + 이어서 ${(+r.cont.km).toFixed(2)}km) · 판정은 합친 값</div>`:r.contOf?(()=>{ let f=null; try{ f=RUNS.find(x=>x.rid===r.contOf); }catch(e){} return `<div class="note blue cont-frag" style="margin:0 0 10px">앞 기록에 이어서 뛴 조각${f?` — 합계 <b>${(contTotal(f)+(RUNS.includes(r)?0:(+r.km||0))).toFixed(2)}km</b>${f.planKm?` / 약속 ${fmtKm1(f.planKm)}km`:''}`:''} · 판정은 앞 기록과 합쳐서 한 번</div>`; })():''}
     ${hasMap?`<div class="rroute">${routeBoxHTML()}</div>`:'<div class="rmap" hidden></div>'}
     ${SEC(vc,ldate(r.date).slice(0,10)===todayStr()?'오늘 결과':'이날 결과','',hidNote(r)+hero+gqNote(r))}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
@@ -12491,7 +12492,7 @@ function logList(){
         <div class="m"><b>${ESC(actTitle(r))}</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#8C6D46">${a.nm}</span><span class="chip n">판정 없음</span></div>
         <div class="s">${fmtClock(r.sec)} · ${r.manual&&!(r.km>0)?'시간만 입력':k==='hike'?'오르막 +'+(r.asc||0)+'m':r.km.toFixed(1)+'km'}</div></div></div>`; }
     const T=TYPES[r.type]||{}, v=runPass(r), pr=promiseRows(r,{dist:r.planKm||(r.distRatio?r.km/r.distRatio:0),ceiling:r.ceiling});
-    const chip=r.contOf?'<span class="chip n">이어서 뛴 조각 · 앞 기록과 합쳐 판정</span>':r.cont?`<span class="chip n">${r.cont.rids.length+1}번에 나눠 · 합계 ${fmtKm1(contTotal(r))}km</span>`+(runPass(r)===true?'<span class="chip g">약속 지킴</span>':''):r.manual?'<span class="chip n">직접 입력</span>':r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
+    const chip=r.contOf?'<span class="chip n">이어서 뛴 조각 · 앞 기록과 합쳐 판정</span>':r.cont?`<span class="chip n">${r.cont.rids.length+1}번에 나눠 · 합계 ${contTotal(r).toFixed(2)}km</span>`+(runPass(r)===true?'<span class="chip g">약속 지킴</span>':''):r.manual?'<span class="chip n">직접 입력</span>':r.type==='free'?'<span class="chip n">판정 없음</span>':v===true?'<span class="chip g">약속 지킴</span>':v===false?`<span class="chip y">${(VERD[pr.kind]||['어긋남'])[0].replace(/습니다$/,'음')}</span>`:'';
     const sp=paceBars(r);
     return `<div class="li" data-rid="${r.rid}"><div class="map" data-maprid="${ESC(r.rid||'')}">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
       <div class="m"><b>${ESC(runTitle(r))}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg">${runTitle(r).startsWith(T.nm||'@')?'':`<span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>`}${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
@@ -14377,7 +14378,7 @@ function loadOf(r){
     if(v!=null){ out.tss=Math.round(v); out.if=+(segs.length?Math.sqrt(v/100*3600/r.sec):T/r.paceAvg).toFixed(2); out.thr=Math.round(T); } }
   /* Banister TRIMP */
   if(r.hrAvg&&HM){ const rhr=RH, x=Math.max(0,Math.min(1,(r.hrAvg-rhr)/Math.max(20,HM-rhr)));
-    const k=PROF.sex==='f'?0.86*Math.exp(1.67*x):0.64*Math.exp(1.92*x); out.trimp=Math.round(min*x*k); out.dhr=+x.toFixed(2); out.rh=rhr; out.hm=HM; out.rhOld=!!(r.base&&r.base.rhr); }
+    const k=PROF.sex==='f'?0.86*Math.exp(1.67*x):0.64*Math.exp(1.92*x); out.trimp=Math.round(min*x*k); out.dhr=+x.toFixed(2); out.rh=rhr; out.hm=HM; out.rhOld=!!(r.base&&r.base.rhr&&r.base.rhr!==restHr());   /* '그날 기준'은 지금 값과 다를 때만 — 전엔 값이 같아도 저장 전 결과 화면은 '설정', 저장 뒤 기록 화면은 '그날 기준'으로 이름이 갈렸다(2026-11-17 시험) */ }
   /* Edwards 존 TRIMP — 이 앱의 존(최대 70/80/88/92/97% 또는 여유 60/70/80/90%)은 Edwards 원본(50/60/70/80/90%)보다 높게 잘려 있어 보수적인 값 */
   if(hrZonesOf(r)&&r.zones.some(z=>z>0)){ out.edw=Math.round(r.zones.reduce((a,sec,i)=>a+sec/60*(i+1),0)); }
   /* sRPE */
