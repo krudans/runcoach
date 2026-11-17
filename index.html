@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.07';
+const APPVER='21.08';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10590,6 +10590,8 @@ function goalStrip(){
 function runScore(r,s){ try{
   if(!r||!isRun(r)||r.type==='free')return null;
   /* 걷기+달리기·상태 체크 — 약속은 '끝까지 하기'(judgeBy:'complete')다. 전엔 거리 계획이 0이라 '거리 0/40'으로 완주해도 50점이 나왔다(2026-11-17 시험) */
+  /* TT — 약속은 끝까지 재는 것. 속도 상한·심박으로 점수 내지 않는다(전엔 '속도 상한 40/40'이 붙었다) */
+  if(r.type==='tt'){ const rt=r.distRatio!=null?r.distRatio:(s&&s.dist?r.km/s.dist:null); if(rt==null)return null; const th0=r.th||judgeTh(), v=Math.round(100*Math.min(1,rt/th0.dist)); return {score:v,parts:[['TT 완주',v,100]]}; }
   if(r.rw){ const tot=+r.rw.totSec||0, v=r.rw.done?100:tot?Math.round(100*Math.min(0.99,(+r.sec||0)/tot)):0; return {score:v,parts:[['계획 완주',v,100]]}; }
   const th=r.th||judgeTh(), T=TYPES[r.type]||{}, P=[];
   const ratio=r.distRatio!=null?r.distRatio:(s&&s.dist?r.km/s.dist:null);
@@ -11330,6 +11332,8 @@ function repTargetOf(r,s){ const g=(r&&r.segments||[]).find(x=>x.hard&&Array.isA
 function promiseRows(r,s){
   if(r&&r.rw)return rwPromise(r,s);
   const T=TYPES[r.type]||{}, th=r.th||judgeTh(), rows=[];
+  /* TT는 판정이 없지만, 결과의 핵심인 '몇 km를 몇 분에'는 보여야 한다 — 전엔 결과·기록 화면 어디에도 TT 기록(5km 22:17)이 없고 '확인'을 눌러야 뜨는 창에만 있었다(2026-11-17 시험) */
+  if(r.type==='tt'){ try{ const c=basisFromTT(r); if(c){ rows.push([`TT ${rlLab(c.m)}`,`${fmtClock(c.sec)} · 1km ${fmtPace(c.sec/(c.m/1000))}`,'']); rows.push(['실력 점수',`${c.v}${c.hrTop?` · 최고 심박 ${c.hrTop}`:''}`,'']); } }catch(e){} return {rows,kind:null}; }
   if(!s||!s.dist||r.type==='free'||r.type==='tt')return {rows,kind:null};
   /* 거의 안 뛴 기록은 판정하지 않는다 — 0km에 '약속대로'가 나가면 거짓말이다 */
   if(!(r.km>=0.5&&r.sec>=120))return {rows:[['기록','짧아 판정 없음 ('+r.km.toFixed(2)+'km · '+fmtClock(r.sec)+')','bad']],kind:'short0'};
@@ -11473,7 +11477,7 @@ function renderResult(host,r,s,opt){
   /* 잘한 점은 위 약속↔결과 줄과 겹치므로 주의할 점만 */
   const pts=rows?'':((P.bad.length||P.good.length)?`<ul class="db-pts rv-pts">${P.bad.map(x=>prow(x,'bad')).join('')}${P.good.map(x=>prow(x,'ok')).join('')}</ul>`:'');
   const sc=runScore(r,s);
-  const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
+  const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':r.type==='tt'?'TT 기록':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
   /* 순서: 숫자(사실) → 판정(해석) */
   const hero=`<div class="rnum"><div class="r1"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
       <div class="r2"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?` · 최고 ${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
