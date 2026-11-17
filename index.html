@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.13';
+const APPVER='21.14';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6541,7 +6541,8 @@ async function deleteRun(idx){
   RUNS.splice(idx,1);
   /* 이어서 뛴 조각을 지우면 앞 기록 판정을 다시 합치고, 앞 기록을 지우면 조각은 따로 뛴 프리런으로 남긴다(지우지 않는다) */
   if(r.contOf)contMerge(r.contOf);
-  contParts(r.rid).forEach(x=>{ delete x.contOf; x.type='free'; x.planId='free-'+ldate(x.date).slice(0,10); });
+  contParts(r.rid).forEach(x=>{ delete x.contOf; x.type='free'; x.planId='free-'+ldate(x.date).slice(0,10);
+    if(/이어서/.test(x.title||'')){ x.titleWas=x.title; x.title=(TYPES.free&&TYPES.free.t)||'프리런'; } });   /* 앞 기록이 없어졌는데 제목이 '이지런 이어서 6.6km'로 남아, 일지에 '이지런 이어서 · 프리런 판정 없음'으로 나왔다(2026-11-17 시험). 예전 제목은 titleWas에 둔다 */
   DEV.store.set('runs',RUNS);
   markDeleted(r.rid);
   afterRunsChanged();
