@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.01';
+const APPVER='21.02';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2598,7 +2598,7 @@ const DEV = {
     if(typeof QUIET!=='undefined'&&QUIET&&!critical)return;
     /* 시작 전 '음성' 체크를 껐으면 평범한 안내는 내지 않는다 — 심박 경고(critical)는 예외 */
     if(typeof S!=='undefined'&&S&&S.running&&S.opts&&S.opts.voice===false&&!critical)return;
-    if(typeof VC!=='undefined'&&!VC.gate(text,critical?3:force?2:1))return;
+    if(typeof VC!=='undefined'&&!VC.gate(text,critical?3:force?2:1))return false;   /* 더 중요한 말에 밀려 못 나감 — 부른 쪽이 알고 다시 시도할 수 있게 */
     /* 앞 단어가 잘리던 문제 — 안드로이드는 소리 출력이 잠들어 있다가 말이 시작될 때 깨어나면서
        첫 0.2~0.4초를 먹는다(음악 볼륨 낮추기도 이때 걸린다). 그래서
        1) 달리는 동안 거의 들리지 않는 소리로 출력 경로를 깨워 둔다(VC.keepAlive)
@@ -5391,7 +5391,11 @@ function cadence(){
    전엔 회차 20초·쉬는 구간 15초·쿨다운 30초로 제각각이라, 회차 20~30초에 '느려요'가 나갔다(2026-11-17 시험) */
 /* 심박이 걸음을 읽는지는 뛰는 걸음 수(1분 130보 이상)에서만 본다 — 걷는 걸음 수(100~130보, Tudor-Locke 2019)는 걷는 심박과 우연히 겹쳐, 멀쩡한 심박을 버렸다(2026-11-17 시험) */
 const LOCK_CAD=130;
-const PACE_SPAN=30, PACE_LAG=5, segSettled=()=>(S.elapsed-((S.segStart&&S.segStart.t)||0))>=PACE_SPAN+PACE_LAG;   /* +5초 — 딱 30초에는 앞 구간의 마지막 몇 초가 아직 평균에 남아, 마지막 회차 직후 쿨다운에서 '속도를 늦추세요'가 나갔다(2026-11-17 시험) */
+const PACE_SPAN=30, PACE_LAG=5, PACE_DECEL=30;
+/* +5초 — 딱 30초에는 앞 구간의 마지막 몇 초가 아직 평균에 남는다.
+   빠른 회차 → 쉬는 구간·쿨다운은 +30초(모두 60초) — 사람은 회차가 끝나도 20~30초에 걸쳐 속도를 줄인다. 35초로는 400m × 8의 쉬는 구간마다 '쉬는 구간이에요. 속도를 늦추세요'가 나갔다(서서히 감속하는 시험, 2026-11-17) */
+const segSettled=()=>{ const sg=S.session&&S.session.segs, pv=sg&&S.segIx>0?sg[S.segIx-1]:null, cu=sg&&sg[S.segIx];
+  return (S.elapsed-((S.segStart&&S.segStart.t)||0))>=PACE_SPAN+((pv&&pv.hard&&cu&&!cu.hard)?PACE_DECEL:PACE_LAG); };
 function curPace(){
   if(S.gpsGap||(S.gapEndEl&&S.elapsed-S.gapEndEl<20))return NaN;   /* 돌아온 직후 15초는 창이 비어 있어 느리게 나온다 — 그동안도 멈춤. GPS가 끊긴 동안은 페이스를 계산하지 않는다 — 시간만 흐르고 거리가 안 늘어 '어마어마하게 느린' 값이 나왔다 */
   const w=S.win; if(!w||w.length<2)return NaN;
@@ -11843,6 +11847,9 @@ function voiceSegMsg(done,nx,actual,plan,segs){
 function voiceTick(km,tg,segs,p){
   if(!S.vc||S.vc.seg!==S.segIx){ S.vc={seg:S.segIx,cued:{}}; }
   const c=S.vc.cued, nx=segs[S.segIx+1], inSeg=S.elapsed-S.segStart.t, halfSay=segs.filter(x=>x.hard).length===1?'이 구간 절반.':'이번 회차 절반.';
+  /* 예고·남은 거리 안내는 한 번뿐이라, 1km 안내 같은 더 중요한 말에 밀리면 그 회차에선 아예 못 들었다(400m × 8에서 '100미터 남았습니다'가 8번 중 3번만, 2026-11-17 시험).
+     밀리면 했다고 치지 않고 다음 틱에 다시 시도한다 — 그때의 실제 남은 거리(10m 단위)·시간으로 말한다 */
+  const sayTry=(k,txt)=>{ if(DEV.speak(txt)!==false)c[k]=1; }, m10=(v,nom)=>Math.abs(v-nom)<=20?nom:Math.max(10,Math.round(v/10)*10);
   const plan=tg.pace?midPace(tg.pace):(p||420);
   const spd=isFinite(p)&&p>0?1000/p:1000/plan;            /* m/s */
   let leftM=null, leftS=null;
@@ -11853,11 +11860,11 @@ function voiceTick(km,tg,segs,p){
     const L=repLabel(nx,segs), Lv=L==='마지막'?'마지막 회차':L;
     if(leftM!=null){
       const segLen=(tg.to-(S.segIx?segs[S.segIx-1].to:0))*1000;
-      if(!c.p300&&segLen>=500&&leftM<=300&&leftM>110){ c.p300=1; DEV.speak(`300미터 뒤 ${Lv} 시작입니다.`); }
-      if(!c.p100&&leftM<=100&&leftS>7){ c.p100=1; DEV.speak(`100미터 뒤 ${Lv}입니다.${hrNote()}`); }
+      if(!c.p300&&segLen>=495&&leftM<=300&&leftM>110){ sayTry('p300',`${m10(leftM,300)}미터 뒤 ${Lv} 시작입니다.`); }
+      if(!c.p100&&leftM<=100&&leftS>7){ sayTry('p100',`${m10(leftM,100)}미터 뒤 ${Lv}입니다.${hrNote()}`); }
     } else {
-      if(!c.s30&&leftS<=30&&leftS>12&&tg.sec>=45){ c.s30=1; DEV.speak(`30초 뒤 ${Lv} 시작입니다.${hrNote()}`)   /* 전엔 '마지막 30초 전입니다' — 끝나기 30초 전으로 들렸다. 거리 예고('300미터 뒤 … 시작입니다')와 같은 꼴로 */; }
-      if(!c.s10&&leftS<=10&&leftS>6){ c.s10=1; DEV.speak(`10초 전입니다.`); }
+      if(!c.s30&&leftS<=30&&leftS>12&&tg.sec>=45){ sayTry('s30',`${Math.max(15,Math.round(leftS/5)*5)}초 뒤 ${Lv} 시작입니다.${hrNote()}`)   /* 전엔 '마지막 30초 전입니다' — 끝나기 30초 전으로 들렸다. 거리 예고('300미터 뒤 … 시작입니다')와 같은 꼴로 */; }
+      if(!c.s10&&leftS<=10&&leftS>6){ sayTry('s10',`${Math.round(leftS)}초 전입니다.`); }
     }
     if(VOPT.count&&!c.cd&&leftS<=5.2&&leftS>0.5){ c.cd=1; VC.counted=S.segIx; const cs=S.segIx;
       [5,4,3,2,1].forEach((n,i)=>setTimeout(()=>{ if(!S.running||S.paused||S.segIx!==cs)return; VC.beep(n===1?1046:880,140); if(i===0)DEV.speak('5',true); else DEV.speak(String(n),false); $('rSay').hidden=false; $('rSay').textContent=`${L} — ${n}`; },i*1000)); }
@@ -11872,9 +11879,9 @@ function voiceTick(km,tg,segs,p){
   /* 회차 안에서 */
   if(tg.hard){
     if(VOPT.half&&leftM!=null){ const len=(tg.to-(S.segIx?segs[S.segIx-1].to:0))*1000;
-      if(!c.half&&len>=500&&leftM<=len/2&&inSeg>20){ c.half=1; DEV.speak(halfSay); }   /* 전체 절반('전체 절반 지났습니다')과 헷갈리지 않게 */
-      if(len>=400&&!c.l100&&leftM<=100&&leftM>20){ c.l100=1; DEV.speak('100미터 남았습니다.'); } }
-    if(tg.end==='time'&&VOPT.half&&!c.half&&inSeg>=tg.sec/2&&tg.sec>=60){ c.half=1; DEV.speak(halfSay); }
+      if(!c.half&&len>=495&&leftM<=len/2&&inSeg>20){ sayTry('half',halfSay); }   /* 전체 절반('전체 절반 지났습니다')과 헷갈리지 않게 */
+      if(len>=395&&!c.l100&&leftM<=100&&leftM>20)   /* 395 — 구간 길이를 뺄셈으로 구해 400m가 399.99…로 나와, 400m 회차 8번 중 5번은 이 안내가 빠졌다(2026-11-17 시험) */{ sayTry('l100',`${m10(leftM,100)}미터 남았습니다.`); } }
+    if(tg.end==='time'&&VOPT.half&&!c.half&&inSeg>=tg.sec/2&&tg.sec>=60){ sayTry('half',halfSay); }
     /* 첫 회차 과속 경고 — 뛴 뒤 결정에서 켠 경우 */
     if(VOPT.firstGuard&&!c.fg&&(tg.rep===1)&&inSeg>30&&isFinite(p)&&tg.pace&&p<midPace(tg.pace)+S.adj-5){   /* 설명대로 '목표보다 5초' — 빠른 끝이 아니라 목표 가운데 기준 */
       c.fg=1; DEV.speak(`${Math.round(midPace(tg.pace)+S.adj-p)}초 빨라요. 속도를 늦추세요.`,true); }
@@ -11884,7 +11891,7 @@ function hrNote(){ const h=S.hr&&S.hr.bpm, e=S.lastHrEnd; if(!h||!e)return '';
   return (e-h)<10?' 심박 미회복 · 30초 여유':''; }
 function voiceOptsHTML(){
   const it=[['pre','미리 알림','다음 회차 300m·100m 전, 또는 30초·10초 전'],['count','5·4·3·2·1','삐 소리와 숫자 신호'],
-    ['quiet20','구간 시작 35초는 속도 교정 없음','늘 적용 — 페이스를 최근 30초로 재서 앞 구간 속도가 섞임'],
+    ['quiet20','구간 시작 35초는 속도 교정 없음','늘 적용 — 페이스를 최근 30초로 재서 앞 구간 속도가 섞임 · 빠른 회차 뒤 쉬는 구간은 60초'],
     ['half','절반 · 100m 남음','회차 안에서'],['firstGuard','첫 회차 과속 경고','첫 회차가 목표보다 5초 넘게 빠르면']];
   return `<details class="vopt"><summary>음성 안내 설정</summary>${it.map(x=>`<label class="vrow"><input type="checkbox" data-vo="${x[0]}"${VOPT[x[0]]?' checked':''}><span><b>${x[1]}</b><i>${x[2]}</i></span></label>`).join('')}
     <div class="vrow"><span><b>말 빠르기</b></span><select data-vr><option value="0.95"${VOPT.rate<1?' selected':''}>천천히</option><option value="1.05"${VOPT.rate>=1&&VOPT.rate<1.15?' selected':''}>보통</option><option value="1.2"${VOPT.rate>=1.15?' selected':''}>빠르게</option></select></div>
