@@ -2126,7 +2126,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pd-tx{min-width:0}.pd-tx b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pd-tx b small{font-size:11px;font-weight:700;color:var(--accent);background:var(--panel-2);padding:1px 6px;border-radius:6px;margin-left:6px;vertical-align:2px}
 .pd-tx i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}.pd-tx i b{display:inline;font-size:11px;font-weight:700;color:var(--ink-2);white-space:nowrap;overflow:visible}
 .pd-st{flex:none;font-style:normal;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px}
-.pd-st.ok{background:var(--ok-bg);color:var(--ok-ink)}.pd-st.miss{background:var(--bad-bg);color:var(--bad-ink)}.pd-st.now{background:var(--accent);color:#fff}
+.pd-st.ok{background:var(--ok-bg);color:var(--ok-ink)}.pd-st.mid{background:var(--warn-bg);color:var(--warn-ink)}.pd-st.miss{background:var(--bad-bg);color:var(--bad-ink)}.pd-st.now{background:var(--accent);color:#fff}
 .pd-row.did .pd-tx b{color:var(--ink-3)}.pd-row.past:not(.did) .pd-tx b{color:var(--ink-3)}
 .pd-ed,.pd-add{flex:none;width:36px;height:36px;border-radius:10px;border:none;background:var(--panel-2);color:var(--accent);font-size:16px;cursor:pointer}
 .pd-row.rest{min-height:46px}.pd-rest{flex:1;font-size:12px;color:var(--ink-3);min-width:0}.pd-rest .pd-rl{display:block;font-weight:700;color:var(--ink-2)}.pd-rest .pd-rl b{color:var(--ink)}.pd-rest i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pd-row.rest.past:not(.did){opacity:.6}
@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.05';
+const APPVER='21.06';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13913,7 +13913,8 @@ function planListHTML0(src,monsIn){
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=(i>=0&&sessionOf(i))||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         /* 놓침 = 홈·알림과 같은 기준 — 일정을 만들기 전 날은 놓침이 아니고(전엔 만든 날이 목요일이면 그 주 화요일도 '놓침'), 건너뛰기로 정한 날은 '건너뜀'으로만 센다 */
         const did=RUNS.some(r=>r.planId===sx.d), pre=!did&&ds<t&&!!planFrom()&&ds<planFrom(), miss=!did&&ds<t&&!pre&&!skippedDay(ds), word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
-        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ok">✓${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:(!did&&skippedDay(ds))?'<em class="pd-st miss">건너뜀</em>':miss?'<em class="pd-st miss">놓침</em>':pre?'<em class="pd-st">일정 전</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
+        /* 뛴 날 표시는 주간 막대와 같은 등급(80↑ 초록 ✓ · 50↑ 호박 · 그 아래 빨강) — 전엔 뛰기만 하면 점수와 상관없이 초록 '✓ 25점' */
+        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ${dsc==null||dsc>=80?'ok':dsc>=50?'mid':'miss'}">${dsc==null||dsc>=80?'✓':''}${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:(!did&&skippedDay(ds))?'<em class="pd-st miss">건너뜀</em>':miss?'<em class="pd-st miss">놓침</em>':pre?'<em class="pd-st">일정 전</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" ${i>=0?`data-pgo="${i}"`:(()=>{ const r=RUNS.find(r=>r.planId===sx.d); return r?`data-wkrun="${ESC(r.rid)}"`:'disabled'; })()}><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
             <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${!sx.edited&&sx.capCut?`<small title="최근 30일 최장 +10% 한도">줄임 ${fmtKm1(sx.capCut.from)}→${fmtKm1(sx.capCut.to)}km</small>`:''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
