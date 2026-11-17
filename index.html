@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.09';
+const APPVER='21.11';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5471,7 +5471,7 @@ function onTick(){
   else if(!S.extra){ const hrCap=(T.primary==='hr'&&T.hrZone&&T.hrZone[1])?T.hrZone[1]:null;
     $('rSegTgt').textContent = tg.hard ? `${tgPace?rangeText(tgPace)+' 로':'힘껏'} ${tg.end==='time'?fmtClock(tg.sec):''}`.trim()   /* 목표 속도 없는 빠른 구간(TT)은 '자유 로'가 아니라 '힘껏' */
       : tg.tol==='ceil' ? `${fmtPace(tgPace[0])}보다 천천히${hrCap?` · ♥${hrCap} 아래`:''}`
-      : !tgPace ? (hrCap?`♥${hrCap} 아래`:'목표 없음 · 편한 대로')   /* 목표 속도가 없는 구간(프리런) — 전엔 '자유 유지' */
+      : !tgPace ? (hrCap?`♥${hrCap} 아래`:(raceInfo(s)?(raceInfo(s).pace?`대회 · 목표 1km ${fmtPace(raceInfo(s).pace)}`:'대회 · 내 페이스로'):'목표 없음 · 편한 대로'))   /* 목표 속도가 없는 구간(프리런) — 전엔 '자유 유지' */
       : hrCap ? `♥${hrCap} 아래 · ${rangeText(tgPace)}` : `${rangeText(tgPace)} 유지`; }
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
   if(!S.gpsWarn&&S.elapsed>180&&km<((S.act==='hike'||S.act==='walk')?0.03:0.15)&&S.pts.length>60){   /* 가파른 등산은 3분에 100m도 안 갈 수 있다 */
@@ -5759,7 +5759,7 @@ function onTick(){
     S.lapStart={d:km,t:S.elapsed,h:S.hr.samples.length,seg:S.segIx};
 
     /* 1km마다 무조건 — 몇 킬로 · 이번 1km 페이스 · 총 거리 · 평균 페이스. 판정·지시는 그 뒤에 붙는다 */
-    const avgP=km>0?S.elapsed/km:NaN, planKm=(s&&s.dist&&S.act==="run"&&s.type!=="free")?+s.dist:null, leftK=planKm?Math.max(0,planKm-km):null;
+    const avgP=km>0?S.elapsed/km:NaN, planKm=(s&&s.dist&&S.act==="run"&&(s.type!=="free"||s.race))?+s.dist:null   /* 대회 날은 남은 거리를 말한다 */, leftK=planKm?Math.max(0,planKm-km):null;
     let msg=`${S.lapKm}킬로미터. 이번 1킬로 ${lapEst?'추정 ':''}${isFinite(lapPace)?fmtPaceVoice(lapPace):'측정 안 됨'}. `
       +(planKm&&!S.extra&&leftK>0.05?`총 ${planKm%1?planKm.toFixed(1):planKm}킬로 중 ${leftK<0.995?Math.round(leftK*100)*10+'미터':leftK.toFixed(1)+'킬로'} 남았습니다. `   /* 10m 단위로 — 전엔 '998미터 남았습니다' */
         :planKm&&km-planKm>=0.05?`${(km-planKm).toFixed(1)}킬로 초과, 총 ${km.toFixed(1)}킬로. `:`총 ${km.toFixed(1)}킬로미터. `)
@@ -6242,7 +6242,7 @@ function renderSummary(completed){
   try{ SH.fromView='sum'; if(S.act&&S.act!=='run')renderActResult($('sNew'),S.result); else renderResult($('sNew'),S.result,(s.d==='free'||S.contOf)?null:s,{noPoints:s.d!=='free'}); }catch(e){ console.error(e); $('sOld').hidden=false; }
   /* 이어서 뛴 조각 — 이 조각만으로 판정하지 않고, 합친 거리를 먼저 보여 준다 */
   if(S.contOf){ try{ const f=RUNS.find(x=>x.rid===S.contOf); if(f){ const a=contTotal(f), tot=a+S.result.km, el=document.createElement('div'); el.className='note green'; el.style.margin='0 0 12px';
-      el.innerHTML=`<b>이어서 뛴 기록</b> — 앞 기록 ${fmtKm1(a)}km + 이번 ${S.result.km.toFixed(1)}km = <b>${fmtKm1(tot)}km</b> / 약속 ${fmtKm1(f.planKm)}km<br>저장하면 앞 기록과 합쳐 한 번 판정해요`; $('sNew').prepend(el); } }catch(e){} }
+      el.innerHTML=`<b>이어서 뛴 기록</b> — 앞 기록 ${a.toFixed(2)}km + 이번 ${S.result.km.toFixed(2)}km = <b>${tot.toFixed(2)}km</b> / 약속 ${fmtKm1(f.planKm)}km<br>판정은 앞 기록과 합쳐서 한 번`; $('sNew').querySelectorAll('.cont-frag').forEach(x=>x.remove());   /* 같은 말이 두 번 나오지 않게 — 결과 화면에선 위 한 줄만 */ $('sNew').prepend(el); } }catch(e){} }
 }
 /* ───────── 어느 세기로 얼마나 뛰었나 ─────────
    삼성·스트라바는 이 표를 '끝나고' 보여준다. 거기서 멈추면 숫자일 뿐이다.
@@ -6362,7 +6362,8 @@ function sumUpdate(){ if(!S.result||!S.result._saved)return; sumFields();
 function sumLeave(){ const P=S._post; if(!P||P.done)return; P.done=true;
   try{ const c=P.bc||(P.race&&P.race.c); if(c)DEV.store.set('basisPend',c); }catch(e){} }
 function sumButtons(){ const sv=!!(S.result&&S.result._saved), b=$('btnSave'), d=$('btnDone');
-  if(b)b.textContent=sv?'확인':'기록 저장'; if(d)d.textContent=sv?'이 기록 지우기':'저장 없이 닫기';
+  /* 버튼 이름은 늘 '기록 저장'·'저장 없이 닫기' — v20.95에서 자동 저장을 넣으며 '확인'·'이 기록 지우기'로 바꿨다가, 쓰던 이름이 사라져 혼란을 줘서 되돌렸다(2026-11-17). 하는 일은 같다: 위는 고른 것까지 저장하고 닫기, 아래는 이 기록을 남기지 않기(한 번 묻는다) */
+  if(b)b.textContent='기록 저장'; if(d)d.textContent='저장 없이 닫기';
   const n=$('sSaved'); if(n){ n.hidden=!sv; n.textContent=sv?'저장됨 · 아래 고르는 것도 바로 저장돼요':''; } }
 $('btnSave').onclick=()=>{
   if(!S.result)return;
@@ -9335,7 +9336,7 @@ function uprFix(p){ try{
     p.sessions.slice().forEach(x=>{ if(d10(x)===gd&&!ran(x)&&!x.race&&x.type!=='off')drop(x,null); });
     const mon=weekMonday(gd), nb=p.sessions.find(x=>weekMonday(d10(x))===mon), wk=nb?nb.wk:Math.max(1,Math.floor(uprGap(weekMonday(String(p.start||t).slice(0,10)),mon)/7)+1);
     const tpl=p.sessions.find(x=>String(x.d).length>10), ds=tpl?gd+String(tpl.d).slice(10):gd;
-    const ns=peBuild(ds,wk,'free',Math.round(g.m/100)/10); ns.d=ds; ns.wk=wk; ns.t=`대회 · ${goalLabel(g)}`; ns.race={goal:true,name:goalLabel(g),role:'goal',m:g.m}; ns.edited=1;
+    const ns=peBuild(ds,wk,'free',Math.round(g.m/100)/10); ns.d=ds; ns.wk=wk; ns.t=`대회 · ${goalLabel(g)}`; ns.race={goal:true,name:goalLabel(g),role:'goal',m:g.m}; ns.edited=1; if(ns.segs&&ns.segs[0])ns.segs[0].nm='대회';
     p.sessions.push(ns); n++; }
   p.sessions.slice().forEach(x=>{ if(!x.race||x.race.goal||ran(x)||d10(x)<t)return; const r=mids.find(q=>q.id===x.race.id); if(!r||r.date!==d10(x)||uprRole(r)!==x.race.role)p.sessions.splice(p.sessions.indexOf(x),1); });
   mids.forEach(r=>{ const role=uprRole(r), D=UPR_D(r.m), by=r.id;
@@ -9351,7 +9352,7 @@ function uprFix(p){ try{
       p.sessions.slice().forEach(x=>{ if(d10(x)===r.date&&d10(x)>=t&&!ran(x)&&!x.race&&x.type!=='off')drop(x,by); });   /* 그날 직접 옮겨 둔 훈련도 대회에 자리를 내준다(지우면 돌아온다) */
       const mon=weekMonday(r.date), nb=p.sessions.find(x=>weekMonday(d10(x))===mon), wk=nb?nb.wk:Math.max(1,Math.floor(uprGap(weekMonday(String(p.start||t).slice(0,10)),mon)/7)+1);
       const tpl=p.sessions.find(x=>String(x.d).length>10), ds=tpl?r.date+String(tpl.d).slice(10):r.date;
-      const ns=peBuild(ds,wk,'free',Math.round(r.m/100)/10); ns.d=ds; ns.wk=wk; ns.t=`대회 · ${r.name}`; ns.race={id:r.id,name:r.name,role,m:r.m}; ns.edited=1;
+      const ns=peBuild(ds,wk,'free',Math.round(r.m/100)/10); ns.d=ds; ns.wk=wk; ns.t=`대회 · ${r.name}`; ns.race={id:r.id,name:r.name,role,m:r.m}; ns.edited=1; if(ns.segs&&ns.segs[0])ns.segs[0].nm='대회';
       p.sessions.push(ns); n++; }
     if(role==='pr'){ const pre={T5:2,T10:2,H:3,M:6}[D], lc={T5:10,T10:12,H:12,M:16}[D];
       p.sessions.slice().forEach(x=>{ if(!free(x))return; const k=uprGap(d10(x),r.date); if(k<=0||k>7)return;
@@ -10388,6 +10389,9 @@ document.addEventListener('click',e=>{
 /* '건너뛰기'로 정한 날 — 일정에서 지우지 않고(지난 기록·계획은 남긴다) '건너뜀'으로 표시한다.
    예전엔 건너뛰기를 골라도 '못 한 날' 물음만 사라지고 홈·플랜에는 평소처럼 '오늘 훈련 ▶ 시작'으로 남아, 정한 것이 반영되지 않은 것처럼 보였다. 홈 카드와 플랜 줄이 이 하나를 본다 */
 const skippedDay=ds=>MISSSEEN[String(ds).slice(0,10)]==='skip';
+/* 대회 날 칸의 대회 정보 — 이름·공인 거리·목표 기록(있으면). 홈 카드·시작 음성·뛰는 화면·결과가 같은 값을 쓴다 */
+function raceInfo(s){ try{ const rc=s&&s.race; if(!rc||!rc.m)return null; const sec=rc.goal?((typeof GOAL!=='undefined'&&GOAL&&GOAL.sec)||null):((uprAll().find(x=>x.id===rc.id)||{}).sec||null);
+  return {name:rc.name||'대회',m:rc.m,sec:sec||null,pace:sec?sec/(rc.m/1000):null}; }catch(e){ return null; } }
 function todayCard(sess,idx){
   const T=TYPES[sess.type]||{}, g0=GL[sess.type]||{e:'뛰기',t:''}, adj=ADJ[sess.type]||0;
   const main=mainSeg(sess);
@@ -10401,11 +10405,13 @@ function todayCard(sess,idx){
   const b=['recovery','easy','long'].includes(sess.type)?coachBasis():null;
   /* 오늘 훈련 — 목록형(다음 훈련과 같은 결) · 보라 배경. 예전 카드의 60% 안팎 높이 */
   /* '개인 기준/임시 기준' 표시는 홈에서 뺐다 — 기준은 '훈련 기준' 타일과 계획 화면에서 본다 */
-  const line=[isTT?`전체 ${fmtKm1(sess.dist)}km`:'',mins?mins+'분':'',pace&&pace!=='—'?pace:'',hz?'심박 '+hz+'↓':(zoneShort(sess.type)||'')].filter(Boolean).join(' · ');
+  /* 대회 날 — 전엔 홈 카드가 '프리런 10km · 65분 · 자유'라 대회인 줄 알 수 없었다(2026-11-17 시험) */
+  const RI=raceInfo(sess);
+  const line=RI?[ESC(RI.name),RI.sec?`목표 ${fmtClock(RI.sec)} · 1km ${fmtPace(RI.pace)}`:'내 페이스로'].join(' · '):[isTT?`전체 ${fmtKm1(sess.dist)}km`:'',mins?mins+'분':'',pace&&pace!=='—'?pace:'',hz?'심박 '+hz+'↓':(zoneShort(sess.type)||'')].filter(Boolean).join(' · ');
   return `<section class="hero he" style="--k1:${k1};--k2:${k2}" aria-label="오늘의 훈련">
     <div class="he-row"><span class="he-ic" style="background:${(LOOK[sess.type]||LOOK.free).bg}">${symSVG(sess.type)}</span>
       <div class="he-info"><div class="he-top"><em>오늘 훈련${skip?' · 건너뜀':(sess.role?' · '+ESC(sess.role):'')}</em></div>
-        <b>${sess.dist>0||isTT?`${ESC(g0.e)} <span class="num">${isTT?fmtKm1(sess.ttKm||2):sess.dist}km</span>`:ESC(sess.t)}${edited?'<small> · 바꿈</small>':''}</b>${what?`<i class="he-what">${what}</i>`:''}
+        <b>${RI?`대회 <span class="num">${rlLab(RI.m)}</span>`:sess.dist>0||isTT?`${ESC(g0.e)} <span class="num">${isTT?fmtKm1(sess.ttKm||2):sess.dist}km</span>`:ESC(sess.t)}${edited?'<small> · 바꿈</small>':''}</b>${what?`<i class="he-what">${what}</i>`:''}
         <span class="he-line num">${line||'&nbsp;'}</span></div>
       <button class="he-go${done||skip?' done':''}" id="goToday">${done?ic('check',16)+'다시':skip?'그래도 뛰기':ic('play',16)+'시작'}</button></div>
     <div class="hero-links"><button type="button" id="todayDet">상세</button>${sess.dist>0?'<button type="button" id="distEdit">거리 변경</button>':''}${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}${skip?'<button type="button" id="unskipToday">건너뛰기 취소</button>':''}</div>
@@ -10591,6 +10597,9 @@ function goalStrip(){
 /* ───────── 하루 점수 — 100점 만점. 거리 40 · 강도(목표 속도/심박 상한) 40 · 고르게(회차 편차/편한 구간) 20
    판정 기준은 결과 화면과 같은 judgeTh()의 숫자. 잴 수 없는 항목은 빼고 100으로 환산한다 ───────── */
 function runScore(r,s){ try{
+  if(r&&r.contOf)return null;   /* 이어서 뛴 조각 — 점수는 앞 기록에서 합쳐서 */
+  /* 대회 날 — 공인 거리 95% 이상이면 100점(주간 점수 dayScore와 같은 규칙). 전엔 결과 화면엔 점수가 없었다 */
+  if(r&&isRun(r)&&r.race&&r.race.m){ const ok=(+r.km*1000)>=r.race.m*0.95, v=ok?100:Math.round(Math.min(1,(+r.km*1000)/r.race.m)*100); return {score:v,parts:[['대회 완주',ok?100:0,100]]}; }
   if(!r||!isRun(r)||r.type==='free')return null;
   /* 걷기+달리기·상태 체크 — 약속은 '끝까지 하기'(judgeBy:'complete')다. 전엔 거리 계획이 0이라 '거리 0/40'으로 완주해도 50점이 나왔다(2026-11-17 시험) */
   /* TT — 약속은 끝까지 재는 것. 속도 상한·심박으로 점수 내지 않는다(전엔 '속도 상한 40/40'이 붙었다) */
@@ -11333,8 +11342,17 @@ new MutationObserver(ms=>{ if(ms.some(m=>m.addedNodes.length))miniMaps(); }).obs
 /* 회차 목표 — 기록 당시 구간 계획(plan)에 저장된 값. 뛴 뒤 ADJ를 바꿔도 지난 기록의 목표가 흔들리면 안 된다 */
 function repTargetOf(r,s){ const g=(r&&r.segments||[]).find(x=>x.hard&&Array.isArray(x.plan)&&x.plan.length>=2); if(g)return Math.round(midPace(g.plan)); return s&&s.repTarget?(s.repTarget+(ADJ[(r&&r.type)||s.type]||0)):null; }
 function promiseRows(r,s){
+  /* 이어서 뛴 조각은 이 조각만으로 판정하지 않는다(앞 기록에서 합쳐 한 번) — 전엔 기록 화면에서 '판정은 합쳐서 한 번'이라면서 바로 아래에 '거리 약속 6.6km ✗ 1.05km · 18점'을 따로 냈다(실제 기기 2026-11-17) */
+  if(r&&r.contOf)return {rows:[],kind:null};
   if(r&&r.rw)return rwPromise(r,s);
   const T=TYPES[r.type]||{}, th=r.th||judgeTh(), rows=[];
+  /* 대회 날 기록 — 전엔 결과가 '그냥 뛰기 — 판정 없음'뿐이라 대회 기록·목표 대비가 어디에도 없었다(2026-11-17 시험) */
+  if(r.race&&r.race.m){ try{ const m=r.race.m, ok=(+r.km*1000)>=m*0.95, RI=raceInfo({race:r.race});
+      rows.push(['대회',ESC(r.race.name||'대회'),'']);
+      if(ok){ rows.push([`${rlLab(m)} 기록`,`${fmtClock(r.sec)} · 1km ${fmtPace(r.sec/(m/1000))}`,'ok']);
+        if(RI&&RI.sec){ const d=Math.round(r.sec-RI.sec); rows.push([`목표 ${fmtClock(RI.sec)}`,d<=0?`${fmtClock(-d)} 빠름`:`${fmtClock(d)} 늦음`,d<=0?'ok':'bad']); } }
+      else rows.push([`${rlLab(m)} 중 ${(+r.km).toFixed(2)}km`,'공인 거리 95% 미만 — 대회 기록으로 남기지 않음','bad']);
+    }catch(e){} return {rows,kind:null}; }
   /* TT는 판정이 없지만, 결과의 핵심인 '몇 km를 몇 분에'는 보여야 한다 — 전엔 결과·기록 화면 어디에도 TT 기록(5km 22:17)이 없고 '확인'을 눌러야 뜨는 창에만 있었다(2026-11-17 시험) */
   if(r.type==='tt'){ try{ const c=basisFromTT(r); if(c){ rows.push([`TT ${rlLab(c.m)}`,`${fmtClock(c.sec)} · 1km ${fmtPace(c.sec/(c.m/1000))}`,'']); rows.push(['실력 점수',`${c.v}${c.hrTop?` · 최고 심박 ${c.hrTop}`:''}`,'']); } }catch(e){} return {rows,kind:null}; }
   if(!s||!s.dist||r.type==='free'||r.type==='tt')return {rows,kind:null};
@@ -11480,7 +11498,7 @@ function renderResult(host,r,s,opt){
   /* 잘한 점은 위 약속↔결과 줄과 겹치므로 주의할 점만 */
   const pts=rows?'':((P.bad.length||P.good.length)?`<ul class="db-pts rv-pts">${P.bad.map(x=>prow(x,'bad')).join('')}${P.good.map(x=>prow(x,'ok')).join('')}</ul>`:'');
   const sc=runScore(r,s);
-  const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.type==='free'?'그냥 뛰기 — 판정 없음':r.type==='tt'?'TT 기록':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
+  const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.race&&r.race.m?'대회 기록':r.type==='free'?'그냥 뛰기 — 판정 없음':r.type==='tt'?'TT 기록':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
   /* 순서: 숫자(사실) → 판정(해석) */
   const hero=`<div class="rnum"><div class="r1"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
       <div class="r2"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?` · 최고 ${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
@@ -11493,7 +11511,7 @@ function renderResult(host,r,s,opt){
     <div class="rk">${dt.getMonth()+1}.${dt.getDate()} ${dowOf(ldate(r.date).slice(0,10))} ${pad(dt.getHours())}:${pad(dt.getMinutes())} · <span class="tchip2" style="background:${(LOOK[r.type]||LOOK.free).bg}">${T.nm||'달리기'}</span></div>
     <h2 class="rt">${ESC(runTitle(r))}${r.rid&&RUNS.includes(r)?'<button type="button" class="rt-ed" data-rtedit aria-label="제목·메모 고치기"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>':''}</h2>
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
-    ${r.cont?`<div class="note green" style="margin:0 0 10px">${r.cont.rids.length+1}번에 나눠 뛴 훈련 — 합계 <b>${fmtKm1(contTotal(r))}km · ${fmtClock(r.own.sec+r.cont.sec)}</b> (이 기록 ${fmtKm1(r.own.km)}km + 이어서 ${fmtKm1(r.cont.km)}km) · 판정은 합친 값</div>`:r.contOf?`<div class="note blue" style="margin:0 0 10px">앞 기록에 이어서 뛴 조각 — 판정은 앞 기록과 합쳐서 한 번</div>`:''}
+    ${r.cont?`<div class="note green" style="margin:0 0 10px">${r.cont.rids.length+1}번에 나눠 뛴 훈련 — 합계 <b>${fmtKm1(contTotal(r))}km · ${fmtClock(r.own.sec+r.cont.sec)}</b> (이 기록 ${fmtKm1(r.own.km)}km + 이어서 ${fmtKm1(r.cont.km)}km) · 판정은 합친 값</div>`:r.contOf?(()=>{ let f=null; try{ f=RUNS.find(x=>x.rid===r.contOf); }catch(e){} return `<div class="note blue cont-frag" style="margin:0 0 10px">앞 기록에 이어서 뛴 조각${f?` — 합계 <b>${(contTotal(f)+(RUNS.includes(r)?0:(+r.km||0))).toFixed(2)}km</b>${f.planKm?` / 약속 ${fmtKm1(f.planKm)}km`:''}`:''} · 판정은 앞 기록과 합쳐서 한 번</div>`; })():''}
     ${hasMap?`<div class="rroute">${routeBoxHTML()}</div>`:'<div class="rmap" hidden></div>'}
     ${SEC(vc,ldate(r.date).slice(0,10)===todayStr()?'오늘 결과':'이날 결과','',hidNote(r)+hero+gqNote(r))}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
@@ -11821,7 +11839,9 @@ function startVoice(s,T,g){
   /* 1) 오늘 무엇을 — "오늘은 900미터씩 빠르게 두 번 뜁니다." */
   if(s.rw){ DEV.speak(`${s.rw.check?'상태 체크 시작합니다.':`${s.rw.lv}단계 시작합니다.`} 오늘은 ${s.rw.sum}. 먼저 ${rwMin(g.sec)} 걸으며 몸을 데워요. 말할 수 있을 만큼 천천히, 힘들면 걸으세요.`,true);
     S.cadGoal=null; S.cadFb=null; return; }
-  let m = s.d==='free' ? '자유 러닝 시작해요. '
+  const RI=raceInfo(s);
+  let m = RI ? `오늘은 대회입니다. ${RI.name}, ${kmLabVoice(RI.m/1000)}. ${RI.sec?`목표 ${fmtTimeVoice(RI.sec)}, 1킬로미터 ${fmtPaceVoice(RI.pace)}. `:''}`   /* 전엔 대회 날도 '오늘은 10킬로미터 자유롭게 뜁니다' */
+        : s.d==='free' ? '자유 러닝 시작해요. '
         : n>=2 ? `오늘은 ${len?kmLabVoice(len)+'씩 ':''}${how} ${vCount(n)} 뜁니다. `
         : n===1&&s.mpFinish ? `오늘은 ${kmLabVoice(s.dist)} 길게 뜁니다. 후반 ${kmLabVoice(s.mpFinish)}는 목표 속도입니다. `
         : n===1 ? `오늘은 ${len?kmLabVoice(len)+' ':''}${how} 뜁니다. `
@@ -15174,7 +15194,15 @@ async function snapCard(el,name,title){
   toast((N>1?`JPG ${N}장 저장`:'JPG 저장됨')+' · '+where);
 }
 function snapBtn(sel,name,title,cls){ return `<button type="button" class="snapb ${cls||''}" data-snap="${sel}" data-snapn="${name}" data-snapt="${title}" aria-label="이미지로 저장">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'} 이미지</button>`; }
-document.addEventListener('click',e=>{ const b=e.target.closest('[data-snap]'); if(!b)return; const el=b.closest(b.dataset.snap)||document.querySelector(b.dataset.snap); snapCard(el,b.dataset.snapn,b.dataset.snapt); });
+/* 이미지 저장 — 만드는 중에 오류가 나면 전엔 '이미지 만드는 중…'만 뜨고 아무 일도 없었다(잡는 곳이 없어서). 이제 이유를 화면에 띄우고, 만드는 동안 다시 눌러도 겹쳐 돌지 않는다 */
+let SNAP_BUSY=0;
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-snap]'); if(!b)return; const el=b.closest(b.dataset.snap)||document.querySelector(b.dataset.snap);
+  if(!el){ toast('이미지 저장 실패 — 저장할 화면을 찾지 못했어요'); return; }
+  if(SNAP_BUSY&&Date.now()-SNAP_BUSY<60000){ toast('이미지 만드는 중이에요 — 잠시만요'); return; }
+  SNAP_BUSY=Date.now();
+  try{ await snapCard(el,b.dataset.snapn,b.dataset.snapt); }
+  catch(err){ console.error('snap',err); window.__snapErr=String(err&&err.message||err); toast('이미지 저장 실패 — '+String(err&&err.message||err).slice(0,70)); }
+  finally{ SNAP_BUSY=0; document.querySelectorAll('body>div[style*="left:-9999px"]').forEach(x=>x.remove()); } });
 
 /* ═════════════════════ 목표 목록 — 정한 목표는 지워지지 않고 쌓인다 ═════════════════════
    {id, made, goal, start, end, status:'active'|'done'|'ended', v0, vEnd, closedAt} */
