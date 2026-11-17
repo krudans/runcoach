@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.14';
+const APPVER='21.15';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6542,7 +6542,7 @@ async function deleteRun(idx){
   /* 이어서 뛴 조각을 지우면 앞 기록 판정을 다시 합치고, 앞 기록을 지우면 조각은 따로 뛴 프리런으로 남긴다(지우지 않는다) */
   if(r.contOf)contMerge(r.contOf);
   contParts(r.rid).forEach(x=>{ delete x.contOf; x.type='free'; x.planId='free-'+ldate(x.date).slice(0,10);
-    if(/이어서/.test(x.title||'')){ x.titleWas=x.title; x.title=(TYPES.free&&TYPES.free.t)||'프리런'; } });   /* 앞 기록이 없어졌는데 제목이 '이지런 이어서 6.6km'로 남아, 일지에 '이지런 이어서 · 프리런 판정 없음'으로 나왔다(2026-11-17 시험). 예전 제목은 titleWas에 둔다 */
+    if(/이어서/.test(x.title||'')){ x.titleWas=x.title; x.title=FREE.t; }   /* 보통 프리런 기록과 같은 제목('자유 러닝') */ });   /* 앞 기록이 없어졌는데 제목이 '이지런 이어서 6.6km'로 남아, 일지에 '이지런 이어서 · 프리런 판정 없음'으로 나왔다(2026-11-17 시험). 예전 제목은 titleWas에 둔다 */
   DEV.store.set('runs',RUNS);
   markDeleted(r.rid);
   afterRunsChanged();
@@ -8033,6 +8033,7 @@ function obImportDone(got){
 const TTNAME='힘껏 2km (TT)';
 const ttSegName=km=>`힘껏 ${fmtKm1(km)}km (TT)`;
 const isTTseg=nm=>/^힘껏 [\d.]+km \(TT\)$/.test(String(nm||''))||nm==='전력 2km';
+const ttSegKm=nm=>{ const m=String(nm||'').match(/([\d.]+)km/); return m?+m[1]:null; };   /* 힘껏 구간의 계획 거리 — 이름에 적힌 값 */
 /* 실력 근거는 검증된 기록만 — 앱에서 뛴 TT, 또는 날짜를 넣어 직접 올린 대회 기록.
    시작 설문·설정에서 그냥 입력한 기록은 주관적이라 예상 기록에 쓰지 않는다 (훈련 속도의 임시 출발점일 뿐) */
 function raceVerified(r){ if(!r||!r.sec||!r.m||r.manual||r.kind==='est'||r.src==='cb'||r.src==='survey')return false;
@@ -8058,6 +8059,8 @@ function testRun(ttKm){
 function basisFromTT(r){
   if(!r||r.type!=='tt')return null;
   const sg=(r.segments||[]).find(x=>isTTseg(x.nm));
+  /* 힘껏 구간을 다 뛴 TT만 기록으로 쓴다(이름에 적힌 거리의 95% 이상 — 대회 기록과 같은 기준). 전엔 웜업에서 1.9km만 뛰고 끝내도 그 조깅 전체를 TT로 쳐서 'TT 1.9km 11:58 · 실력 점수 27.3'이 나오고 새 기준 후보가 됐다(2026-11-18 시험). 구간 기록이 아예 없는 옛 기록만 전체 거리로 본다 */
+  if((r.segments||[]).length){ if(!sg)return null; const pl=ttSegKm(sg.nm); if(pl&&!(sg.km>=pl*0.95))return null; }
   const km=sg?sg.km:r.km, sec=sg?sg.sec:r.sec;
   if(!(km>=1.5)||!(sec>=210))return null;   /* Daniels VDOT 공식의 유효 범위는 3.5분 이상 */
   const m=Math.round(km*1000), v=vdotOf(m,sec/60);
@@ -11355,7 +11358,8 @@ function promiseRows(r,s){
       else rows.push([`${rlLab(m)} 중 ${(+r.km).toFixed(2)}km`,'공인 거리 95% 미만 — 대회 기록으로 남기지 않음','bad']);
     }catch(e){} return {rows,kind:null}; }
   /* TT는 판정이 없지만, 결과의 핵심인 '몇 km를 몇 분에'는 보여야 한다 — 전엔 결과·기록 화면 어디에도 TT 기록(5km 22:17)이 없고 '확인'을 눌러야 뜨는 창에만 있었다(2026-11-17 시험) */
-  if(r.type==='tt'){ try{ const c=basisFromTT(r); if(c){ rows.push([`TT ${rlLab(c.m)}`,`${fmtClock(c.sec)} · 1km ${fmtPace(c.sec/(c.m/1000))}`,'']); rows.push(['실력 점수',`${c.v}${c.hrTop?` · 최고 심박 ${c.hrTop}`:''}`,'']); } }catch(e){} return {rows,kind:null}; }
+  if(r.type==='tt'){ try{ const c=basisFromTT(r); if(c){ rows.push([`TT ${rlLab(c.m)}`,`${fmtClock(c.sec)} · 1km ${fmtPace(c.sec/(c.m/1000))}`,'']); rows.push(['실력 점수',`${c.v}${c.hrTop?` · 최고 심박 ${c.hrTop}`:''}`,'']); }
+      else if((r.segments||[]).length){ const sg=r.segments.find(x=>isTTseg(x.nm)), pl=sg?ttSegKm(sg.nm):null; rows.push(['TT 기록',sg&&pl?`힘껏 ${pl}km 중 ${(+sg.km).toFixed(2)}km — 다 뛰지 못해 기록 없음`:'힘껏 구간 전에 끝냄 — 기록 없음','bad']); } }catch(e){} return {rows,kind:null}; }
   if(!s||!s.dist||r.type==='free'||r.type==='tt')return {rows,kind:null};
   /* 거의 안 뛴 기록은 판정하지 않는다 — 0km에 '약속대로'가 나가면 거짓말이다 */
   if(!(r.km>=0.5&&r.sec>=120))return {rows:[['기록','짧아 판정 없음 ('+r.km.toFixed(2)+'km · '+fmtClock(r.sec)+')','bad']],kind:'short0'};
