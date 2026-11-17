@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.06';
+const APPVER='21.07';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4243,7 +4243,7 @@ function voiceClean(t){ return String(t||'')
   .replace(/(\d+)'(\d{1,2})"/g,(m,a,b)=>`${+a}분 ${+b}초`)
   .replace(/\s*[→⇒➜]\s*/g,', ').replace(/\s*[—–]\s*/g,', ')
   .replace(/([^\s,])\s*↑/g,'$1 늘어남').replace(/([^\s,])\s*↓/g,'$1 줄어듦').replace(/[↑↓]/g,'')
-  .replace(/♥\s*/g,'심박 ').replace(/\/km/g,' 킬로당').replace(/(\d)\s*~\s*(\d)/g,'$1에서 $2').replace(/~/g,'')
+  .replace(/♥\s*/g,'심박 ').replace(/(\d+)초\/km/g,'1킬로미터에 $1초').replace(/\/km/g,' 킬로당').replace(/(\d)\s*~\s*(\d)/g,'$1에서 $2').replace(/~/g,'')
   .replace(/(\d+)\s*×\s*(\d[\d.]*\s*(?:km|m|분|초))/g,'$2 $1번').replace(/\s*×\s*(\d+)(?:\s*(?:회|번))?(?![\d.:'"]|\s*(?:m|km|분|초|킬로|미터))/g,' $1번').replace(/(\S)\s+\+\s+(?=\S)/g,'$1, ')   /* '뛰기 1분 + 걷기 2분 × 5' → '뛰기 1분, 걷기 2분 5번' — 전엔 ×가 지워져 '2분 5'로 읽혔다 */
   .replace(/\s*·\s*/g,', ').replace(/[✓✔✗✕×▶⏸•※★☆]/g,' ').replace(/[%]/g,'퍼센트')
   .replace(/(,\s*){2,}/g,', ').replace(/^\s*,\s*/,''); }
@@ -5616,7 +5616,8 @@ function onTick(){
   /* 쿨다운·계획 뒤 더 뛰는 거리 — 쉬운 날 상한보다 빠르면 알린다. 예전엔 빠른 날의 쿨다운과 계획 뒤 거리는 아무 판정도 없었다.
      쿨다운 거리는 2km 또는 본 운동의 20% 중 큰 쪽이면 충분 (Daniels: 쿨다운 10~20분, C) */
   { const cc=(!S.extra&&isCool(tg)&&tg.pace&&tg.pace[0])?Math.round(tg.pace[0]):PACE&&PACE.easyCeil?Math.round(PACE.easyCeil):null;   /* 쿨다운은 그 구간 속도 범위의 빠른 끝, 계획 뒤는 쉬운 날 상한 */
-    if((isCool(tg)||S.extra)&&cc&&isFinite(p)&&p<cc-5&&segSettled()&&state!=='hr'){
+    /* 프리런(목표 속도·판정 없음)은 계획 거리를 넘겨 더 뛰어도 속도로 꾸짖지 않는다 — 전엔 5km 프리런을 6km째 뛰면 '계획은 끝났어요. 속도를 늦추세요'·'빨라요'가 나갔다(2026-11-17 시험) */
+    if((isCool(tg)||S.extra)&&T.judgeBy!=='none'&&cc&&isFinite(p)&&p<cc-5&&segSettled()&&state!=='hr'){
       state='fast'; pill=S.extra?'더 뛰는 중 — 천천히':'쿨다운 — 천천히'; say=`${S.extra?'계획 완료.':'쿨다운이에요.'} 1km ${fmtPace(cc)}보다 느리게 · 식히기`;
       if((S.coolCueN||0)<3&&Date.now()-(S.lastCoolCue||0)>[0,120000,240000][Math.min(2,S.coolCueN||0)]&&Date.now()-(S.lastAnyCue||0)>30000){ S.lastCoolCue=Date.now(); S.lastAnyCue=Date.now(); S.coolCueN=(S.coolCueN||0)+1; DEV.buzz(BZ.tick);
         DEV.speak(S.coolCueN===1?`${S.extra?'계획은 끝났어요':'쿨다운이에요'}. 1킬로미터 ${fmtPaceVoice(cc)}보다 느리게, 속도를 늦추세요.`:'빨라요. 속도를 늦추세요.',true); } }
@@ -11353,6 +11354,7 @@ function promiseRows(r,s){
     const avg=reps.length?reps.reduce((a,g)=>a+g.pace,0)/reps.length:null;
     const tgt=repTargetOf(r,s);
     if(tgt&&avg)rows.push([`회차 목표 ${fmtPace(tgt)}`,`평균 ${fmtPace(avg)}`,Math.abs(avg-tgt)<=5?'ok':avg>tgt?'bad':'bad']);
+    if(s&&s.reps>0&&reps.length<s.reps)rows.push(['회차',`${s.reps}회 중 ${reps.length}회`,'bad']);   /* 다 못 한 회차 수 — 전엔 5회 중 2회만 하고 끝내도 회차 줄은 모두 ✓였다(2026-11-17 시험) */
     rows.push(['회차 편차',`${r.spread}초 (기준 ${th.spread}초)`,r.spread<=th.spread?'ok':'bad']);
     if(r.spread>th.spread)kind='spread';
     else if(tgt&&avg&&avg>tgt+5)kind='slow';
@@ -14462,7 +14464,7 @@ function debriefPoints(r,s){
   try{ const sc=(r.splits||[]).filter(x=>x.hr&&x.cad); const lock=sc.filter(x=>Math.abs(x.hr-x.cad)<=3).length;
     if(sc.length>=4&&lock>=3&&lock/sc.length>=0.5) bad.push(['심박 센서',`${sc.length}km 중 ${lock}km 심박≈케이던스(±3) → 손목 센서 오류 의심 (C)`]); }catch(e){}
   /* 계획 뒤 더 뛴 거리 — 쉬운 날 상한보다 빨랐으면 알린다(판정엔 안 넣음) */
-  try{ const ex=(r.segments||[]).find(g=>g.extra); const cc=PACE&&PACE.easyCeil; if(ex&&ex.km>=0.5&&cc&&ex.pace&&ex.pace<cc-5) bad.push(['더 뛴 거리',`계획 뒤 ${ex.km.toFixed(1)}km ${fmtPace(ex.pace)} — 상한 ${fmtPace(cc)} 초과 → 2km 천천히 (C)`]); }catch(e){}
+  try{ const ex=(r.segments||[]).find(g=>g.extra); const cc=PACE&&PACE.easyCeil; if(ex&&ex.km>=0.5&&cc&&ex.pace&&ex.pace<cc-5&&(TYPES[r.type]||{}).judgeBy!=='none') bad.push(['더 뛴 거리',`계획 뒤 ${ex.km.toFixed(1)}km ${fmtPace(ex.pace)} — 상한 ${fmtPace(cc)} 초과 → 2km 천천히 (C)`]); }catch(e){}
   if(['easy','long','recovery'].includes(r.type)&&!r.hrSuspect&&!(r.factors&&r.factors.length)){ const dc=decouple(r); if(dc!=null){ if(dc>5)bad.push(['유산소 분리율',`${dc}% — 10분 후 같은 심박 속도↓(5%↑) → 버거움 (Friel 관행 C)`]); else if(dc<=5&&(r.km||0)>=8)good.push(['유산소 분리율',`${dc}% — 속도·심박 일치(5%↓)`]); } }
   if(r.planKm&&r.km>r.planKm*1.2&&!r.extraKm)bad.push(['계획 초과',`계획 ${r.planKm}km +${Math.round((r.km/r.planKm-1)*100)}% → 내일 쉬는 날`]);
   if(r.factors&&r.factors.length)good.push(['오늘 몸 상태',`${r.factors.map(k=>({sleep:'잠 부족',alcohol:'술',ill:'아픔',tired:'피곤'}[k])).join('·')} — 심박 경고↓ · 학습 제외`]);
