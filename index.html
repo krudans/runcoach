@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.08';
+const APPVER='21.09';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5471,6 +5471,7 @@ function onTick(){
   else if(!S.extra){ const hrCap=(T.primary==='hr'&&T.hrZone&&T.hrZone[1])?T.hrZone[1]:null;
     $('rSegTgt').textContent = tg.hard ? `${tgPace?rangeText(tgPace)+' 로':'힘껏'} ${tg.end==='time'?fmtClock(tg.sec):''}`.trim()   /* 목표 속도 없는 빠른 구간(TT)은 '자유 로'가 아니라 '힘껏' */
       : tg.tol==='ceil' ? `${fmtPace(tgPace[0])}보다 천천히${hrCap?` · ♥${hrCap} 아래`:''}`
+      : !tgPace ? (hrCap?`♥${hrCap} 아래`:'목표 없음 · 편한 대로')   /* 목표 속도가 없는 구간(프리런) — 전엔 '자유 유지' */
       : hrCap ? `♥${hrCap} 아래 · ${rangeText(tgPace)}` : `${rangeText(tgPace)} 유지`; }
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
   if(!S.gpsWarn&&S.elapsed>180&&km<((S.act==='hike'||S.act==='walk')?0.03:0.15)&&S.pts.length>60){   /* 가파른 등산은 3분에 100m도 안 갈 수 있다 */
@@ -5765,7 +5766,9 @@ function onTick(){
       +(isFinite(avgP)?`평균 페이스 ${fmtPaceVoice(avgP)}. `:'');
     let verdictTxt='';
     /* 1순위부터 말한다 */
-    if(hrPrimary&&HZ&&HZ[1]&&lapHR&&!S.hrLocked){   /* 걸음을 읽는 심박으로는 1km 판정도 하지 않는다 — 화면('속도로 판정')과 같게 */
+    /* 1km를 걷는 속도(12분/km보다 느림 — 화면의 '걷는 중'과 같은 기준)로 갔으면 '목표 안. 유지'라고 하지 않는다. 전엔 이지런을 걸어도 '심박 99, 목표 안. 유지.'(2026-11-17 시험) */
+    if(!s.rw&&S.act==='run'&&isFinite(lapPace)&&lapPace>720){ msg+='걷는 속도예요. 준비되면 천천히 뛰세요. '; verdictTxt='걷는 속도'; }
+    else if(hrPrimary&&HZ&&HZ[1]&&lapHR&&!S.hrLocked){   /* 걸음을 읽는 심박으로는 1km 판정도 하지 않는다 — 화면('속도로 판정')과 같게 */
       if(lapHR>HZ[1]+3){ msg+=`심박 ${lapHR}, 상한 ${HZ[1]}보다 ${lapHR-HZ[1]} 높아요. 속도를 늦추세요. `;   /* 판정 누적·음성 큐와 같은 여유(+3) */
         verdictTxt=`♥${lapHR} 초과`; }
       else { msg+=`심박 ${lapHR}, 목표 안. 유지. `; verdictTxt=`♥${lapHR} 양호`; }
