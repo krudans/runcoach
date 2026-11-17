@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.04';
+const APPVER='21.05';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4928,7 +4928,8 @@ const BT={
   feed(bpm){ const now=Date.now();
     /* 값이 30초 넘게 한 숫자로 그대로면 시계가 새로 재지 않고 마지막 값을 되풀이해 보내는 것이다(화면이 다른 데 가 있으면 시계가 측정을 쉬기도 한다).
        그 값은 화면에 '멈춤'으로만 보이고 판정·코칭·평균에는 쓰지 않는다. 숫자가 바뀌는 순간 다시 쓴다 (앱 규칙 C) */
-    if(bpm!==S.hr.lastRaw){ S.hr.lastRaw=bpm; S.hr.sameSince=now; }
+    /* 값이 5초 넘게 안 오다가 다시 온 것은 '같은 값이 이어진 것'이 아니다 — 전엔 끊겼다 돌아온 첫 값이 끊기기 전 값과 같으면, 끊긴 시간까지 세어 '심박이 30초째 같아요. 운동 모드를 켜세요'가 나갔다(2026-11-17 시험) */
+    if(bpm!==S.hr.lastRaw||(S.hr.at&&now-S.hr.at>5000)){ S.hr.lastRaw=bpm; S.hr.sameSince=now; }
     S.hr.raw=bpm; S.hr.at=now; { const fz=(now-(S.hr.sameSince||now))>30000; if(fz&&!S.hr.frozen&&S.running&&S.hrD)S.hrD.frozen++; S.hr.frozen=fz; }
     /* 튀는 값 거르기 — 직전 값들(중앙값)보다 20 넘게 갑자기 뛰거나 안정심박보다 낮으면 이 값은 쓰지 않는다. 3번 연속이면 진짜 변화로 받아들인다 (센서 잡음 처리 관행 C) */
     { const H=S.hr.recent=(S.hr.recent||[]).filter(x=>now-x.t<8000), med=H.length>=3?H.map(x=>x.v).sort((a,b)=>a-b)[Math.floor(H.length/2)]:null, rh=(PROF&&PROF.rhr)||null;
@@ -5304,7 +5305,7 @@ function onPos(pos){
       S.dist+=add; np.gap=true; np.gapM=Math.round(gapKm); S.pts.push(np); S.anchor=np; S.smooth=np; S.rawLast={lat:np.lat,lon:np.lon,t:now};
       S.lastMove=now; S.lastMoveEl=S.elapsed; S.lastMoveSteps=(S.cad&&S.cad.steps)||0; S.win=[]; S.paceHold=gapKm>30?dt/(gapKm/1000):S.paceHold; S.gapEndEl=S.elapsed;
       S.gpsGap=null; S.gapN=(S.gapN||0)+1;
-      if(gapKm>=50)DEV.speak(`GPS 복구. ${Math.round(gapKm)}미터 ${fmtPaceVoice(dt/(gapKm/1000))}로 채웠어요.`,false);
+      if(gapKm>=50)DEV.speak(`GPS 복구. 끊긴 동안 ${Math.round(gapKm/10)*10}미터로 채웠어요. 1킬로미터 ${fmtPaceVoice(dt/(gapKm/1000))} 속도.`,false);   /* 전엔 '242미터 6분 17초로 채웠어요' — 6분 17초가 걸린 시간처럼 들렸다 */
       return; }
     S.gpsGap=null;   /* 발로 낼 수 없는 거리 — 아래 차 탄 구간 검사로 넘긴다 */ }
   /* ── 1단계: 좌표 평활화 ──────────────────────────────
@@ -5631,7 +5632,7 @@ function onTick(){
   /* 심박계 없이 심박 기준 날 — 한 번만 알린다 */
   /* 기기가 연결은 됐는데 값이 늦게 오는 경우(시계가 측정을 막 시작함)는 '연결 안 됨'이 아니다 — 상태를 정확히 말하고, 값이 들어오면 다시 알린다 */
   if(hrPrimary&&!S.hr.bpm&&!S.hr.frozen&&!S.noHrCue&&S.elapsed>90&&S.act==='run'){ S.noHrCue=true; S.noHrSaid=true;
-    DEV.speak(S.hr.dev||BT.dev?'심박 대기 중, 속도로 코칭합니다.':'심박계 없이 속도로 코칭합니다.'); }
+    DEV.speak((S.hr.samples&&S.hr.samples.length)?'심박이 끊겼어요. 속도로 코칭합니다.':S.hr.dev||BT.dev?'심박 대기 중, 속도로 코칭합니다.':'심박계 없이 속도로 코칭합니다.'); }   /* 뛰는 중에 들어오다 끊긴 것은 '심박계 없이'가 아니다 */
   if(S.noHrSaid&&S.hr.bpm&&!S.hrBackSaid){ S.hrBackSaid=true; DEV.speak(`심박이 들어옵니다. ${S.hr.bpm}. 심박으로 코칭합니다.`); }
   /* 같은 구간 안 심박 표류 — 속도는 그대로인데 심박만 오르면 피로·더위·탈수 신호다 */
   if(S.hr.bpm&&!tg.hard&&S.liveDrift!==S.segIx){
