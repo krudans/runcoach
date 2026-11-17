@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.18';
+const APPVER='21.19';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2611,10 +2611,14 @@ const DEV = {
         speechSynthesis.speak(u); };
       /* 말하는 중에 새 말이 오면 — 전엔 force면 무조건 앞말을 끊었다. 그래서 '1킬로미터 지났습…' 하다 끊기고 다음 말이 나와, 낱말만 들렸다(실제 기기 2026-11-18).
          이제 끊는 것은 위험 경고(force+critical)뿐이다. 나머지는 앞말이 끝난 뒤에 이어서 말한다. 5·4·3·2·1 숫자는 때를 놓치면 뜻이 없으므로, 말하는 중이면 건너뛴다(삐 소리는 그대로) */
-      const busy=speechSynthesis.speaking||speechSynthesis.pending;
-      if(busy&&force&&critical){ speechSynthesis.cancel(); setTimeout(go,250); }
+      const busy=speechSynthesis.speaking||speechSynthesis.pending, now=Date.now();
+      /* 안전장치 — 일부 안드로이드에서 말이 끝났는데도 '말하는 중'으로 남는 일이 있다. 앞말을 끊지 않게 바꾼 뒤로는 그러면 뒤 안내가 줄만 서고 영영 안 나온다.
+         줄 선 말이 다 끝났을 시각(글자당 0.25초 + 여유 5초)을 넘겼는데도 말하는 중이면 막힌 것으로 보고 한 번 비운 뒤 말한다 */
+      const stuck=busy&&this._spUntil&&now>this._spUntil+5000;
+      const mark=()=>{ this._spUntil=Math.max(now,busy&&!stuck?(this._spUntil||now):now)+text.length*250+600; };
+      if(stuck||(busy&&force&&critical)){ speechSynthesis.cancel(); mark(); setTimeout(go,250); }
       else if(busy&&/^\d{1,2}$/.test(text)){ return false; }
-      else go(); }catch(e){} },
+      else { mark(); go(); } }catch(e){} },
   /* 진동 문법 — 셋뿐이다. 뛰면서 다섯 가지를 구분할 수 없다.
        BZ.tick  툭        — 구간이 바뀌었다 · 1km
        BZ.off   툭툭툭    — 계획에서 벗어났다 (빠르든 느리든)
