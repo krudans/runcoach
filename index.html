@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.11';
+const APPVER='21.12';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11445,7 +11445,7 @@ function rvPaceHR(r){   /* 거리에 따른 페이스·심박 선그래프. 트�
     tr.forEach((p,i)=>{ if(p.seg!==cur){ if(cur!=null)flush(cur,start,c[i]/1000); cur=p.seg; start=c[i]/1000; } }); if(cur!=null)flush(cur,start,c[c.length-1]/1000); }
   else if(!hasT){ let d=0; pts.forEach(x=>{ const w=X(d+(x.bar||1))-X(d); bands+=`<rect x="${X(d).toFixed(1)}" y="${Yp(x.p).toFixed(1)}" width="${(w-2).toFixed(1)}" height="${(T+ih-Yp(x.p)).toFixed(1)}" rx="3" fill="#5B2D86" opacity=".55"/>`; d+=(x.bar||1); }); }
   const line=hasT?`<path d="${pts.map((x,i)=>(i?'L':'M')+X(x.d).toFixed(1)+' '+Yp(x.p).toFixed(1)).join('')}" fill="none" stroke="#5B2D86" stroke-width="2.2" stroke-linejoin="round"/>`:'';
-  const hrl=hrs.length>=2?`<path d="${pts.filter(x=>x.hr).map((x,i)=>(i?'L':'M')+(hasT?X(x.d):X(x.d+(x.bar||1)/2)).toFixed(1)+' '+Yh(x.hr).toFixed(1)).join('')}" fill="none" stroke="#D9412B" stroke-width="1.8" stroke-dasharray="${hasT?'':'4 3'}" stroke-linejoin="round"/>`:'';
+  const hrl=hrs.length>=2?`<path d="${(()=>{ let pd=null; return pts.filter(x=>x.hr).map((x,i)=>{ const brk=!i||(hasT&&pd!=null&&x.d-pd>0.15); pd=x.d; return (brk?'M':'L')+(hasT?X(x.d):X(x.d+(x.bar||1)/2)).toFixed(1)+' '+Yh(x.hr).toFixed(1); }).join(''); })()   /* 심박이 150m 넘게 끊긴 곳은 선을 잇지 않는다 — 전엔 끊긴 앞뒤를 긴 직선으로 이어, 없는 심박이 있는 것처럼 보였다(실제 기기 2026-11-17) */}" fill="none" stroke="#D9412B" stroke-width="1.8" stroke-dasharray="${hasT?'':'4 3'}" stroke-linejoin="round"/>`:'';
   /* 눈금 */
   const ty=[yLo+pad*.5,(yLo+yHi)/2,yHi-pad*.5].map(v=>`<text x="${L-5}" y="${(Yp(v)+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="#6E5A80">${fmtPace(v)}</text><line x1="${L}" x2="${W-R}" y1="${Yp(v).toFixed(1)}" y2="${Yp(v).toFixed(1)}" stroke="#E6DFF0" stroke-width="1"/>`).join('');
   /* 심박 눈금 — 위 숫자는 기록의 '최고 심박'(5초 유지 값)과 같은 값만. 선의 순간 꼭짓점을 따로 쓰면 188 / 187처럼 두 숫자가 된다 */
