@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.17';
+const APPVER='21.18';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13765,6 +13765,19 @@ STR.core={en:'CORE · MOBILITY',ko:'코어·가동성 — 쉬는 날 · 회복',
     moves:[['plank','플랭크','코어','팔꿈치 · 몸 일직선',false],['sideplank','사이드 플랭크','옆구리·골반','팔꿈치 · 골반 들기',true],
            ['birddog','버드독','허리·균형','네발 · 반대 팔다리 뻗기',true],['gateOpen','고관절 열기','고관절 가동','무릎 들어 옆 90°',true]]};
 STR_COL.str='#7A4CC2'; STR_COL.core='#3B82C4';
+/* 동작을 소리로 안내하는 문장 — 화면 글('팔 뻗어 앞 · 뒤로')을 그대로 읽으면 낱말만 들린다(2026-11-18). 내용은 화면 글과 같다 */
+const MOVE_SAY={
+  'dyn:arm':'팔을 곧게 뻗어 앞으로, 그리고 뒤로 크게 돌리세요.','dyn:waist':'손을 허리에 올리고 골반으로 원을 그리세요.',
+  'dyn:legswing':'다리를 시계추처럼 앞뒤로 흔드세요. 한쪽에 10번씩 합니다.','dyn:sideswing':'몸 앞에서 다리를 좌우로 흔드세요. 한쪽에 10번씩 합니다.',
+  'dyn:toekick':'다리를 차올려 반대쪽 손으로 발끝을 터치하세요.','dyn:gateOpen':'무릎을 들어 옆으로 90도 열었다 닫으세요. 양쪽을 번갈아 합니다.',
+  'dyn:lunge':'큰 걸음으로 나가며 골반을 낮추세요.','dyn:sweep':'무릎을 편 채 손으로 바닥을 쓸듯이 숙이세요. 양쪽을 번갈아 합니다.',
+  'stat:calf':'벽을 밀며 뒤꿈치를 바닥에 누르세요.','stat:ham':'뒤꿈치를 바닥에 대고 몸을 앞으로 숙이세요.','stat:quad':'발목을 잡고 두 무릎을 모으세요.',
+  'stat:glute':'무릎을 가슴 쪽으로 당기세요.','stat:hip':'런지 자세에서 골반을 앞으로 미세요.','stat:side':'팔을 위로 뻗어 옆으로 기울이세요.',
+  'str:squat':'발을 어깨너비로 벌리고, 무릎은 발끝 방향으로 앉았다 일어나세요. 10회 합니다.','str:lunge':'큰 걸음으로 나가 뒷무릎을 바닥 가까이 내리세요. 한쪽에 8회씩 합니다.',
+  'str:rdl':'무릎은 살짝만 굽히고, 엉덩이를 뒤로 빼며 등을 편 채 숙이세요. 손은 정강이 앞까지 내립니다. 8회 합니다.','str:calfraise':'벽을 짚고 천천히 뒤꿈치를 올렸다 내리세요. 15회 합니다.',
+  'str:bridge':'누워서 무릎을 세우고 골반을 들어 올리세요. 12회 합니다.','str:plank':'팔꿈치로 받치고 몸을 일직선으로 유지하세요. 30초 버팁니다.',
+  'core:plank':'팔꿈치로 받치고 몸을 일직선으로 유지하세요.','core:sideplank':'옆으로 누워 팔꿈치로 받치고 골반을 들어 올리세요.',
+  'core:birddog':'네발 자세에서 반대쪽 팔과 다리를 곧게 뻗으세요.','core:gateOpen':'무릎을 들어 옆으로 90도 여세요.'};
 const mvSec=(kind,m)=>STR[kind].sec*(m[4]?2:1);
 function moveSVG(kind,id,col,big){ const A=POSE[id+'A']||POSE[id], B=POSE[id+'B']; const cls=big?'st-fig big':'st-fig';
   if(!B) return `<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true">${figSVG(A,col)}</svg>`;
@@ -13784,7 +13797,7 @@ const ST={kind:null,i:0,t:0,side:0,timer:null,paused:false};
 function stOpen(kind,at,paused){ ST.kind=kind; ST.i=at||0; ST.side=0; ST.round=1; ST.paused=!!paused; $('strRun').hidden=false; stStart(); }
 function stTotal(){ return STR[ST.kind].sec; }
 function stStart(){ const S=STR[ST.kind], m=S.moves[ST.i]; ST.t=stTotal(); if(ST.round==null)ST.round=1;
-  try{ DEV.speak(ST.side?'반대쪽으로 바꾸세요.':`${m[1]}입니다. ${m[3].replace(/·/g,',')}${m[4]?'. 한쪽부터 하세요.':''}`,true); }catch(e){}
+  try{ DEV.speak(ST.side?'반대쪽으로 바꾸세요.':`${m[1]}입니다. ${MOVE_SAY[ST.kind+':'+m[0]]||(m[3].replace(/·/g,',')+'.')}${m[4]?' 한쪽부터 하세요.':''}`,true); }catch(e){}
   stPaint(); clearInterval(ST.timer); ST.timer=setInterval(stTick,1000); }
 function stTick(){ if(ST.paused)return; ST.t--; const S=STR[ST.kind];
   if(ST.t===3)try{ VC.beep(660,120); }catch(e){}
