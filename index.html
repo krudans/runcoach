@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.03';
+const APPVER='21.04';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11187,7 +11187,7 @@ function lapStats(tr,LP){ return LP.laps.map(([a,b,part],j)=>{ const m=LP.cm[b]-
 function routeSVG(tr,segs,o){
   o=o||{}; const W=o.w||600,H=o.h||380,PAD=o.pad||22;
   if(!tr||tr.length<3)return '';
-  const LP=o.laps||null, sel=LP&&o.sel!=null?o.sel:null, rg=sel!=null?LP.laps[sel]:[0,tr.length-1], fit=tr.slice(rg[0],rg[1]+1);
+  const LP=o.laps||null, sel=LP&&o.sel!=null?o.sel:null, rg=sel!=null?LP.laps[sel]:[0,tr.length-1], fit=tr;   /* 범위는 늘 전체 경로(카카오 지도와 같게) */
   const lats=fit.map(p=>p.lat),lons=fit.map(p=>p.lon);
   const la0=Math.min(...lats),la1=Math.max(...lats),lo0=Math.min(...lons),lo1=Math.max(...lons);
   const kx=Math.cos((la0+la1)/2*Math.PI/180);
@@ -11224,7 +11224,8 @@ async function paintMap(host,tr,segs,mono,o){
     const draw=()=>{ lines.forEach(l=>l.setMap(null));
       lines=routeLines(Q,cm,LP,sel,cf,mpp(),4,true).map(l=>new k.maps.Polyline({map,path:l.pts.map(LL),strokeWeight:l.w,strokeColor:l.col,strokeOpacity:l.op!=null?l.op:.95})); };
     const rg=sel!=null?LP.laps[sel]:[0,tr.length-1], b=new k.maps.LatLngBounds();
-    for(let i=rg[0];i<=rg[1];i++)b.extend(new k.maps.LatLng(tr[i].lat,tr[i].lon));
+    /* 칸을 골라도 지도 범위는 늘 전체 경로 — 전엔 고른 부분에 맞춰 확대해서, 0.89km 칸이 전체(1.88km)보다 길게 보였다(실제 기기 2026-11-17). 고른 부분은 굵게, 나머지는 흐리게 */
+    for(let i=0;i<tr.length;i++)b.extend(new k.maps.LatLng(tr[i].lat,tr[i].lon));
     kmMarks(cm,LP,sel).forEach(({i,km})=>new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[i].lat,tr[i].lon),content:`<div class="kmk">${km}</div>`,yAnchor:.5}));
     new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[rg[0]].lat,tr[rg[0]].lon),content:`<div class="kst">${ESC(sel==null?'출발':LP.kind==='km'?(sel===0?'출발':`${sel}km 지점`):LP.kind==='seg'?`${LP.laps[sel][3]} 시작`:`${sel+1}바퀴 시작`)}</div>`,yAnchor:1.9});   /* 거리별·구간별로 나눈 것을 '바퀴'라 부르지 않는다 — 전엔 1km 칸을 골라도 '1바퀴 시작'(실제 기기 2026-11-17). 꼬리표는 점 위로 띄워 끝 점과 겹치지 않게 */
     new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[rg[1]].lat,tr[rg[1]].lon),content:'<i class="kdot" style="background:#16211D"></i>',xAnchor:.5,yAnchor:.5});
@@ -11274,7 +11275,7 @@ function routeWire(root,r,st,full){
     lb.hidden=false;
     lb.innerHTML=`${GR.km&&GR.seg?`<div class="lapsw" role="group" aria-label="나눠 보는 기준"><button type="button" data-grp="km" class="${g==='km'?'on':''}">거리별</button><button type="button" data-grp="seg" class="${g==='seg'?'on':''}">구간별</button></div>`:''}
       <div class="lapch${unit?'':' seg'}" role="group" aria-label="${unit?'거리별':'구간별'} 고르기"><button type="button" data-lap="all" class="${s?'':'on'}"><b>전체</b><i>${(+r.km||G.cm[G.cm.length-1]/1000).toFixed(2)}km</i></button>${LS.map(x=>`<button type="button" data-lap="${x.j}" class="${s&&s.j===x.j?'on':''}${fast&&fast.j===x.j?' best':''}"><b>${ESC(unit?nm(x):nm(x))}${unit&&x.part?'<small>km</small>':''}</b><i>${x.pace?fmtPace(x.pace):(x.m/1000).toFixed(2)+'km'}</i>${pace&&x.pace?`<u style="background:${pcol(x.pace)}"></u>`:''}</button>`).join('')}</div>
-      <div class="lapinfo">${s?`<b>${ESC(unit?(s.part?'마지막 '+nm(s)+'km':nm(s)+'km째'):nm(s))}</b> · ${(s.m/1000).toFixed(2)}km${s.dt?` · ${fmtClock(s.dt)}`:''}${s.pace?` · 1km ${fmtPace(s.pace)}`:''}${s.hr?` · 평균 심박 ${s.hr}`:''}`
+      <div class="lapinfo">${s?`<b>${ESC(unit?(s.part?'마지막 '+nm(s)+'km':nm(s)+'km째'):nm(s))}</b>${unit?'':` · ${(s.m/1000).toFixed(2)}km`}${s.dt?` · ${fmtClock(s.dt)}`:''}${s.pace?` · 1km ${fmtPace(s.pace)}`:''}${s.hr?` · 평균 심박 ${s.hr}`:''}`
         :`<b>${unit?'거리별':'구간별'}</b> · ${unit?'1km씩':'훈련 구간씩'} ${LS.length}칸${fast?` · 가장 빠른 1km <b>${nm(fast)}km째</b> (${fmtPace(fast.pace)})`:''}<br><span>칸을 누르면 그 부분만 지도에 보여요</span>`}</div>`;
     const on=lb.querySelector('.lapch .on'); if(on&&on.scrollIntoView&&st.sel!=null)try{ on.scrollIntoView({block:'nearest',inline:'center'}); }catch(e){} };
   sw.querySelectorAll('button').forEach(b=>b.onclick=()=>{ st.mode=b.dataset.mm; try{ localStorage.setItem('mapMode',st.mode); }catch(e){} paint(); });
