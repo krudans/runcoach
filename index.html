@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='20.98';
+const APPVER='20.99';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5722,7 +5722,7 @@ function onTick(){
     if(tg.tol==='ceil'){ /* 느린 건 통과, 빠른 건 상한 배너가 담당 */ }
     else{ const tol=tg.tol;
       if(p<tgPace[0]-tol)checkOff(-1);
-      else if(p>tgPace[1]+tol){ if(!hrRules&&!(hrPrimary&&S.hrLocked))checkOff(1); }   /* 심박을 못 믿는 쉬운 날도 느리다고 재촉하지 않는다(진짜 심박이 높을 수 있다) */   /* 심박이 기준인 날 심박이 괜찮으면 느리다고 재촉하지 않는다 */
+      else if(p>tgPace[1]+tol){ if(!hrRules&&!(hrPrimary&&S.hrLocked)&&T.primary!=='dist')checkOff(1); }   /* LSD(약속 = 완주, '속도 · 느려도 완주')는 느리다고 재촉하지 않는다 — 전엔 화면은 '좋아요'인데 음성은 '느려요. 속도를 올리세요'를 1km에 네 번씩 했다(2026-11-17 시험) */   /* 심박을 못 믿는 쉬운 날도 느리다고 재촉하지 않는다(진짜 심박이 높을 수 있다) */   /* 심박이 기준인 날 심박이 괜찮으면 느리다고 재촉하지 않는다 */
       else S.offCount=0; }
   }
   /* 심박이 끊긴 채로 오래 가면 알려준다 — 모르고 계속 뛰면 판정이 비어버린다 */
@@ -5754,7 +5754,7 @@ function onTick(){
     /* 1km마다 무조건 — 몇 킬로 · 이번 1km 페이스 · 총 거리 · 평균 페이스. 판정·지시는 그 뒤에 붙는다 */
     const avgP=km>0?S.elapsed/km:NaN, planKm=(s&&s.dist&&S.act==="run"&&s.type!=="free")?+s.dist:null, leftK=planKm?Math.max(0,planKm-km):null;
     let msg=`${S.lapKm}킬로미터. 이번 1킬로 ${lapEst?'추정 ':''}${isFinite(lapPace)?fmtPaceVoice(lapPace):'측정 안 됨'}. `
-      +(planKm&&!S.extra&&leftK>0.05?`총 ${planKm%1?planKm.toFixed(1):planKm}킬로 중 ${leftK<1?Math.round(leftK*1000)+'미터':leftK.toFixed(1)+'킬로'} 남았습니다. `
+      +(planKm&&!S.extra&&leftK>0.05?`총 ${planKm%1?planKm.toFixed(1):planKm}킬로 중 ${leftK<0.995?Math.round(leftK*100)*10+'미터':leftK.toFixed(1)+'킬로'} 남았습니다. `   /* 10m 단위로 — 전엔 '998미터 남았습니다' */
         :planKm&&km-planKm>=0.05?`${(km-planKm).toFixed(1)}킬로 초과, 총 ${km.toFixed(1)}킬로. `:`총 ${km.toFixed(1)}킬로미터. `)
       +(isFinite(avgP)?`평균 페이스 ${fmtPaceVoice(avgP)}. `:'');
     let verdictTxt='';
@@ -5772,7 +5772,8 @@ function onTick(){
       else if(d<0){ msg+=`${-d}초 빨라요. 속도를 늦추세요. `; verdictTxt=`${-d}초 빠름`; }
       else if(lg.tol==='ceil'||lg.tol==null){ msg+='느림 허용. '; verdictTxt='목표대로'; }
       else if(T.primary==='hr'&&lapHR&&HZ&&HZ[1]&&lapHR<=HZ[1]&&!lg.hard&&!S.hrLocked){ msg+=`${d}초 느림, 심박 ${lapHR} 정상. `; verdictTxt='심박 기준 안'; }
-      else if(T.primary==='hr'&&S.hrLocked&&!lg.hard){ msg+='느림 허용. '; verdictTxt='목표대로'; }   /* 심박을 못 믿는 쉬운 날 — 진짜 심박이 높을 수 있으니 빨리 뛰라고 하지 않는다 */
+      else if(T.primary==='hr'&&S.hrLocked&&!lg.hard){ msg+='느림 허용. '; verdictTxt='목표대로'; }
+      else if(T.primary==='dist'&&!lg.hard){ msg+='느림 허용. '; verdictTxt='목표대로'; }   /* LSD — 약속은 완주, 느려도 된다 */   /* 심박을 못 믿는 쉬운 날 — 진짜 심박이 높을 수 있으니 빨리 뛰라고 하지 않는다 */
       else { msg+=`${d}초 느려요. 속도를 올리세요. `; verdictTxt=`${d}초 느림`; }
       if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly&&!S.hrLocked)msg+=`심박 ${lapHR}, 상한 ${HZ[1]}보다 높아요. `;
     } else if(lapHR&&!S.hrLocked){ msg+=`평균 심박 ${lapHR}. `; }   /* 걸음을 읽는 심박은 숫자로도 말하지 않는다 */
@@ -6116,7 +6117,7 @@ function renderSummary(completed){
   const alts=S.pts.map(p=>p.alt).filter(v=>v!=null);
   sparkline('chElev','고도',`▲${Math.round(S.asc)}m ▼${Math.round(S.desc)}m`,
     alts.filter((_,i)=>i%Math.max(1,Math.ceil(alts.length/120))===0),{c:'#A2850C',h:56});
-  sparkline('chHR','심박',hrAvg?`평균 ${hrAvg} · 최고 ${heldMax(S.hr.samples,5)||S.hr.max}`:'',
+  sparkline('chHR','심박',hrAvg?`평균 ${hrAvg} · 최고 ${Math.max(heldMax(S.hr.samples,5)||S.hr.max||0,hrAvg)}`:'',
     hs.filter((_,i)=>i%Math.max(1,Math.ceil(hs.length/120))===0),{c:'#CF3B36',h:56});
 
   const gh=$('sSegs'); gh.innerHTML='';
@@ -6195,7 +6196,7 @@ function renderSummary(completed){
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
     hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,
     gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
-    hrAvg,hrMax:heldMax(S.hr.samples,5)||S.hr.max||null,   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
+    hrAvg,hrMax:Math.max(heldMax(S.hr.samples,5)||S.hr.max||0,hrAvg||0)||null,   /* 최고는 평균보다 낮을 수 없다 — 값이 1~2씩 흔들리면 '5초 유지' 값이 평균보다 낮게 나왔다(평균 138 · 최고 137, 2026-11-17 시험) */   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
     hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)), zoneB:zoneBounds(),
