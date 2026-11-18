@@ -475,9 +475,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 
 .rctl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px 6px;flex:none}
 .rrow{display:flex;align-items:center;justify-content:center;gap:18px}
-.pz{width:128px;height:128px;border-radius:50%;flex:none;background:var(--rbtn);border:none;
+.pz{width:148px;height:148px;border-radius:50%;flex:none;background:var(--rbtn);border:none;
   display:flex;align-items:center;justify-content:center;transition:background .4s}
-.pz svg{width:50px;height:50px}
+.pz svg{width:58px;height:58px}
 .pz svg rect{fill:var(--rbtnf)}
 .sidebtn{width:68px;height:68px;border-radius:50%;background:var(--rtile);border:none;
   display:flex;align-items:center;justify-content:center;flex:none;transition:background .4s}
@@ -535,8 +535,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:currentColor;opacity:.28;
   pointer-events:none;transition:width .05s linear}
 .holdbtn b{position:relative;font-weight:700}
-/* 종료 — 양끝이 둥근 크고 긴 버튼(높이 80px, 2026-11-18 사용자가 고른 B안). 전엔 높이 52px쯤의 얇은 막대라 뛰다가 누르기 어려웠다. 2초 길게 누르면 왼쪽부터 차오른다 */
-.stopc{width:100%;height:80px;border-radius:999px;flex:none;border:none;background:var(--alarm);color:#fff;font-family:inherit;font-size:20px;
+/* 종료 — 양끝이 둥근 긴 버튼(높이 62px — 처음 80px는 굵다는 의견으로 줄임. 일시정지는 128→148px로 키움, 2026-11-18 사용자가 고른 B안). 전엔 높이 52px쯤의 얇은 막대라 뛰다가 누르기 어려웠다. 2초 길게 누르면 왼쪽부터 차오른다 */
+.stopc{width:100%;height:62px;border-radius:999px;flex:none;border:none;background:var(--alarm);color:#fff;font-family:inherit;font-size:18px;
   display:flex;align-items:center;justify-content:center;padding:0}
 .stopc[hidden]{display:none}
 .stopc i{background:#fff;opacity:.38}
@@ -2435,7 +2435,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 #run .rmain .say{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #run .rmain .say[hidden]{display:none}
 #run .cell .v{font-size:clamp(16px,2.6vh,20px)}
-@media (max-height:640px){ #run .pz{width:96px;height:96px} #run .stopc{height:64px;font-size:17px} #run .sidebtn{width:56px;height:56px} }
+@media (max-height:640px){ #run .pz{width:108px;height:108px} #run .stopc{height:54px;font-size:16px} #run .sidebtn{width:56px;height:56px} }
 /* 가운데 카드가 낮으면 덜 중요한 것부터 접는다 — 설명 줄 → 단위 줄 여백 → 상태 알약 크기 */
 @container (max-height:300px){ #run .rmain .say{display:none} #run .rmain .pill{margin-top:8px} }
 @container (max-height:200px){ #run .rmain .k{font-size:12px} #run .rmain .u{font-size:13px;margin-top:0} #run .rmain .pill{font-size:15px;padding:5px 16px;margin-top:6px} }
@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.22';
+const APPVER='21.23';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
