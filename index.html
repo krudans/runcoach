@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.29';
+const APPVER='21.30';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3699,7 +3699,7 @@ function makePlan(opts){
       z.setDate(z.getDate()+((ix+6)%7)); return z>=t0; }).length;
     if(left<2){ start.setDate(start.getDate()+7);
       why.push(`${start.getMonth()+1}월 ${start.getDate()}일 월 시작 · 이번 주 제외`); }
-    else why.push('이번 주 · 지난 날 생략');
+    else why.push('이번 주부터 · 지난 요일은 약속에 안 셈');   /* 전엔 '지난 날 생략'이라 적었지만 지난 요일 칸은 일정에 남는다(약속으로 세지 않을 뿐) — 사실대로 */
   }
   /* 대회 전 2주는 거리를 절반으로, 세기는 그대로 — Bosquet 2007 메타분석(A):
      8~14일, 거리 41~60% 줄이기가 가장 효과. 대회 날 이후는 이 덩어리에 넣지 않는다. */
@@ -8310,7 +8310,8 @@ function gGoal(){ const d=GB.d;
   if(d.kind==='race'&&d.raceName&&d.date) return {kind:'race', m:d.m, sec:d.sec, perKm:null, date:d.date, raceName:d.raceName};
   if(d.kind==='start') return {kind:'start', st:{can:d.stCan||0, why:d.stWhy||1, sym:d.stSym||1}, date:null};
   if(d.kind==='aero'){ const a=Object.assign({},d.aero); delete a.src; return {kind:'aero', aero:a, date:d.date||null}; }
-  return {kind:d.kind, m:d.m,
+  /* 거리를 쓰지 않는 목표(건강·체중·다시 시작)는 앞 목표의 거리를 물려받지 않는다 — 풀코스 목표에서 건강 목표로 바꾸면 거리 42.195km가 남아 주간 상한이 풀코스 기준(75km)으로 잡혔다(모의 2026-11-18). 새로 만들 때와 같은 기본값으로 */
+  return {kind:d.kind, m:['race','finish','pace'].includes(d.kind)?d.m:10000,
           sec: d.kind==='pace' ? (d.sec?Math.round(d.sec*(d.m/1000)):null) : d.kind==='finish' ? null : d.sec,
           perKm: d.kind==='pace'?d.sec:null, date:d.date}; }
 
@@ -8361,7 +8362,12 @@ const GSTEP=[
  wire(){
    $('gBody').querySelectorAll('.obgrid[data-g]').forEach(g=>g.onclick=e=>{
      const b=e.target.closest('.obopt'); if(!b)return;
-     gRead(); GB.d[g.dataset.g]=+b.dataset.v; gPaint(); });
+     gRead();
+     /* 대회 기록 목표에서 거리만 바꾸면 목표 기록이 앞 거리의 값 그대로 남았다 — 풀 3:59:00에서 '하프'를 누르면 '하프 3:59:00 · 1km 11'20"'이 그대로 저장됐다(모의 2026-11-18).
+        같은 실력의 기록으로 바꿔 준다(Daniels VDOT 환산 — 앱의 예상 기록과 같은 식). 칸에서 바로 고칠 수 있다 */
+     if(g.dataset.g==='m'&&GB.d.kind==='race'&&GB.d.sec&&GB.d.m&&+b.dataset.v!==GB.d.m){ try{ const nm=+b.dataset.v, v=vdotOf(GB.d.m,GB.d.sec/60), ns=Math.round(raceTime(v,nm)*60/10)*10;
+         if(isFinite(ns)&&ns>0){ GB.d.sec=ns; toast(`목표 기록을 ${gdLabel(nm)} 기준으로 환산 — ${fmtClock(ns)} · 고칠 수 있어요`); } }catch(er){} }
+     GB.d[g.dataset.g]=+b.dataset.v; gPaint(); });
    $('gBody').querySelectorAll('[data-gk]').forEach(b=>b.onclick=()=>{ GB.d.kind=b.dataset.gk; if(GB.d.kind==='finish')GB.d.m=5000; GB.i=1; gPaint(); });   /* 처음 시작에서 '30분 넘게' → 맞는 목표로 바로 */
    dateWire('gDate',v=>{ if(v&&v<=todayStr()){ gHint('목표 날짜는 내일 이후'); return false; } GB.d.date=v; });
    aeroWire();
@@ -10786,7 +10792,9 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
   /* 100점 만점 = 이번 주 계획 전부. 한 날은 실제 부하(뛴 날)와 계획 부하(안 뛴 날) 중 하나로 센다 */
   /* 주 달성률 = 이번 주 계획한 훈련의 점수 합 ÷ (계획 횟수 × 100). 아직 안 온 날·놓친 날은 0 → 주가 갈수록 100%에 다가간다 */
   /* 계획 훈련 + 과정 휴식(회복·준비·근력·대회 주)이 분모. 그냥 쉬는 날(플랜 밖)은 뺀다 */
-  const planned=days.filter(x=>x.s||(x.rk&&x.rk.k!=='plain')), nP=planned.length, got=planned.reduce((a,x)=>a+(x.sc||0),0), doneN=planned.filter(x=>x.s&&x.sc!=null).length, nRun=planned.filter(x=>x.s).length;
+  /* 일정을 만들기 전 날의 칸은 약속이 아니다(dayStatus와 같은 기준 planFrom) — 전엔 분모에 들어가, 수요일에 일정을 만들면 이미 지난 화요일 훈련까지 세어 '훈련 0/4'가 되고 그 주는 다 뛰어도 100%가 안 됐다(모의 2026-11-18) */
+  const _pf=planFrom(), preP=x=>!!(_pf&&x.d<_pf&&!(x.s&&RUNS.some(r=>r.planId===x.s.d)));
+  const planned=days.filter(x=>(x.s||(x.rk&&x.rk.k!=='plain'))&&!preP(x)), nP=planned.length, got=planned.reduce((a,x)=>a+(x.sc||0),0), doneN=planned.filter(x=>x.s&&x.sc!=null).length, nRun=planned.filter(x=>x.s).length;
   const wkPct=nP?Math.round(got/(nP*100)*100):null; if(isCur)WEEK_PCT={pct:wkPct,done:doneN,n:nRun};
   const todaySc=days[dIx]&&days[dIx].sc;
   const cmp=prevL?`부하 ${sumL} · ${isCur?'지난주':'그 전 주'} ${Math.round(prevL)}${diff!=null?` (${isCur?'같은 요일까지 ':''}${diff>0?'+':''}${diff}%)`:''}`:`부하 ${sumL}`;
