@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.26';
+const APPVER='21.27';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6240,7 +6240,7 @@ function renderSummary(completed){
     hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,
     gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
     hrAvg,hrMax:Math.max(heldMax(S.hr.samples,5)||S.hr.max||0,hrAvg||0)||null,   /* 최고는 평균보다 낮을 수 없다 — 값이 1~2씩 흔들리면 '5초 유지' 값이 평균보다 낮게 나왔다(평균 138 · 최고 137, 2026-11-17 시험) */   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
-    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadWhy,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
+    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadWhy,cal,calW:(PROF.w||null),asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)), zoneB:zoneBounds(),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
@@ -14482,7 +14482,7 @@ function loadCard(r,compact){
     <details class="ld-src"><summary>계산 근거</summary><p><b>rTSS</b> = 초 × IF² ÷ 3600 × 100, IF = 역치 ÷ 실제 (Coggan, TrainingPeaks)<br>
       <b>TRIMP</b> = 분 × ΔHR비 × 0.64·e<sup>1.92x</sup> (Banister 1991, 여성 0.86·e<sup>1.67x</sup>), ΔHR비 = (평균 − 안정) ÷ (최대 − 안정).<br>
       <b>존 TRIMP</b> = Σ 존 분 × 존 번호 (Edwards 1993).<br><b>sRPE</b> = RPE × 분 (Foster 2001).<br>
-      <b>단조도</b> = 7일 평균 ÷ 표준편차, <b>긴장</b> = 합 × 단조도 (Foster 1998) · 2.0↑ → 과훈련 위험</p></details></div>`;
+      <b>단조도</b> = 7일 평균 ÷ 표준편차, <b>긴장</b> = 합 × 단조도 (Foster 1998) · 2.0↑ → 과훈련 위험${r.cal?`<br><b>kcal</b> = 1.036 × 체중 × 거리 (어림식)${r.calW!==undefined?` — 이 기록: 1.036 × ${r.calW?r.calW+'kg':'75kg(체중 없음 · 기본값)'} × ${(+r.km).toFixed(2)}km = ${r.cal}`:''}`:''}</p></details></div>`;   /* 열량이 어떤 체중으로 계산됐는지 보이게 — 0.34km에 61kcal이 나온 까닭을 화면만으로는 알 수 없었다(실제 기기 2026-11-18) */
 }
 
 /* ═════════════════════ 뛴 뒤 디브리핑 — 오늘 결과를 그림·숫자로 풀고, 다음 훈련 수정에 동의를 구한다 ═════════════════════ */
