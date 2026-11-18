@@ -2740,7 +2740,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.39';
+const APPVER='21.40';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -15406,7 +15406,7 @@ function goalPageHTML(){ try{
     ${ol?`<div class="gp-opt">${ol}</div>`:''}${wkBars}${mg?`<div class="gp-opt">${mg}</div>`:''}${pmc?`<div class="gp-opt">${pmc}</div>`:''}
   </section>`; }catch(e){ return ''; } }
 async function snapCard(el,name,title){
-  if(!el)return; toast('이미지 만드는 중…');
+  if(!el)return; snapSay('이미지 만드는 중…');
   let W=el.offsetWidth; const H=el.offsetHeight, clone=el.cloneNode(true);
   /* 카카오 지도 타일은 이미지로 옮길 수 없어(다른 출처) 깨진 그림이 찍힌다 — 저장할 땐 직접 그린 경로 그림으로 바꾼다 */
   /* 지도: 큰 지도(.rmap)와 썸네일(data-maprid) 모두 — 저장용 지도 그림(타일+경로)으로 바꾼다. 못 그리면 경로 그림만 */
@@ -15498,6 +15498,7 @@ async function snapCard(el,name,title){
   const cuts=best.cuts;
   const N=cuts.length-1, bg=getComputedStyle(document.body).backgroundColor||'#F4EFF8', stamp=todayStr().replace(/-/g,'.'), files=[];
   const FK='"Noto Sans KR",system-ui,sans-serif', FO='"Outfit","Noto Sans KR",system-ui,sans-serif';
+  let where=''; const stamp0=stampFile();   /* 모든 쪽이 같은 시각 이름 — 저장하는 사이 분이 바뀌어도 한 묶음 */
   for(let i=0;i<N;i++){ const sy=cuts[i], ey=cuts[i+1], hh=ey-sy, cv=document.createElement('canvas');
     /* 한 장짜리 짧은 카드는 9:16을 고집하지 않고 내용 높이에 맞춘다 — 아래가 텅 빈 그림이 됐다 */
     const fit=N===1&&hh<CH, PHi=fit?HEAD+hh+16+FOOT:PH;   /* 한 장짜리 짧은 그림도 바닥 띠까지 */
@@ -15526,25 +15527,30 @@ async function snapCard(el,name,title){
       x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle'; x.font='900 36px '+FO; x.fillText(String(i+1),tx+tw/2+1,ty+38);
       x.fillStyle='rgba(255,255,255,.7)'; x.font='800 16px '+FO; x.fillText('/'+N,tx+tw/2+1,ty+74); }
     x.textAlign='left'; x.textBaseline='alphabetic';
-    const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지 생성 실패'); return; } files.push(bl); }
-  /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다. 여러 쪽이면 차례대로(이름에 쪽 번호) */
-  let where='';
-  for(let i=0;i<files.length;i++){ const fn=`가지런_${String(title||name).replace(/[\s·/\\:]+/g,'')}_${stampFile()}${N>1?`_${i+1}-${N}`:''}.jpg`;
-    try{ where=await DEV.saveBlob(files[i],fn); }catch(e){ toast(DEV.saveErr(e)); return; }   /* 저장이 안 됐으면 '저장됨'이라 하지 않는다 */
-    if(i<files.length-1)await new Promise(r=>setTimeout(r,450)); }
+    const bl=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.92)); if(!bl){ toast('이미지 생성 실패'); return; } files.push(bl);
+    /* 공유창이 아니라 JPG 파일로 내려받는다 — 갤러리/다운로드에 남아야 나중에 쓴다. 이름에 쪽 번호.
+       한 쪽을 그리는 대로 바로 저장하고 '저장 중 2/3'을 끝날 때까지 띄워 둔다 — 전엔 모든 쪽을 다 그린 뒤에야 저장을 시작했고 안내('이미지 만드는 중…')는 3초 뒤 사라져서,
+       다 된 줄 알고 화면을 나가면 한 장만 남았다(실제 기기 2026-11-19) */
+    if(N>1)snapSay(`저장 중 ${i+1}/${N} — 끝날 때까지 기다려 주세요`);
+    const fn=`가지런_${String(title||name).replace(/[\s·/\\:]+/g,'')}_${stamp0}${N>1?`_${i+1}-${N}`:''}.jpg`;
+    try{ where=await DEV.saveBlob(bl,fn); }catch(e){ snapSay(''); toast((i>0?`${i}장만 저장됨 · `:'')+DEV.saveErr(e)); return; }   /* 저장이 안 됐으면 '저장됨'이라 하지 않는다 */
+    if(!window.GAJI_NATIVE&&i<N-1)await new Promise(r=>setTimeout(r,450)); }
+  snapSay('');
   window.__snapPages=files;   /* 검사용 */
   toast((N>1?`JPG ${N}장 저장`:'JPG 저장됨')+' · '+where);
 }
 function snapBtn(sel,name,title,cls){ return `<button type="button" class="snapb ${cls||''}" data-snap="${sel}" data-snapn="${name}" data-snapt="${title}" aria-label="이미지로 저장">${'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'} 이미지</button>`; }
 /* 이미지 저장 — 만드는 중에 오류가 나면 전엔 '이미지 만드는 중…'만 뜨고 아무 일도 없었다(잡는 곳이 없어서). 이제 이유를 화면에 띄우고, 만드는 동안 다시 눌러도 겹쳐 돌지 않는다 */
 let SNAP_BUSY=0;
+/* 저장하는 동안 안내를 계속 띄워 둔다(토스트는 3초면 사라진다) — 빈 값이면 멈춤 */
+function snapSay(m){ clearInterval(snapSay._h); snapSay._m=m; if(!m)return; toast(m); snapSay._h=setInterval(()=>toast(snapSay._m),2500); }
 document.addEventListener('click',async e=>{ const b=e.target.closest('[data-snap]'); if(!b)return; const el=b.closest(b.dataset.snap)||document.querySelector(b.dataset.snap);
   if(!el){ toast('이미지 저장 실패 — 저장할 화면을 찾지 못했어요'); return; }
   if(SNAP_BUSY&&Date.now()-SNAP_BUSY<60000){ toast('이미지 만드는 중이에요 — 잠시만요'); return; }
   SNAP_BUSY=Date.now();
   try{ await snapCard(el,b.dataset.snapn,b.dataset.snapt); }
   catch(err){ console.error('snap',err); window.__snapErr=String(err&&err.message||err); toast('이미지 저장 실패 — '+String(err&&err.message||err).slice(0,70)); }
-  finally{ SNAP_BUSY=0; document.querySelectorAll('body>div[style*="left:-9999px"]').forEach(x=>x.remove()); } });
+  finally{ SNAP_BUSY=0; clearInterval(snapSay._h); document.querySelectorAll('body>div[style*="left:-9999px"]').forEach(x=>x.remove()); } });
 
 /* ═════════════════════ 목표 목록 — 정한 목표는 지워지지 않고 쌓인다 ═════════════════════
    {id, made, goal, start, end, status:'active'|'done'|'ended', v0, vEnd, closedAt} */
