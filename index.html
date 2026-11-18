@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.34';
+const APPVER='21.35';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9919,16 +9919,26 @@ function setMis(ds,k,v){ RESTLOG[ds]=RESTLOG[ds]||{}; RESTLOG[ds].m=Object.assig
 function openWantRun(){
   const t=todayStr(), nx=BLOCK.find(x=>x.d.slice(0,10)>t&&x.type!=='off');
   const wk=BLOCK.filter(x=>weekMonday(x.d)===weekMonday(t)).reduce((a,x)=>a+sKm(x),0);
+  /* 쉬는 날에 뛰는 길이 잘 안 보였다(실제 기기 2026-11-18: '바꾸고 뛰게는 안 되나 · 프리런도 안 됨') — 선택지가 참기·걷기·'리커버리런 20분'뿐이라 프리런이라는 말이 없고,
+     큰 버튼은 'A로 확정'(참기)이며, 다음 훈련을 오늘로 당기는 길이 없었다. ① C를 '가볍게 뛰기 (프리런)'로 ② D '다음 훈련 당겨 뛰기'(같은 주 · 그날은 쉬는 날이 됨) ③ 어제 못 다 한 거리를 알려 줌 */
+  const HARD=['interval','threshold','goalpace','long','tt','repetition'], yd=addDays(t,-1);
+  const yr=RUNS.find(r=>isRun(r)&&ldate(r.date).slice(0,10)===yd&&r.planId&&!r.contOf&&contLeft(r)>=0.5);
+  const pull=(nx&&!nx.race&&weekMonday(nx.d.slice(0,10))===weekMonday(t)&&!RUNS.some(r=>r.planId===nx.d))?nx:null;
+  const ydHard=!!(BLOCK.find(x=>x.d.slice(0,10)===yd&&HARD.includes(x.type))||RUNS.some(r=>isRun(r)&&ldate(r.date).slice(0,10)===yd&&HARD.includes(r.type)));
   openDec({kind:'rest',kicker:`${t.slice(5).replace('-','.')} ${dowOf(t)} · 쉬는 날`,title:'그래도<br>뛰고 싶으세요?',
-    rows:[['내일',nx?ESC(nx.t):'—'],['이번 주 계획',wk.toFixed(0)+'km'],['약속 연속',promiseStreak()+'번']],
-    say:`<b>적응은 쉬는 날에</b>(경험칙) ${nx&&['interval','threshold','goalpace','long','tt'].includes(nx.type)?`내일 <b>${ESC(nx.t)}</b> → 피로 누적`:''}`,
+    rows:[...(yr?[['어제',`${ESC(yr.title||'')} ${(+contTotal(yr)).toFixed(1)} / ${fmtKm1(yr.planKm)}km · 남은 ${fmtKm1(contLeft(yr))}km`]]:[]),[nx&&nx.d.slice(0,10)===addDays(t,1)?'내일':'다음 훈련',nx?ESC(nx.t):'—'],['이번 주 계획',wk.toFixed(0)+'km'],['약속 연속',promiseStreak()+'번']],
+    say:`<b>적응은 쉬는 날에</b>(경험칙) ${nx&&nx.d.slice(0,10)===addDays(t,1)&&HARD.includes(nx.type)?`내일 <b>${ESC(nx.t)}</b> → 피로 누적`:''}<br>뛰려면 <b>C${pull?'·D':''}</b>를 고른 뒤 아래 확정`,
     ev:[['C','초과 회복 = 이론 · 미검증'],['B','수면↓ → 지구력↓(메타 31편)']],
     opts:[{k:'A',t:'참기',rec:true,d:'약속 연속 · \'참은 날\' +1',tags:[['내일 그대로','ok']],
         apply:()=>{ setMis(t,'norun',true); RESTLOG[t].chose='rest'; DEV.store.set('restlog',RESTLOG); return '참음 · 내일 더 잘 뜀'; }},
       {k:'B',t:'걷기로 바꾸기',d:'걷기 · 판정·거리 제외',tags:[['쉬는 날 유지','ok']],
         apply:()=>{ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].chose='walk'; DEV.store.set('restlog',RESTLOG); setTimeout(()=>startAct('walk'),80); return null; }},
-      {k:'C',t:`${tm('recovery')} 20분`,d:'천천히 · 주간 km 포함',tags:[['내일 다리 피로','bad']],
-        apply:()=>{ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].chose='jog'; DEV.store.set('restlog',RESTLOG); setTimeout(()=>{ FREE_MODE=true; openConfirm(-1); },80); return null; }}],
+      {k:'C',t:'가볍게 뛰기 (프리런)',d:`${tm('recovery')} 20분쯤 권장${yr?` · 어제 남은 ${fmtKm1(contLeft(yr))}km만큼도 좋아요`:''} · 주간 km 포함`,tags:[['내일 다리 피로','bad']],
+        apply:()=>{ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].chose='jog'; DEV.store.set('restlog',RESTLOG); setTimeout(()=>{ FREE_MODE=true; openConfirm(-1); },80); return null; }},
+      ...(pull?[{k:'D',t:`${dowOf(pull.d.slice(0,10))}요일 훈련 당겨 뛰기`,d:`${ESC(pull.t)} — 오늘 뛰고 ${dowOf(pull.d.slice(0,10))}요일은 쉬는 날`,tags:[ydHard&&HARD.includes(pull.type)?['어제도 힘든 날 · 이틀 연속','bad']:['주간 거리 그대로','ok']],
+        apply:()=>{ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].chose='pull'; DEV.store.set('restlog',RESTLOG); moveSession(pull.d,t+pull.d.slice(10));
+          setTimeout(()=>{ const i=BLOCK.findIndex(x=>x.d.slice(0,10)===t); FREE_MODE=false; if(i>=0)openConfirm(i); else { renderHome(); go('home'); } },80); return null; }}]:[])],
+    okText:sel=>sel==='A'?'참기로 확정':sel==='B'?'걷기로 시작':sel==='C'?'프리런으로 뛰기':'당겨 뛰기',   /* 전엔 'A로 확정'뿐이라 무엇을 확정하는지 버튼만 봐선 알 수 없었다 */
     back:'home'});
 }
 
