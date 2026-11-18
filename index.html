@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.24';
+const APPVER='21.25';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11319,7 +11319,9 @@ function routeWire(root,r,st,full){
     paintMap(mh,pace?pcd.tr:r.track,r.segments,null,{laps:st.sel!=null?G:null,sel:st.sel,full,onTap:full?null:()=>routeFull(r,st,paint)});
     if(pace) lg.innerHTML=`<span class="pgl">더 느림 ${fmtPace(pcd.hi)}</span><span class="pgr">${PACE_COLS.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="pgl">${fmtPace(pcd.lo)} 더 빠름</span>`;
     else { const has=new Set(r.track.map(p=>ptColor(p,r.segments)));
-      lg.innerHTML=SEG_LEG.filter(([c])=>has.has(c)).map(([c,t])=>`<span><i style="background:${c}"></i>${t}</span>`).join('')+'<span>① km</span>'; }
+      /* 프리런은 구간 종류가 없다 — 전엔 초록 선에 '이지'라고 붙어, 목표 없이 뛴 기록이 이지런처럼 보였다(실제 기기 2026-11-18) */
+      const free=r.type==='free'||(r.act&&r.act!=='run');
+      lg.innerHTML=SEG_LEG.filter(([c])=>has.has(c)).map(([c,t])=>`<span><i style="background:${c}"></i>${free&&t==='이지'?'달린 길':t}</span>`).join('')+'<span>① 1km 지점</span>'; }
     if(!G){ lb.hidden=true; return; }
     const s=st.sel!=null?LS[st.sel]:null, nm=x=>G.laps[x.j][3], unit=g==='km';
     const lab=x=>unit?(x.part?nm(x)+'km':nm(x)+'km'):nm(x);
