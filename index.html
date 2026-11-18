@@ -60,7 +60,7 @@
    (카드 위 글자 4.5:1 · 흰 글자 바탕 4.1:1). 상태색은 어두운 바탕에서 같은 뜻으로 읽히게 밝힌 값 */
 html[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#000000; --panel:#141416; --panel-2:#1F1F24; --line:#2C2C33;
+  --bg:#000000; --panel:#141416; --panel-2:#1F1F24; --line:#62626E;
   --ink:#E6E3EA; --ink-2:#B8B2C0; --ink-3:#A39CAD;
   --accent:#A77BE3; --on:#FFFFFF; --accent-bg:#7446BC; --inv:#3A3A44; --nav-bg:rgba(8,8,10,.94);
   --aub:#1B0F26; --plum:#A77BE3; --sage:#8DB89A; --bone:#F4F0EA;
@@ -896,7 +896,7 @@ details.noti .sigc{margin:6px 0}
 .hero-lanes path{fill:none;stroke:color-mix(in srgb,var(--k1) 22%,transparent);stroke-width:14}
 .hero>*:not(.hero-lanes):not(.hero-mark){position:relative}
 .hero-top{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}.hero-top .hero-chip{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hero-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--k1) 22%,#fff);border-radius:999px;padding:5px 11px}
+.hero-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--k1) 22%,var(--panel));border-radius:999px;padding:5px 11px}
 .hero-chip i{width:9px;height:9px;border-radius:50%;background:var(--k2)}
 .hero-basis{margin-left:auto}.hero-basis>summary{list-style:none;font-size:11px;font-weight:700;color:var(--accent);background:var(--bg);border-radius:999px;padding:5px 10px;cursor:pointer}
 .hero-basis>summary::-webkit-details-marker{display:none}
@@ -942,7 +942,7 @@ details.noti .sigc{margin:6px 0}
 .qr-row{display:flex;gap:6px;margin-top:8px}
 .qr-a{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;color:var(--accent);font:inherit;cursor:pointer;padding:4px 0;border-radius:14px}
 .qr-a b{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--bg)}
-.qr-a:active b{background:color-mix(in srgb,var(--accent) 16%,#fff)}.qr-a svg{width:28px;height:28px}.qr-a i{font-style:normal;font-size:13px;font-weight:700;color:var(--ink-2)}
+.qr-a:active b{background:color-mix(in srgb,var(--accent) 16%,var(--panel))}.qr-a svg{width:28px;height:28px}.qr-a i{font-style:normal;font-size:13px;font-weight:700;color:var(--ink-2)}
 .hlink{display:block;margin:14px auto 0;background:none;border:none;font:inherit;font-size:12px;font-weight:700;color:var(--ink-3);text-decoration:underline;padding:8px}
 .hsec{margin:20px 20px 0;font-size:13px;font-weight:700;color:var(--ink-2)}
 .hc.goal .hh .r{color:#D8CCF7}.hc.goal .hi{background:rgba(255,255,255,.15);color:#FFD27A}
@@ -1292,9 +1292,9 @@ body.mf-on{overflow:hidden}
 .tcard.lite{background:var(--panel);color:var(--ink);box-shadow:none}
 .tcard.lite .sym{opacity:.14}
 .tcard.lite .sym [stroke]{stroke:var(--k2)}.tcard.lite .sym [fill="#fff"]{fill:var(--k2)}
-.tcard.lite .tchip{background:color-mix(in srgb,var(--k1) 32%,#fff);color:var(--ink)}
+.tcard.lite .tchip{background:color-mix(in srgb,var(--k1) 32%,var(--panel));color:var(--ink)}
 .tcard.lite .tds{color:var(--ink-2);opacity:1}
-.tcard.lite .tshape{background:color-mix(in srgb,var(--k1) 13%,#fff)}
+.tcard.lite .tshape{background:color-mix(in srgb,var(--k1) 13%,var(--panel))}
 .tcard.lite .tshape rect{fill:var(--k1);opacity:.45}.tcard.lite .tshape rect[opacity="0.95"]{fill:var(--k2);opacity:1}
 .tcard.lite .tsl{color:var(--ink)}
 .tcard.lite .tpills i{background:var(--bg);color:var(--ink)}
@@ -1371,7 +1371,7 @@ html[data-theme="dark"] .odo-d i.z{opacity:.5}
 html[data-theme="dark"] .hero{background:linear-gradient(160deg,#211730 0%,#17101F 100%)}
 html[data-theme="dark"] .he .hero-basis>summary{background:rgba(255,255,255,.08)}
 html[data-theme="dark"] .hero-stats span{background:rgba(255,255,255,.06)}
-html[data-theme="dark"] .he .hero-links{border-top-color:rgba(255,255,255,.12)}
+html[data-theme="dark"] .he .hero-links{border-top-color:rgba(255,255,255,.3)}
 html[data-theme="dark"] .tc>svg{filter:invert(1) hue-rotate(180deg)}   /* 설명 그림 — 밝은 파스텔 바탕 그림을 밝기만 뒤집는다(색상은 그대로) */
 /* 달리는 화면 — 평소엔 검은 바탕, 경고(빠름·심박·느림)는 화면 전체 색을 유지하되 밤에 눈부시지 않게 어두운 색조로 */
 html[data-theme="dark"] #run[data-state="ok"],html[data-theme="dark"] #run[data-state="soon"]{
@@ -1391,6 +1391,19 @@ html[data-theme="dark"] .cd.r{background:repeating-linear-gradient(135deg,#231A3
 html[data-theme="dark"] .mc-zb em,html[data-theme="dark"] .gw-z{color:#0B0B0D}   /* 존 색 칩 — 밝힌 존 색 위에는 검은 글자가 더 잘 보인다 */
 html[data-theme="dark"] .ichip{color:#1B0F26}
 html[data-theme="dark"] .happ{box-shadow:0 0 0 1px #3A2A4D}
+/* 색 이름 없이 밝은 바탕이 직접 적혀 있던 곳 — 출발 카운트다운이 블랙에서도 흰 화면이었다(실제 기기 2026-11-19) */
+html[data-theme="dark"] #count{background:rgba(0,0,0,.97)}
+html[data-theme="dark"] .c-off{background:var(--panel-2)}
+html[data-theme="dark"] .tgrow .gr,html[data-theme="dark"] .mrow .gr,html[data-theme="dark"] .gnote .gr{background:rgba(255,255,255,.12)}
+html[data-theme="dark"] .light{background:linear-gradient(135deg,#0F2A20,#123327)}
+html[data-theme="dark"] .light.warn{background:linear-gradient(135deg,#2E2208,#3A2A0A)}
+html[data-theme="dark"] .gqnote.bad,html[data-theme="dark"] .hidnote{background:var(--bad-bg);color:var(--bad-ink)}
+html[data-theme="dark"] .alertc .why{background:rgba(0,0,0,.4)}
+html[data-theme="dark"] .gw-tag.on,html[data-theme="dark"] .gwatch.lite .gw-tag.on,html[data-theme="dark"] .mdock.on .md-art,html[data-theme="dark"] .gt-me{color:#1B0F26}
+html[data-theme="dark"] .tsv .tsv-am{color:#2A1638}
+html[data-theme="dark"] .bnext u{background:#3A2E14}
+/* 선은 카드 바탕과 3:1(#62626E)로 — 처음 값 #2C2C33은 1.3:1이라 카드 테두리·줄 사이 선이 거의 안 보였다(실제 기기 2026-11-19). 선 색을 '글자가 놓이는 바탕'으로 쓰는 칸은 어둡게 둔다 */
+html[data-theme="dark"] .rm-seg:not(.pass):not(.fail):not(.done):not(.hard),html[data-theme="dark"] .rm-km:not(.pass):not(.fail),html[data-theme="dark"] .gwatch.lite .gw-tag:not(.on),html[data-theme="dark"] .gwatch.lite .gw-seg,html[data-theme="dark"] .mt-tabs{background:#2C2C33}
 /* [자동] 어두운 글자색 → 블랙 화면용 밝은 색 */
 html[data-theme="dark"]{--k0E7A52:#48EAAE;--k6B5BB0:#958AC7;--k7A55B8:#9F85CC;--k8A6400:#F0C042;--k8C1D18:#E6706B;--kB3261E:#E6716A}
 html[data-theme="dark"] [style*="color:#000000" i]:not([style*="-color:#000000" i]):not(.tc>svg *):not(.st-mv>svg *):not(.rmap *):not(.noflip *){color:#E6E3EA!important}
@@ -2341,7 +2354,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .ps-note{font-size:11px;color:var(--ink-3);margin-top:6px}
 .ps-t{width:100%;border-collapse:separate;border-spacing:2px;table-layout:fixed}.ps-t th{font-size:11px;color:var(--ink-3);font-weight:700}
 .ps-t tbody th{text-align:left;padding:2px 2px 2px 0;width:44px;vertical-align:top}.ps-t tbody th b{display:block;font-size:11px;color:var(--ink)}.ps-t tbody th span{display:block;font-size:8.5px}.ps-t tbody th em{display:inline-block;font-style:normal;font-size:8px;background:var(--panel-2);color:var(--accent);border-radius:4px;padding:0 3px;margin-top:1px}
-.ps-t td{background:color-mix(in srgb,var(--tc) 13%,#fff);border-left:3px solid var(--tc);border-radius:6px;padding:3px 3px 4px;vertical-align:top;height:44px}
+.ps-t td{background:color-mix(in srgb,var(--tc) 13%,var(--panel));border-left:3px solid var(--tc);border-radius:6px;padding:3px 3px 4px;vertical-align:top;height:44px}
 .ps-t td.r{background:var(--panel-2);border-left:0}.ps-t td.race{background:var(--bad-bg);border-left:3px solid #C2410C;color:var(--bad-ink);text-align:center}
 .ps-t td b{display:block;font-size:11px;font-weight:700;line-height:1.2}.ps-t td span{display:block;font-size:11px;font-weight:700;color:var(--ink)}.ps-t td em{display:block;font-style:normal;font-size:8px;color:var(--ink-3);line-height:1.2}
 .ps-leg{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--ink-3);margin-top:6px}.ps-leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px}
@@ -2740,7 +2753,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.40';
+const APPVER='21.41';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6675,21 +6688,28 @@ document.addEventListener('visibilitychange',()=>{ try{
   DEV.speak(`${hidFmt(sec)} 동안 위치를 못 받았어요. 그 구간은 거리가 짧게 기록됩니다. ${nat?'휴대폰 설정에서 가지런의 위치 권한과 배터리 사용 제한을 확인하세요.':'화면을 켜 두세요.'}`,true,true);
 }catch(e){} });
 window.addEventListener('pagehide',liveSave);
-/* 앱을 다시 열었을 때 — 끝내지 못한 기록이 있으면 묻는다 */
+/* 앱을 다시 열었을 때 — 끝내지 못한 기록이 있으면 '저장'이 기본이다.
+   전엔 '저장 안 된 기록이 있어요 — 이어서 기록 / 버리기'를 물었다: 다 뛰고 종료를 누르지 않은 채 앱을 닫으면 기록이 남지 않고, 다시 열어 이어서 → 종료까지 눌러야 했다(실제 기기 2026-11-19).
+   · 끝낸 뒤 닫힌 것 → 묻지 않고 저장하고 결과 화면
+   · 달리던 중 닫힌 지 10분 넘음 → 묻지 않고 마지막 위치까지 저장하고 결과 화면
+   · 닫힌 지 10분 안(달리다 앱이 꺼진 경우) → '이어서 기록 / 여기까지 저장' — 창을 그냥 닫아도 저장
+   버리려면 결과 화면의 '저장 없이 닫기'(한 번 묻는다) */
+const LIVE_AUTO_MIN=10;
+function liveSaveNow(o,ix){ const sp=DEV.speak, bz=DEV.buzz; DEV.speak=()=>{}; DEV.buzz=()=>{};
+  try{ liveResume(o,ix); if(S.running)finish(false); }finally{ DEV.speak=sp; DEV.buzz=bz; }
+  if(S.result&&S.result._saved)setTimeout(()=>toast('닫혀 있던 기록 저장됨 · 마지막 위치까지'),600); }
 async function liveCheck(){
   const L=liveGet(); if(!L||S.running)return;
   let o; try{ o=JSON.parse(L.s); }catch(e){ liveClear(); return; }
   const km=(o.dist||0)/1000, el=o.elapsed||0;
   if(km<0.05&&el<60){ liveClear(); return; }
+  if(o._fin){ liveResume(o,L.ix); return; }
+  if((Date.now()-(L.at||0))/60000>=LIVE_AUTO_MIN){ liveSaveNow(o,L.ix); return; }
   const when=new Date(o.t0||L.at), hm=`${when.getMonth()+1}.${when.getDate()} ${String(when.getHours()).padStart(2,'0')}:${String(when.getMinutes()).padStart(2,'0')}`;
-  const ok=await askSheet({title:'저장 안 된 기록이 있어요',
-    html:`<b>${ESC((o.session&&o.session.t)||'달리기')}</b> · ${hm} 시작<br><span class="num">${km.toFixed(2)}km · ${fmtClock(Math.round(el))}</span><br><span class="meta">${o._fin?'끝난 뒤 저장 전에 앱이 닫혔어요. 결과 화면으로 돌아가 저장할 수 있어요.':'앱이 닫히기 직전까지 저장됐어요. 일시정지 상태로 이어서 뛰거나 바로 종료해 저장할 수 있어요.'}</span>`,
-    yes:o._fin?'결과 화면 열기':'이어서 기록',no:'버리기'});
-  if(!ok){
-    const sure=await askSheet({title:'정말 버릴까요?',danger:true,text:`${km.toFixed(2)}km 기록이 지워지고 되돌릴 수 없어요.`,yes:'버리기',no:'취소'});
-    if(sure){ liveClear(); return; }
-    return liveCheck();
-  }
+  const ok=await askSheet({title:'달리던 기록이 있어요',
+    html:`<b>${ESC((o.session&&o.session.t)||'달리기')}</b> · ${hm} 시작<br><span class="num">${km.toFixed(2)}km · ${fmtClock(Math.round(el))}</span><br><span class="meta">앱이 닫히기 직전까지 기록됐어요. 이어서 뛰거나 여기까지 저장해요.</span>`,
+    yes:'이어서 기록',no:'여기까지 저장'});
+  if(!ok){ liveSaveNow(o,L.ix); return; }
   liveResume(o,L.ix);
 }
 function liveResume(o,ix){
