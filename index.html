@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.36';
+const APPVER='21.37';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5815,18 +5815,22 @@ function onTick(){
         verdictTxt=`♥${lapHR} 초과`; }
       else { msg+=`평균 심박은 ${vRo(lapHR)} 목표 안입니다. 이대로 유지하세요. `; verdictTxt=`♥${lapHR} 양호`; }
     } else if(lgPace&&isFinite(lapPace)){
+      /* 방금 끝난 구간을 판정한 말('이대로 유지하세요'·'속도를 올리세요')은 새 구간에 들어선 뒤에는 하지 않는다 — 전엔 회차가 끝나 '이제 레스트 500미터입니다'라고 한 바로 뒤에
+         1km 안내가 '목표 속도대로입니다. 이대로 유지하세요.'라고 했다(직접 세운 계획 인터벌 모의 2026-11-19). 화면의 1km 줄 표시는 그대로 남긴다 */
+      let vmsg='';
       /* 화면의 '구간 내'와 같은 기준 — 목표 범위 ±2초 안이면 목표대로. 가운데 값과 비교하면 범위 안인데도 '느립니다'가 나간다 */
       const mg=typeof lg.tol==='number'?lg.tol:2, d=lapPace<lgPace[0]-mg?Math.round(lapPace-lgPace[0]):lapPace>lgPace[1]+mg?Math.round(lapPace-lgPace[1]):0;   /* 허용 폭 = 결과 판정과 같은 값 */
       if(s.ceiling&&!lg.hard&&lapPace<s.ceiling-5){
-        msg+=`상한인 1킬로미터 ${fmtPaceVoice(s.ceiling)}보다 빠릅니다. 속도를 늦추세요. `; verdictTxt='상한 초과';
-      } else if(d===0){ msg+='목표 속도대로입니다. 이대로 유지하세요. '; verdictTxt='목표대로'; }
-      else if(d<0){ msg+=`목표보다 ${-d}초 빠릅니다. 속도를 늦추세요. `; verdictTxt=`${-d}초 빠름`; }
-      else if(lg.tol==='ceil'||lg.tol==null){ msg+='목표보다 느리지만 괜찮습니다. 이대로 가세요. '; verdictTxt='목표대로'; }
-      else if(T.primary==='hr'&&lapHR&&HZ&&HZ[1]&&lapHR<=HZ[1]&&!lg.hard&&!S.hrLocked){ msg+=`목표보다 ${d}초 느리지만, 심박은 ${vRo(lapHR)} 정상입니다. 이대로 가세요. `; verdictTxt='심박 기준 안'; }
-      else if(T.primary==='hr'&&!lg.hard){ msg+='목표보다 느리지만 괜찮습니다. 이대로 가세요. '; verdictTxt='목표대로'; }   /* 쉬운 날은 상한만 본다 — 심박이 없거나 못 믿어도 빨리 뛰라고 하지 않는다 */
-      else if(T.primary==='dist'&&!lg.hard){ msg+='목표보다 느리지만 괜찮습니다. 이대로 가세요. '; verdictTxt='목표대로'; }   /* LSD — 약속은 완주, 느려도 된다 */   /* 심박을 못 믿는 쉬운 날 — 진짜 심박이 높을 수 있으니 빨리 뛰라고 하지 않는다 */
-      else { msg+=`목표보다 ${d}초 느립니다. 속도를 올리세요. `; verdictTxt=`${d}초 느림`; }
-      if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly&&!S.hrLocked)msg+=`심박은 ${vRo(lapHR)} 상한 ${HZ[1]}보다 높습니다. `;
+        vmsg+=`상한인 1킬로미터 ${fmtPaceVoice(s.ceiling)}보다 빠릅니다. 속도를 늦추세요. `; verdictTxt='상한 초과';
+      } else if(d===0){ vmsg+='목표 속도대로입니다. 이대로 유지하세요. '; verdictTxt='목표대로'; }
+      else if(d<0){ vmsg+=`목표보다 ${-d}초 빠릅니다. 속도를 늦추세요. `; verdictTxt=`${-d}초 빠름`; }
+      else if(lg.tol==='ceil'||lg.tol==null){ vmsg+='목표보다 느리지만 괜찮습니다. 이대로 가세요. '; verdictTxt='목표대로'; }
+      else if(T.primary==='hr'&&lapHR&&HZ&&HZ[1]&&lapHR<=HZ[1]&&!lg.hard&&!S.hrLocked){ vmsg+=`목표보다 ${d}초 느리지만, 심박은 ${vRo(lapHR)} 정상입니다. 이대로 가세요. `; verdictTxt='심박 기준 안'; }
+      else if(T.primary==='hr'&&!lg.hard){ vmsg+='목표보다 느리지만 괜찮습니다. 이대로 가세요. '; verdictTxt='목표대로'; }   /* 쉬운 날은 상한만 본다 — 심박이 없거나 못 믿어도 빨리 뛰라고 하지 않는다 */
+      else if(T.primary==='dist'&&!lg.hard){ vmsg+='목표보다 느리지만 괜찮습니다. 이대로 가세요. '; verdictTxt='목표대로'; }   /* LSD — 약속은 완주, 느려도 된다 */   /* 심박을 못 믿는 쉬운 날 — 진짜 심박이 높을 수 있으니 빨리 뛰라고 하지 않는다 */
+      else { vmsg+=`목표보다 ${d}초 느립니다. 속도를 올리세요. `; verdictTxt=`${d}초 느림`; }
+      if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly&&!S.hrLocked)vmsg+=`심박은 ${vRo(lapHR)} 상한 ${HZ[1]}보다 높습니다. `;
+      if(S.segIx===ls)msg+=vmsg;
     } else if(lapHR&&!S.hrLocked){ msg+=`평균 심박은 ${lapHR}입니다. `; }   /* 걸음을 읽는 심박은 숫자로도 말하지 않는다 */
     /* 1km 안내는 사용자가 무조건 듣기로 한 것 — 조용히·간격 제한에 걸리지 않게 critical로 낸다 */
     if(!(S.act&&S.act!=='run')){ DEV.speak(msg,false,true); DEV.buzz(BZ.tick); }   /* 앞말을 끊지 않고 뒤에 이어서 — 걷기·등산·자전거는 actTick이 따로 짧게 말한다 */
@@ -5838,12 +5842,17 @@ function checkOff(dir){
   const g=S.session&&S.session.segs[S.segIx];
   /* 구간 시작 35초는 속도로 판정하지 않는다 — 페이스에 앞 구간이 섞여 있고, 사람은 출발에 집중한다 */
   if(g&&!segSettled())return;
+  /* 같은 쪽으로 계속 벗어나 있으면 되풀이 간격을 늘린다 — 전엔 회차 안에서 20초마다 같은 말이라, 템포런 2km(11분)를 조금 느리게 뛰면 '목표보다 느립니다. 속도를 올리세요.'가
+     30번쯤 나왔다(직접 세운 계획 템포런 모의 2026-11-19). 20초 → 40초 → 60초(그 뒤로 60초). 방향이 바뀌거나, 구간이 바뀌거나, 15초 넘게 범위 안이었으면 처음부터 */
+  const nowO=Date.now();
+  if(dir!==S.lastOffDir||S.offSeg!==S.segIx||nowO-(S.lastOffAt||0)>15000){ S.offRep=0; S.offSeg=S.segIx; }
+  S.lastOffAt=nowO;
   if(dir!==S.lastOffDir){S.offCount=0;S.lastOffDir=dir;}
   if(++S.offCount<2)return;
-  /* 같은 말 반복은 소음이다 — 회차 안은 15초, 천천히 구간은 45초에 한 번 */
-  if(Date.now()-S.lastCue<(g&&g.hard?20000:120000))return;
-  if(!(g&&g.hard)&&Date.now()-(S.lastAnyCue||0)<30000)return;
-  S.lastCue=Date.now(); S.lastAnyCue=Date.now(); S.offCount=0;
+  /* 같은 말 반복은 소음이다 — 회차 안은 20초부터, 천천히 구간은 2분에 한 번 */
+  if(nowO-S.lastCue<(g&&g.hard?Math.min(60000,20000*(1+(S.offRep||0))):120000))return;
+  if(!(g&&g.hard)&&nowO-(S.lastAnyCue||0)<30000)return;
+  S.lastCue=nowO; S.lastAnyCue=nowO; S.offCount=0; S.offRep=(S.offRep||0)+1;
   DEV.speak(dir<0?'목표보다 빠릅니다. 속도를 늦추세요.':'목표보다 느립니다. 속도를 올리세요.');
 }
 function advanceSeg(){
