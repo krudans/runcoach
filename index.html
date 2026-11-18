@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.31';
+const APPVER='21.32';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3843,7 +3843,7 @@ function makePlan(opts){
         const pfH=(DP.hard||[]).map(x=>DOWIX[x]), pfN=set=>set.filter(d=>pfH.includes(d.getDay())).length;   /* 정해 둔 빠른 날 요일을 먼저 — 이틀 간격 규칙은 그대로 지킨다 */
         if(good.length){ good.sort((a,b)=>pfN(b)-pfN(a)||spread(b)-spread(a)||(k===1?Math.abs(a[0]-pool[Math.floor((pool.length-1)/2)])-Math.abs(b[0]-pool[Math.floor((pool.length-1)/2)]):0)); hardD.push(...good[0]); }
       }
-      if(hardD.length<hardNx&&!hardCut){ hardCut=true; why.push(`빠른 날 이틀 간격(주 ${hardD.length}회) · 연속 금지`); }
+      if(hardD.length<hardNx&&!hardCut){ hardCut=true; why.push(testD&&!hardD.length?'TT가 있는 주 → 빠른 날 따로 없음 (TT가 전력 달리기 · 간격 유지)':`빠른 날 이틀 간격(주 ${hardD.length}회) · 연속 금지`); }   /* 전엔 TT 주에도 '빠른 날 이틀 간격(주 0회)'라 적어, 바로 위 '빠른 날 주 1번'과 어긋나 보였다 */
       if(hardD.length)prevHard=Math.max(...hardD);
     }
     if(testD&&!(prevHard&&prevHard>testD))prevHard=testD;
@@ -4013,6 +4013,10 @@ function makePlan(opts){
       else if(+(s.repLen-0.5).toFixed(2)>=minLen){ if(s.reps*(s.repLen-0.5)<floorQ-0.01)break; shrinkReps(s,s.reps,+(s.repLen-0.5).toFixed(2)); }
       else break;
     }
+    /* 템포런: 횟수만 줄여서는 못 맞출 때 길이×횟수를 다시 고른다 — 전엔 1.5km×3(4.5km)이 상한 4.35km를 0.15km 넘으면, 2회로 줄이면 20분 바닥(3.6km) 아래라 줄이지 못하고
+       그날을 통째로 쉬운 날로 바꿨다('주간 거리 부족 → 빠른 날 제외'). 2km×2(4km)면 바닥과 상한 사이에 들어간다(모의 2026-11-18 · 풀코스 3:59 주 44km의 2주차) */
+    if(s.type==='threshold'&&s.qvol>capKm+0.01){ let bL=0,bN=0; for(const L of [3,2,1.5,1]) for(let N=2;N<=6;N++){ const v=N*L; if(L<minLen||v>capKm+0.01||v<floorQ-0.01||v>=s.qvol)continue; if(v>bL*bN+0.01){ bL=L; bN=N; } }
+      if(bN) shrinkReps(s,bN,bL); }
     if(s.qvol>capKm+0.01&&s.qvol>floorQ*1.25){            /* 그래도 넘치면 빠르게 뛰는 날 자체를 뺀다 — 단 바닥 근처(바닥의 125% 이내)면 그대로 둔다 (A-5) */
       const k2=s.dist; qDropped=true;
       out[i]=Object.assign({d:s.d,wk:s.wk,t:`천천히 ${k2}km`},easy(k2),s.role?{role:s.role}:{});
