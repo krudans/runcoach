@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.28';
+const APPVER='21.29';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6855,7 +6855,10 @@ async function selfTest(){
     /* ── 3. 프로필 연결 ── */
     put('<div class="sthd">프로필 → 존 → 블록</div>');
     await wait();
-    const keepP=JSON.parse(JSON.stringify(PROF));
+    const keepP=JSON.parse(JSON.stringify(PROF)), origV=VDOT;
+    /* 이 묶음은 '기록이 빨라지면 실력 점수·존·일정 속도가 따라 바뀌는가'를 정해진 기록 둘(10km 45:46 → 38:30)로 본다. 전엔 앞쪽이 '지금 내 실력 점수'여서,
+       이미 38:30보다 빠른 사람은 점수가 덜 오르거나 오히려 내려가 실패로 나왔고(모의 2026-11-18), 화면의 '10km 45:46 → …'도 사실과 달랐다 */
+    PROF.race={m:10000,sec:45*60+46,kind:'race'}; recalcProfile(); recalcTypes();
     /* 전엔 '지금 내 일정'의 인터벌 속도와 '새로 만든 예시 일정'의 인터벌 속도를 비교했다 — 내 일정에 인터벌이 없으면 0과 비교해 늘 실패로 나왔다(실제 기기 2026-11-18).
        이제 앞뒤 모두 같은 방식(예시 일정)으로 만들어 비교하고, 인터벌이 없으면 실패가 아니라 '해당 없음' */
     const before={v:VDOT, I:Math.round(Z.I), z1:ZONES[0][1],
@@ -6871,7 +6874,7 @@ async function selfTest(){
     add((before.rep&&after.rep)?after.rep<before.rep-20:null,'블록 목표 연동',
       (before.rep&&after.rep)?`인터벌 ${fmtPace(before.rep)} → ${fmtPace(after.rep)}`:'예시 일정에 인터벌 없음 — 비교 안 함',
       (before.rep&&after.rep)?`${before.rep-after.rep}초`:'—');
-    add(Math.abs(VDOT-before.v)<0.01,'원래대로 복귀',
+    add(Math.abs(VDOT-origV)<0.01,'원래대로 복귀',
       `VDOT ${VDOT.toFixed(1)} · Z1 ≤${ZONES[0][1]}`,'복구됨');
 
     /* ── 4. 문헌 상한 ── */
@@ -6903,8 +6906,9 @@ async function selfTest(){
       /* 상한 분모는 '계획'과 '최근 실제 주간 거리' 중 작은 쪽이다. 예전 시험은 기록이 없다고 치고 20km 이하만 통과시켜,
          실제로 주 30km를 뛰는 사람에게는 맞는 값(30.8)인데도 실패로 나왔다 → 실제 주간 거리(없으면 설문 20km)를 넘지 않는지로 본다 */
       const actWk=recentWeekKm();
-      add(base<=Math.max(20,actWk)+0.001&&(!(plan>0)||base<=plan+0.001),'질 구간 상한 분모',
-          `계획 ${plan.toFixed(1)}km 대신 실제 ${base.toFixed(1)}km 기준`,
+      /* 최근 4주 기록이 없으면 분모는 계획 그대로다(baseWeekKm). 전엔 그때도 '20km 이하'를 요구해, 기록이 없고 이번 주 계획이 20km를 넘는 사람은 늘 실패로 나왔다(모의 2026-11-18) → 계획을 넘지 않는지, 기록이 있으면 실제 주간 거리도 넘지 않는지로 본다 */
+      add((!(plan>0)||base<=plan+0.001)&&(!(actWk>0)||base<=actWk+0.001),'질 구간 상한 분모',
+          actWk>0?`계획 ${plan.toFixed(1)}km · 실제 ${actWk.toFixed(1)}km 중 작은 쪽 ${base.toFixed(1)}km`:`최근 4주 기록 없음 → 계획 ${base.toFixed(1)}km 기준`,
           `${base.toFixed(1)}km`);
       /* 프로필 반영 */
       const hm=estHrMax(50);
@@ -6974,8 +6978,8 @@ async function selfTest(){
     put('<div class="sthd">일정 규칙</div>');
     /* 이 검사는 '주 38km·5일 풀코스'라는 정해진 상황에서 규칙이 지켜지는지 본다. 전엔 내 설정(하루에 쓸 수 있는 시간·요일 정하기)과 내 기록·일정을 그대로 읽어,
        시간을 짧게 잡은 사람은 쉬운 날이 3.5km로 줄어 '부족'으로 나왔다(실제 기기 2026-11-18) — 규칙 위반이 아니라 시험 조건이 사람마다 달랐던 것. 검사하는 동안만 정해진 값으로 바꿨다가 되돌린다 */
-    const _iso={S:SURVEY,P:PLAN,R:RUNS}; let _isoOn=true; const isoBack=()=>{ if(_isoOn){ _isoOn=false; SURVEY=_iso.S; PLAN=_iso.P; RUNS=_iso.R; } };
-    SURVEY={twd:90,twe:240}; PLAN=null; RUNS=[];
+    const _iso={S:SURVEY,P:PLAN,R:RUNS,F:JSON.parse(JSON.stringify(PROF))}; let _isoOn=true; const isoBack=()=>{ if(_isoOn){ _isoOn=false; SURVEY=_iso.S; PLAN=_iso.P; RUNS=_iso.R; PROF=_iso.F; recalcProfile(); recalcTypes(); } };
+    SURVEY={twd:90,twe:240}; PLAN=null; RUNS=[]; PROF.race={m:10000,sec:45*60+46,kind:'race'}; recalcProfile(); recalcTypes();   /* 속도도 정해진 기록(10km 45:46)으로 — 아주 빠른 사람은 같은 주 38km에 인터벌이 안 들어가 '해당 없음'이 됐다 */
     try{ const G0={kind:'race',m:42195,sec:14340,final:14340,date:addDays(todayStr(),140),path:'A'};
       const pl=makePlan({goal:G0,start:weekMonday(addDays(todayStr(),7)),baseOverride:38,days:['월','화','목','토','일'],noTest:true}), SS=pl.sessions||pl;
       const wk=n=>SS.filter(x=>x.wk===n), sum=n=>wk(n).reduce((a,x)=>a+(x.dist||0),0), role=n=>(wk(n).find(x=>x.role)||{}).role||'';
