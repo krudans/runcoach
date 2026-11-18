@@ -2755,7 +2755,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.44';
+const APPVER='21.45';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2833,8 +2833,9 @@ const DEV = {
           /* 값이 실제로 달라졌을 때만 '바꿨다'고 알린다(__rcTouch) — 같은 값을 다시 쓰는 것은 바꾼 것이 아니다.
              예전엔 쓸 때마다 알려서, 동기화가 끝날 때마다 다시 쓰는 '지운 기록 목록'(값은 그대로)이 '바뀜'으로 찍혔고,
              v20.68에서 넣은 '바꾸면 1.5초 뒤 올리기'와 맞물려 앱을 켜 둔 동안 1.5초마다 동기화가 끝없이 돌았다(2026-11-15 시험에서 발견) */
-          set(k,v){ let s, old=null; try{ s=JSON.stringify(v); old=localStorage.getItem('rc_'+k); localStorage.setItem('rc_'+k,s); }catch(e){ return false; }
-            try{ if(s!==old&&window.__rcTouch)window.__rcTouch(k,old,s); }catch(e){} return true; } },
+          /* '바뀜' 알림을 쓰는 항목(__rcKeys = 동기화하는 설정)만 옛 값을 읽어 견준다 — 기록 전체(runs, 수 MB)는 쓸 때마다 옛 값을 통째로 읽어 견주고 있었다(쓰는 시간의 절반) */
+          set(k,v){ let s, old=null; const need=!!window.__rcTouch&&(!window.__rcKeys||window.__rcKeys.has(k)); try{ s=JSON.stringify(v); if(need)old=localStorage.getItem('rc_'+k); localStorage.setItem('rc_'+k,s); }catch(e){ return false; }
+            try{ if(need&&s!==old)window.__rcTouch(k,old,s); }catch(e){} return true; } },
   async hr(onBpm, known){
     if(!navigator.bluetooth) throw new Error(window.GAJI_NATIVE?'블루투스 준비 안 됨 → 앱을 완전히 닫고 다시 열기':'블루투스 미지원 → 크롬');
     // 중요 — 어메이핏 GTR 2e 등 상당수 워치는 표준 심박 서비스(0x180D)를
@@ -6617,10 +6618,15 @@ function commitRun(){
 }
 /* 결과 화면에서 고친 값 — 저장된 기록에 바로 */
 let SUMUPT=null;
+/* 고른 값은 바로 기록에 넣고(sumFields), 폰에 쓰기·올리기는 2.5초 쉬었을 때 한 번 — 전엔 0.7초마다여서 메모를 치거나 연달아 고르는 동안 기록 전체를 쓰고 올리느라 화면이 멈칫했다.
+   결과 화면을 떠나거나 앱이 가려지면 기다리지 않고 바로 쓴다(sumFlush) */
+function sumFlush(){ if(!SUMUPT)return; clearTimeout(SUMUPT); SUMUPT=null; try{ if(!S.result||!S.result._saved)return; if(S.result.act&&S.result.act!=='run')DEV.store.set('acts',ACTS); else DEV.store.set('runs',RUNS); if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); }catch(e){} }
 function sumUpdate(){ if(!S.result||!S.result._saved)return; sumFields();
-  clearTimeout(SUMUPT); SUMUPT=setTimeout(()=>{ try{ if(S.result.act&&S.result.act!=='run')DEV.store.set('acts',ACTS); else DEV.store.set('runs',RUNS); if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{}); }catch(e){} },700); }
+  clearTimeout(SUMUPT); SUMUPT=setTimeout(sumFlush,2500); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden)sumFlush(); }); window.addEventListener('pagehide',sumFlush);
 /* 결과 화면을 '확인' 없이 떠날 때 — 새 기준은 알림으로 */
-function sumLeave(){ if(S.result&&!S.result._saved&&!S.running){ liveClear(); S._fin=null; }   /* 1분·50m 미만이라 저장하지 않은 것 — 다시 열 때 되살아나지 않게 */
+function sumLeave(){ try{ sumFlush(); }catch(e){}
+  if(S.result&&!S.result._saved&&!S.running){ liveClear(); S._fin=null; }   /* 1분·50m 미만이라 저장하지 않은 것 — 다시 열 때 되살아나지 않게 */
   const P=S._post; if(!P||P.done)return; P.done=true;
   try{ const c=P.bc||(P.race&&P.race.c); if(c)DEV.store.set('basisPend',c); }catch(e){} }
 function sumButtons(){ const sv=!!(S.result&&S.result._saved), b=$('btnSave'), d=$('btnDone');
@@ -7653,6 +7659,7 @@ const FB={
     { const st2=FB.st(); st2.pullAt=pullStart; pulled.forEach(([col,v])=>{ st2.h[col+'/'+v.rid]=FB.hash(JSON.stringify(FB.packRun(v))); }); DEV.store.set('syncst',st2); }
     return added||cut||aAdd||aCut;
   },
+  _hc:new WeakMap(),
   async push(){
     const r=FB.ref(); if(!r)return 0;
     const o={updatedAt:Date.now()};
@@ -7676,8 +7683,13 @@ const FB={
     const ups=[];
     [['runs',RUNS],['acts',ACTS]].forEach(([col,L])=>L.forEach(x=>{
       if(!x.rid){ x.rid=newRid(x); fixed=true; }
-      const c=FB.packRun(x), h=FB.hash(JSON.stringify(c)), k=col+'/'+x.rid;
-      if(ST.h[k]===h)return; c._at=Date.now(); ups.push([col,x.rid,c,k,h]); }));
+      /* 지문은 기록이 바뀌었을 때만 다시 계산한다 — 전엔 동기화할 때마다 모든 기록을 통째로 복사해 지문을 냈다(기록 48개에 0.5초, 느린 폰은 몇 초 — 결과 화면에서 하나 고를 때마다 멈칫).
+         바뀌었는지는 경로를 뺀 나머지 전부 + 경로의 길이·처음·끝 점으로 본다 */
+      const tk=x.track, rest=Object.assign({},x); delete rest.track;
+      const sg=JSON.stringify(rest)+'|'+(tk&&tk.length?tk.length+JSON.stringify(tk[0])+JSON.stringify(tk[tk.length-1]):'');
+      const k=col+'/'+x.rid; let c=null, h; const hc=FB._hc.get(x);
+      if(hc&&hc.s===sg)h=hc.h; else { c=FB.packRun(x); h=FB.hash(JSON.stringify(c)); FB._hc.set(x,{s:sg,h}); }
+      if(ST.h[k]===h)return; if(!c)c=FB.packRun(x); c._at=Date.now(); ups.push([col,x.rid,c,k,h]); }));
     for(let i=0;i<ups.length;i+=400){
       const b=db.batch();
       ups.slice(i,i+400).forEach(([col,rid,c])=>{ b.set(r.collection(col).doc(rid),c,{merge:true}); if(col==='runs')n++; });
@@ -7730,6 +7742,7 @@ try{ const n0=RUNS.length; RUNS=RUNS.filter(r=>!isSeedRun(r)); if(RUNS.length!==
 const newRid=r=>String((r&&r.date)||todayStr()).replace(/[^0-9]/g,'').slice(0,14)
   +'-'+Math.random().toString(36).slice(2,8);
 /* 설정 항목을 이 폰에서 바꾼 시각 — 동기화 때 항목별로 새 쪽을 고른다 (끌어와서 쓰는 중에는 세지 않는다) */
+try{ window.__rcKeys=new Set(FB.SETK); }catch(e){}
 window.__rcTouch=(k,oldS,newS)=>{ if(FB._pulling||!FB.SETK.includes(k))return;
   try{ if(FB.ITEM[k])FB.stamp(k,oldS,newS); }catch(e){}
   let m={}; try{ m=JSON.parse(localStorage.getItem('rc_modk'))||{}; }catch(e){}
