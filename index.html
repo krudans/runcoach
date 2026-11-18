@@ -2757,7 +2757,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.46';
+const APPVER='21.47';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10969,7 +10969,9 @@ function runScore(r,s){ try{
 function dayScore(d){ /* 그날 점수 — 계획과 짝이 맞는 기록 우선. 계획 없는 날(쉬는 날)은 휴식 점수 */
   const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d);
   if(!rs.length||!planOn(d)){ const R=restScore(d); if(R)return {score:R.score,parts:R.parts,rest:R.kind}; if(!rs.length)return null; }
-  const b=BLOCK.find(x=>x.d.slice(0,10)===d&&x.type!=='off')||pastSessOn(d); const r=rs.find(x=>b&&x.planId===b.d)||rs[0];   /* 지난 4주 날도 그날 계획으로 점수 */
+  const b=BLOCK.find(x=>x.d.slice(0,10)===d&&x.type!=='off')||pastSessOn(d);
+  /* 계획과 이어지지 않은 기록 중에서는 500m·2분 이상인 것만 그날 점수로 본다 — 잘못 눌러 저장된 1~2분짜리(자동 저장, v21.42)가 그날 훈련 '0점'·'훈련 1/3회'로 세졌다 */
+  const r=rs.find(x=>b&&x.planId===b.d)||rs.find(x=>(+x.km||0)>=0.5&&(+x.sec||0)>=120); if(!r)return null;   /* 지난 4주 날도 그날 계획으로 점수 */
   /* 신청한 대회 날 — 대회는 '속도 약속'이 아니라 완주가 약속이다. 공인 거리 95% 이상 뛰면 100점(전엔 점수가 없어 주간 '훈련 0/4'에 안 셌다) */
   if(b&&b.race&&r&&r.planId===b.d){ const ok=b.race.m&&(+r.km*1000>=b.race.m*0.95); return {score:ok?100:Math.round(Math.min(1,(+r.km*1000)/(b.race.m||1))*100),parts:[['대회 완주',ok?100:0,100]],race:true}; }
   return runScore(r,runSess(r,b)); }
@@ -11068,7 +11070,7 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
     <div class="ws-days">${cells}</div>
     <div class="ws-note">뛴 날 100점 = 거리 40 · 강도 40 · 고르게 20 · 쉬는 날 100점 = 뛰지 않기·근력·심박·수면 · 주 100% = 훈련과 쉬는 날 모두${BLOCK.length?' · 옅은 막대 = 아직':''}${diff!=null&&diff>30?' · 부하가 지난주보다 30% 넘게 많음':''}</div></section>`;
   /* ── 크게 보기(홈 '이번 주' 줄을 눌렀을 때) — 숫자 3개 · 요일 막대 · 날마다 · 누적 부하 · 강도 나눔 · 점수 기준 ── */
-  const kmDone=days.reduce((a,x)=>a+x.ran,0), kmPlan=days.reduce((a,x)=>a+(x.s?(+x.km||0):0),0), kmLeft=days.filter(x=>x.s&&x.d>=t&&!(x.ran>0)).reduce((a,x)=>a+(+x.km||0),0);
+  const kmDone=days.reduce((a,x)=>a+x.ran,0), kmPlan=days.reduce((a,x)=>a+(x.s?(+x.km||0):0),0), kmLeft=days.filter(x=>x.s&&x.d>=t&&x.sc==null).reduce((a,x)=>a+Math.max(0,(+x.km||0)-(x.ran||0)),0);   /* 남은 계획 = 아직 점수가 없는(훈련으로 세지 않은) 날의 계획 − 그날 뛴 거리. 전엔 그날 조금이라도 뛰면 남은 계획에서 통째로 빠졌다(250m 뛰고 '계획 거리 끝') */
   const kpi=(lab,val,sub,pct)=>`<div class="wk-kpi"><i>${lab}</i><b class="num">${val}</b>${pct!=null?`<span class="wk-kbar"><u style="width:${Math.max(0,Math.min(100,pct)).toFixed(0)}%"></u></span>`:''}<em>${sub}</em></div>`;
   const pw=isCur?'지난주':'그 전 주';
   const lSub=diff!=null?`${pw}${isCur?' 이맘때':''} ${Math.round(prevUpto)} · <b class="${diff>30?'up':''}">${diff>0?'+':''}${diff}%</b>`:prevL?`${pw} ${Math.round(prevL)} · 비교 기록 적음`:`${pw} 기록 없음`;
@@ -15356,7 +15358,7 @@ function openMyGoal(){
    보이는 카드를 그대로 PNG로 만든다. 외부 라이브러리 없이: DOM 복제 → 계산된 스타일 인라인 → SVG foreignObject → 캔버스.
    아래에 가지런 로고 줄을 붙이고, 폰이면 공유창(navigator.share), 아니면 파일 저장. */
 const SNAP_HIDE='.mygoal summary,.gs-more>summary,.rv-tbl>summary,.rtb';   /* 지우면 details가 'Details' 기본 글자를 띄운다 — 숨기기만 */
-const SNAP_SKIP='button,.lapsw,.lapch,.lapinfo span,.lapinfo br,.pw-cv,.pw-sum,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x';
+const SNAP_SKIP='button,.lapsw,.lapch,.lapinfo span,.lapinfo br,.pw-cv,.pw-sum,.gw-edit,.gw-ed,.gc-more,.gc-edit,.gc-btns,.gc-why,.hero-links,.tdist,.pd-ed,.pd-add,.pw-tools,.db-btns,.db-prop,.tr-links,.tr-go,.st-go,.hlinks,[data-snap],.snap-x,.perfln,.maplo';
 function snapInline(src,dst){
   const cs=getComputedStyle(src); let css='';
   for(let i=0;i<cs.length;i++){ const k=cs[i]; if(/^(transition|animation|cursor|pointer-events|-webkit-tap)/.test(k))continue; css+=`${k}:${cs.getPropertyValue(k)};`; }
