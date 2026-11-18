@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.23';
+const APPVER='21.24';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5089,7 +5089,7 @@ function onMotion(e){
   if(!S.running||S.paused)return;
   const a=e.accelerationIncludingGravity; if(!a)return;
   const mag=Math.hypot(a.x||0,a.y||0,a.z||0), now=e.timeStamp||performance.now(), C=S.cad;
-  const R=C.raw||(C.raw=[]); R.push([now,mag]); C.lastAt=now;
+  const R=C.raw||(C.raw=[]); R.push([now,mag]); C.lastAt=now; C.nEv=(C.nEv||0)+1;
   if(R.length>1200||(R.length&&R[0][0]<now-8000)){ let k=0; while(k<R.length&&R[k][0]<now-8000)k++; R.splice(0,k); }
   if(!C.acAt){ C.acAt=now; return; }
   if(now-C.acAt<1000)return;
@@ -6123,6 +6123,8 @@ function renderSummary(completed){
   const hrAvg=hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null;
   const cc=S.cad.corr||[];
   const cadAvg=cc.length>20?Math.round(cc.reduce((a,b)=>a+b,0)/cc.length):null;
+  /* 케이던스가 '—'일 때 까닭을 기록에 남긴다 — 전엔 왜 안 잡혔는지 알 길이 없었다(실제 기기 2026-11-18: 1분 40초 프리런에 '—') */
+  const cadWhy=cadAvg?null:!(S.opts&&S.opts.cad)?'off':!(S.cad&&S.cad.nEv)?'nosig':{valid:cc.length,ev:S.cad.nEv||0,spm:S.cad.spm||null};
   const cal=Math.round(1.036*(PROF.w||75)*km);
   const reps=S.segRecords.filter(r=>r.hard&&isFinite(r.actual)).map(r=>r.actual);
   const spread=reps.length>=2?Math.round(Math.max(...reps)-Math.min(...reps)):null;
@@ -6235,7 +6237,7 @@ function renderSummary(completed){
     hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,
     gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
     hrAvg,hrMax:Math.max(heldMax(S.hr.samples,5)||S.hr.max||0,hrAvg||0)||null,   /* 최고는 평균보다 낮을 수 없다 — 값이 1~2씩 흔들리면 '5초 유지' 값이 평균보다 낮게 나왔다(평균 138 · 최고 137, 2026-11-17 시험) */   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
-    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
+    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadWhy,cal,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)), zoneB:zoneBounds(),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
@@ -11540,7 +11542,7 @@ function renderResult(host,r,s,opt){
   const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.race&&r.race.m?'대회 기록':r.type==='free'?'그냥 뛰기 — 판정 없음':r.type==='tt'?'TT 기록':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
   /* 순서: 숫자(사실) → 판정(해석) */
   const hero=`<div class="rnum"><div class="r1"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
-      <div class="r2"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?` · 최고 ${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${tm('cad')}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
+      <div class="r2"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?`·최고${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${r.cadAvg||!r.cadWhy?tm('cad'):r.cadWhy==='off'?'케이던스 꺼짐':r.cadWhy==='nosig'?'걸음 신호 없음':`걸음 ${r.cadWhy.valid||0}초뿐`}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
   const chart=rvPaceHR(r), mv=moveStripHTML(moveSplit(r.track));
   const hasMap=r.track&&r.track.length>3;
   const bullets=rvBullets(reps,tgt);
