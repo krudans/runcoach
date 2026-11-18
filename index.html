@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.37';
+const APPVER='21.38';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5499,7 +5499,9 @@ function onTick(){
   /* 계획 전체 기준 — 절반 지점, 거의 다 왔을 때 */
   if(S.act==='run'&&s.type!=='free'&&s.dist>=2&&!S.extra){ const pk=+s.dist, left=pk-km, avgP=km>0?S.elapsed/km:NaN;
     if(!S.planHalf&&km>=pk/2){ S.planHalf=true;
-      DEV.speak(`전체 거리의 절반을 지났습니다. ${left.toFixed(1)}킬로미터 남았습니다.${isFinite(avgP)?` 평균 페이스는 1킬로미터에 ${fmtPaceVoice(avgP)}입니다.`:''}${s.talkCheck?` 숨 확인입니다. 1킬로미터 ${fmtPaceVoice(s.talkCheck)}로 달리며 한 문장 말하세요.`:''}`,false,true); }
+      /* 절반 지점이 1km 지점과 겹치면(전체가 짝수 km) 남은 거리·평균 페이스는 바로 뒤 1km 안내가 말한다 — 전엔 '4.0킬로미터 남았습니다. 평균 페이스는 6분 49초'를 연달아 두 번 들었다(템포런 8km 모의 2026-11-19) */
+      const onKm=Math.abs(pk/2-Math.round(pk/2))<0.03;
+      DEV.speak(`전체 거리의 절반을 지났습니다.${onKm?'':` ${left.toFixed(1)}킬로미터 남았습니다.${isFinite(avgP)?` 평균 페이스는 1킬로미터에 ${fmtPaceVoice(avgP)}입니다.`:''}`}${s.talkCheck?` 숨 확인입니다. 1킬로미터 ${fmtPaceVoice(s.talkCheck)}로 달리며 한 문장 말하세요.`:''}`,false,true); }
     const nearAt=0.5;
     if(!S.planNear&&left<=nearAt&&left>0.05){ S.planNear=true;
       /* 마지막 구간이 막 시작됐으면(100m 안) 말하지 않는다 — '쿨다운 500미터. 천천히 숨을 내리세요.' 바로 뒤에 '500미터 남았습니다.'가 또 나갔다(2026-11-18 시험) */
