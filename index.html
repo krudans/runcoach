@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.25';
+const APPVER='21.26';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2692,8 +2692,11 @@ const DEV = {
   saveErr(e){ const m=String(e&&e.message||e||'');
     /* 휴대폰이 15초 안에 답하지 않은 것은 '예전 설치본'과 다른 일이다 — 다시 해 보라고 안내한다(예전엔 둘 다 '새로 설치'라고 떴다) */
     if(/SAVE_TIMEOUT/.test(m))return '저장이 끝나지 않았어요 — 잠시 뒤 다시 눌러 주세요';
-    return /NO_BRIDGE|not implemented|unable to find plugin|GajiFile/i.test(m)?'저장 안 됨 — 앱을 새로 받아 덮어 설치해야 저장돼요'
-      :/OLD_ANDROID/.test(m)?'저장 안 됨 — 안드로이드 10 이상에서만 저장돼요':'저장 실패 — '+m.slice(0,60); },
+    /* 설치본 판을 같이 보여 준다 — 새로 깔았는데도 이 안내가 뜨면, 예전 설치본이 남은 것인지(1판) 새 설치본의 저장 기능이 고장인지(2판 이상) 문구만으로 가릴 수 있게(실제 기기 2026-11-18) */
+    const sh=(window.GAJI_NATIVE&&GAJI_NATIVE.shell)||0, tag=window.GAJI_NATIVE?` (설치본 ${sh||'?'}판)`:'';
+    if(/NO_BRIDGE|not implemented|unable to find plugin|GajiFile/i.test(m))
+      return sh>=2?`저장 실패${tag} — ${m.slice(0,50)}`:`저장 안 됨 — 앱을 새로 받아 덮어 설치해야 저장돼요${tag}`;
+    return /OLD_ANDROID/.test(m)?'저장 안 됨 — 안드로이드 10 이상에서만 저장돼요':`저장 실패${tag} — `+m.slice(0,60); },
   /* 글자 파일(백업·GPX·캘린더) — 성공하면 true */
   async saveFile(name,text,mime){
     try{ const w=await DEV.saveBlob(new Blob([text],{type:mime}),name); toast('저장됨 · '+w); return true; }
