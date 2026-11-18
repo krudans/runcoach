@@ -474,15 +474,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .cell.sel .v{color:var(--rbg)}
 
 .rctl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px 6px;flex:none}
-.rrow{display:flex;align-items:center;justify-content:center;gap:16px}
-.pz{width:84px;height:84px;border-radius:50%;background:var(--rbtn);border:none;
+.rrow{display:flex;align-items:center;justify-content:center;gap:18px}
+.pz{width:128px;height:128px;border-radius:50%;flex:none;background:var(--rbtn);border:none;
   display:flex;align-items:center;justify-content:center;transition:background .4s}
-.pz svg{width:34px;height:34px}
+.pz svg{width:50px;height:50px}
 .pz svg rect{fill:var(--rbtnf)}
-.sidebtn{width:52px;height:52px;border-radius:50%;background:var(--rtile);border:none;
+.sidebtn{width:68px;height:68px;border-radius:50%;background:var(--rtile);border:none;
   display:flex;align-items:center;justify-content:center;flex:none;transition:background .4s}
 #run[data-state="ok"] .sidebtn,#run[data-state="soon"] .sidebtn{background:var(--panel)}
-.sidebtn svg{width:21px;height:21px;stroke:var(--rsub);fill:none;
+.sidebtn svg{width:27px;height:27px;stroke:var(--rsub);fill:none;
   stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .rctl .btn{margin:0;width:100%;max-width:330px}
 .rdots{display:flex;align-items:center;justify-content:center;gap:7px;padding-bottom:8px;flex:none}
@@ -501,8 +501,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .lockmask{position:fixed;inset:0;z-index:60;background:transparent}
 .lockmask .ub{position:absolute;left:24px;right:24px;
   bottom:calc(26px + env(safe-area-inset-bottom,0px));
-  border-radius:999px;padding:17px;border:none;background:rgba(42,22,56,.86);
-  color:#fff;font-family:inherit;font-size:14px;font-weight:700}
+  border-radius:999px;padding:22px 17px;border:none;background:rgba(42,22,56,.86);
+  color:#fff;font-family:inherit;font-size:16px;font-weight:700}
 #run[data-state="fast"] .lockmask .ub,#run[data-state="slow"] .lockmask .ub,
 #run[data-state="hr"] .lockmask .ub{background:rgba(255,255,255,.9);color:var(--rbg)}
 .lockmask .chip{position:absolute;left:50%;transform:translateX(-50%);
@@ -535,6 +535,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .holdbtn i{position:absolute;left:0;top:0;bottom:0;width:0;background:currentColor;opacity:.28;
   pointer-events:none;transition:width .05s linear}
 .holdbtn b{position:relative;font-weight:700}
+/* 종료 — 양끝이 둥근 크고 긴 버튼(높이 80px, 2026-11-18 사용자가 고른 B안). 전엔 높이 52px쯤의 얇은 막대라 뛰다가 누르기 어려웠다. 2초 길게 누르면 왼쪽부터 차오른다 */
+.stopc{width:100%;height:80px;border-radius:999px;flex:none;border:none;background:var(--alarm);color:#fff;font-family:inherit;font-size:20px;
+  display:flex;align-items:center;justify-content:center;padding:0}
+.stopc[hidden]{display:none}
+.stopc i{background:#fff;opacity:.38}
 .lapwrap{padding:9px 18px 4px;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
 .laphd{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;flex:none}
 .laphd .ttl{font-size:11px;letter-spacing:.06em;color:var(--rsub);font-weight:700;margin-right:auto}
@@ -1754,7 +1759,7 @@ body.mf-on{overflow:hidden}
 
   <div class="lockmask" id="lockMask" hidden>
     <div class="chip">화면 잠김</div>
-    <button class="ub holdbtn" id="btnUnlock"><i></i><b>화면 잠김 · 길게 눌러 해제</b></button>
+    <button class="ub holdbtn" id="btnUnlock"><i></i><b>화면 잠김 · 꾹 눌러 풀기</b></button>
   </div>
 
   <div class="rpage" id="rPage2" hidden>
@@ -1777,7 +1782,7 @@ body.mf-on{overflow:hidden}
       <button type="button" data-m="prev" aria-label="이전 곡"></button>
       <button type="button" data-m="toggle" aria-label="재생/일시정지"></button>
       <button type="button" data-m="next" aria-label="다음 곡"></button></div>
-    <div class="rrow">
+    <div class="rrow" id="rRow">
       <button class="sidebtn" id="btnLock" aria-label="화면 잠금">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
       </button>
@@ -1789,7 +1794,7 @@ body.mf-on{overflow:hidden}
       </button>
     </div>
     <div class="pzlab" id="pzLab">일시정지</div>
-    <button class="btn danger holdbtn" id="btnStop" hidden><i></i><b>종료 (3초 길게)</b></button>
+    <button class="stopc holdbtn" id="btnStop" aria-label="종료 — 2초 길게 누르기" hidden><i></i><b>종료 (2초 길게)</b></button>
   </div>
   <div class="rdots" id="rDots" hidden><span class="on" data-p="1"></span><span data-p="2"></span></div>
 </div>
@@ -2430,7 +2435,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 #run .rmain .say{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #run .rmain .say[hidden]{display:none}
 #run .cell .v{font-size:clamp(16px,2.6vh,20px)}
-@media (max-height:640px){ #run .pz{width:72px;height:72px} }
+@media (max-height:640px){ #run .pz{width:96px;height:96px} #run .stopc{height:64px;font-size:17px} #run .sidebtn{width:56px;height:56px} }
 /* 가운데 카드가 낮으면 덜 중요한 것부터 접는다 — 설명 줄 → 단위 줄 여백 → 상태 알약 크기 */
 @container (max-height:300px){ #run .rmain .say{display:none} #run .rmain .pill{margin-top:8px} }
 @container (max-height:200px){ #run .rmain .k{font-size:12px} #run .rmain .u{font-size:13px;margin-top:0} #run .rmain .pill{font-size:15px;padding:5px 16px;margin-top:6px} }
@@ -2552,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.21';
+const APPVER='21.22';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5163,7 +5168,7 @@ async function startRun(){
   S.cadGoal=null; S.breath=null; const ob=$('optBreath'); if(ob&&ob.checked&&S.act==='run'&&breathEligible(s)){ breathStart(); BREATH.on=true; DEV.store.set('breath',BREATH); }
   else if(ob&&!ob.checked&&BREATH.on){ BREATH.on=false; DEV.store.set('breath',BREATH); }
   renderLaps(); paintLapChips(); buildRail(); runPage(1); $('run').dataset.state='ok';
-  $('btnStop').hidden=true; endHold();
+  $('btnStop').hidden=true; try{ $('rRow').classList.remove('pzd'); }catch(e){} endHold();
   setPauseIcon(false);
   HERO=null; setHero();
   show('run');
@@ -5474,7 +5479,7 @@ function onTick(){
       /* 계획을 다 뛰었다고 멈추지 않는다 — 더 뛰면 기록·1km 안내·심박을 그대로 이어간다. 끝내는 건 사용자가 정지로 */
       closeSegAt(); S.extra={km,t:S.elapsed,ceil0:S.ceilSec,hr0:S.hrOverSec}; DEV.buzz([250,90,250]);
       if(s.rw) DEV.speak(`${s.rw.check?'기본 상태 체크를':'걷기와 달리기를'} 마쳤습니다. 걸린 시간은 ${fmtTimeVoice(S.elapsed)}입니다. 수고하셨습니다.`,false,true); else
-      DEV.speak(`계획한 ${s.dist%1?(+s.dist).toFixed(1):s.dist}킬로미터를 다 뛰었습니다. 걸린 시간은 ${fmtTimeVoice(S.elapsed)}입니다. 끝내려면 일시정지를 누른 뒤 종료를 길게 누르세요.`,false,true); }
+      DEV.speak(`계획한 ${s.dist%1?(+s.dist).toFixed(1):s.dist}킬로미터를 다 뛰었습니다. 걸린 시간은 ${fmtTimeVoice(S.elapsed)}입니다. 끝내려면 일시정지를 누른 뒤 종료를 2초 동안 누르세요.`,false,true); }
   }
   /* 계획 전체 기준 — 절반 지점, 거의 다 왔을 때 */
   if(S.act==='run'&&s.type!=='free'&&s.dist>=2&&!S.extra){ const pk=+s.dist, left=pk-km, avgP=km>0?S.elapsed/km:NaN;
@@ -5924,21 +5929,23 @@ function renderLaps(){
   });
 }
 /* 달리는 중에는 종료 버튼이 아예 없다 — 손에 쥐고 뛰다 눌리는 사고를 막는다.
-   일시정지를 눌러야 나타나고, 3초를 눌러 버텨야 실제로 끝난다. */
+   일시정지를 눌러야 나타나고, 2초를 눌러 버텨야 실제로 끝난다. */
 $('btnPause').onclick=()=>{
   if(!S.running)return;
   S.paused=!S.paused; setPauseIcon(S.paused);
   /* 멈춘 동안 움직인 거리는 넣지 않는다 — 다시 시작하면 그 자리부터 잰다(GPS 끊김으로 오인하지 않게) */
   if(!S.paused){ S.gpsGap=null; S.anchor=null; S.smooth=null; S.lastFixAt=S.lastGoodAt=Date.now(); S.win=[{t:S.elapsed,d:S.dist}]; }
-  $('btnStop').hidden=!S.paused;
+  $('btnStop').hidden=!S.paused; try{ $('rRow').classList.toggle('pzd',!!S.paused); }catch(e){}
   $('rCtl').classList.toggle('one',!S.paused);
   endHold();
   if(S.paused){S._p=Date.now(); S.anchor=null; S.smooth=null; S.win=[];
     liveSave();
-    DEV.speak('일시정지했습니다. 종료는 종료 버튼을 3초 누르세요.',true);}
+    DEV.speak('일시정지했습니다. 끝내려면 종료 버튼을 2초 동안 누르세요.',true);}
   else{S.pausedAt+=(Date.now()-S._p)/1000;S.win=[];S._pzNext=true;DEV.speak('다시 시작합니다.',true);}
 };
 const BZ={tick:[140], off:[130,90,130,90,130], stop:[600,200,600,200,600]};
+/* 길게 누르는 시간 — 종료 2초(전 3초: 뛰다 멈춘 손으로 버티기 길다는 사용자 의견 2026-11-18), 잠금 풀기 0.8초(전 1.5초). 뺨·소매가 스치는 것을 막는 용도라 길 필요는 없다 */
+const HOLD_STOP=2000, HOLD_UNLOCK=800;
 let holdT=null,holdAt=0;
 function endHold(){ if(holdT){clearInterval(holdT);holdT=null;}
   const f=$('btnStop').querySelector('i'); if(f)f.style.width='0'; }
@@ -5948,14 +5955,14 @@ function startHold(e){
   holdAt=Date.now(); DEV.buzz(40);
   const f=$('btnStop').querySelector('i');
   holdT=setInterval(()=>{
-    const r=Math.min(1,(Date.now()-holdAt)/3000);
+    const r=Math.min(1,(Date.now()-holdAt)/HOLD_STOP);
     f.style.width=(r*100)+'%';
     if(r>=1){ endHold(); DEV.buzz([250,90,250]); finish(false); }
   },50);
 }
 /* ───────── 화면 잠금 ─────────
    손에 쥐고 달리면 뺨과 소매가 화면에 계속 닿는다.
-   잠그면 숫자는 그대로 보이고 손가락만 막는다. 풀 때는 1.5초 길게. */
+   잠그면 숫자는 그대로 보이고 손가락만 막는다. 풀 때는 0.8초 길게. */
 let LOCKED=false, ulT=null, ulAt=0;
 function setLock(v){
   LOCKED=v; $('lockMask').hidden=!v; $('run').classList.toggle('locked',!!v);
@@ -5971,7 +5978,7 @@ $('btnUnlock').addEventListener('pointerdown',e=>{
   ulAt=Date.now(); DEV.buzz(30);
   const f=$('btnUnlock').querySelector('i');
   ulT=setInterval(()=>{
-    const r=Math.min(1,(Date.now()-ulAt)/1500);
+    const r=Math.min(1,(Date.now()-ulAt)/HOLD_UNLOCK);
     f.style.width=(r*100)+'%';
     if(r>=1){ endUnlock(); setLock(false); }
   },50);
@@ -6329,7 +6336,7 @@ $('sWeather').onclick=e=>{const b=e.target.closest('button');if(!b)return;
 $('sNote').addEventListener('input',()=>sumUpdate());
 /* ───────── 끝나면 바로 저장 (v20.95) ─────────
    전엔 결과 화면 맨 아래 '기록 저장'을 눌러야 저장됐다 — 안 누르고 나가면 이 폰에만 임시로 남고(클라우드·이어서 뛰기 안 됨), 앱 자료가 지워지면 사라졌다.
-   이제 종료(3초 길게)를 누르면 바로 저장한다(commitRun). 일시정지는 저장하지 않는다. 결과 화면에서 고르는 힘든 정도·지형·날씨·메모는 고를 때마다 저장된 기록에 바로 넣는다(sumUpdate).
+   이제 종료(2초 길게)를 누르면 바로 저장한다(commitRun). 일시정지는 저장하지 않는다. 결과 화면에서 고르는 힘든 정도·지형·날씨·메모는 고를 때마다 저장된 기록에 바로 넣는다(sumUpdate).
    실수로 켰다 끈 것(200m 미만 또는 2분 미만)만 저장할지 묻는다. 맨 아래 '확인'은 저장 뒤 할 일(TT·대회 새 기준, 훈련 돌아보기)을 연다 —
    안 누르고 나가면 새 기준은 알림('새 훈련 기준 대기 중')에 남긴다. */
 function sumFields(){ if(!S.result)return; Object.assign(S.result,{rpe:rpeVal,terrain:terrainVal,weather:weatherVal,talk:talkVal,note:($('sNote').value||'').trim()},S.result.rw?{feel:feelVal,pain:painVal}:{}); }
@@ -6477,7 +6484,7 @@ function liveResume(o,ix){
   S.anchor=null; S.smooth=null; S.win=[]; S.gpsGap=null;
   try{ renderLaps(); paintLapChips(); buildRail(); }catch(e){ console.warn('live rail',e); }
   runPage(1); $('run').dataset.state='ok';
-  setPauseIcon(true); $('btnStop').hidden=false; $('rCtl').classList.remove('one'); endHold();
+  setPauseIcon(true); $('btnStop').hidden=false; try{ $('rRow').classList.add('pzd'); }catch(e){} $('rCtl').classList.remove('one'); endHold();
   HERO=null; setHero(); show('run');
   (async()=>{ try{ if(S.opts&&S.opts.wake)S.wake=await DEV.wake.on(); }catch(e){} })();
   try{ if(S.opts&&S.opts.cad)DEV.motion.start(onMotion); }catch(e){}
