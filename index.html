@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.27';
+const APPVER='21.28';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3947,7 +3947,7 @@ function makePlan(opts){
           s={d:ds,wk:w+1,t:`빠르게 ${kmLab(len)} × ${n}`,...interval(Math.min(Math.max(6,hardKm,fitKm(2,n,len,0.5)),Math.max(capW<999?capW:99,fitKm(2,n,len,0.5))),2,n,len,tgt,0.5,null)};
         } else {
           /* 벅차게 — 한 번에 5~15분. 주간 10% 안에서 길이와 횟수를 잡는다 */
-          const cp=Math.max(km*0.10, tFloorKm);   /* 본 운동 = 20분 이상 또는 주간 10% 중 큰 쪽 (A-5 · Daniels T 20분, C) */
+          const cp=Math.max(km*0.10, 20*60/Z.T);   /* 본 운동 = 20분 이상 또는 주간 10% 중 큰 쪽 (A-5 · Daniels T 20분, C) — 20분 거리는 반올림하지 않은 값으로: 0.1km로 반올림한 값의 95%를 쓰면 19분에 조금 못 미치는 조합(18분 58초)이 통과했다 */
           let len=2, n=2, bestOver=Infinity;   /* cp의 95% 이상을 채우는 (길이×횟수) 중 넘침이 가장 적은 것 — 같으면 긴 반복 */
           const fitsCap=(L,N)=>capW>=999||fitKm(2,N,L,restKm(Math.max(60,Math.round(L*60)),PACE.recJog))<=capW;   /* 웜업·쿨다운·사이 조깅까지 더한 그날 거리도 한 번 거리 한도(+10%) 안 — 9km 템포가 30일 최장 7.5km 사람에게 나오던 것 */
           /* 본 운동 상한 — 전엔 모든 수준이 2km×5(본 운동 10km, 그날 약 15km)에서 멈춰, 주 100km 넘게 뛰는 빠른 목표는 주간 10%를 채우지 못했다.
@@ -4780,7 +4780,7 @@ function renderAlerts(){
       if(k==='miss'){ const m=missedDay(); if(m)openMissed(m); }
       else if(k==='tmiss'){ const m=todayUndone(); if(m)openMissed(m); }
       else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
-      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); else if(k==='goalEnd')openGoalEnd(); };
+      else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); else if(k==='goalEnd')openGoalEnd(); else if(k==='self')openSelfAuto(); };
     ph.appendChild(b); });
   /* 지난 결정 — 예전 플랜의 '결정 기록' 탭을 여기로 합쳤다 */
   renderDecLog($('alDone'));
@@ -6775,7 +6775,8 @@ function stSim(speedFn, secs, hz, acc){
 
 async function selfTest(){
   if(S.running){ alert('러닝 중 점검 불가'); return; }
-  const out=$('stOut'); const put=h=>{ out.innerHTML+=h; };
+  const ROWS=[]; let SECN='';
+  const out=$('stOut'); const put=h=>{ const m=/^<div class="sthd">(.*?)<\/div>$/.exec(h); if(m)SECN=m[1]; out.innerHTML+=h; };
   out.innerHTML='<div class="meta">실행 중…</div>';
   const snap={session:S.session,T:S.T,segRecords:S.segRecords,splits:S.splits,
               hr:S.hr,cad:S.cad,liveRows:S.liveRows,pts:S.pts,dist:S.dist};
@@ -6785,7 +6786,7 @@ async function selfTest(){
   const wait=()=>new Promise(r=>setTimeout(r,20));
   out.innerHTML='';
   let pass=0, fail=0;
-  const add=(ok,nm,de,vd)=>{ put(stRow(ok,nm,de,vd)); if(ok===true)pass++; else if(ok===false)fail++; };
+  const add=(ok,nm,de,vd)=>{ put(stRow(ok,nm,de,vd)); ROWS.push({ok:ok===true?true:ok===false?false:null,nm,de,vd,sec:SECN}); if(ok===true)pass++; else if(ok===false)fail++; };
 
   try{
     /* ── 1. 거리 측정 ── */
@@ -6855,8 +6856,10 @@ async function selfTest(){
     put('<div class="sthd">프로필 → 존 → 블록</div>');
     await wait();
     const keepP=JSON.parse(JSON.stringify(PROF));
+    /* 전엔 '지금 내 일정'의 인터벌 속도와 '새로 만든 예시 일정'의 인터벌 속도를 비교했다 — 내 일정에 인터벌이 없으면 0과 비교해 늘 실패로 나왔다(실제 기기 2026-11-18).
+       이제 앞뒤 모두 같은 방식(예시 일정)으로 만들어 비교하고, 인터벌이 없으면 실패가 아니라 '해당 없음' */
     const before={v:VDOT, I:Math.round(Z.I), z1:ZONES[0][1],
-                  rep:Math.round((BLOCK.find(x=>x.repTarget)||{}).repTarget||0)};
+                  rep:(()=>{ try{ return Math.round((buildBlock().find(x=>x.repTarget)||{}).repTarget||0); }catch(e){ return 0; } })()};
     PROF.race={m:10000,sec:38*60+30,kind:'race'};
     recalcProfile(); recalcTypes(); BLOCK=buildBlock();
     const after={v:VDOT, I:Math.round(Z.I),
@@ -6865,9 +6868,9 @@ async function selfTest(){
     add(after.v>before.v+5,'VDOT 반영',
       `10km 45:46 → ${before.v.toFixed(1)} / 38:30 → ${after.v.toFixed(1)}`,
       `+${(after.v-before.v).toFixed(1)}`);
-    add(after.rep<before.rep-20,'블록 목표 연동',
-      `인터벌 ${fmtPace(before.rep)} → ${fmtPace(after.rep)}`,
-      `${before.rep-after.rep}초`);
+    add((before.rep&&after.rep)?after.rep<before.rep-20:null,'블록 목표 연동',
+      (before.rep&&after.rep)?`인터벌 ${fmtPace(before.rep)} → ${fmtPace(after.rep)}`:'예시 일정에 인터벌 없음 — 비교 안 함',
+      (before.rep&&after.rep)?`${before.rep-after.rep}초`:'—');
     add(Math.abs(VDOT-before.v)<0.01,'원래대로 복귀',
       `VDOT ${VDOT.toFixed(1)} · Z1 ≤${ZONES[0][1]}`,'복구됨');
 
@@ -6968,12 +6971,18 @@ async function selfTest(){
     add(stOK,'저장소',stOK?`러닝 ${RUNS.length}건 저장됨`:'쓸 수 없음',stOK?'OK':'불가');
 
     /* ── 일정 규칙 점검 (A-5·A-6) — 주 38km·5일로 풀코스 플랜을 만들어 본다 ── */
+    put('<div class="sthd">일정 규칙</div>');
+    /* 이 검사는 '주 38km·5일 풀코스'라는 정해진 상황에서 규칙이 지켜지는지 본다. 전엔 내 설정(하루에 쓸 수 있는 시간·요일 정하기)과 내 기록·일정을 그대로 읽어,
+       시간을 짧게 잡은 사람은 쉬운 날이 3.5km로 줄어 '부족'으로 나왔다(실제 기기 2026-11-18) — 규칙 위반이 아니라 시험 조건이 사람마다 달랐던 것. 검사하는 동안만 정해진 값으로 바꿨다가 되돌린다 */
+    const _iso={S:SURVEY,P:PLAN,R:RUNS}; let _isoOn=true; const isoBack=()=>{ if(_isoOn){ _isoOn=false; SURVEY=_iso.S; PLAN=_iso.P; RUNS=_iso.R; } };
+    SURVEY={twd:90,twe:240}; PLAN=null; RUNS=[];
     try{ const G0={kind:'race',m:42195,sec:14340,final:14340,date:addDays(todayStr(),140),path:'A'};
       const pl=makePlan({goal:G0,start:weekMonday(addDays(todayStr(),7)),baseOverride:38,days:['월','화','목','토','일'],noTest:true}), SS=pl.sessions||pl;
       const wk=n=>SS.filter(x=>x.wk===n), sum=n=>wk(n).reduce((a,x)=>a+(x.dist||0),0), role=n=>(wk(n).find(x=>x.role)||{}).role||'';
       const th=SS.filter(x=>x.type==='threshold'), iv=SS.filter(x=>x.type==='interval');
       const tMin=th.length?Math.min(...th.map(x=>x.qvol*Z.T/60)):null;
-      add(th.length?tMin>=19.5:null,'역치 본 운동 20분 이상',th.length?`${th.length}회 · 최소 ${tMin.toFixed(0)}분 (${th.map(x=>x.reps+'×'+x.repLen).join(', ')})`:`${tm('threshold')} 없음`,th.length?(tMin>=19.5?'OK':'부족'):'—');
+      /* 통과 기준 19분 = 20분의 95% — 일정을 만드는 쪽이 반복 길이 0.5km 단위 때문에 95%까지 받아들인다(위 '본 운동' 고르기·floorQ). 전엔 이 검사만 19.5분으로 달라, 19분 28초짜리가 '부족'으로 나왔다 */
+      add(th.length?tMin>=18.99:null,'역치 본 운동 20분 이상',th.length?`${th.length}회 · 최소 ${tMin.toFixed(1)}분 · 19분부터 통과 (${th.map(x=>x.reps+'×'+x.repLen).join(', ')})`:`${tm('threshold')} 없음`,th.length?(tMin>=18.99?'OK':'부족'):'—');
       const iOk=iv.every(x=>x.qvol>=2.4-0.01||x.reps>=3);
       add(iv.length?iOk:null,'인터벌 2.4km 또는 3회 이상',iv.length?iv.map(x=>x.reps+'×'+x.repLen+'='+x.qvol.toFixed(1)+'km').join(', '):'인터벌 없음',iv.length?(iOk?'OK':'부족'):'—');
       const iFill=iv.every(x=>{ const cap=qualCap('interval',sum(x.wk)); return x.qvol+x.repLen>cap+0.01||x.reps>=6; });   /* 한 번 더 넣으면 상한을 넘는 상태 = 다 채움 */
@@ -6984,24 +6993,49 @@ async function selfTest(){
       add(ezOk&&rcOk,'이지 4km·회복 3km 이상',`이지 최소 ${ez.length?Math.min(...ez.map(x=>x.dist)):'—'}km · 회복 최소 ${rc.length?Math.min(...rc.map(x=>x.dist)):'—'}km`,ezOk&&rcOk?'OK':'부족');
       /* 페이스가 빨라져도 역치 시간 유지 — 빠른 T로 다시 만들어 분 수 비교 */
       const Z0=Z; try{ Z=Object.assign({},Z,{T:Z.T*0.9}); const pl2=makePlan({goal:G0,start:weekMonday(addDays(todayStr(),7)),baseOverride:38,days:['월','화','목','토','일'],noTest:true}), th2=(pl2.sessions||pl2).filter(x=>x.type==='threshold');
-        const m2=th2.length?Math.min(...th2.map(x=>x.qvol*Z.T/60)):null; add(th2.length?m2>=19.5:null,`페이스 빨라져도 ${tm('threshold')} 20분 유지`,th2.length?`T −10% → 최소 ${m2.toFixed(0)}분 (${th2.map(x=>x.reps+'×'+x.repLen).join(', ')})`:'—',th2.length?(m2>=19.5?'OK':'부족'):'—'); }finally{ Z=Z0; }
+        const m2=th2.length?Math.min(...th2.map(x=>x.qvol*Z.T/60)):null; add(th2.length?m2>=18.99:null,`페이스 빨라져도 ${tm('threshold')} 20분 유지`,th2.length?`T −10% → 최소 ${m2.toFixed(1)}분 · 19분부터 통과 (${th2.map(x=>x.reps+'×'+x.repLen).join(', ')})`:'—',th2.length?(m2>=18.99?'OK':'부족'):'—'); }finally{ Z=Z0; }
+      isoBack();
       /* 같은 기록의 rTSS가 어디서나 같은가 — loadOf를 두 번 호출해 비교 + 기준 바뀐 뒤에도 같은가 */
       const r0=RUNS.filter(isRun).slice(-1)[0]; if(r0&&(r0.base||(PROF.vhist&&PROF.vhist.length))){ const a=loadOf(r0), Zs=Z; let b; try{ Z=Object.assign({},Z,{T:Z.T*0.9}); b=loadOf(r0); }finally{ Z=Zs; }
         const same=a&&b&&a.tss===b.tss; add(same,'같은 기록 rTSS 동일(기준 바뀌어도)',a?`rTSS ${a.tss} → 기준 변경 후 ${b&&b.tss}`:'—',same?'OK':'다름'); }
-    }catch(e){ add(false,'일정 규칙 점검',String(e&&e.message||e),'오류'); }
+    }catch(e){ add(false,'일정 규칙 점검',String(e&&e.message||e),'오류'); }finally{ isoBack(); }
 
   }catch(e){
-    put(stRow(false,'점검 중 오류',String(e&&e.message||e),'오류')); fail++;
+    put(stRow(false,'점검 중 오류',String(e&&e.message||e),'오류')); ROWS.push({ok:false,nm:'점검 중 오류',de:String(e&&e.message||e),vd:'오류',sec:SECN}); fail++;
   }finally{
     DEV.speak=speak; DEV.buzz=buzz; show=_show;
     Object.assign(S,snap); S.running=false; show('selftest');
   }
 
-  out.innerHTML = `<div class="note ${fail?'red':'green'}" style="margin:0 0 12px">`+
-    `<b>${pass}개 통과 · ${fail}개 실패</b><br>`+
-    (fail?'실패 항목 알려주세요.':'전부 정상')+`</div>`+out.innerHTML;
+  ST_LAST={rows:ROWS,pass,fail}; selfPaint();
   renderHome();
 }
+/* 자가 점검 결과 정렬 — '점검 순서'(묶음별) / '이상 먼저'(✕ → ! → ✓). 고른 방식은 기억한다 */
+let ST_LAST=null;
+function selfPaint(){ const L=ST_LAST, out=$('stOut'); if(!L||!out)return;
+  let mode='sec'; try{ mode=localStorage.getItem('rc_stSort')==='bad'?'bad':'sec'; }catch(e){}
+  const na=L.rows.filter(x=>x.ok===null).length;
+  let h=`<div class="note ${L.fail?'red':'green'}" style="margin:0 0 12px"><b>${L.pass}개 통과 · ${L.fail}개 실패</b>${na?` · 해당 없음 ${na}개`:''}<br>${L.fail?'실패 항목 알려주세요.':'전부 정상'}</div>`
+    +`<div style="display:flex;gap:8px;align-items:center;margin:0 0 6px"><span class="meta">정렬</span><button type="button" class="btn sm${mode==='sec'?'':' ghost'}" style="margin:0;width:auto" data-stsort="sec">점검 순서</button><button type="button" class="btn sm${mode==='bad'?'':' ghost'}" style="margin:0;width:auto" data-stsort="bad">이상 먼저</button></div>`;
+  if(mode==='bad'){ [[false,'이상'],[null,'해당 없음 · 확인 필요'],[true,'정상']].forEach(([k,t])=>{ const g=L.rows.filter(x=>x.ok===k); if(!g.length)return;
+      h+=`<div class="sthd">${t} ${g.length}</div>`+g.map(x=>stRow(x.ok,x.nm,(x.sec?`<span style="opacity:.7">${x.sec} · </span>`:'')+x.de,x.vd)).join(''); }); }
+  else { let sec=null; L.rows.forEach(x=>{ if(x.sec!==sec){ sec=x.sec; if(sec)h+=`<div class="sthd">${sec}</div>`; } h+=stRow(x.ok,x.nm,x.de,x.vd); }); }
+  out.innerHTML=h; }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-stsort]'); if(!b)return; try{ localStorage.setItem('rc_stSort',b.dataset.stsort); }catch(er){} selfPaint(); });
+/* 내 폰 자동 점검 — 자가 점검 가운데 '직접 조치할 수 있는 이상'만 앱이 스스로 찾아 알림에 올린다(가상 달리기·일정 규칙 검사는 돌리지 않는다 — 쓰는 사람이 손쓸 수 없고, 달리기 상태를 건드린다).
+   보는 것: 앱 연결 · 앱 설치본 판 · 지난번 달릴 때 걸음 센서 · 저장소. 값만 읽는다 */
+function selfAuto(){ const P=[]; try{
+    const N=window.GAJI_NATIVE, inApp=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+    if(inApp&&!N)P.push(['앱 연결 안 됨','휴대폰 기능을 못 씀 — 앱을 닫고 다시 열기']);
+    if(N&&N.shell>=1&&N.shell<4)P.push([`앱 설치본이 예전 것(${N.shell}판)`,N.shell<2?'이미지·파일 저장과 진동이 안 됨 — 앱을 새로 받아 덮어 설치':'일부 기능이 빠짐 — 앱을 새로 받아 덮어 설치']);
+    let ms=null; try{ ms=JSON.parse(localStorage.getItem('gaji_mstat')||'null'); }catch(e){}
+    if(ms&&ms.sec>=60&&ms.n/ms.sec<20)P.push(['지난번 달릴 때 걸음 센서 값 없음','케이던스를 못 잼 — 자가 점검의 걸음 센서 줄 확인']);
+    let st=false; try{ localStorage.setItem('rc_t','1'); localStorage.removeItem('rc_t'); st=true; }catch(e){}
+    if(!st)P.push(['저장소를 쓸 수 없음','기록이 저장되지 않을 수 있음 — 휴대폰 저장 공간 확인']);
+  }catch(e){} return P; }
+function selfAutoKey(P){ return 'self:'+P.map(x=>x[0]).join('|'); }
+function openSelfAuto(){ const P=selfAuto(); if(P.length)sigMark(selfAutoKey(P)); go('selftest');
+  try{ if(P.length&&!S.running){ ST_LAST=null; $('stOut').innerHTML=`<div class="note red" style="margin:0 0 12px"><b>앱이 찾은 이상 ${P.length}건</b><br>${P.map(x=>`${ESC(x[0])} — ${ESC(x[1])}`).join('<br>')}</div><div class="meta">아래 '점검 시작'을 누르면 전체 점검</div>`; } }catch(e){} }
 $('stRun').onclick=()=>{ $('stRun').disabled=true; selfTest().finally(()=>{$('stRun').disabled=false;}); };
 
 $('wipeAll').onclick=async()=>{
@@ -10116,6 +10150,7 @@ function homeSignals(){
   const ms=missedDay(); if(ms)sig.push(['miss',`${dowOf(ms.ds)}요일 ${ms.s.t} 누락`,'넘기기 · 옮기기']);
   const ex=extraPending(); if(ex)sig.push(['extra',`계획보다 ${ex.r.extraKm.toFixed(1)}km 초과`,`이번 주 ${fmtKm1(ex.proj)}km(+${ex.pct}%) — 일정 결정`]);
   const open=PROPS.filter(x=>!x.done); open.forEach(p=>sig.push(['prop',p.title,'답하기',p]));
+  { const sp=selfAuto(); if(sp.length&&!sigSeen(selfAutoKey(sp),7))sig.push(['self',`앱 점검 — ${sp[0][0]}${sp.length>1?` 외 ${sp.length-1}건`:''}`,'자가 점검에서 확인']); }
   { const bp=basisPend(); if(bp)sig.push(['basis',`새 훈련 기준 대기 중 · 실력 점수 ${bp.v.toFixed(1)}`,'적용 · 적용 안 함 선택']); }
   { const ge=goalEndInfo(); if(ge&&!sigSeen('goalEnd:'+ge.x.id,3650))sig.push(['goalEnd',ge.hit?`목표 달성 — ${goalLabel(ge.x.goal)}`:`목표 기간 끝 — ${goalLabel(ge.x.goal)}`,'결과 보기 · 다음 목표']); }
   if(typeof reviewDue==='function'&&reviewDue())sig.push(['review','지난주 결산','지난주 점검 → 이번 주']);
@@ -10287,7 +10322,7 @@ function wireHome(sess,idx){
     else if(k==='tmiss'){ const x=todayUndone(); if(x)openMissed(x); }
     else if(k==='extra'){ const e=extraPending(); if(e)openExtra(e); }
     else if(k==='jump')openJump(); else if(k==='rhr')openRhr(); else if(k==='drift')openDrift();
-    else if(k==='prop')go('alerts'); else if(k==='goalEnd')openGoalEnd(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); });
+    else if(k==='prop')go('alerts'); else if(k==='goalEnd')openGoalEnd(); else if(k==='review')go('review'); else if(k==='grad')starterGrad(); else if(k==='basis')basisOpen(basisPend()); else if(k==='regopen')regOpen(); else if(k==='self')openSelfAuto(); });
   m.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>{ try{ DEV.store.set('lastAct',b.dataset.act); }catch(e){} startAct(b.dataset.act); });
   m.querySelectorAll('[data-qact]').forEach(b=>b.onclick=()=>{ const k=b.dataset.qact;
     m.querySelectorAll('[data-qact]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-checked',x===b); });
