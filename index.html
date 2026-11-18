@@ -1031,8 +1031,8 @@ details.noti .sigc{margin:6px 0}
 .tchip2{color:#fff;border-radius:999px;padding:2px 9px;font-size:11px}
 .rt{font-size:24px;font-weight:700;margin:6px 0 8px;letter-spacing:-.4px}
 .rmap{margin-top:12px;border-radius:20px;overflow:hidden;background:var(--map-bg,#EEF2EE);height:240px;position:relative}
-.rmap .rsvg{width:100%;height:100%}.rmap .kmap{width:100%;height:100%}
-.maplo{position:absolute;left:8px;bottom:8px;z-index:2;padding:4px 10px;border-radius:999px;background:rgba(20,20,22,.72);color:#fff;font-size:11px;font-weight:700}.perfln{margin:14px 0 0;font-size:11px;color:var(--ink-3);text-align:center}
+.rmap .rsvg{width:100%;height:100%}.rmap .kmap{width:100%;height:100%;pointer-events:none}.mf-map .rmap .kmap{pointer-events:auto}   /* 기록 화면의 지도는 손가락을 받지 않는다 — 지도 위에서 쓸어내리면 지도가 손가락을 가로채 화면이 안 내려갔다(실제 기기 2026-11-19). 크게 보기(mf-map)에서만 받는다 */
+.maplo{position:absolute;left:8px;bottom:8px;z-index:2;padding:4px 10px;border-radius:999px;background:rgba(20,20,22,.72);color:#fff;font-size:11px;font-weight:700}.perfln{margin:0 0 8px;font-size:11px;color:var(--ink-3);text-align:right;min-height:14px}
 .nomap{display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:var(--ink-3)}
 .kmk{background:var(--panel);border:1px solid #3A4A44;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .kst{background:var(--ok);color:#fff;font-size:11px;font-weight:700;border-radius:10px;padding:2px 7px}
@@ -1405,6 +1405,7 @@ html[data-theme="dark"] .tsv .tsv-am{color:#2A1638}
 html[data-theme="dark"] .bnext u{background:#3A2E14}
 /* 선은 카드 바탕과 3:1(#62626E)로 — 처음 값 #2C2C33은 1.3:1이라 카드 테두리·줄 사이 선이 거의 안 보였다(실제 기기 2026-11-19). 선 색을 '글자가 놓이는 바탕'으로 쓰는 칸은 어둡게 둔다 */
 html[data-theme="dark"] .rm-seg:not(.pass):not(.fail):not(.done):not(.hard),html[data-theme="dark"] .rm-km:not(.pass):not(.fail),html[data-theme="dark"] .gwatch.lite .gw-tag:not(.on),html[data-theme="dark"] .gwatch.lite .gw-seg,html[data-theme="dark"] .mt-tabs{background:#2C2C33}
+html[data-theme="dark"] .db-pts li i{color:#0B0B0D}   /* 밝힌 초록·주황 동그라미 위 ✓·! — 흰 글자는 2.5:1뿐 */
 /* [자동] 어두운 글자색 → 블랙 화면용 밝은 색 */
 html[data-theme="dark"]{--k0E7A52:#48EAAE;--k6B5BB0:#958AC7;--k7A55B8:#9F85CC;--k8A6400:#F0C042;--k8C1D18:#E6706B;--kB3261E:#E6716A}
 html[data-theme="dark"] [style*="color:#000000" i]:not([style*="-color:#000000" i]):not(.tc>svg *):not(.st-mv>svg *):not(.rmap *):not(.noflip *){color:#E6E3EA!important}
@@ -2754,7 +2755,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.43';
+const APPVER='21.44';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11557,7 +11558,7 @@ async function paintMap(host,tr,segs,mono,o){
   if(!tr||tr.length<3){ host.innerHTML='<div class="nomap">경로 기록 없음</div>'; return; }
   const LP=o.laps||null, sel=LP&&o.sel!=null?o.sel:null;
   host.innerHTML=routeSVG(tr,segs,{cls:'rsvg',mono,laps:LP,sel,big:1,sw:4}); host._svg=host.innerHTML;
-  if(!o.full&&o.onTap)host.firstChild.onclick=o.onTap;
+  host.onclick=(!o.full&&o.onTap)?o.onTap:null;   /* 누르면 크게 보기 — 지도가 손가락을 받지 않으므로 바깥 칸에서 받는다 */
   /* 내용을 먼저 보여 주고 지도는 뒤에 — 지도를 만드는 동안 화면이 멈춘 듯 보여서, 그동안 '지도 불러오는 중'을 띄운다(경로 그림은 먼저 보인다) */
   let lo=null; if(kakaoOK()){ lo=document.createElement('div'); lo.className='maplo'; lo.textContent='지도 불러오는 중…'; try{ host.style.position='relative'; host.appendChild(lo); }catch(e){} }
   const tK=performance.now();
@@ -11584,7 +11585,6 @@ async function paintMap(host,tr,segs,mono,o){
     new k.maps.CustomOverlay({map,position:new k.maps.LatLng(tr[rg[1]].lat,tr[rg[1]].lon),content:'<i class="kdot" style="background:#16211D"></i>',xAnchor:.5,yAnchor:.5});
     map.setBounds(b,full?40:16,full?24:16,full?40:16,full?24:16);
     draw(); if(LP&&sel==null)k.maps.event.addListener(map,'zoom_changed',draw);   /* 바퀴 간격은 화면 px 기준 → 확대할 때마다 다시 */
-    if(!full&&o.onTap)k.maps.event.addListener(map,'click',o.onTap);
     if(!full){ PERF.kbuild=performance.now()-tB; PERF.paint(); }
   }catch(e){ console.warn('paintMap',e); host.innerHTML=host._svg; }
 }
@@ -11656,8 +11656,7 @@ function routeFull(r,st,onClose){
    세션 결과(카카오 지도)와 달리 작은 칸은 경로 선만 있어 '지도 안 나옴'으로 보였다.
    [data-maprid] 칸이 화면에 들어오면 같은 카카오 지도를 움직이지 않는 그림으로 깐다(누르면 원래대로 결과가 열림).
    지도를 못 불러오면(오프라인·키 문제) 지금의 경로 그림을 그대로 둔다. */
-/* 목록의 작은 지도는 하나씩 차례로 만든다 — 보이는 여덟 개를 한꺼번에 만들면 그동안 화면이 멈춘다 */
-const MINI_IO=('IntersectionObserver' in window)?new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ MINI_IO.unobserve(e.target); const el=e.target; MINI_Q=MINI_Q.then(()=>new Promise(r=>setTimeout(r,80))).then(()=>miniMap(el)).catch(()=>{}); } }),{rootMargin:'120px'}):null;
+const MINI_IO=('IntersectionObserver' in window)?new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ MINI_IO.unobserve(e.target); miniMap(e.target); } }),{rootMargin:'120px'}):null;
 /* 지도에 그릴 때만 좌표를 솎는다(기록은 그대로) — 52px짜리 목록 지도에도 1초마다 찍힌 좌표 수천 개를 그대로 선으로 그렸다 */
 const thinTr=(tr,max)=>{ if(!tr||tr.length<=max)return tr; const st=Math.ceil(tr.length/max), o=[]; for(let i=0;i<tr.length;i+=st)o.push(tr[i]); if(o[o.length-1]!==tr[tr.length-1])o.push(tr[tr.length-1]); return o; };
 /* 화면 준비 시간 재기 — 기록 화면이 한참 멈춘 듯 보였는데(실제 기기 2026-11-19) 모의로는 느린 곳을 찾지 못했다. 폰에서 걸린 시간을 재서 기록 화면 맨 아래에 적는다 */
@@ -11668,7 +11667,6 @@ const PERF={t0:0,render:null,kload:null,kbuild:null,long:0,
   paint(){ const el=document.getElementById('perfLn'); if(!el)return; const f=v=>(v/1000).toFixed(1)+'초';
     const a=[`화면 ${f(this.render||0)}`]; if(this.kload!=null)a.push(`지도 불러오기 ${f(this.kload)}`); if(this.kbuild!=null)a.push(`지도 그리기 ${f(this.kbuild)}`); if(this.long>=200)a.push(`가장 길게 멈춤 ${f(this.long)}`);
     el.textContent='준비 시간 — '+a.join(' · '); try{ localStorage.setItem('rc_perf',JSON.stringify({at:Date.now(),v:APPVER,render:Math.round(this.render||0),kload:this.kload==null?null:Math.round(this.kload),kbuild:this.kbuild==null?null:Math.round(this.kbuild),long:Math.round(this.long)})); }catch(e){} } };
-let MINI_Q=Promise.resolve();
 async function miniMap(el){
   if(!el||el._mm)return; el._mm=1;
   const rid=el.dataset.maprid, r=rid&&RUNS.find(x=>String(x.rid)===rid); const tr0=r&&r.track;
@@ -12102,7 +12100,7 @@ function openRunView(rid){
   const s=r.act&&r.act!=='run'?null:runSess(r,b0);
   SH.fromView='rview'; PERF.begin();
   if(r.act&&r.act!=='run') renderActResult($('rvwBody'),r); else renderResult($('rvwBody'),r,s);
-  PERF.render=performance.now()-PERF.t0; try{ $('rvwBody').insertAdjacentHTML('beforeend','<p id="perfLn" class="perfln"></p>'); }catch(e){}
+  PERF.render=performance.now()-PERF.t0; try{ $('rvwBody').insertAdjacentHTML('afterbegin','<p id="perfLn" class="perfln"></p>'); }catch(e){}
   $('rvwBack').onclick=()=>go('log');
   $('rvwEdit').onclick=()=>openRunEdit(r.rid);
   $('rvwDel').onclick=async()=>{ const i=RUNS.indexOf(r); if(i>=0){ await deleteRun(i); if(!RUNS.includes(r))go('log'); }
