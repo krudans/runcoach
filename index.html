@@ -2557,7 +2557,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.33';
+const APPVER='21.34';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -15492,7 +15492,11 @@ function cbVdot(){ const p=CB.pace; if(!(p>0))return null;
   if(CB.paceKind==='race5k')return vdotOf(5000,p*5/60);
   /* 편한 페이스 → 그 페이스가 이지런 가운데가 되는 VDOT (이분법) */
   return bisect(vd=>{ const z=zonesOf(vd); return (z.E[0]+z.E[1])/2-p; },25,85); }
-function cbZones(){ const vd=cbVdot(); return vd?zonesOf(vd):null; }
+/* 이 계획이 훈련 속도를 어디서 가져오는가 — 'VDOT로 저장'을 끄거나, 대회·측정 기록이 있어 덮지 않을 때는 지금 내 훈련 속도 그대로다.
+   전엔 그때도 화면의 '자동' 페이스를 방금 넣은 1km 페이스로 계산해 보여 주고, 저장되는 훈련은 지금 내 속도로 만들어서 서로 달랐다
+   (하루 훈련 목록 '인터벌 4'57"' ↔ 저장된 훈련 목표 4'49"~4'55" — 모의 2026-11-18) */
+function cbKeep(){ try{ return !CB.useAsVdot||!!(PROF.race&&PROF.race.src!=='cb'&&['race','tt','solo'].includes(PROF.race.kind)); }catch(e){ return false; } }
+function cbZones(){ if(!(CB.pace>0))return null; if(cbKeep()&&typeof VDOT!=='undefined'&&VDOT>0)return zonesOf(VDOT); const vd=cbVdot(); return vd?zonesOf(vd):null; }
 function cbAutoPace(type){ const z=cbZones(); if(!z)return null;
   return type==='easy'?Math.round((z.E[0]+z.E[1])/2):type==='recovery'?Math.round(z.E[1]):type==='long'?Math.round(z.E[1]-10):type==='threshold'?Math.round(z.T):type==='interval'?Math.round(z.I):Math.round(z.M); }
 function customStart(){
@@ -15587,7 +15591,7 @@ function cbKmOf(t,f){ f=f||1; try{ const s=cbSession(CB.start||todayStr(),1,t,f)
 function cbTplName(t){ const nm=(CB_TYPES.find(x=>x[0]===t.type)||[])[1]||t.type; return ['threshold','interval','goalpace'].includes(t.type)?`${nm} ${kmLab(t.len||1)} × ${t.n||4} (${fmtKm1(cbKmOf(t))}km)`:`${nm} ${fmtKm1(cbKmOf(t))}km`; }
 function cbWeekKm(f){ return Object.values(CB.week).reduce((a,i)=>a+(i!=null&&CB.tpls[i]?cbKmOf(CB.tpls[i],f):0),0); }
 function cbReadPace(){ const mv=($('cbM')||{}).value, sv=($('cbS')||{}).value; CB.pm=mv; CB.ps=sv; const m=+mv||0, s=+sv||0; const p=m*60+s; CB.pace=p>=120&&p<=900?p:null; }
-function cbZoneHTML(){ const z=cbZones(), vd=cbVdot(); return z?`<div class="cb-zones"><div><i>이지런</i><b>${fmtPace(z.E[0])}~${fmtPace(z.E[1])}</b></div><div><i>템포</i><b>${fmtPace(z.T)}</b></div><div><i>인터벌</i><b>${fmtPace(z.I)}</b></div></div><div class="meta" style="margin-top:6px">VDOT ${vd.toFixed(1)} · Daniels</div>`:`<div class="meta" style="margin-top:6px">1km 페이스 → 훈련 속도 (2:00~15:00)</div>`; }
+function cbZoneHTML(){ const z=cbZones(), vd=cbVdot(); return z?`<div class="cb-zones"><div><i>이지런</i><b>${fmtPace(z.E[0])}~${fmtPace(z.E[1])}</b></div><div><i>템포</i><b>${fmtPace(z.T)}</b></div><div><i>인터벌</i><b>${fmtPace(z.I)}</b></div></div><div class="meta" style="margin-top:6px">${cbKeep()&&typeof VDOT!=='undefined'&&VDOT>0?`VDOT ${VDOT.toFixed(1)} · 지금 내 훈련 속도 그대로${CB.useAsVdot?' (대회·측정 기록이 있어 바꾸지 않음)':''}`:`VDOT ${vd.toFixed(1)} · Daniels`}</div>`:`<div class="meta" style="margin-top:6px">1km 페이스 → 훈련 속도 (2:00~15:00)</div>`; }
 function cbWire(){
   const host=$('decBody');
   host.querySelector('[data-cb="back"]').onclick=()=>{ if(CB.step===1){ goalStart(); return; } CB.step--; cbRender(); };
@@ -15652,7 +15656,7 @@ function cbBuild(){
   const days=DOW.filter(d=>CB.week[d]!=null);
   const base=cbWeekKm(1);
   return {made:new Date().toISOString(),start,weeks:4,base:+base.toFixed(1),goal:{kind:'custom',perKm:CB.pace,paceKind:CB.paceKind,date:addDays(mon,27)},ladder:null,
-    why:[`직접 세운 계획 — 1km ${fmtPace(CB.pace)}(${CB.paceKind==='race5k'?'5km 대회·TT':'편한 페이스'})`,`주 ${days.length}회(${days.join('·')}) · 주간 비율 ${CB.scale.join('·')}%.`,CB.useAsVdot?`VDOT도 이 페이스 기준`:`VDOT 유지 — 기존 존·속도`],
+    why:[`직접 세운 계획 — 1km ${fmtPace(CB.pace)}(${CB.paceKind==='race5k'?'5km 대회·TT':'편한 페이스'})`,`주 ${days.length}회(${days.join('·')}) · 주간 비율 ${CB.scale.join('·')}%.`,cbKeep()?`VDOT 유지 — 기존 존·속도`:`VDOT도 이 페이스 기준`],
     days,sessions:out};
 }
 function cbSave(){
