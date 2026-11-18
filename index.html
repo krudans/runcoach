@@ -2552,7 +2552,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.20';
+const APPVER='21.21';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4739,8 +4739,14 @@ function paintUndo(){ const b=$('plUndo'); if(!b)return; const pv=DEV.store.get(
   if(!b.hidden){ const d=new Date(pv.at); b.textContent=`직전 일정 복원 (${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} 변경)`; } }
 if($('plUndo'))$('plUndo').onclick=async()=>{ const pv=DEV.store.get('planPrev',null); if(!pv||!pv.plan)return;
   if(!(await ask('이전 일정으로 되돌릴까요?\n지금 일정은 보관돼요','되돌리기')))return;
-  const cur=PLAN, cg=GOAL; PLAN=pv.plan; DEV.store.set('plan',PLAN); if(pv.goal){ GOAL=pv.goal; DEV.store.set('goal',GOAL); }
-  DEV.store.set('planPrev',{at:new Date().toISOString(),plan:cur,goal:cg});
+  /* 되돌릴 목표는 그 일정에 적힌 목표다 — 전엔 따로 보관한 목표(pv.goal)를 썼는데, 보관하는 순간 이미 새 목표로 바뀐 뒤라 일정만 옛것으로 돌아가고 목표·목표 목록은 새것 그대로였다
+     (일정 머리 '풀코스 3:59:00'인데 목표 목록은 '진행 중 10km 50:00 · 잠시 멈춤 풀코스', 2026-11-18 시험). 목표 목록도 같이 돌린다 */
+  const cur=PLAN, cg=GOAL, rg=(pv.plan&&pv.plan.goal)||pv.goal||null;
+  try{ if(rg&&!goalSame(GOAL,rg))glogPush(rg,pv.plan); }catch(e){ console.warn('undo glog',e); }   /* 지금 목표는 '잠시 멈춤'(지금 일정을 같이 보관), 되돌릴 목표는 다시 '진행 중' */
+  PLAN=pv.plan; if(rg){ GOAL=JSON.parse(JSON.stringify(rg)); DEV.store.set('goal',GOAL); }
+  try{ planFix(PLAN); }catch(e){}   /* 그 사이 신청한 대회가 있으면 되돌린 일정에도 넣는다 */
+  DEV.store.set('plan',PLAN);
+  DEV.store.set('planPrev',{at:new Date().toISOString(),plan:cur,goal:(cur&&cur.goal)||cg});
   (PLAN.sessions||[]).forEach(refreshEasyPaces); BLOCK=mergeCustom(PLAN.sessions); try{ if(FB.user)FB.sync().catch(()=>{}); }catch(e){}
   renderHome(); renderPlan(); toast('직전 일정 복원됨'); };
 if($('plPaste'))$('plPaste').onclick=()=>{ PSRES=null; psRender(); show('paste'); };
