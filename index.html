@@ -1386,7 +1386,7 @@ html[data-theme="dark"] #run[data-state="fast"],html[data-theme="dark"] #run[dat
 html[data-theme="dark"] #run[data-state="slow"]{--rbg:#3F2C8C}
 html[data-theme="dark"] .rm-seg.pass b{color:#0B0B0D}
 /* 카카오 지도 바탕 그림 — 밝기만 뒤집는다(경로·표시는 그대로) */
-html[data-theme="dark"] .rmap img[src*="daumcdn"],html[data-theme="dark"] .rmap img[src*="kakao"]{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.92)}
+html[data-theme="dark"] .rmap img[src*="daumcdn"],html[data-theme="dark"] .rmap img[src*="kakao"],html[data-theme="dark"] .kmini img[src*="daumcdn"],html[data-theme="dark"] .kmini img[src*="kakao"]{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.92)}
 html[data-theme="dark"] .st-mv>svg{filter:invert(1) hue-rotate(180deg)}   /* 운동법 동작 그림(검은 선) */
 html[data-theme="dark"] .cd.r{background:repeating-linear-gradient(135deg,#231A33 0 4px,#1A1426 4px 8px)}
 html[data-theme="dark"] .mc-zb em,html[data-theme="dark"] .gw-z{color:#0B0B0D}   /* 존 색 칩 — 밝힌 존 색 위에는 검은 글자가 더 잘 보인다 */
@@ -2757,7 +2757,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.47';
+const APPVER='21.48';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10720,7 +10720,7 @@ function todayResultCard(r,sess){
     ${contCan(r,sess)?`<button type="button" class="btn" data-tcont="${r.rid}" style="margin:10px 0 0">이어서 뛰기 · 남은 ${fmtKm1(contLeft(r))}km</button>
       ${todayRuns().filter(x=>x!==r&&!x.contOf&&x.planId!==sess.d&&(x.type==='free'||/^free-/.test(String(x.planId||'')))).map(x=>`<button type="button" class="btn ghost" data-tattach="${x.rid}" data-to="${r.rid}" style="margin:8px 0 0">${String(ldate(x.date)).slice(11,16)} 프리런 ${(+x.km).toFixed(1)}km를 이 훈련에 이어 붙이기</button>`).join('')}`:''}
     <button type="button" class="tr-go" data-tres="${r.rid}">결과 ›</button>
-    <div class="tr-links">${snapBtn('.tres','result','오늘 결과')}${sess&&!linked&&!RUNS.some(x=>x.planId===sess.d)?`<button type="button" data-tlink="${r.rid}">오늘 훈련으로 기록</button>`:''}<button type="button" data-tstr="1">스트레칭</button><button type="button" data-redit="${r.rid}">기록 수정</button>${sess?`<button type="button" id="goAgain">다시 뛰기</button>`:''}</div>
+    <div class="tr-links">${snapBtn('.tres','result','오늘 결과')}${sess&&!linked&&!RUNS.some(x=>x.planId===sess.d)&&(+r.km||0)>=0.5&&(+r.sec||0)>=120?`<button type="button" data-tlink="${r.rid}">오늘 훈련으로 기록</button>`:''}<button type="button" data-tstr="1">스트레칭</button><button type="button" data-redit="${r.rid}">기록 수정</button>${sess?`<button type="button" id="goAgain">다시 뛰기</button>`:''}</div>
   </section>`;
 }
 document.addEventListener('click',e=>{
