@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.57';
+const APPVER='21.58';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4503,8 +4503,21 @@ try{ if(!DEV.store.get('distFix1',false)&&PLAN&&PLAN.sessions){ const t=todayStr
   if(n){ DEV.store.set('dist',DIST); DEV.store.set('distFixN',n); } DEV.store.set('distFix1',true); } }catch(e){}
 /* 기록 시각은 toISOString(UTC)으로 저장된다. 앞 10글자를 그대로 쓰면 한국 오전 9시 전 기록이 전날로 잡힌다.
    시간대가 붙은 값은 이 기기의 현지 날짜로, 붙지 않은 값(직접 입력 'YYYY-MM-DDTHH:MM')은 그대로. */
+/* 해외에서도 날짜가 바뀌지 않게(2026-11-19) — 전엔 '지금 폰의 시간대'로 바꿔서, 파리에서 일요일 밤에 뛴 기록이 한국에 오면 월요일(다음 주)로,
+   한국 월요일 아침 기록이 유럽에서는 일요일로 보였다.
+   · 새 기록은 뛴 곳의 현지 시각을 시간대와 함께 적는다(isoLocal, 예: 2026-11-22T23:30:00.000+01:00) → 적힌 날짜·시각을 그대로 쓴다
+   · 옛 기록(UTC 'Z')은 이 판을 처음 켠 때의 시간대('집 시간대', rc_tzHome)로 — 여행 중에 폰 시간대가 바뀌어도 그대로 */
+const TZ_HOME=(()=>{ try{ let v=localStorage.getItem('rc_tzHome'); if(v==null||!isFinite(+v)){ v=String(-new Date().getTimezoneOffset()); localStorage.setItem('rc_tzHome',v); } return +v; }catch(e){ return -new Date().getTimezoneOffset(); } })();
+function isoLocal(d){ d=d instanceof Date?d:new Date(d); const o=-d.getTimezoneOffset(), a=Math.abs(o);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${String(d.getMilliseconds()).padStart(3,'0')}${o<0?'-':'+'}${pad(Math.floor(a/60))}:${pad(a%60)}`; }
+/* 기록 시각의 '벽시계' — 날짜·시각을 보여 줄 때만 쓴다(시간 차이 계산은 new Date 그대로) */
+function lwhen(v){ const s=String(v||''), m=s.match(/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)(?::(\d\d))?/);
+  if(m&&/[+-]\d\d:?\d\d$/.test(s))return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0));
+  if(/[zZ]$/.test(s)){ const t=Date.parse(s); if(isFinite(t)){ const u=new Date(t+TZ_HOME*60000); return new Date(u.getUTCFullYear(),u.getUTCMonth(),u.getUTCDate(),u.getUTCHours(),u.getUTCMinutes(),u.getUTCSeconds()); } }
+  const d=new Date(s); return d; }
 function ldate(v){ const s=String(v||'');
-  if(/[zZ]$|[+-]\d\d:?\d\d$/.test(s)){ const d=new Date(s); if(!isNaN(d)) return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  if(/[+-]\d\d:?\d\d$/.test(s)&&/^\d{4}-\d\d-\d\d/.test(s))return s.slice(0,10);   /* 적힌 현지 날짜 그대로 */
+  if(/[zZ]$/.test(s)){ const d=lwhen(s); if(!isNaN(d)) return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
   return s.slice(0,10); }
 const dowOf=ds=>{const[y,m,d]=ds.slice(0,10).split('-').map(Number);return '일월화수목금토'[new Date(y,m-1,d).getDay()];};
 const runName=()=>{const h=new Date().getHours();
@@ -6497,7 +6510,7 @@ function renderSummary(completed){
     cv.textContent=`상한(${fmtPace(s.ceiling)}) 초과 ${fmtClock(S.ceilSec)}${hrJ?' — 심박으로 판정':''}`;}
   else cv.hidden=true;
 
-  S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:new Date(S.t0||Date.now()).toISOString(),name:runName(),title:s.t,type:s.type,
+  S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:isoLocal(new Date(S.t0||Date.now())),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
     hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,
     gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
@@ -8360,7 +8373,7 @@ function parseTrackFile(txt,name){
   if(!(km>0.4))return null;
   const ts=pts.map(p=>p.t).filter(isFinite);
   const dur=ts.length>1?Math.round((Math.max(...ts)-Math.min(...ts))/1000):0;
-  const date=ts.length?new Date(Math.min(...ts)).toISOString():new Date().toISOString();
+  const date=isoLocal(ts.length?new Date(Math.min(...ts)):new Date());
   /* 오르막·내리막 — 3m 넘게 바뀌었을 때만 센다(고도 잡음) */
   let asc=0, desc=0, base=null;
   pts.forEach(p=>{ if(p.alt==null)return; if(base==null){base=p.alt;return;}
@@ -10495,7 +10508,7 @@ function rlogOpen(add){
 function manOpen(pid){
   const sx=BLOCK.find(x=>x.d===pid); if(!sx)return;
   const sh=$('manSheet'), b=$('manBody'), ds=sx.d.slice(0,10), T=TYPES[sx.type]||{}, km=DIST[sx.d]||sx.dist||0;
-  const hrs=RUNS.map(r=>r.hour!=null?r.hour:new Date(r.date).getHours()).filter(x=>x>=0), hh=hrs.length?hrs.sort((a,c)=>a-c)[hrs.length>>1]:7;
+  const hrs=RUNS.map(r=>r.hour!=null?r.hour:lwhen(r.date).getHours()).filter(x=>x>=0), hh=hrs.length?hrs.sort((a,c)=>a-c)[hrs.length>>1]:7;
   b.innerHTML=`<div class="man-plan"><i style="background:${(LOOK[sx.type]||LOOK.free).bg}">${symSVG(sx.type)}</i><div><b>${+ds.slice(5,7)}.${+ds.slice(8,10)} ${dowOf(ds)} · ${ESC(termify(sx.t||T.nm||''))}</b><span>계획 ${fmtKm1(km)}km</span></div></div>
     <div class="rl-form">
       <div class="rl-row"><label>시작 시각<input type="time" id="manTm" value="${pad(hh)}:00"></label><label>거리 (km)<input type="number" id="manKm" inputmode="decimal" step="0.01" min="0.5" max="100" value="${km?(+km).toFixed(2):''}"></label></div>
@@ -10517,7 +10530,7 @@ function manOpen(pid){
     if(!(t>=120))return toast('걸린 시간을 넣어 주세요');
     const pc=t/k; if(pc<150)return toast('1km '+fmtPace(pc)+' — 너무 빨라요 · 거리·시간 확인'); if(pc>1200)return toast('1km 20분보다 느려요 · 거리·시간 확인');
     const dt=new Date(ds+'T'+tm+':00'), hr=+$('manHr').value;
-    const r={rid:'man-'+Date.now(),date:dt.toISOString(),km:+k.toFixed(2),sec:t,dur:t,type:sx.type,planId:sx.d,planKm:km||null,title:sx.t||'',act:'run',
+    const r={rid:'man-'+Date.now(),date:isoLocal(dt),km:+k.toFixed(2),sec:t,dur:t,type:sx.type,planId:sx.d,planKm:km||null,title:sx.t||'',act:'run',
       paceAvg:Math.round(pc),hrAvg:hr>=60&&hr<=230?Math.round(hr):null,hour:dt.getHours(),note:String($('manNote').value||'').trim().slice(0,80),
       src:'manual',manual:true,track:[],_saved:true};
     RUNS.push(r); RUNS.sort((a,c)=>String(a.date).localeCompare(String(c.date))); DEV.store.set('runs',RUNS);
@@ -11423,7 +11436,7 @@ function badges(){
   const tot=RUNS.filter(isRun).reduce((a,r)=>a+(r.km||0),0);
   const best=Math.max(DEV.store.get('bestStreak',0),promiseStreak());
   const h=PROF.vhist||[], up=h.length>=2?h[h.length-1].v-h[0].v:0;
-  const early=RUNS.filter(r=>r.hour!=null?r.hour<8:new Date(r.date).getHours()<8).length;
+  const early=RUNS.filter(r=>r.hour!=null?r.hour<8:lwhen(r.date).getHours()<8).length;
   return [
     {k:'rest',n:'참은 날',d:'쉬는 날 5번 지킴',c:'#2BAF86',ico:'☾',cur:restKept,need:5},
     {k:'streak7',n:'약속 7번',d:'7번 연속 지킴',c:'#E8892B',ico:'🔥',cur:best,need:7},
@@ -12005,7 +12018,7 @@ function renderResult(host,r,s,opt){
   const reps=(r.segments||[]).filter(g=>g.hard&&g.pace);
   const tgt=repTargetOf(r,s);
   const cu=cadUsual();
-  const dt=new Date(r.date);
+  const dt=lwhen(r.date);
   const SG=r.segments||[], sp0=()=>(r.splits||[]).filter(x=>x&&isFinite(x.pace));
   const sgKind=g=>g.hard?'main':/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm||'')?'rest':/웜업|준비|도입|쿨다운|마무리|출발/.test(g.nm||'')?'wc':'main';
   /* 차이 = 목표 범위의 가까운 끝과 비교(뛰는 화면 'N초 빠름'·1km 음성과 같은 기준). 범위 안이면 0 — 가운데 값과 빼면 같은 구간이 화면마다 다른 초가 된다 */
@@ -12080,7 +12093,7 @@ function patternOf(r,kind){
   if(same.length<3)return '';
   const k=same.map(x=>promiseRows(x,{dist:x.planKm||x.km/(x.distRatio||1),ceiling:x.ceiling,repTarget:null}).kind);
   if(!k.every(v=>v===kind))return '';
-  const hrs=same.map(x=>x.hour!=null?x.hour:new Date(x.date).getHours());
+  const hrs=same.map(x=>x.hour!=null?x.hour:lwhen(x.date).getHours());
   const when=hrs.every(h=>h>=21)?' 모두 <b>저녁 9시 이후</b>였습니다.':hrs.every(h=>h<8)?' 모두 <b>아침 8시 전</b>이었습니다.':'';
   const what={fast:'쉬운 날을 빠르게',spread:'뒤 회차가 늦어지는',short:'거리를 못 채우는',slow:'목표보다 늦는',hr:'심박이 높은'}[kind]||'';
   return what?`같은 훈련 <b>3연속 ${what}</b> 쪽 이탈.${when} 패턴 ${GRB('D')}`:'';
@@ -12156,7 +12169,7 @@ function drawShare(cv){
   const STK=!light;
   const T2=(t,X,Y)=>{ if(STK){ x.save(); x.shadowBlur=0; x.lineJoin='round'; x.lineWidth=Math.max(5,(+((x.font.match(/(\d+)px/)||[])[1]||40))/7); x.strokeStyle='rgba(30,15,42,.85)'; x.strokeText(t,X,Y); x.restore(); } x.fillText(t,X,Y); };
   x.fillStyle='#fff'; x.shadowColor=light?'transparent':'rgba(0,0,0,.45)'; x.shadowBlur=light?0:18;
-  const dt=new Date(r.date);
+  const dt=lwhen(r.date);
   const kindNm=(r.act&&r.act!=='run'&&ACTK[r.act])?ACTK[r.act].nm:(T.nm||'달리기');
   x.font=F('700',40); T2(`${dt.getFullYear()}.${dt.getMonth()+1}.${dt.getDate()} · ${kindNm}`,72,120);
   x.font=F('900',64); T2(String((r.act&&r.act!=='run'&&ACTK[r.act])?actTitle(r):(r.title||'')).slice(0,22),72,200);
@@ -12286,7 +12299,7 @@ function openRunView(rid,back,_l){
 /* 걷기·자전거·등산 제목 — '기록 고치기'에서 바꾼 제목을 결과·기록 목록·공유 그림 모두 같이 쓴다 (전엔 공유 그림만 바뀐 제목, 나머지는 '걷기 기록'·'걷기') */
 function actTitle(r){ const a=ACTK[r&&r.act]||ACTK.walk, t=String((r&&r.title)||'').trim(); return t&&t!==a.nm?t:`${a.nm} 기록`; }
 function renderActResult(host,r){
-  const a=ACTK[r.act]||ACTK.walk, dt=new Date(r.date);
+  const a=ACTK[r.act]||ACTK.walk, dt=lwhen(r.date);
   const kmh=r.sec>0?(r.km/(r.sec/3600)):0;
   /* 설정 › 등산 기록(시간만)으로 넣은 것 — 거리·오른 높이는 잰 적이 없다. 예전엔 '+0 m 오른 높이 · 0.00 km · 시간당 0m'로 보였다 */
   const tOnly=!!r.manual&&!(r.km>0)&&!(r.track&&r.track.length);
@@ -12561,7 +12574,7 @@ function timeStats(){
   const es=RUNS.filter(r=>isRun(r)&&['easy','long','recovery','free'].includes(r.type)&&r.hrAvg&&r.paceAvg&&r.km>=2);
   if(es.length<4)return null;
   const hs=es.map(r=>r.hrAvg).sort((a,b)=>a-b), ref=hs[Math.floor(hs.length/2)];
-  const g={}; es.filter(r=>Math.abs(r.hrAvg-ref)<=5).forEach(r=>{ const h=r.hour!=null?r.hour:new Date(r.date).getHours(), k=hourGroup(h);
+  const g={}; es.filter(r=>Math.abs(r.hrAvg-ref)<=5).forEach(r=>{ const h=r.hour!=null?r.hour:lwhen(r.date).getHours(), k=hourGroup(h);
     (g[k]=g[k]||[]).push(r); });
   const out=Object.entries(g).map(([k,a])=>({k,n:a.length,pace:a.reduce((s,r)=>s+r.paceAvg,0)/a.length,hr:a.reduce((s,r)=>s+r.hrAvg,0)/a.length,
     dow:(()=>{ const c={}; a.forEach(r=>{ const d=dowOf(ldate(r.date).slice(0,10)); c[d]=(c[d]||0)+1; }); return Object.entries(c).sort((x,y)=>y[1]-x[1])[0][0]; })()}));
@@ -12972,7 +12985,7 @@ function logSkill(){
       p:`마지막 회 10초↑ 느림${fastStart.length?` 첫 회차 과속 ${fastStart.length}번`:''}`}); }
   const E=RUNS.filter(r=>['easy','recovery'].includes(r.type)&&r.ceilRatio!=null).slice(-10);
   if(E.length>=4){ const over=E.filter(r=>r.ceilRatio>((r.th||{}).ceil||0.1));
-    if(over.length>=2){ const hrs=over.map(r=>r.hour!=null?r.hour:new Date(r.date).getHours());
+    if(over.length>=2){ const hrs=over.map(r=>r.hour!=null?r.hour:lwhen(r.date).getHours());
       cards.push({up:false,n:E.length,t:'쉬운 날 상한 넘기',big:`${E.length}번 중 ${over.length}번`,p:`약속보다 빠름 잦음${hrs.every(x=>x>=21)?' 모두 <b>저녁 9시 이후</b>였습니다.':hrs.every(x=>x<8)?' 모두 <b>아침</b>이었습니다.':''}`}); } }
   const up=cards.filter(c=>c.up), dn=cards.filter(c=>!c.up);
   if(!cards.length) h+=RUNS.length<4?`<div class="lcard">${needBar(RUNS.length,4,'기록이')}</div>`:`<div class="lcard"><div class="bt">좋아지는 것 · 고칠 것</div><div class="small">비교 불가 — 같은 종류 3회+ 필요</div></div>`;
@@ -13024,7 +13037,7 @@ function logList(){
   { const [a,b]=perRange(); items=items.filter(x=>{ const d=ldate(x.r.date).slice(0,10); return d>=a&&d<=b; }); }
   const total=items.length, shown=Math.min(total,LOGN), ymBar='';
   const rows=items.slice(0,shown).map(({r,k})=>{
-    const d=new Date(r.date), when=`${d.getMonth()+1}/${d.getDate()} ${dowOf(ldate(r.date).slice(0,10))}`;
+    const d=lwhen(r.date), when=`${d.getMonth()+1}/${d.getDate()} ${dowOf(ldate(r.date).slice(0,10))}`;
     if(k==='rest') return `<div class="li"><div class="map rest">☾</div><div class="m"><b>쉬는 날</b> <span class="s">· ${when}</span><div class="tg"><span class="tchip3" style="background:#9C8AD8">${tm('off')}</span>${r.m.norun?'<span class="chip g">참음 ✓</span>':''}</div>
       <div class="s">${MIS_ALL().filter(x=>r.m[x.k]).map(x=>x.s).join(' · ')}</div></div></div>`;
     if(k!=='run'){ const a=ACTK[k]||ACTK.walk;
