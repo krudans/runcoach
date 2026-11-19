@@ -2757,7 +2757,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.52';
+const APPVER='21.53';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10745,7 +10745,7 @@ document.addEventListener('click',e=>{
    예전엔 건너뛰기를 골라도 '못 한 날' 물음만 사라지고 홈·플랜에는 평소처럼 '오늘 훈련 ▶ 시작'으로 남아, 정한 것이 반영되지 않은 것처럼 보였다. 홈 카드와 플랜 줄이 이 하나를 본다 */
 const skippedDay=ds=>MISSSEEN[String(ds).slice(0,10)]==='skip';
 /* 대회 날 칸의 대회 정보 — 이름·공인 거리·목표 기록(있으면). 홈 카드·시작 음성·뛰는 화면·결과가 같은 값을 쓴다 */
-function raceInfo(s){ try{ const rc=s&&s.race; if(!rc||!rc.m)return null; const sec=rc.goal?((typeof GOAL!=='undefined'&&GOAL&&GOAL.sec)||null):((uprAll().find(x=>x.id===rc.id)||{}).sec||null);
+function raceInfo(s){ try{ const rc=s&&s.race; if(!rc||!rc.m)return null; const sec=rc.goal?((typeof GOAL!=='undefined'&&GOAL&&GOAL.sec&&(!GOAL.m||GOAL.m===rc.m))?GOAL.sec:null):((uprAll().find(x=>x.id===rc.id)||{}).sec||null);
   return {name:rc.name||'대회',m:rc.m,sec:sec||null,pace:sec?sec/(rc.m/1000):null}; }catch(e){ return null; } }
 function todayCard(sess,idx){
   const T=TYPES[sess.type]||{}, g0=GL[sess.type]||{e:'뛰기',t:''}, adj=ADJ[sess.type]||0;
