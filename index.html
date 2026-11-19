@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.61';
+const APPVER='21.63';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6669,7 +6669,11 @@ function commitRun(){
     if(after&&after!==before) S.result.learnNote=`${LEARN.n}회 기록 → 천천히 ${fmtPace(PACE.easy[0])}~${fmtPace(PACE.easy[1])}`;
     if(S.result.learnNote)DEV.store.set('runs',RUNS);
   }catch(e){ console.error(e); }
-  if(FREE_INSTEAD&&S.result.type==='free'){ S.result.planId=FREE_INSTEAD; S.result.instead=true; FREE_INSTEAD=null; DEV.store.set('runs',RUNS); }
+  /* '오늘 계획 대체'는 고른 그날 뛴 프리런에만 — 전엔 고르고 안 뛰면 값이 남아, 며칠 뒤 프리런이 그 지난 날 계획을 '대체'했다 */
+  if(S.result.type==='free'){ const rd=ldate(S.result.date).slice(0,10);
+    if(FREE_INSTEAD&&FREE_INSTEAD.slice(0,10)===rd){ S.result.planId=FREE_INSTEAD; S.result.instead=true; DEV.store.set('runs',RUNS); }
+    if(FREE_DEC&&FREE_DEC.day===rd){ try{ const a=FREE_DEC.a.slice(); a[4]=Object.assign({},a[4],{ref:S.result.rid}); decLog(...a); }catch(e){} }
+    FREE_INSTEAD=null; FREE_DEC=null; }
   /* 테스트 러닝이면 새 기준 후보(적용은 '확인' 뒤 결과 시트에서 고른다) */
   S._post.bc=basisFromTT(S.result);
   /* 신청한 대회 날 뛴 기록 → 대회 기록(러닝일지)에 넣고, 실력 기준으로 쓸지 TT처럼 묻는다. 거리는 대회 공인 거리, 시간은 뛴 시간 — 공인 거리의 95% 이상 뛰었을 때만 */
@@ -7641,7 +7645,7 @@ const FB={
   canon(v){ const f=x=>Array.isArray(x)?x.map(f):(x&&typeof x==='object')?Object.keys(x).sort().reduce((o,k)=>{ o[k]=f(x[k]); return o; },{}):x; return JSON.stringify(f(v)); },
   mergeSet(kind,loc,cl,cloudNewer){ const older=cloudNewer?loc:cl, newer=cloudNewer?cl:loc;
     if(kind==='list'){ const by={}, key=x=>x&&(x.id||(x.d+'|'+x.kind+'|'+x.title));
-      older.forEach(x=>{ const k=key(x); if(k)by[k]=x; }); newer.forEach(x=>{ const k=key(x); if(k)by[k]=x; });
+      older.forEach(x=>{ const k=key(x); if(k)by[k]=x; }); newer.forEach(x=>{ const k=key(x); if(!k)return; const p=by[k]; by[k]=(p&&p.del&&!(x&&x.del))?p:x; });   /* 한쪽에서 지운 결정은 지운 채로 — 다른 폰 목록이 더 새것이어도 되살리지 않는다 */
       return Object.values(by).sort((a,b)=>String(a.d||'').localeCompare(String(b.d||''))).slice(-150); }
     return Object.assign({},older,newer); },
   /* 동기화 장부 — 계정마다. 이미 올린 기록의 지문(h), 마지막으로 받은 시각(pullAt), 클라우드에서 지운 표(dd).
@@ -7857,8 +7861,12 @@ function reloadLocals(){
   recalcProfile(); recalcTypes(); BLOCK=loadPlan();
 }
 /* 기록을 지우면 클라우드에서도 지워야 한다 — 지운 표를 남겨둔다 */
+/* 결정 지우기 — 목록에서 빼되 표시(del)는 남긴다. 그냥 빼면 다른 폰과 합칠 때 되살아난다. 자세한 내용(snap)은 지운다 */
+function decDel(ids){ let n=0; DECS.forEach(d=>{ if(ids.includes(d.id)&&!d.del){ d.del=true; d.delAt=Date.now(); delete d.snap; n++; } }); if(n)DEV.store.set('decs',DECS); return n; }
 function markDeleted(rid){
   if(!rid)return;
+  /* 그 기록에서 나온 결정(뛴 뒤 돌아보기·프리런 따로 기록 등)도 함께 지운다 — 시험으로 뛴 기록을 러닝일지에서 지우면 결정도 남지 않게 */
+  try{ decDel(DECS.filter(d=>d.ref===rid).map(d=>d.id)); }catch(e){}
   try{ TRK.del([rid]); }catch(e){}   /* 지운 기록의 경로도 */
   const d=DEV.store.get('del',[]); if(!d.includes(rid))d.push(rid);
   DEV.store.set('del',d.slice(-500));
@@ -9971,7 +9979,8 @@ function wireDec(host,o,done){
     const opt=o.opts.find(x=>x.k===o._sel);
     let msg=null; try{ msg=opt&&opt.apply?opt.apply():null; }catch(err){ console.error(err); }
     const recK=(o.opts.find(x=>x.rec)||{}).k||null;
-    decLog(o.kind||'misc', o.logTitle||o.title.replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(), o.logWhy||'', `${opt.k} · ${opt.t}`,
+    /* deferLog — 프리런 '따로 기록/계획 대체'는 실제로 뛰어 저장될 때 남긴다. 전엔 화면만 열어 봐도 '지난 결정'에 쌓였다(실제 기기 2026-11-19: 시험으로 세 번 → 결정 3개, 기록 없음) */
+    (o.deferLog?((...a)=>{ FREE_DEC={day:todayStr(),a}; }):decLog)(o.kind||'misc', o.logTitle||o.title.replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(), o.logWhy||'', `${opt.k} · ${opt.t}`,
       Object.assign({rec:recK, mine:recK!==opt.k,
         snap:{kicker:o.kicker||'', title:o.title, rows:o.rows||[], rowsLabel:o.rowsLabel||'', verdict:o.verdict?o.verdict.t:'',
           say:o.say||'', ev:o.ev||[], pattern:o.pattern||'', opts:o.opts.map(x=>({k:x.k,t:x.t,d:x.d||'',tags:x.tags||[]})), chose:opt.k}},
@@ -10394,7 +10403,7 @@ function actTiles(){
 function startAct(k){
   if(k==='run'){ ACT_MODE=null; const t=todayStr(), s=planOn(t);
     if(s&&!RUNS.some(r=>r.planId===s.d)){
-      return openDec({kind:'free',kicker:'프리런',title:`오늘 계획 있음`,
+      return openDec({kind:'free',deferLog:true,kicker:'프리런',title:`오늘 계획 있음`,
         rows:[['오늘 계획',ESC(s.t)]],
         say:'기록만 · 계획 대체/별도 선택',
         opts:[{k:'A',t:'따로 기록',rec:true,d:'계획 유지',apply:()=>{ setTimeout(()=>{FREE_MODE=true;openConfirm(-1);},60); return null; }},
@@ -10407,7 +10416,7 @@ function startAct(k){
   ACT_MODE=k; FREE_MODE=true;
   openConfirm(-1);
 }
-let ACT_MODE=null, FREE_INSTEAD=null;
+let ACT_MODE=null, FREE_INSTEAD=null, FREE_DEC=null;
 
 /* ══════════ 새 홈 — 오늘 할 일은 그림으로, 목표·발전·약속·양·배지는 각자 한 장씩 ══════════ */
 
@@ -11579,8 +11588,9 @@ function decT(t){ return String(t||'').replace(/,(?=[가-힣])/g,', ').replace(/
   .replace(/^안정 심박평소/,'안정 심박 평소').replace(/^같은 속도심박/,'같은 속도 심박').replace(/km로(늘리|줄이)/,'km로 $1').replace(/에더 빠름$/,'에 더 빠름').replace(/^다음 쉬운 날(호흡|발걸음)/,'다음 쉬운 날 $1'); }
 function renderDecLog(hostIn,lim){
   const host=hostIn||$('alDone'); if(!host)return;
-  if(!DECS.length){ host.innerHTML='<div class="empty">결정 없음<br>결정 시 저장</div>'; return; }
-  const all=DECS.slice().reverse(), n=lim||(window.DECLIM||10);
+  const LIVE=DECS.filter(x=>!x.del);   /* 지운 결정(del)은 다른 폰에서 되살아나지 않게 표시만 남긴다 */
+  if(!LIVE.length){ host.innerHTML='<div class="empty">결정 없음<br>결정 시 저장</div>'; return; }
+  const all=LIVE.slice().reverse(), n=lim||(window.DECLIM||10);
   host.innerHTML=`<div class="meta" style="margin:4px 2px 10px">최근순 · 탭 → 이유·결과</div>`+
     all.slice(0,n).map(dc=>{ const r=decResult(dc);
       const mine=dc.mine!=null?dc.mine:dc.kind==='goal'?!/앱 제안대로/.test(dc.choice):!(dc.rec&&dc.choice.startsWith(dc.rec));
@@ -13095,7 +13105,7 @@ function renderReview(mon){
   if(!v.n){ $('rvOut').innerHTML='<div class="empty">일정 없음</div>'; return; }
   const easy=v.rows.filter(x=>x.r&&['easy','recovery','long'].includes(x.s.type)), easyOk=easy.filter(x=>x.v===true).length;
   const hard=v.rows.filter(x=>x.r&&x.s.segs&&x.s.segs.some(g=>g.hard)), hardOk=hard.filter(x=>x.v===true).length;
-  const decs=DECS.filter(d=>ldate(d.d)>=mon&&ldate(d.d)<addDays(mon,7));
+  const decs=DECS.filter(d=>!d.del&&ldate(d.d)>=mon&&ldate(d.d)<addDays(mon,7));
   const decH=decs.length?`<div class="dl">지난주 결정 · 결과</div><div class="dbox say">${decs.map(d=>{ const r=decResult(d);
       return `<div style="padding:4px 0"><b>${dowOf(ldate(d.d))}요일 · ${ESC(d.choice)}</b><br><span style="font-size:12px">${ESC(decT(d.title))}${r?' → '+ESC(r):' → 결과 없음'}</span></div>`; }).join('')}</div>`:'';
   const acts={grow:['예정대로 계속','조금 늘림'],repeat:['같은 양 한 주 더','늘리지 않음'],shrink:['뛴 양에 맞춰 줄이기','지킬 수 있는 양'],easier:['빠른 날 1개 줄이기','힘든 날 −1']};
@@ -13257,8 +13267,11 @@ function openDecDetail(id,back){
       ${sn&&sn.ev.length?`<div class="dl">근거</div><div class="dbox say"><ul class="whyl">${sn.ev.map(e=>`<li>${GRB(e[0])} ${e[1]}</li>`).join('')}</ul></div>`:''}
       <div class="dl">결과</div><div class="dbox say">${r?ESC(r):'훈련 후 결과'}</div>`;
   }
+  if(dc.id&&!dc.del) h+=`<button type="button" class="btn ghost" data-dd="del" style="margin-top:14px;color:var(--alarm)">이 결정 지우기</button>`;
   const host=$('decBody'); host.innerHTML=h;
-  host.onclick=e=>{ const b=e.target.closest('[data-dd]'); if(!b)return;
+  host.onclick=async e=>{ const b=e.target.closest('[data-dd]'); if(!b)return;
+    if(b.dataset.dd==='del'){ if(!(await askSheet({title:'이 결정을 지울까요?',danger:true,text:'지난 결정 목록에서 빠져요. 일정과 러닝 기록은 그대로예요. 되돌릴 수 없어요.',yes:'지우기',no:'취소'})))return;
+      decDel([dc.id]); toast('결정 지움'); go(back==='home'?'home':'alerts'); return; }
     if(b.dataset.dd==='back'){ if(back==='home'){ go('home'); return; } go('alerts'); }
     if(b.dataset.dd==='remake')goalStart(); };
   { const e=$('gcEdit'); if(e)e.onclick=()=>goalStart(); }
