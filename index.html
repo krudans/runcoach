@@ -1032,6 +1032,8 @@ details.noti .sigc{margin:6px 0}
 .rt{font-size:24px;font-weight:700;margin:6px 0 8px;letter-spacing:-.4px}
 .rmap{margin-top:12px;border-radius:20px;overflow:hidden;background:var(--map-bg,#EEF2EE);height:240px;position:relative}
 .rmap .rsvg{width:100%;height:100%}.rmap .kmap{width:100%;height:100%;pointer-events:none}.mf-map .rmap .kmap{pointer-events:auto}   /* 기록 화면의 지도는 손가락을 받지 않는다 — 지도 위에서 쓸어내리면 지도가 손가락을 가로채 화면이 안 내려갔다(실제 기기 2026-11-19). 크게 보기(mf-map)에서만 받는다 */
+.ft-box{margin:10px 0 0;padding:10px 12px;border:1px dashed var(--line);border-radius:14px}.ft-h{font-size:13px;font-weight:800}.ft-h small{font-weight:600;color:var(--ink-3);margin-left:4px}.ft-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}.ft-row select{height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:0 8px;font-size:14px}.ft-hms{display:flex;align-items:center;gap:3px}.ft-hms input{width:46px;padding:0;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-align:center;font-size:15px}.ft-hms i{font-style:normal;font-size:12px;color:var(--ink-3);margin-right:4px}
+.rp-t{margin:10px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.rp-h{font-size:12px;font-weight:800;color:var(--ink-2);margin-bottom:6px}.rp-r{display:grid;grid-template-columns:92px 60px 1fr;gap:6px;align-items:baseline;padding:4px 0;font-size:13px}.rp-r b{font-variant-numeric:tabular-nums}.rp-r i{font-style:normal;color:var(--ink-3);font-size:12px}.rp-n{font-size:11.5px;color:var(--ink-3);padding:0 0 2px 98px;line-height:1.45}
 .maplo{position:absolute;left:8px;bottom:8px;z-index:2;padding:4px 10px;border-radius:999px;background:rgba(20,20,22,.72);color:#fff;font-size:11px;font-weight:700}.perfln{margin:0 0 8px;font-size:11px;color:var(--ink-3);text-align:right;min-height:14px}
 .nomap{display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:var(--ink-3)}
 .kmk{background:var(--panel);border:1px solid #3A4A44;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
@@ -2757,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.54';
+const APPVER='21.55';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4538,8 +4540,11 @@ const parseTime=s=>{const p=String(s).trim().split(':').map(Number);
 
 /* 거리를 수정하면 마지막 구간이 늘거나 줄어든다.
    반복 세션은 쿨다운이 차이를 흡수하고, 너무 짧으면 전체를 비례 축소한다. */
+let FREE_TGT=null;   /* 프리런에서 고른 목표 {m,sec} — 뛰고 나면 비운다 */
 function sessionOf(i){
-  if(i<0)return FREE;
+  if(i<0){ if(FREE_TGT&&FREE_TGT.m){ const D=FREE_TGT.m/1000, lab=`${D>=42?'풀코스':D>=21?'하프':kmLab(D)}${FREE_TGT.sec?' '+fmtClock(FREE_TGT.sec):''}`;
+      return Object.assign({},FREE,{t:`프리런 · 목표 ${lab}`,dist:D,segs:[{to:D,nm:'목표 달리기',pace:null,tol:null}],race:{self:true,name:lab,m:FREE_TGT.m,sec:FREE_TGT.sec||null}}); }
+    return FREE; }
   if(CONT&&CONT.ix===i&&BLOCK[i])return contSess(BLOCK[i]);   /* 이어서 뛰기 — 남은 거리만 */
   const base=BLOCK[i]; if(!base)return base;
   if(base.rw&&!RUNS.some(r=>r.planId===base.d))return rwLive(base);
@@ -5135,10 +5140,22 @@ function openConfirm(i){
   if(tg)tg.onclick=()=>{ br.classList.toggle('open');
     tg.textContent=br.classList.contains('open')?'접기 ▴':'자세히 ▾'; };
   const host=$('cSegs'); host.innerHTML=''; let prev=0;
-  if(i<0){ host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">'+
-    '프리런 — 판정 없음</span></div>'; }
+  if(i<0){ const T0=FREE_TGT||{}, sc=T0.sec||0, D0=T0.m||0;
+    host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">프리런 — 판정 없음</span></div>'+
+      `<div class="ft-box"><div class="ft-h">목표 정하고 뛰기 <small>선택 · 거리와 목표 시간으로 구간 계획</small></div>
+        <div class="ft-row"><select id="ftM"><option value="0">목표 없음</option>${[[3000,'3km'],[5000,'5km'],[10000,'10km'],[21097,'하프'],[42195,'풀코스']].map(o=>`<option value="${o[0]}"${D0===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>
+        <span class="ft-hms"><input id="ftH" inputmode="numeric" maxlength="1" placeholder="0" value="${sc?Math.floor(sc/3600):''}"><i>시간</i><input id="ftMi" inputmode="numeric" maxlength="2" placeholder="00" value="${sc?String(Math.floor(sc%3600/60)).padStart(2,'0'):''}"><i>분</i><input id="ftS" inputmode="numeric" maxlength="2" placeholder="00" value="${sc?String(sc%60).padStart(2,'0'):''}"><i>초</i></span></div>
+        <div id="ftPlan">${FREE_TGT&&FREE_TGT.sec?rpTableHTML(racePlanOf(FREE_TGT.m,FREE_TGT.sec)):''}</div></div>`;
+    const upd=()=>{ const m=+$('ftM').value, g=id=>+String($(id).value||'').replace(/[^0-9]/g,'')||0, sec=g('ftH')*3600+g('ftMi')*60+g('ftS');
+      const okT=sec>=m/1000*150&&sec<=m/1000*900;   /* 1km 2분 30초~15분 */
+      FREE_TGT=m?{m,sec:okT?sec:null}:null;
+      { const s2=sessionOf(-1); $('cTitle').textContent=s2.t; $('cMeta').textContent=FREE_TGT&&FREE_TGT.sec?`${m===21097?'하프':m===42195?'풀코스':kmLab(m/1000)} · 목표 ${fmtClock(FREE_TGT.sec)} · 구간 계획대로 안내`:'기록만';
+        const k=document.querySelector('#cBrief .bi.key b')||[...document.querySelectorAll('.bi.key b')].find(x=>/목표/.test(x.textContent)); if(k)k.textContent=FREE_TGT&&FREE_TGT.sec?'목표 기록 — 구간 계획대로':'목표 없음 — 편한 대로'; }   /* 목표를 고르면 위 제목·목표 줄도 바꾼다 */
+      $('ftPlan').innerHTML=FREE_TGT&&FREE_TGT.sec?rpTableHTML(racePlanOf(m,FREE_TGT.sec)):(m&&sec?'<div class="rp-n" style="padding:6px 0 0">목표 시간을 다시 확인해요</div>':''); };
+    ['ftM','ftH','ftMi','ftS'].forEach(id=>{ const el=$(id); if(el){ el.oninput=upd; el.onchange=upd; } }); }
   else { const paintSegs=()=>{ host.innerHTML=planDetailHTML(s,adj,TDMODE,true);
-      host.querySelectorAll('[data-pdm]').forEach(b=>b.onclick=()=>{ TDMODE=b.dataset.pdm; paintSegs(); }); };
+      host.querySelectorAll('[data-pdm]').forEach(b=>b.onclick=()=>{ TDMODE=b.dataset.pdm; paintSegs(); });
+      try{ const RI=raceInfo(s); if(RI&&RI.pace)host.insertAdjacentHTML('beforeend',rpTableHTML(racePlanOf(RI.m,RI.sec))); }catch(e){} };
     paintSegs(); }
   const n=$('cNote'); if(s.note){n.textContent=s.note;n.hidden=false;}else n.hidden=true;
   paintDevNote(T);
@@ -5372,6 +5389,7 @@ async function startRun(){
   try{ if(warm!=null)DEV.geo.stop(warm); }catch(e){}
   if(!ok)return;
   S._fin=null; liveClear();
+  { const RI=raceInfo(s); S.rp=RI&&RI.pace?racePlanOf(RI.m,RI.sec):null; }   /* 구간 계획 — 대회 날·목표 정한 프리런 */
   Object.assign(S,{session:{...s,segs:(s.segs||[]).map(g=>({...g}))},T,adj,
     opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked},
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
@@ -5721,7 +5739,7 @@ function onTick(){
   else if(!S.extra){ const hrCap=(T.primary==='hr'&&T.hrZone&&T.hrZone[1])?T.hrZone[1]:null;
     $('rSegTgt').textContent = tg.hard ? `${tgPace?rangeText(tgPace)+' 로':'힘껏'} ${tg.end==='time'?fmtClock(tg.sec):''}`.trim()   /* 목표 속도 없는 빠른 구간(TT)은 '자유 로'가 아니라 '힘껏' */
       : tg.tol==='ceil' ? `${fmtPace(tgPace[0])}보다 천천히${hrCap?` · ♥${hrCap} 아래`:''}`
-      : !tgPace ? (hrCap?`♥${hrCap} 아래`:(raceInfo(s)?(raceInfo(s).pace?`대회 · 목표 1km ${fmtPace(raceInfo(s).pace)}`:'대회 · 내 페이스로'):'목표 없음 · 편한 대로'))   /* 목표 속도가 없는 구간(프리런) — 전엔 '자유 유지' */
+      : !tgPace ? (hrCap?`♥${hrCap} 아래`:(S.rp?`${rpPhase(S.rp,km)} · 1km ${fmtPace(rpPaceAt(S.rp,km))}`:raceInfo(s)?(raceInfo(s).pace?`대회 · 목표 1km ${fmtPace(raceInfo(s).pace)}`:'대회 · 내 페이스로'):'목표 없음 · 편한 대로'))   /* 목표 속도가 없는 구간(프리런) — 전엔 '자유 유지' */
       : hrCap ? `♥${hrCap} 아래 · ${rangeText(tgPace)}` : `${rangeText(tgPace)} 유지`; }
   /* 거리가 안 쌓이면 뛰는 도중에 바로 알려준다 — 90분 뒤에 알면 늦는다 */
   if(!S.gpsWarn&&S.elapsed>180&&km<((S.act==='hike'||S.act==='walk')?0.03:0.15)&&S.pts.length>60){   /* 가파른 등산은 3분에 100m도 안 갈 수 있다 */
@@ -6039,13 +6057,20 @@ function onTick(){
       else { vmsg+=`목표보다 ${d}초 느립니다. 속도를 올리세요. `; verdictTxt=`${d}초 느림`; }
       if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly&&!S.hrLocked)vmsg+=`심박은 ${vRo(lapHR)} 상한 ${HZ[1]}보다 높습니다. `;
       if(S.segIx===ls)msg+=vmsg;
-    } else if(s&&s.race&&!S.extra&&isFinite(lapPace)&&raceInfo(s)&&raceInfo(s).pace){
-      /* 대회 — 이번 1km를 목표 페이스와 견줘 한 문장(±10초 안이면 '목표 페이스대로'). 전엔 대회는 속도 안내가 없어, 풀코스 목표 5분 40초에 4분 40초로 뛰어도 아무 말이 없었다(모의 2026-11-19).
-         빠르면 '후반을 위해 조금 늦추세요'(마지막 2km는 빼고 — 막판 스퍼트), 느리면 사실만(뒤에서 무리하게 올리라고 하지 않는다). 수시 교정 음성은 그대로 없음 */
-      const P=raceInfo(s).pace, d=Math.round(lapPace-P), sv=n=>n>=60?`${Math.floor(n/60)}분${n%60?` ${n%60}초`:''}`:`${n}초`;   /* 62초 → 1분 2초 */
-      if(d<-10){ msg+=`목표 페이스 ${fmtPaceVoice(P)}보다 ${sv(-d)} 빠릅니다. ${leftK!=null&&leftK<=2?'':'후반을 위해 조금 늦추세요. '}`; verdictTxt=`목표보다 ${-d}초 빠름`; }
-      else if(d>10){ msg+=`목표 페이스 ${fmtPaceVoice(P)}보다 ${sv(d)} 느립니다. `; verdictTxt=`목표보다 ${d}초 느림`; }
-      else { msg+='목표 페이스대로입니다. '; verdictTxt='목표 페이스'; }
+    } else if(S.rp&&!S.extra&&isFinite(lapPace)){
+      /* 구간 계획 — 방금 1km를 그 구간 목표와 견주고(±10초 안 '계획 페이스대로'), 누적 앞섬·늦음, 5km마다·판단 지점·마지막 2km 예상 기록.
+         빠르면 판단 지점 전에는 '후반을 위해 조금 늦추세요', 느리면 사실만(뒤에서 무리하게 올리라고 하지 않는다). 수시 교정 음성은 없음 */
+      const P=S.rp, k1=S.lapKm, k0=k1-1, tg0=rpPaceAt(P,k0+0.5), d=Math.round(lapPace-tg0), sv=n=>n>=60?`${Math.floor(n/60)}분${n%60?` ${n%60}초`:''}`:`${n}초`;
+      if(d<-10){ msg+=`이번 구간 목표 ${fmtPaceVoice(tg0)}보다 ${sv(-d)} 빠릅니다. ${k1<P.cp?'후반을 위해 조금 늦추세요. ':''}`; verdictTxt=`계획보다 ${-d}초 빠름`; }
+      else if(d>10){ msg+=`이번 구간 목표 ${fmtPaceVoice(tg0)}보다 ${sv(d)} 느립니다. `; verdictTxt=`계획보다 ${d}초 느림`; }
+      else { msg+='계획 페이스대로입니다. '; verdictTxt='계획대로'; }
+      const df=Math.round(S.elapsed-rpPlanT(P,km)); if(Math.abs(df)>=10)msg+=`목표보다 누적 ${sv(Math.abs(df))} ${df<0?'앞서':'늦어'} 있습니다. `;
+      if(k0<P.dS&&k1>=P.dS&&k1<P.cp)msg+=`이제 ${vRo2(fmtPaceVoice(P.mid))} 올립니다. `;
+      let say5=k1%5===0||(leftK!=null&&leftK<=2.05&&leftK>1.05);
+      if(!P.adapt&&k1>=P.cp){ const A=rpCheck(P); say5=true;
+        msg+=A.push?`${Math.round(P.cp)}킬로미터까지 ${A.hr?'심박과 ':''}페이스가 안정적입니다. 남은 ${(P.D-km).toFixed(1)}킬로미터는 1킬로미터에 ${vRo2(fmtPaceVoice(A.pace))} 올려 보세요. `
+          :`후반 들어 ${A.slow?'페이스가 떨어졌':'같은 페이스에 심박이 올랐'}습니다. 남은 거리는 지금 페이스를 지키세요. `; verdictTxt=A.push?'판단 · 올리기':'판단 · 지키기'; }
+      if(say5&&leftK!=null&&leftK>0.3)msg+=`이대로면 예상 기록은 ${fmtTimeVoice(Math.round(S.elapsed+rpLeftT(P,km)))}입니다. `;
       if(lapHR&&!S.hrLocked)msg+=`평균 심박은 ${lapHR}입니다. `;
     } else if(lapHR&&!S.hrLocked){ msg+=`평균 심박은 ${lapHR}입니다. `; }   /* 걸음을 읽는 심박은 숫자로도 말하지 않는다 */
     /* 1km 안내는 사용자가 무조건 듣기로 한 것 — 조용히·간격 제한에 걸리지 않게 critical로 낸다 */
@@ -6507,7 +6532,9 @@ function renderSummary(completed){
   $('sTerrain').innerHTML=TERRAIN.map(t=>`<button class="tag${t==='도로'?' on':''}" data-t="${t}">${t}</button>`).join('');
   $('sWeather').innerHTML=WEATHER.map(w=>`<button class="tag" data-w="${w}">${w}</button>`).join('');
   if(S.contOf){ S.result.contOf=S.contOf; S.result.planId=null; }
-  if(s&&s.race)S.result.race=Object.assign({},s.race);
+  if(s&&s.race&&!s.race.self)S.result.race=Object.assign({},s.race);
+  if(s&&s.race&&s.race.self){ S.result.tgt={m:s.race.m,sec:s.race.sec,name:s.race.name}; FREE_TGT=null; }   /* 목표 정한 프리런 — 대회 기록·실력 기준에는 넣지 않는다 */
+  if(S.rp)S.result.rp={sec:S.rp.sec,dS:S.rp.dS,cp:S.rp.cp,start:Math.round(S.rp.start),mid:Math.round(S.rp.mid),end:Math.round(S.rp.end),adapt:S.rp.adapt};
   else if(!S.act||S.act==='run'){ try{ const g=GOAL; if(g&&g.m&&(g.kind==='race'||g.kind==='finish')&&g.date&&String(g.date).slice(0,10)===ldate(S.result.date).slice(0,10)&&!S.contOf)S.result.race={goal:true,name:goalLabel(g),role:'goal',m:g.m}; }catch(e){} }   /* 일정에 대회 칸이 없던 예전 일정도 목표 날 기록은 대회로 */   /* 신청한 대회 날 — 저장할 때 대회 기록으로 남긴다 */   /* 이어서 뛴 조각 — 계획 칸은 앞 기록이 가진다 */
   if(S.act&&S.act!=='run'){ Object.assign(S.result,{act:S.act,title:ACTK[S.act].nm,name:ACTK[S.act].nm,steps:(S.cad&&S.cad.steps)||null}); }
   try{ SH.fromView='sum'; if(S.act&&S.act!=='run')renderActResult($('sNew'),S.result); else renderResult($('sNew'),S.result,(s.d==='free'||S.contOf)?null:s,{noPoints:s.d!=='free'}); }catch(e){ console.error(e); $('sOld').hidden=false; }
@@ -10758,8 +10785,34 @@ document.addEventListener('click',e=>{
    예전엔 건너뛰기를 골라도 '못 한 날' 물음만 사라지고 홈·플랜에는 평소처럼 '오늘 훈련 ▶ 시작'으로 남아, 정한 것이 반영되지 않은 것처럼 보였다. 홈 카드와 플랜 줄이 이 하나를 본다 */
 const skippedDay=ds=>MISSSEEN[String(ds).slice(0,10)]==='skip';
 /* 대회 날 칸의 대회 정보 — 이름·공인 거리·목표 기록(있으면). 홈 카드·시작 음성·뛰는 화면·결과가 같은 값을 쓴다 */
-function raceInfo(s){ try{ const rc=s&&s.race; if(!rc||!rc.m)return null; const sec=rc.goal?((typeof GOAL!=='undefined'&&GOAL&&GOAL.sec&&(!GOAL.m||GOAL.m===rc.m))?GOAL.sec:null):((uprAll().find(x=>x.id===rc.id)||{}).sec||null);
+function raceInfo(s){ try{ const rc=s&&s.race; if(!rc||!rc.m)return null; if(rc.self)return {name:rc.name||'목표 달리기',m:rc.m,sec:rc.sec||null,pace:rc.sec?rc.sec/(rc.m/1000):null,self:true}; const sec=rc.goal?((typeof GOAL!=='undefined'&&GOAL&&GOAL.sec&&(!GOAL.m||GOAL.m===rc.m))?GOAL.sec:null):((uprAll().find(x=>x.id===rc.id)||{}).sec||null);
   return {name:rc.name||'대회',m:rc.m,sec:sec||null,pace:sec?sec/(rc.m/1000):null}; }catch(e){ return null; } }
+/* ───────── 목표 거리·시간 페이스 계획 (대회 날 · 목표 정한 프리런) ─────────
+   초반 조금 느리게 → 본 구간 목표 페이스 → 판단 지점에서 그때까지의 페이스·심박을 보고 남은 거리를 정한다(사용자 결정 2026-11-19).
+   · 출발 구간: 풀 5km +8초 · 하프 3km +6초 · 10km 2km +5초 · 5km 1km +5초 — 아마추어의 흔한 실패는 초반 과속 뒤 후반 붕괴(일반 참가자 기록 분석, C)
+   · 본 구간: 합계가 목표 기록과 같아지도록 계산한 페이스(출발에서 늦춘 만큼 메움). 마라톤은 고른 페이스가 가장 빠름(세계기록 분석 Díaz 2018·Casado 2021, B)
+   · 판단 지점: 풀 30km · 하프 15km · 10km 7km · 5km 3km(그 밖은 70%) — 남은 거리 계획은 목표보다 3초 빠르게(가볍게 올리기)
+   · 판단: 최근 구간 평균이 계획보다 5초 넘게 느림, 또는 같은 페이스에서 심박이 5% 넘게 오름(유산소 디커플링 5% 관행 Friel·심박 표류 Coyle 2001, C) → 지금 페이스 지키기 /
+     둘 다 괜찮으면 남은 거리를 더 빠르게(풀 −8·하프 −6·10km·5km −5초, 심박 없이 페이스로만 본 경우는 그 절반) */
+const RP_CFG=m=>m>=40000?{s:5,ds:8,cp:30,de:3,push:8}:m>=20000?{s:3,ds:6,cp:15,de:3,push:6}:m>=9000?{s:2,ds:5,cp:7,de:3,push:5}:m>=4500?{s:1,ds:5,cp:3,de:3,push:5}:{s:+(m/1000*0.2).toFixed(1),ds:4,cp:+(m/1000*0.7).toFixed(1),de:2,push:4};
+function racePlanOf(m,sec){ if(!m||!sec||m<2000)return null; const D=m/1000, c=RP_CFG(m), dS=Math.min(c.s,D*0.3), cp=Math.max(dS,Math.min(c.cp,D-0.5)), dE=D-cp, mid=(sec-dS*c.ds+dE*c.de)/D;
+  return {m,sec,D,dS,cp,ds:c.ds,de:c.de,push:c.push,mid,start:mid+c.ds,end:mid-c.de,adapt:null}; }
+const vRo2=t=>/[분초]$/.test(t)?t+(/분$/.test(t)?'으로':'로'):t+'로';   /* '5분으로'·'5분 5초로' */
+function rpPaceAt(P,km){ return km<P.dS?P.start:km<P.cp?P.mid:(P.adapt?P.adapt.pace:P.end); }
+function rpPhase(P,km){ return km<P.dS?'천천히 출발':km<P.cp?'목표 페이스':(P.adapt?(P.adapt.push?'올리기':'지키기'):'후반'); }
+/* 계획대로 갔을 때 km 지점까지 걸린 시간(판단 전 원래 계획) · 남은 거리 예상(지금 목표대로) */
+function rpPlanT(P,km){ const a=Math.min(km,P.dS), b=Math.max(0,Math.min(km,P.cp)-P.dS), c=Math.max(0,km-P.cp); return a*P.start+b*P.mid+c*P.end; }
+function rpLeftT(P,km){ let t=0; const seg=(x0,x1,p)=>{ const a=Math.max(km,x0); if(x1>a)t+=(x1-a)*p; }; seg(0,P.dS,P.start); seg(P.dS,P.cp,P.mid); seg(P.cp,P.D,P.adapt?P.adapt.pace:P.end); return t; }
+function rpCheck(P){ const sp=(S.splits||[]).filter(x=>!x.est&&isFinite(x.pace));
+  const n=Math.min(5,Math.max(2,Math.round(P.cp/4))), last=sp.slice(-n), avg=a=>a.reduce((x,y)=>x+y,0)/Math.max(1,a.length);
+  const lastP=avg(last.map(x=>x.pace)), slow=last.length&&lastP>P.mid+5;
+  const mids=sp.filter(x=>x.km>P.dS&&x.km<=P.cp&&x.hr), h=Math.floor(mids.length/2), ef=a=>avg(a.map(x=>(1000/x.pace)/x.hr));
+  const hrOk=h>=2&&!S.hrLocked, drift=hrOk?(ef(mids.slice(0,h))-ef(mids.slice(h)))/ef(mids.slice(0,h)):null, hot=drift!=null&&drift>0.05;
+  const push=!slow&&!hot?(hrOk?P.push:Math.round(P.push/2)):0;
+  P.adapt={push,pace:push?P.mid-push:(slow&&isFinite(lastP)?lastP:P.mid),slow:!!slow,drift:drift!=null?+drift.toFixed(3):null,hr:hrOk,lastP:isFinite(lastP)?Math.round(lastP):null};
+  return P.adapt; }
+function rpTableHTML(P){ if(!P)return ''; const f=x=>Math.round(x*10)/10, row=(a,b,c,d)=>`<div class="rp-r"><span>${a}</span><b>${b}</b><i>${c}</i></div>${d?`<div class="rp-n">${d}</div>`:''}`;
+  return `<div class="rp-t"><div class="rp-h">구간 계획 · 목표 ${fmtClock(P.sec)}</div>${row(`0–${f(P.dS)}km`,fmtPace(P.start),'천천히 출발')}${row(`${f(P.dS)}–${f(P.cp)}km`,fmtPace(P.mid),'목표 페이스')}${row(`${f(P.cp)}–${f(P.D)}km`,fmtPace(P.end),'후반',`${f(P.cp)}km에서 페이스·심박이 버티면 1km ${fmtPace(P.mid-P.push)}까지 올리고, 흔들리면 지키기`)}</div>`; }
 function todayCard(sess,idx){
   const T=TYPES[sess.type]||{}, g0=GL[sess.type]||{e:'뛰기',t:''}, adj=ADJ[sess.type]||0;
   const main=mainSeg(sess);
@@ -12244,7 +12297,8 @@ function startVoice(s,T,g){
   if(s.rw){ DEV.speak(`${s.rw.check?'상태 체크 시작합니다.':`${s.rw.lv}단계 시작합니다.`} 오늘은 ${s.rw.sum}입니다. 먼저 ${rwMin(g.sec)} 동안 걸으며 몸을 데웁니다. 달릴 때는 말할 수 있을 만큼 천천히 가고, 힘들면 걸으세요.`,true);
     S.cadGoal=null; S.cadFb=null; return; }
   const RI=raceInfo(s);
-  let m = RI ? `오늘은 대회입니다. ${RI.name}, ${kmLabVoice(RI.m/1000)}입니다. ${RI.sec?`목표 기록은 ${fmtTimeVoice(RI.sec)}, 1킬로미터에 ${fmtPaceVoice(RI.pace)}입니다. `:'내 페이스대로 뛰세요. '}`   /* 전엔 대회 날도 '오늘은 10킬로미터 자유롭게 뜁니다' */
+  const P0=S.rp, f1=x=>{ const r=Math.round(x*10)/10; return r%1?r.toFixed(1):String(r); };
+  let m = RI ? `${RI.self?`목표를 정하고 뜁니다. ${kmLabVoice(RI.m/1000)}입니다. `:`오늘은 대회입니다. ${RI.name}, ${kmLabVoice(RI.m/1000)}입니다. `}${RI.sec?`목표 기록은 ${fmtTimeVoice(RI.sec)}입니다. `+(P0?`처음 ${f1(P0.dS)}킬로미터는 ${vRo2(fmtPaceVoice(P0.start))} 천천히, 그다음은 ${vRo2(fmtPaceVoice(P0.mid))} 갑니다. ${f1(P0.cp)}킬로미터에서 상태를 보고 남은 거리를 정합니다. `:`1킬로미터에 ${fmtPaceVoice(RI.pace)}입니다. `):'내 페이스대로 뛰세요. '}`   /* 전엔 대회 날도 '오늘은 10킬로미터 자유롭게 뜁니다' */
         : s.d==='free' ? '자유 러닝을 시작합니다. 목표 없이 편한 대로 뛰세요. '
         /* 훈련 이름은 이름으로, 방법은 방법으로 말한다 — 전엔 '오늘은 6킬로미터 이지런 뜁니다'·'14킬로미터 LSD 뜁니다'처럼 낱말을 이어 붙였다(2026-11-18) */
         : n>=2 ? (adv?`오늘은 ${len?kmLabVoice(len)+'씩 ':''}${adv} ${vCount(n)} 뜁니다. `:`오늘은 ${tname}입니다. ${len?kmLabVoice(len)+'씩 ':''}${vCount(n)} 뜁니다. `)
