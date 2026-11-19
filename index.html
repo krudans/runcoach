@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.55';
+const APPVER='21.56';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2838,7 +2838,7 @@ const DEV = {
              예전엔 쓸 때마다 알려서, 동기화가 끝날 때마다 다시 쓰는 '지운 기록 목록'(값은 그대로)이 '바뀜'으로 찍혔고,
              v20.68에서 넣은 '바꾸면 1.5초 뒤 올리기'와 맞물려 앱을 켜 둔 동안 1.5초마다 동기화가 끝없이 돌았다(2026-11-15 시험에서 발견) */
           /* '바뀜' 알림을 쓰는 항목(__rcKeys = 동기화하는 설정)만 옛 값을 읽어 견준다 — 기록 전체(runs, 수 MB)는 쓸 때마다 옛 값을 통째로 읽어 견주고 있었다(쓰는 시간의 절반) */
-          set(k,v){ let s, old=null; const need=!!window.__rcTouch&&(!window.__rcKeys||window.__rcKeys.has(k)); try{ s=JSON.stringify(v); if(need)old=localStorage.getItem('rc_'+k); localStorage.setItem('rc_'+k,s); }catch(e){ return false; }
+          set(k,v){ let s, old=null; const need=!!window.__rcTouch&&(!window.__rcKeys||window.__rcKeys.has(k)); try{ s=(k==='runs'||k==='acts')&&typeof trkRep==='function'?JSON.stringify(v,trkRep):JSON.stringify(v); if(need)old=localStorage.getItem('rc_'+k); localStorage.setItem('rc_'+k,s); }catch(e){ if((k==='runs'||k==='acts')&&typeof trkSaveFail==='function')setTimeout(()=>trkSaveFail(k),0); return false; }   /* 기록을 못 썼으면 어디서 썼든 경로를 큰 저장소로 옮기고 다시 쓴다 */
             try{ if(need&&s!==old)window.__rcTouch(k,old,s); }catch(e){} return true; } },
   async hr(onBpm, known){
     if(!navigator.bluetooth) throw new Error(window.GAJI_NATIVE?'블루투스 준비 안 됨 → 앱을 완전히 닫고 다시 열기':'블루투스 미지원 → 크롬');
@@ -4542,7 +4542,7 @@ const parseTime=s=>{const p=String(s).trim().split(':').map(Number);
    반복 세션은 쿨다운이 차이를 흡수하고, 너무 짧으면 전체를 비례 축소한다. */
 let FREE_TGT=null;   /* 프리런에서 고른 목표 {m,sec} — 뛰고 나면 비운다 */
 function sessionOf(i){
-  if(i<0){ if(FREE_TGT&&FREE_TGT.m){ const D=FREE_TGT.m/1000, lab=`${D>=42?'풀코스':D>=21?'하프':kmLab(D)}${FREE_TGT.sec?' '+fmtClock(FREE_TGT.sec):''}`;
+  if(i<0){ if(FREE_TGT&&FREE_TGT.m&&!(typeof ACT_MODE!=='undefined'&&ACT_MODE)){ const D=FREE_TGT.m/1000, lab=`${D>=42?'풀코스':D>=21?'하프':kmLab(D)}${FREE_TGT.sec?' '+fmtClock(FREE_TGT.sec):''}`;
       return Object.assign({},FREE,{t:`프리런 · 목표 ${lab}`,dist:D,segs:[{to:D,nm:'목표 달리기',pace:null,tol:null}],race:{self:true,name:lab,m:FREE_TGT.m,sec:FREE_TGT.sec||null}}); }
     return FREE; }
   if(CONT&&CONT.ix===i&&BLOCK[i])return contSess(BLOCK[i]);   /* 이어서 뛰기 — 남은 거리만 */
@@ -5140,12 +5140,12 @@ function openConfirm(i){
   if(tg)tg.onclick=()=>{ br.classList.toggle('open');
     tg.textContent=br.classList.contains('open')?'접기 ▴':'자세히 ▾'; };
   const host=$('cSegs'); host.innerHTML=''; let prev=0;
-  if(i<0){ const T0=FREE_TGT||{}, sc=T0.sec||0, D0=T0.m||0;
-    host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">프리런 — 판정 없음</span></div>'+
+  if(i<0){ const T0=FREE_TGT||{}, sc=T0.sec||0, D0=T0.m||0, isAct=!!ACT_MODE;   /* 걷기·자전거·등산은 목표 칸 없음 — 전엔 프리런에서 고른 목표가 걷기에도 붙어 구간 계획 음성이 나왔다 */
+    host.innerHTML='<div class="srow" style="grid-template-columns:1fr"><span class="nm">프리런 — 판정 없음</span></div>'+(isAct?'':
       `<div class="ft-box"><div class="ft-h">목표 정하고 뛰기 <small>선택 · 거리와 목표 시간으로 구간 계획</small></div>
         <div class="ft-row"><select id="ftM"><option value="0">목표 없음</option>${[[3000,'3km'],[5000,'5km'],[10000,'10km'],[21097,'하프'],[42195,'풀코스']].map(o=>`<option value="${o[0]}"${D0===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>
         <span class="ft-hms"><input id="ftH" inputmode="numeric" maxlength="1" placeholder="0" value="${sc?Math.floor(sc/3600):''}"><i>시간</i><input id="ftMi" inputmode="numeric" maxlength="2" placeholder="00" value="${sc?String(Math.floor(sc%3600/60)).padStart(2,'0'):''}"><i>분</i><input id="ftS" inputmode="numeric" maxlength="2" placeholder="00" value="${sc?String(sc%60).padStart(2,'0'):''}"><i>초</i></span></div>
-        <div id="ftPlan">${FREE_TGT&&FREE_TGT.sec?rpTableHTML(racePlanOf(FREE_TGT.m,FREE_TGT.sec)):''}</div></div>`;
+        <div id="ftPlan">${FREE_TGT&&FREE_TGT.sec?rpTableHTML(racePlanOf(FREE_TGT.m,FREE_TGT.sec)):''}</div></div>`);
     const upd=()=>{ const m=+$('ftM').value, g=id=>+String($(id).value||'').replace(/[^0-9]/g,'')||0, sec=g('ftH')*3600+g('ftMi')*60+g('ftS');
       const okT=sec>=m/1000*150&&sec<=m/1000*900;   /* 1km 2분 30초~15분 */
       FREE_TGT=m?{m,sec:okT?sec:null}:null;
@@ -6612,6 +6612,11 @@ function sumFields(){ if(!S.result)return; Object.assign(S.result,{rpe:rpeVal,te
 /* 저장이 기본 — 전엔 200m·2분이 안 되면 저장하지 않고, 결과 화면을 나갈 때 '저장하지 않은 결과가 있어요. 나가면 사라져요'라고 물었다.
    거리가 안 잡힌 기록(실내·GPS 못 잡음)은 아무리 오래 뛰어도 '기록 저장'을 직접 눌러야 남았고 러닝일지에 없었다(실제 기기 2026-11-19).
    이제 1분 이상이거나 50m 이상이면 무조건 저장한다. 그보다 짧은 것(잘못 누른 시작)만 저장하지 않고, 나갈 때 묻지도 않는다 */
+/* 작은 저장소가 차서 못 썼을 때 — 먼저 경로를 큰 저장소로 옮기고 다시 쓴다. 그래도 안 되면 마지막 수단으로 '큰 저장소에 없는' 경로만 300점으로 고른다(값은 그대로).
+   전엔 곧바로 모든 기록을 simplify로 줄였다 — 시간이 1000분의 1로 망가졌다 */
+function trkSaveFail(k){ const L=()=>k==='acts'?ACTS:RUNS, W=window.__trkFix||(window.__trkFix={});
+  if(W[k]&&Date.now()-W[k]<60000)return; W[k]=Date.now();   /* 1분에 한 번 — 다시 쓰다 또 실패해도 끝없이 돌지 않게 */
+  TRK.offload().then(()=>{ if(DEV.store.set(k,L()))return; L().forEach(r=>{ if(r&&!r._idb&&r.track&&r.track.length>300)r.track=trThin(r.track,300); }); DEV.store.set(k,L()); }); }
 const autoSaveOk=r=>!!(r&&((+r.km||0)>=0.05||(+r.sec||0)>=60));
 function commitRun(){
   if(!S.result||S.result._saved)return false;
@@ -6619,8 +6624,8 @@ function commitRun(){
   sumFields();
   if(!S.result.rid)S.result.rid=newRid(S.result);
   if(S.result.act&&S.result.act!=='run'){
-    ACTS.push(S.result); if(ACTS.length>400)ACTS=ACTS.slice(-400);
-    if(!DEV.store.set('acts',ACTS)){ ACTS.forEach(r=>{ if(r.track&&r.track.length>300)r.track=simplify(r.track,300); }); DEV.store.set('acts',ACTS); }
+    ACTS.push(S.result);   /* 개수 제한 없음 — 전엔 400개를 넘으면 오래된 걷기·등산 기록을 지웠다(지난 기록은 지우지 않는다). 경로는 큰 저장소라 자리도 충분 */
+    if(!DEV.store.set('acts',ACTS))trkSaveFail('acts'); else setTimeout(()=>TRK.offload(),1500);
     if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
     S._post.act=true; return true;
   }
@@ -6630,8 +6635,7 @@ function commitRun(){
   RUNS.push(S.result);
   if(S.result.contOf){ contMerge(S.result.contOf); CONT=null; }   /* 이어서 뛴 조각 — 앞 기록의 판정을 합친 값으로 */
   try{ setTimeout(()=>{ try{ usagePing(true); }catch(e){} },2500); }catch(e){}
-  if(!DEV.store.set('runs',RUNS)){ RUNS.forEach(r=>{if(r.track&&r.track.length>300)r.track=simplify(r.track,300);});
-    DEV.store.set('runs',RUNS); }
+  if(!DEV.store.set('runs',RUNS))trkSaveFail('runs'); else setTimeout(()=>TRK.offload(),1500);
   if(S.result.shoe){const sh=SHOES.find(x=>x.name===S.result.shoe);
     if(sh){sh.km+=S.result.km;DEV.store.set('shoes',SHOES);}}
   /* 최대 심박은 30초 넘게 유지된 값만 올린다 — 광학 센서가 한 번 튄 210이 영원한 기준이 되면 안 된다 */
@@ -6701,7 +6705,8 @@ function liveSave(){
   const put=x=>{ try{ localStorage.setItem('rc_live',JSON.stringify({v:1,at:Date.now(),ix:pendingIx,s:x})); return true; }catch(e){ return false; } };
   if(put(s))return;
   /* 자리가 모자라면 궤적을 줄여서라도 남긴다 */
-  try{ const o=JSON.parse(s); if(o.pts&&o.pts.length>400)o.pts=simplify(o.pts,400); put(JSON.stringify(o)); }catch(e){}
+  /* 고르기만 한다(trThin) — 전엔 simplify를 썼는데, 그 함수는 시간을 '시작부터 몇 초'로 바꿔 놓아 복구한 달리기의 경과 시간·페이스 계산이 어긋났다 */
+  try{ const o=JSON.parse(s); for(const n of [2000,600]){ if(o.pts&&o.pts.length>n)o.pts=trThin(o.pts,n); if(put(JSON.stringify(o)))return; } }catch(e){}
 }
 function liveGet(){ try{ const o=JSON.parse(localStorage.getItem('rc_live')||'null'); return o&&o.s?o:null; }catch(e){ return null; } }
 function liveClear(){ try{ localStorage.removeItem('rc_live'); }catch(e){} }
@@ -6998,6 +7003,9 @@ $('btnReDist').onclick=async()=>{
 $('bkExport').onclick=()=>{
   const out={app:'runcoach',ver:4,at:new Date().toISOString(),data:{}};
   BK_KEYS.forEach(k=>{ const v=localStorage.getItem('rc_'+k); if(v!=null)out.data[k]=JSON.parse(v); });
+  /* 기록은 전체 경로가 붙은 메모리 쪽에서 — 작은 저장소에는 미리보기만 있다 */
+  const strip=(kk,vv)=>kk==='_tp'||kk==='_idb'||kk==='_tl'?undefined:vv;
+  try{ out.data.runs=JSON.parse(JSON.stringify(RUNS,strip)); out.data.acts=JSON.parse(JSON.stringify(ACTS,strip)); }catch(e){}
   DEV.saveFile(`가지런_백업_${stampFile()}.json`,JSON.stringify(out),'application/json');
 };
 $('bkImport').onclick=()=>$('bkFile').click();
@@ -7013,7 +7021,12 @@ $('bkFile').onchange=async e=>{
     if(!(await ask(`${j.at?ldate(j.at):'날짜 미상'} 백업 ${cnt}건\n\n지금 기록을 덮어써요${(typeof FB!=='undefined'&&FB.user)?'\n로그인돼 있어 다른 폰의 설정·목표도 이 백업으로 바뀌어요 (러닝 기록은 지워지지 않아요)':''}`,'덮어쓰기',true)))return;
     /* 백업 항목만 되돌린다 — 파일에 API 키·계정·Firebase 설정이 끼어 있어도 쓰지 않는다 */
     /* '바꾼 것'으로 적어 둔다(DEV.store.set) — 예전엔 저장소에 바로 써서 바꾼 시각이 안 남아, 로그인한 폰에서는 다음 동기화 때 클라우드 값과 엇갈렸다(이 폰은 백업 값, 다른 폰은 그 전 값으로 끝내 다름) */
-    Object.entries(j.data).filter(([k])=>BK_KEYS.includes(k)).forEach(([k,v])=>DEV.store.set(k,v));
+    /* 기록은 경로를 먼저 큰 저장소에 넣고 미리보기로 쓴다 — 큰 백업은 작은 저장소에 통째로 안 들어가 조용히 실패했다 */
+    for(const k of ['runs','acts']){ const L=j.data[k]; if(!Array.isArray(L))continue;
+      L.forEach(r=>{ if(r){ delete r._idb; delete r._tl; delete r._tp; } });
+      try{ const ok=await TRK.putAll(L.filter(r=>TRK.need(r))); ok.forEach(r=>TRK.mark(r)); }catch(e){} }
+    const bad=Object.entries(j.data).filter(([k])=>BK_KEYS.includes(k)).filter(([k,v])=>!DEV.store.set(k,v)).map(([k])=>k);
+    if(bad.length){ alert('불러오기 일부 실패 — 저장 공간 부족: '+bad.join(', ')); location.reload(); return; }
     alert('복원 완료 · 재시작'); location.reload();
   }catch(err){ alert('불러오기 실패 — '+err.message); }
 };
@@ -7342,6 +7355,7 @@ $('wipeAll').onclick=async()=>{
     try{ await FB.signOut(); }catch(e){} }
   if(left.length){ try{ await askSheet({title:'일부를 지우지 못했어요',html:`${left.join(' · ')}<br><span class="meta">인터넷이 연결된 상태에서 다시 하거나, <a href="delete.html" target="_blank" rel="noopener">삭제 요청 페이지</a>에서 요청해 주세요. 폰 안의 데이터는 지금 지워요.</span>`,yes:'확인',no:'닫기'}); }catch(e){} }
   try{ await Promise.race([MDB.clear(),new Promise(r=>setTimeout(r,1500))]); }catch(e){}
+  try{ await Promise.race([TRK.wipe(),new Promise(r=>setTimeout(r,1500))]); }catch(e){}   /* 경로(위치 기록)도 */
   try{ Object.keys(localStorage).filter(k=>k.startsWith('rc_')).forEach(k=>localStorage.removeItem(k)); sessionStorage.clear(); }catch(e){}
   location.replace(location.pathname);
 };
@@ -7611,7 +7625,7 @@ const FB={
   st(){ const u=FB.user; let s=DEV.store.get('syncst',null);
     if(!s||s.uid!==u.uid)s={uid:u.uid,pullAt:0,h:{},dd:[]}; s.h=s.h||{}; s.dd=s.dd||[]; return s; },
   hash(t){ let h=5381; for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0; return (h>>>0).toString(36)+'.'+t.length; },
-  packRun(x){ const c=JSON.parse(JSON.stringify(x)); delete c._at;
+  packRun(x){ const c=JSON.parse(JSON.stringify(x)); delete c._at; delete c._tp; delete c._idb; delete c._tl;
     if(c.track&&c.track.length>300)c.track=c.track.filter((_,j)=>j%Math.ceil(c.track.length/300)===0);
     return fsPackObj(c); },
   async pull(){
@@ -7671,7 +7685,7 @@ const FB={
     RUNS.forEach(x=>{ if(!x.rid){ x.rid=cloudBySig[sig(x)]||newRid(x); fixed++; } });
     /* 다른 폰에서 지운 기록은 이 폰에서도 사라져야 한다 */
     let cut=0;
-    for(let i=RUNS.length-1;i>=0;i--) if(del.has(RUNS[i].rid)){ RUNS.splice(i,1); cut++; }
+    for(let i=RUNS.length-1;i>=0;i--) if(del.has(RUNS[i].rid)){ try{ TRK.del([RUNS[i].rid]); }catch(e){} RUNS.splice(i,1); cut++; }
     if(cut||fixed)DEV.store.set('runs',RUNS);
     const have=new Set(RUNS.map(x=>x.rid)), haveSig=new Set(RUNS.map(sig));
     let added=0;
@@ -7681,11 +7695,11 @@ const FB={
       if(isSeedRun(v))return;   /* 테스트 씨앗은 받지 않는다 */
       delete v._at; RUNS.push(v); have.add(v.rid); haveSig.add(sig(v)); added++; pulled.push(['runs',v]); });
     if(added){ RUNS.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-      DEV.store.set('runs',RUNS); }
+      DEV.store.set('runs',RUNS); setTimeout(()=>TRK.offload(),800); }
     /* 걷기·자전거·등산은 따로 모은다 — 설정 문서(1MB)에 넣으면 금방 넘친다. 예전엔 아예 올라가지 않았다 */
     let aAdd=0, aCut=0, aFix=0;
     ACTS.forEach(x=>{ if(!x.rid){ x.rid=newRid(x); aFix++; } });
-    for(let i=ACTS.length-1;i>=0;i--) if(del.has(ACTS[i].rid)){ ACTS.splice(i,1); aCut++; }
+    for(let i=ACTS.length-1;i>=0;i--) if(del.has(ACTS[i].rid)){ try{ TRK.del([ACTS[i].rid]); }catch(e){} ACTS.splice(i,1); aCut++; }
     const as=await getSince('acts');
     const haveA=new Set(ACTS.map(x=>x.rid));
     as.forEach(d=>{ const v=fsUnpackObj(d.data()); if(!v||!v.rid||del.has(v.rid)||haveA.has(v.rid))return; delete v._at; ACTS.push(v); haveA.add(v.rid); aAdd++; pulled.push(['acts',v]); });
@@ -7722,6 +7736,7 @@ const FB={
     const ups=[];
     [['runs',RUNS],['acts',ACTS]].forEach(([col,L])=>L.forEach(x=>{
       if(!x.rid){ x.rid=newRid(x); fixed=true; }
+      if(!TRK.isHyd(x))return;   /* 전체 경로를 아직 못 붙였다 — 미리보기로 올리면 클라우드 경로가 나빠진다. 붙인 뒤 다음 동기화에 */
       /* 지문은 기록이 바뀌었을 때만 다시 계산한다 — 전엔 동기화할 때마다 모든 기록을 통째로 복사해 지문을 냈다(기록 48개에 0.5초, 느린 폰은 몇 초 — 결과 화면에서 하나 고를 때마다 멈칫).
          바뀌었는지는 경로를 뺀 나머지 전부 + 경로의 길이·처음·끝 점으로 본다 */
       const tk=x.track, rest=Object.assign({},x); delete rest.track;
@@ -7804,11 +7819,13 @@ function reloadLocals(){
   DECS=DEV.store.get('decs',DECS); ACTS=DEV.store.get('acts',ACTS); RESTLOG=DEV.store.get('restlog',RESTLOG);
   MISSSEEN=DEV.store.get('missSeen',MISSSEEN); try{ EXTRASEEN=DEV.store.get('extraSeen',EXTRASEEN); }catch(e){} VOPT=Object.assign({},VOPT,DEV.store.get('vopt',{}));
   if(typeof BREATH!=='undefined')BREATH=DEV.store.get('breath',BREATH);
+  try{ TRK.hydrate(); }catch(e){}   /* 다시 읽은 기록에 전체 경로를 다시 붙인다 */
   recalcProfile(); recalcTypes(); BLOCK=loadPlan();
 }
 /* 기록을 지우면 클라우드에서도 지워야 한다 — 지운 표를 남겨둔다 */
 function markDeleted(rid){
   if(!rid)return;
+  try{ TRK.del([rid]); }catch(e){}   /* 지운 기록의 경로도 */
   const d=DEV.store.get('del',[]); if(!d.includes(rid))d.push(rid);
   DEV.store.set('del',d.slice(-500));
   if(FB.user)FB.sync().catch(()=>{});
@@ -8341,7 +8358,7 @@ function parseTrackFile(txt,name){
     paceAvg: dur&&km? Math.round(dur/km) : null, hrAvg:null, asc:Math.round(asc), desc:Math.round(desc),
     hour: ts.length? new Date(Math.min(...ts)).getHours() : null,
     src:'gpx', name:String(name||'').slice(0,40),
-    track: simplify(pts,200), _saved:true, imported:true };
+    track: simplify(pts,600), _saved:true, imported:true };   /* 직접 뛴 기록과 같은 600점(전엔 200점 — 저장 공간 때문이었다) */
 }
 function obImportDone(got){
   if(!got.length){ const nt=$('obGpxNote'); if(!nt)return;
@@ -9570,6 +9587,45 @@ S.hr={dev:null,bpm:null,samples:[],max:0,segSamples:[]};
    ══════════════════════════════════════════════════════════════════════ */
 let DECS=DEV.store.get('decs',[]);          /* 결정 기록 */
 let ACTS=DEV.store.get('acts',[]);          /* 걷기·자전거·등산 — 달리기 거리로 바꾸지 않는다(#24) */
+/* ───────── 경로 보관(IndexedDB) ─────────
+   기록(runs·acts)은 폰의 작은 저장소(localStorage, 보통 5~10MB)에 통째로 있었다. 경로 좌표가 대부분이라 기록 100개쯤이면 찼고,
+   차면 '모든 지난 기록'의 경로를 300점으로 줄였다 — 게다가 줄이는 함수(simplify)가 이미 초로 바뀐 시간을 다시 1000으로 나눠, 줄어든 경로의 시간이 망가졌다.
+   이제 경로 전체는 폰 안의 큰 저장소(IndexedDB 'gajirun_tracks')에 기록 열쇠(rid)로 두고, 작은 저장소에는 목록 지도용 미리보기(60점 안팎)만 둔다.
+   - 큰 저장소에 쓴 뒤 다시 읽어 점 수가 같을 때만 작은 저장소를 미리보기로 바꾼다(확인 못 하면 그대로 둔다 — 지우지 않는다)
+   - 켤 때 큰 저장소를 읽어 기록에 전체 경로를 다시 붙인다(_idb 표시, _tl 전체 점 수)
+   - 클라우드에는 전처럼 전체 경로에서 300점을 골라 올린다(지문이 전과 같아 다시 올리지 않음). 전체 경로를 아직 못 붙인 기록은 올리지 않고 기다린다
+   - 사용자가 기록을 지우면(이 폰·다른 폰) 그 경로도 지운다 — 위치 기록이 폰에 남지 않게. '계정과 데이터 전부 삭제'는 큰 저장소를 통째로 비운다. 앱이 스스로 지우는 일은 없다 */
+function trkRep(k,v){ if(k==='_tp')return undefined; if(k==='track'&&this&&this._idb&&this._tp)return this._tp; return v; }
+function trThin(tr,n){ if(!Array.isArray(tr)||tr.length<=n)return tr; const st=Math.ceil(tr.length/n), o=[]; for(let i=0;i<tr.length;i+=st)o.push(tr[i]); if(o[o.length-1]!==tr[tr.length-1])o.push(tr[tr.length-1]); return o; }   /* 고르기만 — 점의 값은 건드리지 않는다 */
+const TRK={mem:new Map(), ready:false, MIN:80, _q:Promise.resolve(),
+  open(){ if(this._o)return this._o;
+    this._o=new Promise((ok,no)=>{ try{ const q=indexedDB.open('gajirun_tracks',1); q.onupgradeneeded=()=>{ q.result.createObjectStore('tr'); }; q.onsuccess=()=>ok(q.result); q.onerror=()=>no(q.error); q.onblocked=()=>no(new Error('blocked')); }catch(e){ no(e); } });
+    this._o.catch(()=>{ this._o=null; }); return this._o; },
+  async getAll(){ const db=await this.open();
+    return new Promise((ok,no)=>{ const m=new Map(); try{ const c=db.transaction('tr','readonly').objectStore('tr').openCursor();
+      c.onsuccess=()=>{ const cur=c.result; if(cur){ m.set(cur.key,cur.value); cur.continue(); } else ok(m); }; c.onerror=()=>no(c.error); }catch(e){ no(e); } }); },
+  async putAll(L){ const db=await this.open();
+    await new Promise((ok,no)=>{ try{ const tx=db.transaction('tr','readwrite'), st=tx.objectStore('tr'); L.forEach(r=>st.put(r.track,r.rid)); tx.oncomplete=()=>ok(); tx.onerror=()=>no(tx.error); tx.onabort=()=>no(tx.error||new Error('abort')); }catch(e){ no(e); } });
+    const got=await this.getAll();   /* 다시 읽어 확인 */
+    return L.filter(r=>{ const t=got.get(r.rid); return Array.isArray(t)&&t.length===r.track.length; }); },
+  need(r){ return !!(r&&r.rid&&!r._idb&&Array.isArray(r.track)&&r.track.length>this.MIN); },
+  isHyd(r){ return !r||!r._idb||(Array.isArray(r.track)&&r.track.length===r._tl); },
+  mark(r){ r._tp=trThin(r.track,60); r._idb=1; r._tl=r.track.length; this.mem.set(r.rid,r.track); },
+  hydrate(){ [RUNS,ACTS].forEach(L=>(L||[]).forEach(r=>{ if(!r||!r._idb||this.isHyd(r))return; const t=this.mem.get(r.rid);
+    if(Array.isArray(t)&&t.length===r._tl){ if(!r._tp)r._tp=r.track; r.track=t; } })); },
+  /* 아직 큰 저장소로 안 옮긴 기록을 옮긴다 — 한 번에 하나씩 줄 세워 겹치지 않게 */
+  offload(){ return this._q=this._q.then(async()=>{ try{
+      const L=RUNS.filter(r=>this.need(r)), A=ACTS.filter(r=>this.need(r)); if(!L.length&&!A.length)return 0;
+      const ok=await this.putAll(L.concat(A)); ok.forEach(r=>this.mark(r));
+      if(ok.some(r=>RUNS.includes(r)))DEV.store.set('runs',RUNS); if(ok.some(r=>ACTS.includes(r)))DEV.store.set('acts',ACTS);
+      return ok.length; }catch(e){ console.warn('trk',e); return 0; } }); },
+  del(ids){ ids=(ids||[]).filter(Boolean); if(!ids.length)return Promise.resolve(); ids.forEach(id=>this.mem.delete(id));
+    return this.open().then(db=>new Promise(ok=>{ try{ const tx=db.transaction('tr','readwrite'), st=tx.objectStore('tr'); ids.forEach(id=>st.delete(id)); tx.oncomplete=ok; tx.onerror=ok; tx.onabort=ok; }catch(e){ ok(); } })).catch(()=>{}); },
+  wipe(){ this.mem.clear(); return this.open().then(db=>new Promise(ok=>{ try{ const tx=db.transaction('tr','readwrite'); tx.objectStore('tr').clear(); tx.oncomplete=ok; tx.onerror=ok; }catch(e){ ok(); } })).catch(()=>{}); },
+  async boot(){ try{ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{}); }catch(e){}   /* 폰이 공간을 비울 때 지우지 않게 요청 */
+    try{ this.mem=await this.getAll(); this.hydrate(); }catch(e){ console.warn('trk',e); } this.ready=true; await this.offload(); }
+};
+setTimeout(()=>{ TRK.boot(); },0);
 let RESTLOG=DEV.store.get('restlog',{});    /* 쉬는 날 미션 {날짜:{m:{rhr,norun,sleep,walk}, chose}} */
 let MISSSEEN=DEV.store.get('missSeen',{});  /* 못 한 날 카드 — 이미 정한 날 */
 
@@ -10314,7 +10370,7 @@ function rlogAdd(e){ /* 같은 날·거리·기록이면 다시 넣지 않는다
   if(!e||!e.m||!(e.sec>60))return null;
   const dup=RLOG.find(x=>x.date===e.date&&x.m===e.m&&x.sec===e.sec); if(dup)return dup;
   const it={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),date:e.date||todayStr(),name:(e.name||'').trim(),m:e.m,sec:Math.round(e.sec),kind:e.kind||'race',asc:e.asc||null,src:e.src||'manual'};
-  RLOG.push(it); RLOG.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0); if(RLOG.length>200)RLOG=RLOG.slice(-200); rlogSave(); return it; }
+  RLOG.push(it); RLOG.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0); rlogSave();   /* 대회 기록은 자르지 않는다(전엔 200개) */ return it; }
 const rlV=x=>vdotOf(x.m,((x.kind==='solo'||x.kind==='tt')?x.sec*0.97:x.sec)/60);
 /* 지금 기준보다 빠른 최근(±8주) 공식 대회 — 혼자 뛴 느린 기록이 실력을 끌어내리면 안 된다(Daniels: 최근 전력 기록 중 최고를 기준) */
 function rlBetter(){ try{ const b=PROF.race; if(!b||!b.at||!b.sec)return null; const bv=vdotOf(b.m,((b.kind==='solo'||b.kind==='tt')?b.sec*0.97:b.sec)/60);
@@ -10794,7 +10850,7 @@ function raceInfo(s){ try{ const rc=s&&s.race; if(!rc||!rc.m)return null; if(rc.
    · 판단 지점: 풀 30km · 하프 15km · 10km 7km · 5km 3km(그 밖은 70%) — 남은 거리 계획은 목표보다 3초 빠르게(가볍게 올리기)
    · 판단: 최근 구간 평균이 계획보다 5초 넘게 느림, 또는 같은 페이스에서 심박이 5% 넘게 오름(유산소 디커플링 5% 관행 Friel·심박 표류 Coyle 2001, C) → 지금 페이스 지키기 /
      둘 다 괜찮으면 남은 거리를 더 빠르게(풀 −8·하프 −6·10km·5km −5초, 심박 없이 페이스로만 본 경우는 그 절반) */
-const RP_CFG=m=>m>=40000?{s:5,ds:8,cp:30,de:3,push:8}:m>=20000?{s:3,ds:6,cp:15,de:3,push:6}:m>=9000?{s:2,ds:5,cp:7,de:3,push:5}:m>=4500?{s:1,ds:5,cp:3,de:3,push:5}:{s:+(m/1000*0.2).toFixed(1),ds:4,cp:+(m/1000*0.7).toFixed(1),de:2,push:4};
+const RP_CFG=m=>m>=40000?{s:5,ds:8,cp:30,de:3,push:8}:m>=20000?{s:3,ds:6,cp:15,de:3,push:6}:m>=9000?{s:2,ds:5,cp:7,de:3,push:5}:m>=4500?{s:1,ds:5,cp:3,de:3,push:5}:{s:+(m/1000*0.2).toFixed(1),ds:4,cp:Math.max(1,Math.floor(m/1000*0.7)),de:2,push:4};   /* 판단은 1km 안내 때 하므로 1km 단위로 내림 — 전엔 3km 목표의 판단 지점이 2.1km라 2km 안내엔 이르고 3km는 이미 끝나 판단이 한 번도 없었다 */
 function racePlanOf(m,sec){ if(!m||!sec||m<2000)return null; const D=m/1000, c=RP_CFG(m), dS=Math.min(c.s,D*0.3), cp=Math.max(dS,Math.min(c.cp,D-0.5)), dE=D-cp, mid=(sec-dS*c.ds+dE*c.de)/D;
   return {m,sec,D,dS,cp,ds:c.ds,de:c.de,push:c.push,mid,start:mid+c.ds,end:mid-c.de,adapt:null}; }
 const vRo2=t=>/[분초]$/.test(t)?t+(/분$/.test(t)?'으로':'로'):t+'로';   /* '5분으로'·'5분 5초로' */
@@ -15732,7 +15788,7 @@ function glogPush(g,plan){
     if(pz){ pz.status='active'; pz.goal=JSON.parse(JSON.stringify(g)); pz.end=g.date?g.date.slice(0,10):null; pz.resumedAt=t; delete pz.pausedAt; delete pz.closedAt; glogSave(); return; } }
   const m=glogMetric(g);
   GLOG.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),made:t,goal:JSON.parse(JSON.stringify(g)),start:(plan&&plan.start)||t,end:g.date?g.date.slice(0,10):null,status:'active',v0:m?m.now:null,vEnd:null,closedAt:null});
-  if(GLOG.length>60)GLOG=GLOG.slice(-60); glogSave();
+  glogSave();   /* 목표 목록은 자르지 않는다(전엔 60개) — 끝난 목표도 계속 보인다 */
 }
 /* 진행 중 목표가 닿았으면 '달성'으로 — 홈을 그릴 때마다 확인 */
 function glogCheck(){ if(!GLOG)GLOG=DEV.store.get('goals',[]);   /* 부팅 중 첫 화면에서도 — 선언 줄보다 먼저 불린다 */
