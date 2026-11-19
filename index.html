@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.59';
+const APPVER='21.61';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7591,7 +7591,7 @@ const FB={
       throw e;
     }
   },
-  async signOut(){ try{ await firebase.auth().signOut(); }catch(e){}
+  async signOut(){ try{ if(FB.user&&FB.user.email)DEV.store.set('acctPrev',FB.user.email); }catch(e){} try{ await firebase.auth().signOut(); }catch(e){}
     ACCT={mode:'local',uid:null,email:null}; DEV.store.set('acct',ACCT); paintFb(); },
   /* 실시간 받기 — 같은 계정의 다른 기기가 설정(결정·일정·목표…)을 올리면 곧바로 받아 화면을 맞춘다.
      내 기기가 올린 것은 시각이 같아 다시 받지 않는다. 달리는 중에는 받지 않는다(끝난 뒤 동기화) */
@@ -7797,6 +7797,11 @@ const FB={
   _p:null,
   sync(){
     if(!FB.user)return Promise.resolve(0);
+    /* 이 폰이 마지막으로 맞춘 계정과 다른 계정이면, 묻기 전에는 올리지도 받지도 않는다 — 예전엔 로그아웃 뒤 다른 구글 계정으로 로그인하면
+       앞 계정의 기록·목표·일정이 말없이 새 계정에 올라가 두 계정이 섞였다 */
+    try{ const pv=(DEV.store.get('syncst',null)||{}).uid, u=FB.user;
+      if(pv&&pv!==u.uid&&FB._swOk!==u.uid&&(RUNS.length||ACTS.length||DEV.store.get('plan',null)||DEV.store.get('goal',null))){
+        if(!FB._swAsk){ FB._swAsk=true; acctSwitchAsk(u); } return Promise.resolve(0); } }catch(e){}
     if(FB._p)return FB._p;
     FB.busy=true; paintFb();
     FB._p=(async()=>{
@@ -7955,6 +7960,15 @@ function obTags(key,multi){
 }
 const CONSENT_VER='2026-11-05-3';   /* 고지를 바꾸면 올린다 — 기존 사용자에게 한 번 다시 묻는다 */
 /* 확인 시트 — prompt/confirm 대신. 약속(Promise)으로 true/false */
+/* 다른 계정으로 로그인했을 때 — 합칠지 묻는다. 안 합치면 로그아웃(이 폰 기록은 그대로, 지우지 않는다) */
+async function acctSwitchAsk(u){
+  const pe=DEV.store.get('acctPrev',null);
+  let ok=false;
+  try{ ok=await askSheet({title:'다른 계정으로 로그인했어요',html:`이 폰의 기록은 ${pe?'<b>'+ESC(pe)+'</b>':'다른 구글 계정'}으로 저장해 온 것이에요.<br>${u.email?'<b>'+ESC(u.email)+'</b>':'이 계정'}에 합치면 두 계정의 기록·목표·일정이 섞이고, 되돌릴 수 없어요.`,yes:'이 계정에 합치기',no:'로그아웃'}); }catch(e){ ok=false; }
+  FB._swAsk=false;
+  if(ok&&FB.user&&FB.user.uid===u.uid){ FB._swOk=u.uid; FB.sync().catch(()=>{}); }
+  else { await FB.signOut(); try{ paintAcct(); }catch(e){} }
+}
 function askSheet(o){ return new Promise(res=>{ let sh=$('askSheet'); if(!sh){ sh=document.createElement('div'); sh.id='askSheet'; sh.className='msheet'; sh.hidden=true; document.body.appendChild(sh); }
   sh.innerHTML=`<div class="ms-card" role="dialog" aria-label="${ESC(o.title||'확인')}"><div class="ms-hd"><b>${ESC(o.title||'확인')}</b><button type="button" data-ask="0" aria-label="닫기">✕</button></div>
     <div class="ask-body">${o.html||ESC(o.text||'')}</div>
@@ -9957,7 +9971,7 @@ function wireDec(host,o,done){
     const opt=o.opts.find(x=>x.k===o._sel);
     let msg=null; try{ msg=opt&&opt.apply?opt.apply():null; }catch(err){ console.error(err); }
     const recK=(o.opts.find(x=>x.rec)||{}).k||null;
-    decLog(o.kind||'misc', o.logTitle||o.title.replace(/<[^>]+>/g,''), o.logWhy||'', `${opt.k} · ${opt.t}`,
+    decLog(o.kind||'misc', o.logTitle||o.title.replace(/<br\s*\/?>/gi,' ').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(), o.logWhy||'', `${opt.k} · ${opt.t}`,
       Object.assign({rec:recK, mine:recK!==opt.k,
         snap:{kicker:o.kicker||'', title:o.title, rows:o.rows||[], rowsLabel:o.rowsLabel||'', verdict:o.verdict?o.verdict.t:'',
           say:o.say||'', ev:o.ev||[], pattern:o.pattern||'', opts:o.opts.map(x=>({k:x.k,t:x.t,d:x.d||'',tags:x.tags||[]})), chose:opt.k}},
@@ -10097,8 +10111,10 @@ function overCap(km,ds){ const c=sessionCap(); if(!c)return null;
    · LSD는 LSD 요일에 그대로(밀린 것이 LSD 자신일 때만 다음 LSD 요일로)
    · 밀려서 빠른 날끼리 48시간 안에 붙으면 뒤의 쉬운 날과 자리를 바꾼다
    · 대회 날 뒤로 밀리는 훈련은 뺀다 */
-function shiftFrom(ds,days){
-  if(!(PLAN&&PLAN.sessions))return 0; const g=PLAN.goal||GOAL||{}, race=g.date&&g.kind!=='aero'?g.date.slice(0,10):null;
+/* dry=훈련 d(날짜 열쇠) — 실제로 옮기지 않고 그 훈련이 갈 날짜만 돌려준다(선택지에 '→ 11.23 월'을 미리 보이려고) */
+function shiftFrom(ds,days,dry){
+  if(!(PLAN&&PLAN.sessions))return dry?null:0;
+  const KEEP=dry?PLAN.sessions.map(x=>[x,x.d,x.moved,x.shifted]):null; const g=PLAN.goal||GOAL||{}, race=g.date&&g.kind!=='aero'?g.date.slice(0,10):null;
   const D=(PLAN.days&&PLAN.days.length?PLAN.days:SURVEY.days||[]).slice(), HD=x=>HARD_T.includes(x.type);
   const isRan=x=>RUNS.some(r=>r.planId===x.d), d10=x=>x.d.slice(0,10), dw=d=>'일월화수목금토'[new Date(d+'T12:00:00').getDay()];
   const movable=x=>d10(x)>=ds&&!isRan(x)&&x.type!=='off'&&x.type!=='race'&&!x.race&&!(race&&d10(x)>=race);
@@ -10122,6 +10138,7 @@ function shiftFrom(ds,days){
     const near=[...seqN.slice(0,i).map((y,j)=>sN[j+kN])].some((d,j)=>HD(seqN[j])&&Math.abs(Date.parse(nd)-Date.parse(d))<2*864e5+1)||fixH.some(d=>Math.abs(Date.parse(nd)-Date.parse(d))<2*864e5+1)||(seqL.length&&sL.slice(kL,kL+seqL.length).some(d=>Math.abs(Date.parse(nd)-Date.parse(d))<864e5+1));
     if(near){ const j=seqN.findIndex((y,q)=>q>i&&!HD(y)); if(j>0){ const t=seqN[i]; seqN[i]=seqN[j]; seqN[j]=t; } } }
   place(seqN,sN,kN); place(seqL,sL,kL);
+  if(dry){ const to=map[dry]||null; KEEP.forEach(([x,d,m,sh])=>{ x.d=d; if(m===undefined)delete x.moved; else x.moved=m; if(sh===undefined)delete x.shifted; else x.shifted=sh; delete x._noslot; }); return to?to.slice(0,10):null; }
   /* 대회 전에 옮길 자리가 없는 훈련 — 전엔 지웠다. 대회 사흘 전 마지막 훈련을 미루면 일정이 통째로 비어 '계획 없음'이 되고 지난 일정까지 안 보였다(2026-11-11 무작위 시즌 시험).
      못 한 날의 것은 그 날에 '못 함'으로 남기고, 앞날의 것은 제 날짜가 비어 있으면 그대로 둔다. 다른 훈련이 그 날로 옮겨 왔을 때만 뺀다 */
   { const tNow=todayStr(), occ=new Set(PLAN.sessions.filter(x=>!x._noslot&&x.type!=='off').map(d10));
@@ -10230,10 +10247,16 @@ function openMissed(m){
       apply:()=>{ MISSSEEN[ds]='tomorrow'; DEV.store.set('missSeen',MISSSEEN); moveSession(s.d,tmr); return `내일 ${s.t}`; }});
   /* 남은 일정을 하루씩 미루기 — 아무것도 빠지지 않는다 */
   const shiftN=isToday?1:addDaysDiff(ds,t);
-  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}칸씩 뒤로`:'남은 일정 한 칸씩 뒤로',rec:isHard&&!canSwap&&!slot,d:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 다음 운동하는 날로 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`,   /* '1일 연기'라고 했지만 실제로는 운동하는 요일 칸으로 밀려(화 → 목) 말과 결과가 달랐다(2026-11-16 시험) */
+  /* 미룬 훈련이 갈 날을 미리 — 전엔 '다음 운동하는 날로'라고만 해서, 힘든 날 48시간 규칙으로 다음 주 월요일까지 밀리면 이번 주 화면에서 사라진 것처럼 보였다(실제 기기 2026-11-20: 목 인터벌 → 23일 월) */
+  let sTo=null; try{ sTo=shiftFrom(ds,shiftN,s.d); }catch(e){ sTo=null; }
+  const sToTx=sTo?`${s.t.split(' · ')[0]} → ${+sTo.slice(5,7)}.${+sTo.slice(8,10)} ${dowOf(sTo)}${weekMonday(sTo)!==mon?' (다음 주)':''}`:'';
+  const nxtTrain=(()=>{ for(let i=1;i<=14;i++){ const d=addDays(ds,i); if(d<t)continue; const x=planOn(d); if(x)return d; } return null; })();
+  const sWhy=sTo&&isHard&&nxtTrain&&sTo>nxtTrain?' — 힘든 훈련 사이 48시간을 지키려고 한 칸 더':'';
+  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}칸씩 뒤로`:'남은 일정 한 칸씩 뒤로',rec:isHard&&!canSwap&&!slot,d:sTo?`${sToTx}${sWhy} · 그 뒤 훈련도 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} 뒤로 — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 다음 운동하는 날로 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`,   /* '1일 연기'라고 했지만 실제로는 운동하는 요일 칸으로 밀려(화 → 목) 말과 결과가 달랐다(2026-11-16 시험) */
       tags:[['빠지는 훈련 없음','ok'],['대회 날은 그대로','']],
       apply:()=>{ MISSSEEN[ds]='shift'; DEV.store.set('missSeen',MISSSEEN); const n=shiftFrom(ds,isToday?1:addDaysDiff(ds,t));
-        return `${n}개 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} 뒤로`; }});
+        const nw=(PLAN&&PLAN.sessions||[]).find(x=>String(x.moved||'').slice(0,10)===ds&&x.type===s.type&&x.d.slice(0,10)!==ds);
+        return nw?`${s.t.split(' · ')[0]} → ${+nw.d.slice(5,7)}.${+nw.d.slice(8,10)} ${dowOf(nw.d.slice(0,10))} · ${n}개 뒤로`:`${n}개 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} 뒤로`; }});
   if(isToday){ opts.forEach(o=>{ if(o.k==='A'){ o.t='오늘 건너뛰기'; o.rec=!hardT.includes(s.type); o.d='몰아하기 없음 · 그대로'; } }); }
   if(slot&&!isToday){ const isTod=slot===t; opts.splice(isTod?1:opts.length,0,{k:canSwap?'C':'B',t:isTod?'오늘(쉬는 날) 진행':`${dowOf(slot)}요일(쉬는 날)로 이동`,rec:isTod&&isHard,d:isTod?`오늘 ${s.t} · 휴식 −1일`:`${dowOf(slot)}요일 진행 · 휴식 −1일`,
       tags:[['쉬는 날 1일 감소','bad']].concat(isTod&&isHard?[['핵심 훈련 유지','ok']]:[]),
@@ -11551,6 +11574,9 @@ function decResult(dc){
   return null;
 }
 const DECKIND={goal:'목표',today:'오늘',after:'뛴 뒤',week:'매주',missed:'못 한 날',rest:'쉬는 날',stat:'통계',breath:'호흡 실험',free:'프리런',misc:'기타'};
+/* 예전 결정 기록의 제목 — 줄바꿈(<br>)을 지우며 띄어쓰기도 같이 사라졌다('5,어떻게 할까요?' · '그래도뛰고 싶으세요?'). 보일 때 되살린다(저장된 값은 그대로) */
+function decT(t){ return String(t||'').replace(/,(?=[가-힣])/g,', ').replace(/그래도뛰고/,'그래도 뛰고').replace(/^(계획 \+[\d.]+km)(이번 주)/,'$1 $2').replace(/^(2주 거리)(\d)/,'$1 $2')
+  .replace(/^안정 심박평소/,'안정 심박 평소').replace(/^같은 속도심박/,'같은 속도 심박').replace(/km로(늘리|줄이)/,'km로 $1').replace(/에더 빠름$/,'에 더 빠름').replace(/^다음 쉬운 날(호흡|발걸음)/,'다음 쉬운 날 $1'); }
 function renderDecLog(hostIn,lim){
   const host=hostIn||$('alDone'); if(!host)return;
   if(!DECS.length){ host.innerHTML='<div class="empty">결정 없음<br>결정 시 저장</div>'; return; }
@@ -11560,7 +11586,7 @@ function renderDecLog(hostIn,lim){
       const mine=dc.mine!=null?dc.mine:dc.kind==='goal'?!/앱 제안대로/.test(dc.choice):!(dc.rec&&dc.choice.startsWith(dc.rec));
       return `<button type="button" class="decrow" data-did="${dc.id}"><div class="dm">${ldate(dc.d).slice(5,10).replace('-','.')} ${dowOf(ldate(dc.d))} · ${DECKIND[dc.kind]||dc.kind}<span class="ar">자세히 ›</span></div>
         <b>${dc.kind==='goal'?ESC(dc.title):ESC(dc.choice)} <i class="me${mine?'':' app'}">${mine?'내가 정함':'앱 의견과 같음'}</i></b>
-        <div class="dw">${dc.kind==='goal'?ESC(dc.choice)+(dc.why?' · '+ESC(dc.why):''):ESC(dc.title)+(dc.why?' · '+ESC(dc.why):'')}</div>${r?`<div class="drs">${ESC(r)}</div>`:''}</button>`; }).join('');
+        <div class="dw">${dc.kind==='goal'?ESC(dc.choice)+(dc.why?' · '+ESC(dc.why):''):ESC(decT(dc.title))+(dc.why?' · '+ESC(dc.why):'')}</div>${r?`<div class="drs">${ESC(r)}</div>`:''}</button>`; }).join('');
   if(all.length>n) host.insertAdjacentHTML('beforeend',`<button type="button" class="gl-more" id="decMore" style="display:block;width:100%;margin-top:8px;border:1px dashed var(--line);background:none;border-radius:14px;padding:10px;font:inherit;font-size:12px;font-weight:700;color:var(--ink-2)">더 보기 (${all.length-n}개)</button>`);
   host.querySelectorAll('[data-did]').forEach(b=>b.onclick=()=>openDecDetail(b.dataset.did,'alerts'));
   const mb=host.querySelector('#decMore'); if(mb)mb.onclick=()=>{ window.DECLIM=n+20; renderDecLog(host); };
@@ -13071,7 +13097,7 @@ function renderReview(mon){
   const hard=v.rows.filter(x=>x.r&&x.s.segs&&x.s.segs.some(g=>g.hard)), hardOk=hard.filter(x=>x.v===true).length;
   const decs=DECS.filter(d=>ldate(d.d)>=mon&&ldate(d.d)<addDays(mon,7));
   const decH=decs.length?`<div class="dl">지난주 결정 · 결과</div><div class="dbox say">${decs.map(d=>{ const r=decResult(d);
-      return `<div style="padding:4px 0"><b>${dowOf(ldate(d.d))}요일 · ${ESC(d.choice)}</b><br><span style="font-size:12px">${ESC(d.title)}${r?' → '+ESC(r):' → 결과 없음'}</span></div>`; }).join('')}</div>`:'';
+      return `<div style="padding:4px 0"><b>${dowOf(ldate(d.d))}요일 · ${ESC(d.choice)}</b><br><span style="font-size:12px">${ESC(decT(d.title))}${r?' → '+ESC(r):' → 결과 없음'}</span></div>`; }).join('')}</div>`:'';
   const acts={grow:['예정대로 계속','조금 늘림'],repeat:['같은 양 한 주 더','늘리지 않음'],shrink:['뛴 양에 맞춰 줄이기','지킬 수 있는 양'],easier:['빠른 날 1개 줄이기','힘든 날 −1']};
   const order=[vd.act].concat(['repeat','grow','shrink'].filter(a=>a!==vd.act));
   const o={kind:'week',kicker:`${mon.slice(5).replace('-','.')} ~ ${addDays(mon,6).slice(5).replace('-','.')} · 지난주 결산`,title:'지난주,<br>어땠나요?',
@@ -13221,7 +13247,7 @@ function openDecDetail(id,back){
       <button class="btn ghost" data-dd="remake" style="margin-top:14px">목표 · 일정 재설정</button>`;
   } else {
     const r=decResult(dc);
-    h=`${head}<h2 class="dt">${sn?sn.title:ESC(dc.title)}</h2>${chip}
+    h=`${head}<h2 class="dt">${sn?sn.title:ESC(decT(dc.title))}</h2>${chip}
       ${sn&&sn.rows.length?`<div class="dl">${sn.rowsLabel||'변경 사항'}</div><div class="dbox">${sn.rows.map(x=>`<div class="dr"><span>${x[0]}</span><b class="${x[2]||''}">${x[1]}</b></div>`).join('')}</div>`:''}
       ${sn&&sn.verdict?`<div class="dverd">${sn.verdict}</div>`:''}
       ${sn&&sn.say?`<div class="dl">결정 사유</div><div class="dbox say">${sn.say}</div>`:dc.why?`<div class="dl">결정 사유</div><div class="dbox say">${ESC(dc.why)}</div>`:''}
@@ -14505,6 +14531,9 @@ function planListHTML0(src,monsIn){
       const dn=`<span class="pd-dt${ds===t?' t':''}"><b>${+ds.slice(8,10)}</b><i>${dowOf(ds)}</i></span>`;
       const freeKm=ranOn(ds);
       { const gg=(PLAN&&PLAN.goal)||GOAL; if(!list.length&&gg&&gg.date&&gg.date.slice(0,10)===ds) return `<div class="pd-row race">${dn}<span class="pd-rest" style="color:var(--bad-ink);font-weight:700">★ 대회 — ${gg.m?gdLabel(gg.m):''}${gg.sec?' '+fmtClock(gg.sec):''}</span></div>`; }
+      /* 훈련을 다른 날로 옮겨 비게 된 지난 날 — 쉬는 날·'기록 없음'으로 보이면 훈련이 사라진 것 같다. 어디로 갔는지 적는다 */
+      if(!list.length&&ds<=t&&!freeKm){ const mvd=((PLAN&&PLAN.sessions)||[]).find(x=>x.moved&&String(x.moved).slice(0,10)===ds&&x.d.slice(0,10)!==ds&&x.type!=='off');
+        if(mvd){ const nd=mvd.d.slice(0,10); return `<div class="pd-row rest past">${dn}<span class="pd-bar rest"><i style="height:0%"></i></span><span class="pd-rest"><b class="pd-rl">${ESC(String(mvd.t||tm(mvd.type)).split(' · ')[0])} → ${+nd.slice(5,7)}.${+nd.slice(8,10)} ${dowOf(nd)}</b>${weekMonday(nd)!==mon?'<i>다음 주로</i>':''}</span><em class="pd-st">옮김</em></div>`; } }
       if(!list.length){ const K=restKind(ds), scored=K.k!=='plain', R=scored?restScore(ds):null, closed=!!(RESTLOG[ds]&&RESTLOG[ds].closed), m=restMis(ds), any=Object.values(m).some(Boolean);
         const lab=K.lab.replace(/^쉬는 날 · (.+)$/,'쉬는 날 · <b>$1</b>');
         const sub=scored?restMissions(K.k).filter(x=>x.pts).map(x=>x.s).join(' · '):'';
