@@ -2757,7 +2757,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.49';
+const APPVER='21.50';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9409,7 +9409,9 @@ function lastWeekMon(){ return addDays(weekMonday(todayStr()),-7); }
 
 function reviewData(mon){
   const end=addDays(mon,7);
-  const sess=BLOCK.filter(s=>s.d.slice(0,10)>=mon&&s.d.slice(0,10)<end&&s.dist);
+  let sess=BLOCK.filter(s=>s.d.slice(0,10)>=mon&&s.d.slice(0,10)<end&&s.dist);
+  /* 4주가 바뀌는 월요일 — 지난주(4주차)는 새 일정에서 빠지고 지난 일정 보관(PLAN.past)에만 있다. 전엔 거기를 안 봐서 4주마다 한 번 결산이 뜨지 않았다(모의 2026-11-19) */
+  if(!sess.length&&PLAN&&Array.isArray(PLAN.past)){ const gk=goalKey(PLAN.goal); sess=PLAN.past.filter(s=>s&&s.d&&String(s.d).slice(0,10)>=mon&&String(s.d).slice(0,10)<end&&s.dist&&s.type!=='off'&&(!s.gk||s.gk===gk)); }
   const rows=sess.map(s=>{
     const r=RUNS.find(x=>x.planId===s.d);
     return {s,r,v:r?runPass(r):null};
@@ -9490,6 +9492,9 @@ function applyReview(act,v){
       const x=H.sort((a,b)=>sKm(b)-sKm(a))[0], i=list.indexOf(x), ns=peBuild(x.d,x.wk,'easy',Math.max(3,Math.round(sKm(x)*2)/2)); ns.d=x.d; ns.wk=x.wk; ns.orig=x.orig||JSON.parse(JSON.stringify(x)); ns.edited=true; list[i]=ns; try{ delete DIST[x.d]; }catch(e){} }); });
     try{ DEV.store.set('dist',DIST); }catch(e){}
     DEV.store.set('rvSeen',v.mon); BLOCK=loadPlan(); toast('이번 주·다음 주 쉽게 — 거리 −5% · 빠른 날 하나 → 쉬운 달리기'); go('plan'); return; }
+  /* 결산한 주가 이미 지난 4주(새 4주로 바뀐 월요일)면 새 4주는 실제 뛴 양으로 막 짜인 것이다 — '예정대로'는 그대로 둔다.
+     전엔 줄이는 주(4주차) 계획 거리로 새 4주를 다시 짜서 '예정대로 계속'을 눌렀는데 일정이 줄었다(LSD 18.5→15km, 모의 2026-11-19) */
+  if(act==='grow'&&!(PLAN&&PLAN.sessions||[]).some(x=>weekMonday(x.d)===v.mon)){ DEV.store.set('rvSeen',v.mon); toast('예정대로 — 새 4주 그대로'); go('plan'); return; }
   if(act==='repeat'){ o.baseOverride=Math.max(6,v.planKm/1); o.growOverride=1.0; }
   else if(act==='shrink'){ o.baseOverride=Math.max(6,v.ranKm||v.planKm*0.7); }
   else if(act==='easier'){ o.baseOverride=Math.max(6,v.planKm*0.95); o.hardMinus=1; }
