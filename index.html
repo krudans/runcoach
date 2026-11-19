@@ -2757,7 +2757,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.48';
+const APPVER='21.49';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9896,7 +9896,9 @@ function dayStatus(ds){
     /* 계획과 연결되지 않은 달리기는 '약속 지킴'이 아니라 '자유'다 — 홈 타일(planId 기준)과 같은 기준 */
     if(!r){ if(ds===today)return 'today'; return runs.length?'free':(MISSSEEN[ds]?'missedOk':'missed'); }
     const v=runPass(r), th=r.th||judgeTh();
-    if(v===false)return (hrJudged(r)||r.ceilRatio>th.ceil||((r.spread||0)>th.spread))?'over':'under';
+    /* 못 지킨 까닭이 '빨리 뛴 구간'이면 '오버'다 — 전엔 구간 속도(웜업 등)를 빨리 뛰어 못 지켜도, 상한 비율·고르기만 보고 거리를 다 뛴 날을 '덜함'으로 붙였다(모의 2026-11-19) */
+    const fastSeg=(r.segments||[]).concat(r.cont?contParts(r.rid).flatMap(x=>x.segments||[]):[]).some(g=>g&&g.pass===false&&!g.extra&&isFinite(g.pace)&&g.plan&&paceOff(g.pace,g.plan)<0);
+    if(v===false)return (hrJudged(r)||r.ceilRatio>th.ceil||((r.spread||0)>th.spread)||fastSeg)?'over':'under';
     /* 거리가 모자란 날은 '지킴'이 아니라 '덜함' — 결과 화면은 '속도는 약속대로 · 거리는 모자람 · 거리 약속 ✗'인데 달력·약속 연속은 '지킴'으로 셌다
        (이지런 6km를 1.2km만 뛰어도 지킴 — 모의 2026-11-18). 결과 화면과 같은 기준(약속 거리의 th.dist 미만). 걷기+달리기·직접 넣은 기록은 runPass가 따로 본다 */
     if(!r.rw&&!r.manual&&r.distRatio!=null&&r.distRatio<th.dist)return 'under';
