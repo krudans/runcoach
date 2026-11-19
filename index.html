@@ -2757,7 +2757,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.53';
+const APPVER='21.54';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6039,6 +6039,14 @@ function onTick(){
       else { vmsg+=`목표보다 ${d}초 느립니다. 속도를 올리세요. `; verdictTxt=`${d}초 느림`; }
       if(lapHR&&HZ&&HZ[1]&&lapHR>HZ[1]&&!repInfoOnly&&!S.hrLocked)vmsg+=`심박은 ${vRo(lapHR)} 상한 ${HZ[1]}보다 높습니다. `;
       if(S.segIx===ls)msg+=vmsg;
+    } else if(s&&s.race&&!S.extra&&isFinite(lapPace)&&raceInfo(s)&&raceInfo(s).pace){
+      /* 대회 — 이번 1km를 목표 페이스와 견줘 한 문장(±10초 안이면 '목표 페이스대로'). 전엔 대회는 속도 안내가 없어, 풀코스 목표 5분 40초에 4분 40초로 뛰어도 아무 말이 없었다(모의 2026-11-19).
+         빠르면 '후반을 위해 조금 늦추세요'(마지막 2km는 빼고 — 막판 스퍼트), 느리면 사실만(뒤에서 무리하게 올리라고 하지 않는다). 수시 교정 음성은 그대로 없음 */
+      const P=raceInfo(s).pace, d=Math.round(lapPace-P), sv=n=>n>=60?`${Math.floor(n/60)}분${n%60?` ${n%60}초`:''}`:`${n}초`;   /* 62초 → 1분 2초 */
+      if(d<-10){ msg+=`목표 페이스 ${fmtPaceVoice(P)}보다 ${sv(-d)} 빠릅니다. ${leftK!=null&&leftK<=2?'':'후반을 위해 조금 늦추세요. '}`; verdictTxt=`목표보다 ${-d}초 빠름`; }
+      else if(d>10){ msg+=`목표 페이스 ${fmtPaceVoice(P)}보다 ${sv(d)} 느립니다. `; verdictTxt=`목표보다 ${d}초 느림`; }
+      else { msg+='목표 페이스대로입니다. '; verdictTxt='목표 페이스'; }
+      if(lapHR&&!S.hrLocked)msg+=`평균 심박은 ${lapHR}입니다. `;
     } else if(lapHR&&!S.hrLocked){ msg+=`평균 심박은 ${lapHR}입니다. `; }   /* 걸음을 읽는 심박은 숫자로도 말하지 않는다 */
     /* 1km 안내는 사용자가 무조건 듣기로 한 것 — 조용히·간격 제한에 걸리지 않게 critical로 낸다 */
     if(!(S.act&&S.act!=='run')){ DEV.speak(msg,false,true); DEV.buzz(BZ.tick); }   /* 앞말을 끊지 않고 뒤에 이어서 — 걷기·등산·자전거는 actTick이 따로 짧게 말한다 */
@@ -9723,7 +9731,7 @@ function uprListHTML(){ const t=todayStr(), L=uprAll().filter(r=>r.date>=t).sort
   const it=r=>{ const ro=uprRole(r), tg=UPR_TAG[ro], dn=uprGap(t,r.date);
     const b1=ro!=='next'?`<button type="button" class="gl-re" data-uprrole="${r.id}">${ro==='pr'?'훈련 삼아 뛰기로':'기록 도전으로'}</button>`:'';
     const b2=!mn?`<button type="button" class="gl-re" data-uprgo="${r.id}">이 대회를 목표로</button>`:'';
-    return `<li class="gl-it ${tg[1]}"><span class="gl-ic">🏅</span><div class="gl-t"><b>${ESC(r.name)} · ${UPR_NM(r.m)} ${r.sec?fmtClock(r.sec):'완주'}</b><i>${r.date.slice(5).replace('-','.')} · ${dn?dn+'일 남음':'오늘'}</i><em>${UPR_SUB[ro]}</em><div class="gl-act">${b1}${b2}<button type="button" class="gl-del" data-uprdel="${r.id}" aria-label="대회 지우기">지우기</button></div></div><span class="gl-st">${tg[0]}</span></li>`; };
+    return `<li class="gl-it ${tg[1]}"><span class="gl-ic">🏅</span><div class="gl-t"><b>${ESC(r.name)} · ${UPR_NM(r.m)} ${r.sec?fmtClock(r.sec):'완주'}</b><i>${r.date.slice(5).replace('-','.')} · ${dn?dn+'일 남음':'오늘'}</i><em>${UPR_SUB[ro]}</em><div class="gl-act">${b1}${b2}<button type="button" class="gl-re" data-upred="${r.id}">고치기</button><button type="button" class="gl-del" data-uprdel="${r.id}" aria-label="대회 지우기">지우기</button></div></div><span class="gl-st">${tg[0]}</span></li>`; };
   return `${L.length?`<div class="gc-lab">신청한 대회 <small>${L.length}개</small></div><ul class="gl-list">${L.map(it).join('')}</ul>`:''}
     <button type="button" class="btn ghost" data-upradd="1" style="margin-top:10px">＋ 대회 추가</button>`; }
 /* 대회 추가 창 — 날짜·거리를 고르면 이 대회가 어떻게 반영되는지 바로 보여 준다 */
@@ -9738,8 +9746,8 @@ function uprNote(){ const el=$('uprNote'); if(!el)return; const date=($('uprDt')
   else h=`<b>기록 도전</b> — 대회 전 며칠은 가볍게, 끝나면 ${R.rest}일 쉬고 ${R.win}일째까지 가볍게 달려요. 목록에서 '훈련 삼아'로 바꿀 수 있어요.`;
   if(!mn&&ro!=='next')h+=`<br>지금 목표에 대회 날짜가 없어요 — 목록에서 '이 대회를 목표로'를 누르면 이 대회에 맞춰 일정을 짜요.`;
   el.innerHTML=h; }
-async function uprAddSheet(pre){ const t=todayStr(), v=pre||{};
-  const ok=await askSheet({title:'대회 추가',yes:'추가',no:'취소',html:`<div class="upr-f">
+async function uprAddSheet(pre){ const t=todayStr(), v=pre||{}, ed=v.editId||null;   /* editId — 이미 넣은 대회 고치기(이름·날짜·거리·목표 기록). 전엔 지우고 다시 넣어야 했다 */
+  const ok=await askSheet({title:ed?'대회 고치기':'대회 추가',yes:ed?'저장':'추가',no:'취소',html:`<div class="upr-f">
     <label>대회 이름<input type="text" id="uprNm" maxlength="30" placeholder="예: 인천 K마라톤" value="${ESC(v.name||'')}"></label>
     <label>대회 날짜<input type="date" id="uprDt" min="${t}" value="${ESC(v.date||'')}"></label>
     <label>거리<select id="uprM">${[[5000,'5km'],[10000,'10km'],[21097,'하프'],[42195,'풀코스']].map(o=>`<option value="${o[0]}" ${(+v.m||42195)===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label>
@@ -9754,8 +9762,11 @@ async function uprAddSheet(pre){ const t=todayStr(), v=pre||{};
   if(st){ sec=(+th||0)*3600+(+tmi||0)*60+(+ts||0); if((+tmi||0)>59||(+ts||0)>59)err='분·초는 0~59로 적어요'; else if(!isFinite(sec)||sec<600||sec>12*3600)err='목표 기록을 다시 확인해요 (예: 3시간 59분 00초)'; }
   if(!date)err='대회 날짜를 골라요'; else if(date<t)err='지난 날짜예요';
   else if(uprMain()&&uprMain().date===date)err='지금 목표와 같은 날이에요';
-  else if(uprAll().some(r=>r.date===date))err='같은 날 대회가 이미 있어요';
-  if(err){ toast(err); return uprAddSheet({name,date,m,h:th,mi:tmi,s:ts}); }
+  else if(uprAll().some(r=>r.date===date&&r.id!==ed))err='같은 날 대회가 이미 있어요';
+  if(err){ toast(err); return uprAddSheet({name,date,m,h:th,mi:tmi,s:ts,editId:ed}); }
+  if(ed){ const r=uprAll().find(x=>x.id===ed); if(!r)return false;
+    uprUndo(r.id); Object.assign(r,{name:name||(UPR_NM(m)+' 대회'),date,m,sec:sec||null,edited:t}); uprSave(); uprApply();
+    toast('대회 고침 — 일정에 다시 반영'); return true; }
   const r={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name||(UPR_NM(m)+' 대회'),date,m,sec:sec||null,made:t};
   uprAll().push(r); uprSave(); const ro=uprRole(r); uprApply();
   toast(ro==='next'?`대회 추가 — 지금 목표가 끝나면 이어서 준비`:`대회 추가 — ${UPR_TAG[ro][0]} · 일정에 반영`);
@@ -9764,6 +9775,8 @@ document.addEventListener('input',e=>{ if(e.target&&(e.target.id==='uprDt'||e.ta
 document.addEventListener('change',e=>{ if(e.target&&(e.target.id==='uprDt'||e.target.id==='uprM'))uprNote(); });
 document.addEventListener('click',async e=>{ const q=k=>e.target.closest('[data-'+k+']');
   if(q('upradd')){ const pr=uprAddSheet(); setTimeout(uprNote,30); await pr; return; }
+  { const be=q('upred'); if(be){ const r=uprAll().find(x=>x.id===be.dataset.upred); if(!r)return; const sc=r.sec||0;
+      const pr=uprAddSheet({name:r.name,date:r.date,m:r.m,h:sc?String(Math.floor(sc/3600)):'',mi:sc?String(Math.floor(sc%3600/60)).padStart(2,'0'):'',s:sc?String(sc%60).padStart(2,'0'):'',editId:r.id}); setTimeout(uprNote,30); await pr; return; } }
   let b;
   if((b=q('uprdel'))){ const r=uprAll().find(x=>x.id===b.dataset.uprdel); if(!r)return;
     if(!await ask(`'${r.name}'을(를) 신청한 대회에서 지울까요?\n이 대회 때문에 바꾼 일정은 원래대로 돌아가요.`,'지우기',true))return;
