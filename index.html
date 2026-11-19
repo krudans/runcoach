@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.58';
+const APPVER='21.59';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4939,7 +4939,10 @@ function renderPlan(){
     }
   }
   paintGoalList();
-  const host=$('dayList'); host.innerHTML=planListHTML(); try{ host.insertAdjacentHTML('beforeend',futureListHTML()); }catch(e){} try{ paintPlanView(); }catch(e){}
+  const host=$('dayList');
+  /* 일정이 없으면 예시 일정을 주별 목록에 그리지 않는다 — 전엔 계획 없는 사람(그냥 뛰기·설정 도중)에게 지난 10월부터의 예시 주가 '뛴 날 0/7 · 놓침 7'로 보였다(모의 2026-11-19) */
+  if(!hasPlan()){ host.innerHTML=`<div class="card tight" style="margin:10px 0"><div class="meta" style="line-height:1.7">아직 일정이 없어요 · 위 <b>일정 생성</b>에서 목표에 맞춰 만들어요<br>그냥 뛴 기록은 러닝 일지에 쌓여요</div></div>`; $('plSub').textContent='일정 없음'; $('plTot').textContent=''; }
+  else { host.innerHTML=planListHTML(); try{ host.insertAdjacentHTML('beforeend',futureListHTML()); }catch(e){} try{ paintPlanView(); }catch(e){} }
   if(!renderPlan._did){ renderPlan._did=1; setTimeout(()=>{ const c=host.querySelector('.pw.cur'); if(c)c.scrollIntoView({block:'start'}); },60); }
   // 페이스 존
   const vd=VDOT, z=Z;
@@ -8603,6 +8606,7 @@ function shrinkReps(s,n,len){
 let GB={i:0,d:{}};
 function goalStart(){
   GB={i:0,d:Object.assign({kind:null,m:10000,sec:null,date:null},GOAL||{}),adj:{},ov:Object.assign({},PROF.ov||{}),ovSaved:Object.assign({},PROF.ov||{}),ack:false};
+  GB.mPick=!!(GOAL&&GOAL.m); GB.secM=(GOAL&&GOAL.m&&GOAL.sec)?GOAL.m:null;   /* 거리를 직접 골랐는지(저장된 목표의 거리 포함) · 목표 기록이 어느 거리의 기록인지 */
   if(GB.d.aero)GB.d.aero=Object.assign({},GB.d.aero);
   if(GB.d.origDate){ GB.d.date=GB.d.origDate; }
   GB.d.days=(SURVEY&&SURVEY.days&&SURVEY.days.length)?SURVEY.days.slice():null;
@@ -8695,13 +8699,13 @@ const GSTEP=[
      gRead();
      /* 대회 기록 목표에서 거리만 바꾸면 목표 기록이 앞 거리의 값 그대로 남았다 — 풀 3:59:00에서 '하프'를 누르면 '하프 3:59:00 · 1km 11'20"'이 그대로 저장됐다(모의 2026-11-18).
         같은 실력의 기록으로 바꿔 준다(Daniels VDOT 환산 — 앱의 예상 기록과 같은 식). 칸에서 바로 고칠 수 있다 */
-     if(g.dataset.g==='m'&&GB.d.kind==='race'&&GB.d.sec&&GB.d.m&&+b.dataset.v!==GB.d.m){ try{ const nm=+b.dataset.v, v=vdotOf(GB.d.m,GB.d.sec/60), ns=Math.round(raceTime(v,nm)*60/10)*10;
+     if(g.dataset.g==='m'&&GB.d.kind==='race'&&GB.d.sec&&GB.d.m&&+b.dataset.v!==GB.d.m&&GB.secM===GB.d.m&&GB.d.sec/(GB.d.m/1000)>=150&&GB.d.sec/(GB.d.m/1000)<=900){ try{   /* 직접 고른 거리(또는 저장된 목표의 거리)에 쓴 기록이고 그 거리에 맞는 값일 때만(1km 2분 30초~15분). 처음부터 골라져 있던 10km에 시간을 먼저 쓰고 거리를 고르면 그 시간은 새 거리의 기록이다 — 전엔 10km 기록으로 보고 3:50:00 → '풀코스 10:33:30', 1:45:00 → '하프 3:49:10'으로 바꿨다(모의 2026-11-19) */ const nm=+b.dataset.v, v=vdotOf(GB.d.m,GB.d.sec/60), ns=Math.round(raceTime(v,nm)*60/10)*10;
          if(isFinite(ns)&&ns>0){ GB.d.sec=ns; toast(`목표 기록을 ${gdLabel(nm)} 기준으로 환산 — ${fmtClock(ns)} · 고칠 수 있어요`); } }catch(er){} }
-     GB.d[g.dataset.g]=+b.dataset.v; gPaint(); });
+     GB.d[g.dataset.g]=+b.dataset.v; if(g.dataset.g==='m'){ GB.mPick=true; if(GB.d.sec)GB.secM=GB.d.m; } gPaint(); });
    $('gBody').querySelectorAll('[data-gk]').forEach(b=>b.onclick=()=>{ GB.d.kind=b.dataset.gk; if(GB.d.kind==='finish')GB.d.m=5000; GB.i=1; gPaint(); });   /* 처음 시작에서 '30분 넘게' → 맞는 목표로 바로 */
    dateWire('gDate',v=>{ if(v&&v<=todayStr()){ gHint('목표 날짜는 내일 이후'); return false; } GB.d.date=v; });
    aeroWire();
-   ['gRh','gRm','gRs','gPm','gPs'].forEach(id=>{const el=$(id); if(el)el.oninput=()=>{gRead(); gPaintOut();}});
+   ['gRh','gRm','gRs','gPm','gPs'].forEach(id=>{const el=$(id); if(el)el.oninput=()=>{gRead(); GB.secM=GB.mPick?GB.d.m:null; gPaintOut();}});
    gPaintOut();
  },
  read(){ gRead(); },
@@ -12719,9 +12723,9 @@ function mileHistAsk(ix,opt){ opt=opt||{}; const h=mileHist().slice(), cur=ix!=n
 }
 function mhClose(){ const sh=$('mhSheet'); if(!sh)return; sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 document.addEventListener('click',e=>{ if(e.target.closest('#mhClose')||e.target.id==='mhSheet')mhClose(); });
-const fmtMile=v=>{ const n=Math.round(v*10)/10; return n>=1000?Math.round(n).toLocaleString('en-US'):n>=100?n.toFixed(0):fmtKm1(n); };   /* 100km 아래는 fmtKm1과 같은 규칙 */
+const fmtMile=v=>{ const n=Math.round(v*10)/10; return n>=1000?Math.floor(n+1e-9).toLocaleString('en-US'):n>=100?String(Math.floor(n+1e-9)):fmtKm1(n); };   /* 100km 넘으면 버림 정수 — 계기판과 같은 수(전엔 반올림: 143.6 → 칸 144 · 계기판 143) */   /* 100km 아래는 fmtKm1과 같은 규칙 */
 /* 롤러 주행거리계 띠 — 모든 탭 위 고정 머리에. 앞자리 0은 흐리게, 누르면 마일리지 카드 */
-function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.round(M.total)), str=String(n).padStart(6,'0'); let lead=true;
+function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.floor(M.total+1e-9)),   /* 다 뛴 km만 — 자동차 계기판처럼 버림. 전엔 반올림이라 43.5km가 44로, 마일리지 칸(43.5)과 달랐다 */ str=String(n).padStart(6,'0'); let lead=true;
   const cells=[...str].map((d,i)=>{ const z=lead&&d==='0'&&i<str.length-1; if(d!=='0')lead=false; return `<i class="${z?'z':''}">${d}</i>`; }).join('');
   return `<button type="button" class="odo" id="hOdo" aria-label="누적 ${fmtMile(M.total)}km · 다음 ${fmtMile(M.next)}km까지 ${fmtMile(M.next-M.total)}km"><i>러닝 마일리지 <b>km</b></i><span class="odo-d">${cells}</span></button>`; }catch(e){ return ''; } }
 function paintOdo(){ try{ const o=$('hOdo'); if(o)o.outerHTML=odoHTML(); }catch(e){} }
@@ -12812,7 +12816,7 @@ function logPage(){
   const per=`<div class="per">${[['week','이번 주'],['month','이번 달'],['3m','3달'],['all','전체']].map(p=>`<button class="${LOGPER===p[0]?'on':''}" data-per="${p[0]}">${p[1]}</button>`).join('')}</div>`;
   const nums=`<div class="nums3"><div><i>달린 거리</i><b class="num">${fmtKm1(km)}<small>km</small></b></div>
       <div><i>계획한 날 실행</i><b class="num">${kept}<small>/${tot}</small></b><em>쉬는 날 포함</em></div>
-      <div><i>달린 시간</i><b class="num">${Math.floor(sec/3600)}:${pad(Math.floor(sec%3600/60))}</b></div></div>`;
+      <div><i>달린 시간</i><b class="num">${Math.floor(Math.round(sec/60)/60)}:${pad(Math.round(sec/60)%60)}</b></div></div>`;
   let ana=''; try{ ana=calCard()+weekBars()+(R.length?`<div class="small">쉬운 날 ${km?Math.round(easyKm/km*100):0}% — 쉬운 날 80% 원칙 ${GRB('B')}</div>`:'')+logSkill()+logTips(); }catch(e){}
   return `${per}${SEC('train','달린 양',(perRange()[2]||''),nums)}${logList()}
     <details class="sec log-ana"><summary class="sec-hd"><b>내 기록 분석</b><i>달력 · 훈련 구성 · 좋아지는 것 · 고칠 것</i></summary>${ana}</details>`;
@@ -12835,7 +12839,7 @@ function logSum(){
     ${SEC('body','몸 상태','',bodyLight())}
     ${SEC('train','달린 양',(perRange()[2]||''),`<div class="nums3"><div><i>달린 거리</i><b class="num">${km.toFixed(0)}<small>km</small></b><em>${LOGPER!=='all'&&pkm>0?`${pLab} ${km>=pkm?'+':''}${Math.round((km-pkm)/pkm*100)}%`:''}</em></div>
       <div><i>약속 지킴</i><b class="num">${kept}<small>/${tot}</small></b><em>쉬는 날 포함</em></div>
-      <div><i>달린 시간</i><b class="num">${Math.floor(sec/3600)}:${pad(Math.floor(sec%3600/60))}</b><em style="color:var(--ink-3)">시간:분</em></div></div>`)}
+      <div><i>달린 시간</i><b class="num">${Math.floor(Math.round(sec/60)/60)}:${pad(Math.round(sec/60)%60)}</b><em style="color:var(--ink-3)">시간:분</em></div></div>`)}
     ${SEC('goal','달력','',calCard())}
     ${SEC('ana','훈련 구성','',weekBars()+(R.length?`<div class="small">쉬운 날 ${km?Math.round(easyKm/km*100):0}% — 쉬운 날 80% 원칙 ${GRB('B')}</div>`:''))}`;
 }
