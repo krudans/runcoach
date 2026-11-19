@@ -2757,7 +2757,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.50';
+const APPVER='21.51';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4790,6 +4790,8 @@ function kmBetween(fromDaysAgo,toDaysAgo){ let t=0; const now=new Date();
 function jumpInfo(){
   const last=kmBetween(14,0), prev=kmBetween(28,14);
   if(prev<10) return null;                        /* 비교할 '전'이 없으면 말하지 않는다 */
+  /* 앱에 기록이 쌓인 지 4주가 안 되면 '직전 2주'에 앱을 쓰기 전 날이 섞인다 — 목요일부터 쓴 첫 주(3번)와 견줘 '2주간 177% 증가'가 떴다(모의 2026-11-19). 첫 기록이 24일 전보다 늦으면 판정하지 않는다(나흘 여유) */
+  { const ds=RUNS.filter(isRun).map(r=>ldate(r.date).slice(0,10)).sort(); if(!ds.length||ds[0]>addDays(todayStr(),-24))return null; }
   const up=(last-prev)/prev;
   return up>0.30 ? {last:+last.toFixed(1), prev:+prev.toFixed(1), pct:Math.round(up*100)} : null;
 }
