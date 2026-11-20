@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:16,log:[],shell:0};
+  window.GAJI_NATIVE={ver:17,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log, d=new Date(), p=function(x){ return (x<10?'0':'')+x; }; L.push(p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+' '+m);   /* 폰 시각으로 — 예전엔 세계 표준시(한국 −9시간)로 찍혀 자가 점검의 시각이 실제와 달랐다 */ if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -108,7 +108,7 @@
         앱 본문(index.html)의 심박 연결 코드는 그대로 쓴다. ── */
   try{ if(!navigator.bluetooth){
     var BLE=reg('BluetoothLe'), U=function(s){ return '0000'+s+'-0000-1000-8000-00805f9b34fb'; };
-    var NM={heart_rate:U('180d'),heart_rate_measurement:U('2a37'),battery_service:U('180f'),battery_level:U('2a19')};
+    var NM={heart_rate:U('180d'),heart_rate_measurement:U('2a37'),battery_service:U('180f'),battery_level:U('2a19'),running_speed_and_cadence:U('1814'),rsc_measurement:U('2a53')};
     var uu=function(s){ return NM[s]||String(s).toLowerCase(); };
     var hex2dv=function(h){ h=String(h||'').replace(/[^0-9a-f]/gi,''); var a=new Uint8Array(h.length>>1);
       for(var i=0;i<a.length;i++)a[i]=parseInt(h.substr(i*2,2),16); return new DataView(a.buffer); };
