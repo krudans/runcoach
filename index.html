@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.75';
+const APPVER='21.76';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10440,6 +10440,16 @@ function restScore(ds){ const K=restKind(ds); if(K.k==='plain')return null;
 function restLoad(ds){ const r=RESTLOG[ds]; if(!r||!r.m)return 0; const rpe=r.rpe||5; return (r.m.str?rpe*20:0)+(r.m.core?rpe*8:0); }   /* sRPE = 힘든 정도 × 분 (Foster 2001) */
 function setMis(ds,k,v){ RESTLOG[ds]=RESTLOG[ds]||{}; RESTLOG[ds].m=Object.assign({},RESTLOG[ds].m,{[k]:v});
   DEV.store.set('restlog',RESTLOG); }
+/* 쉬는 날에 당겨 하거나 대신할 수 있는 다음 훈련 — 사흘 안 · 아직 안 뛴 것 · 대회 아님. 전엔 같은 주(월~일) 안만 봐서,
+   목 인터벌이 다음 주 월로 밀린 금요일엔 당길 훈련이 없다고 숨겼다(실제 기기 2026-11-20: '쉬는 날을 훈련으로 바꾸는 기능이 없어 프리런으로 뜀') */
+function restPullTarget(ds){ if(!hasPlan())return null; const now=todayStr();
+  const nx=BLOCK.find(x=>x.d.slice(0,10)>ds&&x.d.slice(0,10)>=now&&x.type!=='off'&&!x.race&&!RUNS.some(r=>r.planId===x.d)); if(!nx)return null;
+  return (Date.parse(nx.d.slice(0,10))-Date.parse(ds))/864e5<=3?nx:null; }
+/* 이미 뛴 쉬는 날 프리런 → 다가올 훈련 대신으로 인정할 수 있나 */
+function restRunTarget(r){ if(!r||!isRun(r)||r.planId||r.contOf||r.race||r.type!=='free')return null; const d=ldate(r.date).slice(0,10);
+  if(planOn(d)||RUNS.some(x=>x!==r&&x.planId&&ldate(x.date).slice(0,10)===d))return null;
+  const nx=restPullTarget(d); if(!nx||nx.type==='tt')return null;   /* TT는 정해진 방식으로 뛰어야 실력 기준이 된다 — 프리런으로 대신하지 않는다 */
+  return (+r.km||0)>=Math.min(3,sKm(nx)*0.5)?nx:null; }
 function openWantRun(){
   const t=todayStr(), nx=BLOCK.find(x=>x.d.slice(0,10)>t&&x.type!=='off');
   const wk=BLOCK.filter(x=>weekMonday(x.d)===weekMonday(t)).reduce((a,x)=>a+sKm(x),0);
@@ -10447,7 +10457,7 @@ function openWantRun(){
      큰 버튼은 'A로 확정'(참기)이며, 다음 훈련을 오늘로 당기는 길이 없었다. ① C를 '가볍게 뛰기 (프리런)'로 ② D '다음 훈련 당겨 뛰기'(같은 주 · 그날은 쉬는 날이 됨) ③ 어제 못 다 한 거리를 알려 줌 */
   const HARD=['interval','threshold','goalpace','long','tt','repetition'], yd=addDays(t,-1);
   const yr=RUNS.find(r=>isRun(r)&&ldate(r.date).slice(0,10)===yd&&r.planId&&!r.contOf&&contLeft(r)>=0.5);
-  const pull=(nx&&!nx.race&&weekMonday(nx.d.slice(0,10))===weekMonday(t)&&!RUNS.some(r=>r.planId===nx.d))?nx:null;
+  const pull=restPullTarget(t), pullX=pull&&weekMonday(pull.d.slice(0,10))!==weekMonday(t);   /* 다음 주 훈련이면 이번 주 거리가 늘어난다 */
   const ydHard=!!(BLOCK.find(x=>x.d.slice(0,10)===yd&&HARD.includes(x.type))||RUNS.some(r=>isRun(r)&&ldate(r.date).slice(0,10)===yd&&HARD.includes(r.type)));
   openDec({kind:'rest',kicker:`${t.slice(5).replace('-','.')} ${dowOf(t)} · 쉬는 날`,title:'그래도<br>뛰고 싶으세요?',
     rows:[...(yr?[['어제',`${ESC(yr.title||'')} ${(+contTotal(yr)).toFixed(1)} / ${fmtKm1(yr.planKm)}km · 남은 ${fmtKm1(contLeft(yr))}km`]]:[]),[nx&&nx.d.slice(0,10)===addDays(t,1)?'내일':'다음 훈련',nx?ESC(nx.t):'—'],['이번 주 계획',wk.toFixed(0)+'km'],['약속 연속',promiseStreak()+'번']],
@@ -10459,7 +10469,7 @@ function openWantRun(){
         apply:()=>{ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].chose='walk'; DEV.store.set('restlog',RESTLOG); setTimeout(()=>startAct('walk'),80); return null; }},
       {k:'C',t:'가볍게 뛰기 (프리런)',d:`${tm('recovery')} 20분쯤 권장${yr?` · 어제 남은 ${fmtKm1(contLeft(yr))}km만큼도 좋아요`:''} · 주간 km 포함`,tags:[['내일 다리 피로','bad']],
         apply:()=>{ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].chose='jog'; DEV.store.set('restlog',RESTLOG); setTimeout(()=>{ FREE_MODE=true; openConfirm(-1); },80); return null; }},
-      ...(pull?[{k:'D',t:`${dowOf(pull.d.slice(0,10))}요일 훈련 당겨 뛰기`,d:`${ESC(pull.t)} — 오늘 뛰고 ${dowOf(pull.d.slice(0,10))}요일은 쉬는 날`,tags:[ydHard&&HARD.includes(pull.type)?['어제도 힘든 날 · 이틀 연속','bad']:['주간 거리 그대로','ok']],
+      ...(pull?[{k:'D',t:`${pullX?'다음 주 ':''}${dowOf(pull.d.slice(0,10))}요일 훈련 당겨 뛰기`,d:`${ESC(pull.t)} — 오늘 뛰고 ${dowOf(pull.d.slice(0,10))}요일은 쉬는 날`,tags:[ydHard&&HARD.includes(pull.type)?['어제도 힘든 날 · 이틀 연속','bad']:pullX?['다음 주 훈련 · 이번 주 거리 +'+fmtKm1(sKm(pull))+'km','bad']:['주간 거리 그대로','ok']],
         apply:()=>{ RESTLOG[t]=RESTLOG[t]||{}; RESTLOG[t].chose='pull'; DEV.store.set('restlog',RESTLOG); moveSession(pull.d,t+pull.d.slice(10));
           setTimeout(()=>{ const i=BLOCK.findIndex(x=>x.d.slice(0,10)===t); FREE_MODE=false; if(i>=0)openConfirm(i); else { renderHome(); go('home'); } },80); return null; }}]:[])],
     okText:sel=>sel==='A'?'참기로 확정':sel==='B'?'걷기로 시작':sel==='C'?'프리런으로 뛰기':'당겨 뛰기',   /* 전엔 'A로 확정'뿐이라 무엇을 확정하는지 버튼만 봐선 알 수 없었다 */
@@ -12434,6 +12444,15 @@ function openRunView(rid,back,_l){
   const s=r.act&&r.act!=='run'?null:runSess(r,b0);
   SH.fromView='rview'; PERF.begin();
   if(r.act&&r.act!=='run') renderActResult($('rvwBody'),r); else renderResult($('rvwBody'),r,s);
+  { const nx=restRunTarget(r); if(nx){ const nd=nx.d.slice(0,10), dw=dowOf(nd), d0=ldate(r.date).slice(0,10);
+      $('rvwBody').insertAdjacentHTML('afterbegin',`<div class="hc" style="margin:0 0 12px"><div class="hh"><b>쉬는 날에 뛴 기록</b><span class="r">${(+r.km).toFixed(1)}km</span></div>
+        <p class="meta" style="margin:4px 2px 10px;line-height:1.6">계획에 없던 날이라 주간 거리·부하에만 들어가 있어요. 다가올 <b>${nd.slice(5).replace('-','.')} ${dw} ${ESC(nx.t)}</b> 대신 한 것으로 치면 그 훈련은 이 날로 옮겨져 끝난 것으로 표시되고, ${dw}요일은 쉬는 날이 돼요.</p>
+        <button type="button" class="btn" id="rvInst">이 달리기로 ${dw}요일 훈련 대신하기</button></div>`);
+      $('rvInst').onclick=async()=>{ if(!(await ask(`${nd.slice(5).replace('-','.')} ${dw} '${nx.t}'을 이 기록(${(+r.km).toFixed(1)}km)으로 대신할까요?\n${dw}요일은 쉬는 날이 돼요.`,'대신하기')))return;
+        const keep=nx.d; moveSession(keep,d0+keep.slice(10)); const ns=BLOCK.find(x=>x.d.slice(0,10)===d0&&x.type!=='off');
+        if(!ns){ toast('옮기지 못했어요'); return; }
+        r.planId=ns.d; r.instead=true; DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
+        toast(`${dw}요일 ${nx.t} → 이 기록으로 대신 · ${dw}요일은 쉬는 날`); openRunView(r.rid,back,1); }; } }
   PERF.render=performance.now()-PERF.t0; try{ $('rvwBody').insertAdjacentHTML('afterbegin','<p id="perfLn" class="perfln"></p>'); }catch(e){}
   $('rvwBack').onclick=()=>go(back||'log');
   $('rvwEdit').onclick=()=>openRunEdit(r.rid);
