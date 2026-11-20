@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.74';
+const APPVER='21.75';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5490,7 +5490,7 @@ async function startRun(){
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
     segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
-    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,restHrCue:null,hrSoft:(S.factors||[]).length>0,hrLocked:false,hrLockSaid:false,lockSec:0,lockedSec:0,unlockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,hrSince:0,liveDrift:null,segPace0:null,
+    hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,restHrCue:null,hrSoft:(S.factors||[]).length>0,hrLocked:false,hrWhy:null,hrDh:[],hrBadAt:[],hrDropN:0,hrDropKm:null,hrDropD:0,hrDropRef:null,hrLockSaid:false,lockSec:0,lockedSec:0,unlockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
     hr:{dev:(S.hr&&S.hr.dev)||null,bpm:(S.hr&&S.hr.bpm)||null,samples:[],max:0,segSamples:[]},hrD:{off:0,stall:0,frozen:0,kick:0,back:0},hrKickAt:0,
     cad:{spm:null,steps:0,samples:[],buf:[],last:0,lastPeak:0,corr:[],seg:[]},stride:null,strideRef:null});
@@ -5870,7 +5870,7 @@ function onTick(){
   if(!S.hr.bpm&&!S.hr.frozen){ $('rHR').textContent='—'; $('rHRZ').textContent=(S.hr.dev||BT.dev)?'연결됨 · 대기':'미연결'; }
   if(S.hr.frozen&&S.hr.raw){ $('rHR').textContent=S.hr.raw; $('rHRZ').textContent='값 멈춤 · 미사용';
     if(!S.frozenCue&&S.running){ S.frozenCue=true; DEV.speak('심박이 30초째 같은 값입니다. 워치의 운동 모드를 켜세요. 심박 판정은 잠시 멈춥니다.'); } }
-  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':S.hrLocked?'걸음과 같음 · 미사용':(S.cad&&S.cad.spm>=LOCK_CAD&&S.hr.bpm>100&&Math.abs(S.hr.bpm-S.cad.spm)<=3)?'걸음 수와 같음 · 확인 중':hrZone(S.hr.bpm);
+  if(S.hr.bpm){ $('rHR').textContent=S.hr.bpm; $('rHRZ').textContent=T.noHR?'참고 안 함':S.hrLocked?(S.hrWhy==='drop'?'갑자기 떨어짐 · 미사용':'걸음과 같음 · 미사용'):(S.cad&&S.cad.spm>=LOCK_CAD&&S.hr.bpm>100&&Math.abs(S.hr.bpm-S.cad.spm)<=3)?'걸음 수와 같음 · 확인 중':hrZone(S.hr.bpm);
     /* 어느 세기로 얼마나 뛰었나 — 끝나고 '회색지대'를 짚으려면 이게 있어야 한다.
        심박이 걸음 박자를 따라가는 동안(잠김)은 세지 않는다 — 전엔 판정에선 빼고 존 시간엔 넣어, 결과에 '상한 37/40'과 'Z4 이상 82%'가 같이 나왔다(2026-11-16 실제 기기) */
     if(S.hrLocked&&!S.paused)S.lockedSec+=Math.min(TD,5);
@@ -5986,12 +5986,28 @@ function onTick(){
         DEV.speak(S.coolCueN===1?`${S.extra?'계획한 거리는 끝났습니다':'지금은 쿨다운 구간입니다'}. 1킬로미터 ${fmtPaceVoice(cc)}보다 느리게 가세요.`:'지금 속도가 빠릅니다. 속도를 늦추세요.',true); } }
     if(S.extra&&!S.extraWarned){ const main=Math.max(0,(+s.dist||0)-((segs[0]&&segs[0].to)||0)), lim=Math.max(2,main*0.2), ex=km-S.extra.km;
       if(ex>=lim){ S.extraWarned=true; DEV.speak(`계획보다 ${ex.toFixed(1)}킬로미터 더 뛰었습니다. 이제 끝내도 됩니다.`,true); } } }
+  /* 심박 급락 — 최근 1분 평균 심박이 2~4분 전보다 30 넘게 낮은데 속도는 그대로(20초/km 넘게 느려지지 않음)면 몸이 아니라 센서다.
+     몸의 심박은 같은 속도에서 1~2분 만에 30씩 떨어지지 않는다. 손목 센서가 헐거워지거나 추위로 피부 혈류가 줄면 이렇게 뚝 떨어진다
+     (실제 기기 2026-11-20: 5km까지 5'10" · 178~182 → 6km부터 4'40" · 152→121→108). 걸음 잠김과 같은 방식으로 심박을 쓰지 않고 속도로 코칭한다 */
+  if(S.running&&!S.paused&&!T.noHR){ const H=S.hrDh||(S.hrDh=[]);
+    if(S.hr.bpm&&isFinite(p)&&p>120&&p<900)H.push([S.elapsed,S.hr.bpm,p]); while(H.length&&S.elapsed-H[0][0]>300)H.shift();
+    const win=(a,b)=>{ const x=H.filter(h=>S.elapsed-h[0]>=a&&S.elapsed-h[0]<b); if(x.length<5)return null; const ps=x.map(h=>h[2]).sort((u,v)=>u-v); return {hr:x.reduce((q,h)=>q+h[1],0)/x.length, p:ps[ps.length>>1]}; };
+    const nw=win(0,60), od=win(120,240);
+    if(!S.hrLocked&&nw&&od&&od.hr-nw.hr>=30&&nw.p<=od.p+20&&od.p<600){ S.hrLocked=true; S.hrWhy='drop'; S.hrDropRef=Math.round(od.hr); S.hrDropN=(S.hrDropN||0)+1;
+      if(S.hrDropKm==null)S.hrDropKm=+(S.dist/1000).toFixed(1); S.hrDropD=Math.max(S.hrDropD||0,Math.round(od.hr-nw.hr));
+      (S.hrBadAt||(S.hrBadAt=[])).push([Math.max(0,S.hr.samples.length-60),null]);
+      { const back=60, zi=Math.min(4,hrZoneIx(Math.round(nw.hr))-1); if(S.zoneSec){ const mv=Math.min(back,S.zoneSec[zi]); S.zoneSec[zi]-=mv; S.lockedSec+=mv; } }   /* 감지하는 동안 쌓인 1분도 센서 값이었다 */
+      DEV.speak(`심박이 갑자기 ${Math.round(od.hr-nw.hr)} 떨어졌는데 속도는 그대로입니다. 심박계가 제대로 못 읽는 것 같아 속도로 코칭합니다. 밴드를 조여 보세요.`,true); }
+    if(S.hrLocked&&S.hrWhy==='drop'&&nw&&S.hrDropRef)S.hrDropD=Math.max(S.hrDropD||0,Math.round(S.hrDropRef-nw.hr));   /* 기록에는 가장 크게 떨어진 폭 */
+    /* 풀림 — 1분 평균이 떨어지기 전 수준(12 안)으로 돌아오면 다시 심박으로 */
+    if(S.hrLocked&&S.hrWhy==='drop'&&nw&&nw.hr>=S.hrDropRef-12){ S.hrLocked=false; S.hrWhy=null; const L=S.hrBadAt&&S.hrBadAt[S.hrBadAt.length-1]; if(L&&L[1]==null)L[1]=S.hr.samples.length;
+      DEV.speak('심박이 다시 제대로 들어옵니다. 심박으로 코칭합니다.',true); } }
   /* 심박 = 케이던스 잠김 — 60초 넘게 심박이 걸음 수와 ±3 안으로 붙어 있으면 심박을 판정에 쓰지 않는다 (C) */
   if(S.hr.bpm&&S.cad&&S.cad.spm&&!T.noHR){ const lk=S.cad.spm>=LOCK_CAD&&Math.abs(S.hr.bpm-S.cad.spm)<=3; S.lockSec=lk?(S.lockSec||0)+TD:Math.max(0,(S.lockSec||0)-TD*2);
-    if(S.lockSec>60&&!S.hrLocked){ S.hrLocked=true; S.unlockSec=0;
+    if(S.lockSec>60&&!S.hrLocked){ S.hrLocked=true; S.hrWhy='lock'; S.unlockSec=0;
       { const back=Math.min(60,S.lockSec), zi=Math.min(4,hrZoneIx(S.hr.bpm)-1); if(S.zoneSec){ const mv=Math.min(back,S.zoneSec[zi]); S.zoneSec[zi]-=mv; S.lockedSec+=mv; } }   /* 감지하는 동안 쌓인 값도 걸음이었다 */ if(!S.hrLockSaid){ S.hrLockSaid=true; DEV.speak('심박이 걸음 수와 같게 나옵니다. 심박계가 걸음을 읽고 있어, 속도로 코칭합니다.',true); } }
     /* 풀림 — 심박과 걸음 수가 8 넘게 90초 이어서 갈라지면 다시 심박으로. 전엔 한 번 잠기면 끝까지 잠겨 있었다 */
-    if(S.hrLocked){ S.unlockSec=Math.abs(S.hr.bpm-S.cad.spm)>8?(S.unlockSec||0)+TD:0;
+    if(S.hrLocked&&S.hrWhy!=='drop'){ S.unlockSec=Math.abs(S.hr.bpm-S.cad.spm)>8?(S.unlockSec||0)+TD:0;
       if(S.unlockSec>90){ S.hrLocked=false; S.lockSec=0; S.unlockSec=0; DEV.speak('심박이 다시 제대로 들어옵니다. 심박으로 코칭합니다.',true); } } }
   /* 심박계 없이 심박 기준 날 — 한 번만 알린다 */
   /* 기기가 연결은 됐는데 값이 늦게 오는 경우(시계가 측정을 막 시작함)는 '연결 안 됨'이 아니다 — 상태를 정확히 말하고, 값이 들어오면 다시 알린다 */
@@ -6479,7 +6495,9 @@ function renderSummary(completed){
   let fixed=false;
   if(td>300&&(S.dist<td*0.8||S.dist>td*1.25)){ S.dist=td; fixed=true; }
   const km=S.dist/1000,s=S.session,T=S.T,hs=S.hr.samples;
-  const hrAvg=hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null;
+  /* 심박이 갑자기 떨어진 구간(센서)은 평균에서 뺀다 */
+  const hsOk=(S.hrBadAt&&S.hrBadAt.length)?hs.filter((v,i)=>!S.hrBadAt.some(([a,b])=>i>=a&&(b==null||i<b))):hs;
+  const hrAvg=hsOk.length?Math.round(hsOk.reduce((a,b)=>a+b,0)/hsOk.length):(hs.length?Math.round(hs.reduce((a,b)=>a+b,0)/hs.length):null);
   const cc=S.cad.corr||[];
   const cadAvg=cc.length>20?Math.round(cc.reduce((a,b)=>a+b,0)/cc.length):null;
   /* 케이던스가 '—'일 때 까닭을 기록에 남긴다 — 전엔 왜 안 잡혔는지 알 길이 없었다(실제 기기 2026-11-18: 1분 40초 프리런에 '—') */
@@ -6600,7 +6618,7 @@ function renderSummary(completed){
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)), zoneB:zoneBounds(),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
-    completed,shoe:S.shoe,factors:(S.factors||[]).slice(),planKm:isFree?null:(+s.dist||null),extraKm:S.extra?+(km-S.extra.km).toFixed(2):0,hrSuspect,hrLockSec:Math.round(S.lockedSec||0),hrDiag:S.hrD&&(S.hrD.off||S.hrD.stall||S.hrD.frozen||S.hrD.kick)?Object.assign({},S.hrD):null,   /* 심박이 끊긴 까닭(자가 점검에 표시) */
+    completed,shoe:S.shoe,factors:(S.factors||[]).slice(),planKm:isFree?null:(+s.dist||null),extraKm:S.extra?+(km-S.extra.km).toFixed(2):0,hrSuspect,hrLockSec:Math.round(S.lockedSec||0),hrDrop:S.hrDropN?{km:S.hrDropKm,d:S.hrDropD}:undefined,hrDiag:S.hrD&&(S.hrD.off||S.hrD.stall||S.hrD.frozen||S.hrD.kick)?Object.assign({},S.hrD):null,   /* 심박이 끊긴 까닭(자가 점검에 표시) */
     ceiling:s.ceiling||null, cadGoal:S.cadGoal||null, hrCap:(T.hrZone&&T.hrZone[1])||null, hour:new Date(S.t0||Date.now()).getHours(),
     th:{spread:TH.spread,ceil:TH.ceil,hrOver:TH.hrOver,dist:TH.dist},
     breath:S.breath?S.breath.blocks:null, act:S.act||'run',
@@ -7221,7 +7239,7 @@ async function selfTest(){
       segs:[{to:12,nm:'리커버리런',pace:[445,520],tol:'ceil'}]}), T=TYPES.recovery;
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
-      hrLocked:false,hrLockSaid:false,lockSec:0,lockedSec:0,unlockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,
+      hrLocked:false,hrWhy:null,hrDh:[],hrBadAt:[],hrDropN:0,hrDropKm:null,hrDropD:0,hrDropRef:null,hrLockSaid:false,lockSec:0,lockedSec:0,unlockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,
       segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -12066,7 +12084,8 @@ function promiseRows(r,s){
     if(kind==='kept'&&(restFast.length||wcFast.length)) kind='softfast';
   }
   const z=hrZonesOf(r)||[], zt=z.reduce((a,b)=>a+b,0);
-  if(r.hrSuspect&&(r.zones||[]).some(v=>v>0)) rows.push(['심박',`걸음 수와 같아 판정에서 뺌${r.hrLockSec?` (${fmtClock(r.hrLockSec)})`:''} — 속도로 판정`,'']);
+  if(r.hrDrop) rows.push(['심박',`${r.hrDrop.km}km쯤 갑자기 ${r.hrDrop.d} 떨어짐 — 속도는 그대로라 심박계 문제로 보고 그 뒤 심박은 존·평균·판정에서 뺌 · 밴드를 조이거나 팔 안쪽으로`,'']);
+  else if(r.hrSuspect&&(r.zones||[]).some(v=>v>0)) rows.push(['심박',`걸음 수와 같아 판정에서 뺌${r.hrLockSec?` (${fmtClock(r.hrLockSec)})`:''} — 속도로 판정`,'']);
   const hardFr=(r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec);
   if(zt>300&&T.judgeBy==='spread'&&(z[3]+z[4])/zt>hardFr+0.15) rows.push(['힘듦(Z4) 이상 시간',`${Math.round((z[3]+z[4])/zt*100)}% — 회차 ${Math.round((r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec)*100)}%`,'bad']);
   if(zt>300&&['easy','recovery','long'].includes(r.type)){ const hi=(z[3]+z[4])/zt;
@@ -15187,6 +15206,7 @@ function debriefPoints(r,s){
   /* 빠른 회차가 여럿인 훈련(인터벌·템포런·페이스주)은 앞뒤 절반 비교를 하지 않는다 — 사이 쉬기·쿨다운이 섞인 1km가 들어가 계획대로 뛰어도 '후반 느려짐 — 초반 과속?'이 나왔다(페이스주, 2026-11-17 시험). 회차끼리는 '회차 고르게'가 본다 */
   if(sp.length>=4&&sg.filter(g=>g.hard).length<2){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
     const d=Math.round(a-b); if(d>=3)good.push(['후반',`네거티브 스플릿 ${d}초/km`]); else if(d<=-8)bad.push(['후반',`후반 1km ${-d}초 느려짐 — 초반 과속?`]); }
+  if(r.hrDrop)bad.push(['심박',`${r.hrDrop.km}km쯤 갑자기 ${r.hrDrop.d} 떨어짐(속도는 그대로) — 심박계 문제로 보고 그 뒤 심박은 존·평균·판정에서 뺌 · 밴드를 조이거나 팔 안쪽으로`]);
   /* 같은 종류의 최근 러닝과 비교 — 인터벌과 이지런의 케이던스는 원래 다르다 */
   const same=RUNS.filter(x=>x!==r&&x.type===r.type&&x.cadAvg).slice(-5), cu=same.length>=3?Math.round(same.reduce((a,x)=>a+x.cadAvg,0)/same.length):null;
   if(r.cadAvg&&cu){ if(r.cadAvg>=cu+3)good.push(['케이던스',`${r.cadAvg} — ${tm(r.type)} 5번 평균 ${cu}보다 가벼움`]); else if(r.cadAvg<140||r.cadAvg<=cu-25)bad.push(['케이던스',`${r.cadAvg} — 평소(${tm(r.type)} 5번 평균 ${cu})보다 크게 낮음 · 걸은 시간이 섞였거나 걸음 센서가 덜 잰 것`]);
