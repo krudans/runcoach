@@ -796,7 +796,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .odo{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;border:0;background:none;padding:0;font:inherit;color:var(--ink);text-align:right;cursor:pointer;flex:none}.odo-t{display:flex;align-items:center;gap:5px}.odo-d{display:flex;gap:2px}.odo-d i{display:inline-block;width:18px;height:25px;line-height:25px;text-align:center;background:var(--inv);color:#F4F0EA;font-style:normal;font-weight:700;font-size:16px;border-radius:4px;font-family:var(--num);font-variant-numeric:tabular-nums}.odo-d i.z{opacity:.32}.odo-t b{font-size:11px;font-weight:700}.odo>i{font-style:normal;font-size:11px;color:var(--ink-2);font-weight:700;white-space:nowrap;letter-spacing:.01em;text-align:right;width:100%}.odo>i b{font-weight:700;color:var(--ink)}
 .mile{padding:14px 16px}.mile-odo{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 .mile-hd{display:flex;align-items:center;gap:10px;width:100%;border:none;background:none;font:inherit;color:var(--ink);text-align:left;padding:0;cursor:pointer}.mile-hd .mile-odo{flex:none;gap:4px}.mile-hd .mile-odo>b{font-size:32px}.mile-hd .mile-odo span{font-size:13px}.mile-hd>i{flex:1;min-width:0;font-style:normal;font-size:13px;color:var(--ink-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mile-chev{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--panel-2);color:var(--ink-2)}.mile-more{margin-top:12px}.mile-odo>b{font-size:44px;font-weight:700;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}.mile-odo i b{color:var(--ink);font-weight:700}.mile-odo span{font-size:14px;font-weight:700;color:var(--ink-3)}.mile-odo i{flex-basis:100%;font-style:normal;font-size:12px;color:var(--ink-3);font-weight:700;margin-top:2px}
-.mile-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}.mile-row span{background:var(--panel-2);border-radius:14px;padding:8px 10px;min-width:0}.mile-row i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700}.mile-row b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}.mile-row em{display:block;font-style:normal;font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mile-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}.mile-row span{background:var(--panel-2);border-radius:14px;padding:8px 10px;min-width:0}.mile-row i{display:block;font-style:normal;font-size:11px;color:var(--ink-3);font-weight:700}.mile-row b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}.mile-row em{display:block;font-style:normal;font-size:11px;color:var(--ink-3);line-height:1.35}
 /* 러닝 마일리지 크게 보기 (v20.21) */
 .mc-goal{margin-top:12px;background:var(--panel-2);border-radius:14px;padding:10px 12px}.mc-gh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.mc-gh b{font-size:13.5px}.mc-gh span{font-size:12px;color:var(--ink-3);font-weight:700}
 .mc-bar{height:8px;border-radius:4px;background:var(--bg);margin:7px 0 6px;overflow:hidden}.mc-bar u{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#1E9B5C,#5B2D86)}
@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.69';
+const APPVER='21.71';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4757,7 +4757,7 @@ $('nav').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
 /* ───────── 뒤로가기 · 종료 · 화면 켜두기 ─────────
    안드로이드 뒤로가기는 바로 앱을 끄지 않는다. 히스토리에 자리를 하나 깔아두고
    뒤로가기가 들어올 때마다 다시 깔면서 앱 안에서만 이동한다.
-   홈에서 뒤로가기·홈 상단 전원 버튼 → '가지런을 닫을까요?'(3초 뒤 닫힘, 달리는 중엔 안 뜸) — 2026-11-20 */
+   홈에서 뒤로가기·홈 상단 전원 버튼 → '가지런을 닫을까요?'(가만히 있으면 유지, 뒤로 한 번 더 = 닫기, 달리는 중엔 안 뜸) — 2026-11-20 */
 let EXITING=false;
 const BACKTO={confirm:'runtab',settings:'home',alerts:'home',sum:'log',
   paste:'plan',review:'home'};
@@ -4769,27 +4769,26 @@ async function appBack(){
   { const open=[...document.querySelectorAll('.msheet')].filter(x=>!x.hidden); const sh=open[open.length-1];
     if(sh){ const x=sh.querySelector('[aria-label="닫기"],.ms-hd button'); if(x)x.click(); else sh.dispatchEvent(new MouseEvent('click',{bubbles:true}));
       setTimeout(()=>{ if(!sh.hidden&&!sh.classList.contains('up'))return; if(!sh.hidden){ sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); } },260); return; } }
-  if(typeof LOCKED!=='undefined'&&LOCKED){ DEV.buzz(50); return; }
-  if(S.running&&CURVIEW==='run'){ DEV.buzz(50); return; }
+  /* 달리는 중 뒤로 키 — 막아 두되(기록 보호) 떨림만이면 고장처럼 보였다 → 할 일을 한 줄로 알린다 */
+  if(typeof LOCKED!=='undefined'&&LOCKED){ DEV.buzz(50); toast('잠금 풀기를 길게 누르세요'); return; }
+  if(S.running&&CURVIEW==='run'){ DEV.buzz(50); toast(S.paused?'종료를 2초 길게 누르세요':'멈추려면 일시정지 → 종료 2초 길게'); return; }
   if(CURVIEW==='intro'){ DEV.buzz(50); return; }
   if(CURVIEW==='onb'){ if(OB.i>0)$('obBack').onclick(); else show('intro'); return; }
   if(CURVIEW==='goal'){ if(GB.i>0)$('gBack').onclick(); else { renderHome(); go('home'); } return; }
   const p=CURVIEW==='confirm'?(pendingIx<0?'runtab':'home'):BACKTO[CURVIEW];
   if(p)go(p); else if(CURVIEW!=='home')go('home'); else exitAsk();
 }
-/* 홈에서 뒤로 키·위쪽 전원 단추 — '가지런을 닫을까요?'(계속 쓰기 / 닫기 3초). 전엔 홈에서 뒤로 키가 떨림뿐이라 앱이 멈춘 것 같았고(사용자 의견 2026-11-20),
-   전원 단추는 가운데 확인 창이라 둘이 달랐다. 달리는 중엔 창 없이 떨림만 — 기록 중에 앱이 닫히면 안 된다 */
+/* 홈에서 뒤로 키·위쪽 전원 단추 — '가지런을 닫을까요?'(계속 쓰기 / 닫기). 전엔 홈에서 뒤로 키가 떨림뿐이라 앱이 멈춘 것 같았고(사용자 의견 2026-11-20),
+   전원 단추는 가운데 확인 창이라 둘이 달랐다. 달리는 중엔 창 없이 떨림만 — 기록 중에 앱이 닫히면 안 된다.
+   가만히 있으면 닫지 않는다(v21.69의 3초 뒤 자동 닫기 뺌 — 실수로 누르고 두면 앱이 꺼졌다. 티맵·카카오내비도 홈에서는 가만히 있으면 유지) · 창이 떠 있을 때 뒤로 키 한 번 더 = 닫기 */
 let EXIT_ASK=false;
 async function exitAsk(){
   if(S.running){ DEV.buzz(50); return; }
   if(EXIT_ASK)return;
   EXIT_ASK=true; DEV.buzz(30);
-  const N='①②③', lab=n=>`닫기 ${N[n-1]||''}`.trim();
-  const p=askSheet({title:'가지런을 닫을까요?',text:'기록은 저장돼 있어요. 다시 열면 그대로예요.',yes:lab(3),no:'계속 쓰기'});
-  let n=3; const tm=setInterval(()=>{ n--; const b=$('askSheet')&&$('askSheet').querySelector('[data-ask="1"]'); if(!b){ clearInterval(tm); return; }
-    if(n<=0){ clearInterval(tm); b.click(); } else b.textContent=lab(n); },1000);
+  const p=askSheet({title:'가지런을 닫을까요?',text:'기록은 저장돼 있어요. 뒤로 키를 한 번 더 누르면 닫혀요.',yes:'닫기',no:'계속 쓰기'});
   let ok=false; try{ ok=await p; }catch(e){}
-  clearInterval(tm); EXIT_ASK=false;
+  EXIT_ASK=false;
   if(ok)doExit();
 }
 /* 닫기 — 올리는 중이면 끝날 때까지(최대 15초) 기다렸다 닫는다. 방금 뛴 기록이 다음에 열 때까지 안 올라가는 일을 막으려고 */
@@ -4806,9 +4805,12 @@ async function doExit(){
   try{ window.close(); }catch(e){}
 }
 try{ history.pushState({rc:1},''); }catch(e){}
+/* 설치한 앱 — 휴대폰 뒤로 키가 여기로 바로 온다(native.js). 웹 방식(아래 popstate)은 크롬이 '화면을 누르기 전에 깐 기록 칸'을 건너뛰어 터치 한 번당 한 번만 먹었다 */
+window.__gajiBack=()=>{ if(EXITING)return; appBack(); };
 window.addEventListener('popstate',()=>{
   if(EXITING)return;
   try{ history.pushState({rc:1},''); }catch(e){}
+  if(window.__gajiNativeBack)return;   /* 앱 쪽 뒤로 키를 받는 중이면 두 번 처리하지 않는다 */
   appBack();
 });
 
@@ -12761,7 +12763,8 @@ function mileage(){
   const byMonth={}; R.forEach(r=>{ const k=ldate(r.date).slice(0,7); byMonth[k]=(byMonth[k]||0)+(+r.km||0); });
   const bestMonth=Object.entries(byMonth).sort((a,b)=>b[1]-a[1])[0]||null;
   const next=MILE_STEPS.find(v=>v>total)||Math.ceil(total/5000)*5000+5000, prev=[0].concat(MILE_STEPS).filter(v=>v<=total).pop()||0;
-  return {total,base,unknown,hist:H,from,runKm,runSec,raceExtra,n:R.length,race:{n:races.length,km:raceKm},year:sumIf(r=>ldate(r.date).slice(0,4)===y),month:sumIf(r=>ldate(r.date).slice(0,7)===m),week:sumIf(r=>weekMonday(ldate(r.date).slice(0,10))===mon),byYear,bestMonth,next,prev,badges:MILE_STEPS.filter(v=>v<=total)};
+  return {total,base,unknown,hist:H,from,runKm,runSec,raceExtra,n:R.length,race:{n:races.length,km:raceKm},year:(byYear[y]||{km:0}).km,   /* 올해 = 연도별 목록·연별 막대의 올해와 같은 값(이 앱 달리기 + 기록 없는 대회 + 올해로 넣은 이전 마일리지). 전엔 이 앱 달리기만이라 둘이 다를 수 있었다 */
+    month:sumIf(r=>ldate(r.date).slice(0,7)===m),week:sumIf(r=>weekMonday(ldate(r.date).slice(0,10))===mon),byYear,bestMonth,next,prev,badges:MILE_STEPS.filter(v=>v<=total)};
 }
 function mileHist(){ let h=Array.isArray(PROF.mileHist)?PROF.mileHist.filter(x=>x&&+x.km>0):[];
   if(!h.length&&PROF.mileBase){ const mb=typeof PROF.mileBase==='object'?PROF.mileBase:{km:+PROF.mileBase||0}; if(mb.km>0){ h=[{y:null,km:Math.round(mb.km*10)/10}]; PROF=Object.assign({},PROF,{mileHist:h,mileBase:null}); try{ DEV.store.set('prof',PROF); }catch(e){} } }
@@ -12843,26 +12846,37 @@ function mileCharts(M){
   /* 다음 목표 · 비유 */
   const togo=Math.max(0,M.next-M.total), pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
   const goal=`<div class="mc-goal"><div class="mc-gh"><b>다음 목표 ${fmtMile(M.next)} km</b><span>${togo>0?`${fmtMile(togo)} km 남음`:'도달'}</span></div><div class="mc-bar"><u style="width:${pct.toFixed(1)}%"></u></div>
-    <div class="mc-fun"><span>서울→부산(약 400km) <b>${Math.round(M.total/400*100)}%</b>${M.total>=400?` · ${(M.total/400).toFixed(1)}번 왕복 편도`:''}</span><span>지구 한 바퀴(40,075km) <b>${(M.total/40075*100).toFixed(M.total<4007?2:1)}%</b></span></div></div>`;
+    <div class="mc-fun"><span>서울→부산(약 400km) <b>${Math.round(M.total/400*100)}%</b>${M.total>=400?` · 편도 ${(M.total/400).toFixed(1)}번`:''}</span><span>지구 한 바퀴(40,075km) <b>${(M.total/40075*100).toFixed(M.total<4007?2:1)}%</b></span></div></div>`;
   /* 주별 12주 / 월별 12달 */
+  /* 주 평균 — 그래프 선과 '올해' 칸이 같은 값. 다 끝난 주(이번 주 제외)만, 첫 기록 주부터 최근 8주까지.
+     전엔 그래프는 '보이는 끝난 주 중 거리 있는 주'의 평균(26.6), 올해 칸은 '이번 주까지 8주 합 ÷ 주 수'(30.3)라 같은 말이 두 값이었다(실제 기기 2026-11-20) */
+  const fr0=R.map(r=>ldate(r.date).slice(0,10)).sort()[0]||t;
+  let wS=0,wC=0; for(let i=1;i<=8;i++){ const a=addDays(mon,-7*i); if(addDays(a,6)<fr0)break; wS+=kmIn(a,addDays(a,6)); wC++; }
+  const wkAvg=wC?wS/wC:kmIn(mon,t), wkLab=wC>=8?'최근 8주':wC?'지금까지':'이번 주';
   let bars=[];
-  if(MILE_PER==='w'){ for(let i=11;i>=0;i--){ const a=addDays(mon,-7*i), b=addDays(a,6); bars.push({lab:`${+a.slice(5,7)}.${+a.slice(8,10)}`,km:kmIn(a,b),now:i===0,tip:`${+a.slice(5,7)}.${+a.slice(8,10)} 주`}); } }
+  if(MILE_PER==='d'){ for(let i=13;i>=0;i--){ const d=addDays(t,-i); bars.push({lab:`${+d.slice(5,7)}.${+d.slice(8,10)}`,km:kmIn(d,d),now:i===0,tip:`${+d.slice(5,7)}.${+d.slice(8,10)} ${dowOf(d)}`}); } }
+  else if(MILE_PER==='y'){ const ys=Object.keys(M.byYear).filter(k=>/^\d{4}$/.test(k)).map(Number); const y1=+t.slice(0,4), y0=Math.max(ys.length?Math.min(...ys):y1,y1-11);
+    for(let yy=y0;yy<=y1;yy++){ const o=M.byYear[String(yy)]; bars.push({lab:String(yy),km:o?o.km:0,now:yy===y1,tip:`${yy}년${o&&o.prev?' (이전 마일리지 포함)':''}`}); } }
+  else if(MILE_PER==='w'){ for(let i=11;i>=0;i--){ const a=addDays(mon,-7*i), b=addDays(a,6); bars.push({lab:`${+a.slice(5,7)}.${+a.slice(8,10)}`,km:kmIn(a,b),now:i===0,tip:`${+a.slice(5,7)}.${+a.slice(8,10)} 주`}); } }
   else { const d0=new Date(+ym.slice(0,4),+ym.slice(5,7)-1,1); for(let i=11;i>=0;i--){ const d=new Date(d0.getFullYear(),d0.getMonth()-i,1), m=d.getFullYear()+'-'+pad(d.getMonth()+1), e=new Date(d.getFullYear(),d.getMonth()+1,0); bars.push({lab:`${d.getMonth()+1}월`,km:kmIn(m+'-01',m+'-'+pad(e.getDate())),now:i===0,tip:`${d.getFullYear()}.${d.getMonth()+1}`}); } }
-  { const f=bars.findIndex(b=>b.km>0); if(f>0)bars=bars.slice(Math.min(f,bars.length-4)); }
-  const done=bars.filter(b=>!b.now&&b.km>0), avg=done.length?done.reduce((a,b)=>a+b.km,0)/done.length:0;
+  if(MILE_PER!=='d'){ const f=bars.findIndex(b=>b.km>0); if(f>0)bars=bars.slice(Math.min(f,bars.length-4)); }
+  /* 평균 선 — 주별은 위 주 평균과 같은 값, 월별·연별은 다 끝난 달·해(거리 있는 것), 일별은 쉬는 날이 섞여 평균이 뜻이 없어 선 없음 */
+  const done=bars.filter(b=>!b.now&&b.km>0), avg=MILE_PER==='w'?wkAvg:MILE_PER==='d'?0:(done.length?done.reduce((a,b)=>a+b.km,0)/done.length:0), avgNm={w:'주 평균',m:'월 평균',y:'연 평균'}[MILE_PER]||'평균';
   const W=340,H=150,LM=6,RM=6,TM=18,BM=20, mx=Math.max(10,...bars.map(b=>b.km),avg)*1.12, n=bars.length, slot=(W-LM-RM)/Math.max(n,8), x0=LM+(W-LM-RM)-slot*n, bw=slot-4, Y=v=>TM+(H-TM-BM)*(1-v/mx);
   const top=bars.reduce((m,b,i)=>b.km>bars[m].km?i:m,0);
-  const chart=`<svg viewBox="0 0 ${W} ${H}" class="wk-ch mc-ch" role="img" aria-label="${MILE_PER==='w'?'주별':'월별'} 거리">
-    ${avg?`<line x1="${LM}" x2="${W-RM}" y1="${Y(avg).toFixed(1)}" y2="${Y(avg).toFixed(1)}" stroke="var(--ink-3)" stroke-dasharray="3 3"/><text x="${LM}" y="${(Y(avg)-4).toFixed(1)}" font-size="10" text-anchor="start" fill="var(--ink-3)">평균 ${fmtKm1(avg)}</text>`:''}
+  const chart=`<svg viewBox="0 0 ${W} ${H}" class="wk-ch mc-ch" role="img" aria-label="${{d:'일별',w:'주별',m:'월별',y:'연별'}[MILE_PER]} 거리">
+    ${avg?`<line x1="${LM}" x2="${W-RM}" y1="${Y(avg).toFixed(1)}" y2="${Y(avg).toFixed(1)}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`:''}
     ${bars.map((b,i)=>{ const x=x0+i*slot+2, y=Y(b.km), h=Math.max(b.km>0?3:0,H-BM-y); return `<g class="mc-b" data-mbar="${b.tip} · ${fmtKm1(b.km)} km${b.now?' (진행 중)':''}"><rect x="${(x-1).toFixed(1)}" y="${TM}" width="${(bw+2).toFixed(1)}" height="${H-BM-TM}" fill="transparent"/>${h?`<path d="M${x.toFixed(1)} ${(H-BM).toFixed(1)}V${(y+4).toFixed(1)}q0-4 4-4h${(bw-8).toFixed(1)}q4 0 4 4V${(H-BM).toFixed(1)}Z" fill="${b.now?'#B9A4D6':'#5B2D86'}"/>`:''}
       ${(i===top||b.now)&&b.km>0?`<text x="${(x+bw/2).toFixed(1)}" y="${(y-5).toFixed(1)}" font-size="10.5" font-weight="800" text-anchor="middle" fill="var(--ink)">${fmtKm1(b.km)}</text>`:''}
-      ${MILE_PER==='m'||n<=8||b.now||(n-1-i)%2===0?`<text x="${(x+bw/2).toFixed(1)}" y="${H-5}" font-size="9.5" text-anchor="middle" fill="${b.now?'#5B2D86':'var(--ink-3)'}" font-weight="${b.now?800:500}">${b.lab}</text>`:''}</g>`; }).join('')}</svg>`;
-  const per=`<section class="mc-sec"><div class="mc-h"><b>${MILE_PER==='w'?'주별':'월별'} 거리</b><div class="mc-seg"><button type="button" data-mper="w" class="${MILE_PER==='w'?'on':''}">주별</button><button type="button" data-mper="m" class="${MILE_PER==='m'?'on':''}">월별</button></div></div>
-    ${chart}<div class="mc-cap" id="mcCap">막대를 누르면 거리가 보여요 · 옅은 막대 = 진행 중</div></section>`;
+      ${MILE_PER==='m'||MILE_PER==='y'||n<=8||b.now||(n-1-i)%2===0?`<text x="${(x+bw/2).toFixed(1)}" y="${H-5}" font-size="9.5" text-anchor="middle" fill="${b.now?'#5B2D86':'var(--ink-3)'}" font-weight="${b.now?800:500}">${b.lab}</text>`:''}</g>`; }).join('')}</svg>`;
+  const PN={d:'일별',w:'주별',m:'월별',y:'연별'};
+  const per=`<section class="mc-sec"><div class="mc-h"><b>${PN[MILE_PER]} 거리</b><div class="mc-seg">${['d','w','m','y'].map(k=>`<button type="button" data-mper="${k}" class="${MILE_PER===k?'on':''}">${PN[k]}</button>`).join('')}</div></div>
+    ${chart}${avg?`<div class="mc-cap">점선 = ${avgNm} <b>${fmtKm1(avg)} km</b>${MILE_PER==='w'?` (${wkLab})`:''}</div>`:''}<div class="mc-cap" id="mcCap">막대를 누르면 거리가 보여요 · 옅은 막대 = 진행 중</div></section>`;
+  /* 평균 숫자는 그래프 밖 한 줄로 — 그래프 안 왼쪽에 두면 가장 긴 막대 숫자와 겹쳤다('주 평균 3 33', 2026-11-20 시험) */
   /* 올해 흐름 — 최근 8주 주 평균으로 연말 예상 */
-  const y=t.slice(0,4), endY=y+'-12-31', fr=R.map(r=>ldate(r.date).slice(0,10)).sort()[0]||t, nW=Math.max(1,Math.min(8,(Date.parse(t)-Date.parse(fr))/864e5/7)), last8=kmIn(addDays(t,-55),t), wkAvg=last8/nW, left=Math.round((Date.parse(endY)-Date.parse(t))/864e5), proj=M.year+wkAvg/7*left;
+  const y=t.slice(0,4), endY=y+'-12-31', left=Math.round((Date.parse(endY)-Date.parse(t))/864e5), proj=M.year+wkAvg/7*left;
   const yr=`<section class="mc-sec"><div class="mc-h"><b>올해</b><span>${y}</span></div>
-    <div class="mc-yr"><div><i>올해 달린 날</i><b class="num">${new Set(R.filter(r=>ldate(r.date).startsWith(y)).map(r=>ldate(r.date).slice(0,10))).size}<small> 일</small></b></div><div><i>이 속도면 연말</i><b class="num">${fmtMile(proj)}<small> km</small></b></div><div><i>${nW<8?'지금까지':'최근 8주'} 주 평균</i><b class="num">${fmtKm1(wkAvg)}<small> km/주</small></b></div></div></section>`;
+    <div class="mc-yr"><div><i>올해 달린 날</i><b class="num">${new Set(R.filter(r=>ldate(r.date).startsWith(y)).map(r=>ldate(r.date).slice(0,10))).size}<small> 일</small></b></div><div><i>이 속도면 연말</i><b class="num">${fmtMile(proj)}<small> km</small></b></div><div><i>${wkLab} 주 평균</i><b class="num">${fmtKm1(wkAvg)}<small> km/주</small></b></div></div></section>`;
   /* 훈련 종류별 거리 (전체) */
   const byT={}; R.forEach(r=>{ const k=TYPES[r.type]?r.type:'free'; byT[k]=(byT[k]||0)+(+r.km||0); });
   const tot=Object.values(byT).reduce((a,b)=>a+b,0); let ty='';
