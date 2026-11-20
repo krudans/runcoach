@@ -11,7 +11,7 @@
       if(typeof cb==='function')return Promise.resolve(C.nativeCallback(name,m,o||{},cb));
       return C.nativePromise(name,m,o||{}); }; }}); };
   var BG=reg('BackgroundGeolocation'), TTS=reg('TextToSpeech'), LN=reg('LocalNotifications'), KA=reg('KeepAwake');
-  window.GAJI_NATIVE={ver:15,log:[],shell:0};
+  window.GAJI_NATIVE={ver:16,log:[],shell:0};
   var note=function(m){ try{ var L=window.GAJI_NATIVE.log, d=new Date(), p=function(x){ return (x<10?'0':'')+x; }; L.push(p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())+' '+m);   /* 폰 시각으로 — 예전엔 세계 표준시(한국 −9시간)로 찍혀 자가 점검의 시각이 실제와 달랐다 */ if(L.length>60)L.shift(); }catch(e){} };
 
   /* ── 1. 위치: 화면이 꺼져도 계속 받는다(달리는 동안 알림 표시) ── */
@@ -195,10 +195,17 @@
   /* ── 7-1. 뒤로 키: 휴대폰의 뒤로 키를 앱 화면에 직접 넘긴다. 전엔 웹 방식(빈 기록 한 칸을 깔아 두고 뒤로 가기를 가로채기)만 썼는데,
         크롬은 화면을 한 번도 안 누른 채 깐 기록 칸은 뒤로 키가 건너뛴다(뒤로 가기 조작 막기 규칙) — 그래서 '화면을 한 번 누른 직후에만 한 번' 먹었다(실제 기기 2026-11-20).
         이 리스너를 걸면 껍데기의 기본 뒤로 처리는 꺼지고, 누를 때마다 앱 화면이 받는다 ── */
-  /* '직접 받는 중' 표시는 리스너가 실제로 걸린 뒤에만 켠다 — 먼저 켜 두면, 걸기에 실패한 폰에서 웹 방식까지 꺼져 뒤로 키가 아예 안 먹는다 */
-  try{ var bh=APP.addListener('backButton',function(){ window.__gajiNativeBack=true; try{ if(window.__gajiBack)window.__gajiBack(); }catch(e){} });
-    if(bh&&typeof bh.then==='function')bh.then(function(){ window.__gajiNativeBack=true; note('back on'); },function(e){ note('back fail '+(e&&e.message)); });
-    else { window.__gajiNativeBack=true; note('back on'); } }catch(e){ note('back define fail'); }
+  /* 걸기는 다리(Capacitor)의 addListener(플러그인, 이벤트, 함수)로 한다 — v21.71은 위 reg()로 APP.addListener('backButton',f)를 불러
+     이벤트 이름이 {eventName:…} 대신 글자로 넘어가 휴대폰이 거부했고, 거부 답이 이 함수로 들어와 '직접 받는 중' 표시만 켜졌다.
+     그래서 웹 방식은 꺼지고 휴대폰 쪽은 안 걸려 어느 화면에서도 뒤로 키가 안 먹었다(실제 기기 2026-11-20).
+     '직접 받는 중' 표시는 실제 뒤로 키 신호(canGoBack이 든 답)가 처음 왔을 때만 켠다. 그 전·실패 때는 웹 방식이 그대로 일한다 —
+     걸기에 성공하면 껍데기가 웹뷰 뒤로 가기를 하지 않으므로 둘이 겹쳐 두 번 처리되는 일은 없다. */
+  try{ if(typeof C.addListener!=='function')throw new Error('no addListener');
+    C.addListener('App','backButton',function(d,err){
+      if(err||!d||typeof d!=='object'||!('canGoBack' in d)){ note('back fail '+((err&&err.message)||'답 이상')); return; }
+      if(!window.__gajiNativeBack){ window.__gajiNativeBack=true; note('back on'); }
+      try{ if(typeof window.__gajiBack==='function')window.__gajiBack(); else if(d.canGoBack)history.back(); }catch(e){ try{ history.back(); }catch(e2){} } });
+    note('back asked'); }catch(e){ note('back define fail '+(e&&e.message)); }
 
   /* ── 8. 파일 저장·보내기: 앱 화면에는 브라우저의 '내려받기'·'공유'가 없다 — 휴대폰 저장소(갤러리/내 파일)에 직접 쓰고, 휴대폰 공유창을 연다.
         앱 껍데기에 이 기능(GajiFile)이 들어 있어야 한다(2026-11-15 빌드부터). 예전 설치본은 실패로 답하고, 화면이 '다시 설치'를 안내한다 ── */
