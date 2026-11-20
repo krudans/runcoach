@@ -192,6 +192,13 @@
 
   /* ── 7. 종료: 웹의 창 닫기(window.close)는 앱 화면에서 아무 일도 하지 않는다 — 종료 단추가 앱을 실제로 끝내게 한다 ── */
   try{ var APP=reg('App'); window.close=function(){ note('exit'); APP.exitApp().catch(function(e){ note('exit '+(e&&e.message)); }); }; }catch(e){ note('exit define fail'); }
+  /* ── 7-1. 뒤로 키: 휴대폰의 뒤로 키를 앱 화면에 직접 넘긴다. 전엔 웹 방식(빈 기록 한 칸을 깔아 두고 뒤로 가기를 가로채기)만 썼는데,
+        크롬은 화면을 한 번도 안 누른 채 깐 기록 칸은 뒤로 키가 건너뛴다(뒤로 가기 조작 막기 규칙) — 그래서 '화면을 한 번 누른 직후에만 한 번' 먹었다(실제 기기 2026-11-20).
+        이 리스너를 걸면 껍데기의 기본 뒤로 처리는 꺼지고, 누를 때마다 앱 화면이 받는다 ── */
+  /* '직접 받는 중' 표시는 리스너가 실제로 걸린 뒤에만 켠다 — 먼저 켜 두면, 걸기에 실패한 폰에서 웹 방식까지 꺼져 뒤로 키가 아예 안 먹는다 */
+  try{ var bh=APP.addListener('backButton',function(){ window.__gajiNativeBack=true; try{ if(window.__gajiBack)window.__gajiBack(); }catch(e){} });
+    if(bh&&typeof bh.then==='function')bh.then(function(){ window.__gajiNativeBack=true; note('back on'); },function(e){ note('back fail '+(e&&e.message)); });
+    else { window.__gajiNativeBack=true; note('back on'); } }catch(e){ note('back define fail'); }
 
   /* ── 8. 파일 저장·보내기: 앱 화면에는 브라우저의 '내려받기'·'공유'가 없다 — 휴대폰 저장소(갤러리/내 파일)에 직접 쓰고, 휴대폰 공유창을 연다.
         앱 껍데기에 이 기능(GajiFile)이 들어 있어야 한다(2026-11-15 빌드부터). 예전 설치본은 실패로 답하고, 화면이 '다시 설치'를 안내한다 ── */
