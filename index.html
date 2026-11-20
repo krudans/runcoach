@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.63';
+const APPVER='21.66';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4139,6 +4139,9 @@ function makePlan(opts){
       } else if(hardD.includes(d)){
         const mixL=seaMix||shape.mix, kind=mixL[hardD.indexOf(d)%Math.max(1,mixL.length)]||'T';
         const goalDay = gPaceSec && (SEA ? kind==='GP' : (w===1||w===2) && hardD.indexOf(d)===hardD.length-1);
+        /* 빠른 날 그날 거리 — 바닥(6~7km)을 채우려 이지런을 끼워 넣어도 그 주 긴 날보다 길게 하지 않는다. 긴 날이 그 주 가장 긴 날이다(관행 C).
+           전엔 주 3일·적게 뛰는 사람에게 '페이스주 7km'(500m × 2 + 이지런 2.25km)가 토요일 LSD 5km보다 길었다(모의 2026-11-20). 본 운동에 꼭 필요한 거리(fit)는 줄이지 않는다 */
+        const qT=(fl,fit)=>Math.max(fit,Math.min(Math.max(fl,hardKm),longKm));
         if(goalDay&&SEA&&(SEA.D==='M'||SEA.D==='H')&&!raceTaper){
           /* 풀·하프 실전기 주중 목표 속도 — 3km(풀)·2km(하프) 구간을 이어서 (Pfitzinger MP 훈련, C). 주간 20% 상한은 아래에서 다시 맞춘다 */
           /* 쉬지 않고 이어서 — 풀 6~10km · 하프 4~6km, 주간의 ~14% (Pfitzinger MP run, C) */
@@ -4146,7 +4149,7 @@ function makePlan(opts){
           s={d:ds,wk:w+1,type:'goalpace',dist:tot,t:`목표 속도 ${mp}km 이어서`,segs:[{to:wu,nm:tm('warm'),pace:PACE.warmIn,tol:'ceil'},{to:wu+mp,nm:'목표 속도',pace:[gp-3,gp+3],tol:5,hard:true},{to:tot,nm:tm('cool'),pace:PACE.coolOut||PACE.easyIn,tol:null}],reps:1,repTarget:gp,repLen:mp,qvol:mp,bout:mp*gp};
         } else if(goalDay){
           const nn=fitN(Math.max(7,hardKm),1.5,Math.max(2,Math.min(4,Math.round(Math.min(8,km*0.12)/2))),2,restKm(120,PACE.recJog));
-          s={d:ds,wk:w+1,t:`목표 속도 2km × ${nn}`,...goalPaceRun(Math.max(7,hardKm,fitKm(1.5,nn,2,restKm(120,PACE.recJog))),2,nn,gPaceSec)};
+          s={d:ds,wk:w+1,t:`목표 속도 2km × ${nn}`,...goalPaceRun(qT(7,fitKm(1.5,nn,2,restKm(120,PACE.recJog))),2,nn,gPaceSec)};
         } else if(kind==='I'){
           /* 한 번에 3~5분 걸리는 길이를 먼저 정한다. 0.5km짜리 '빠르게'는
              심장이 반응하기 전에 끝나서 힘만 든다. 양은 횟수로 맞춘다. */
@@ -4155,7 +4158,7 @@ function makePlan(opts){
           if(n*len<2.4) n=Math.min(8,Math.ceil(2.4/len));
           while(capW<999&&n>2&&fitKm(2,n,len,0.5)>capW)n--;   /* 그날 전체 거리 ≤ 한 번 거리 한도 */
           const tgt=sessTgt('interval');
-          s={d:ds,wk:w+1,t:`빠르게 ${kmLab(len)} × ${n}`,...interval(Math.min(Math.max(6,hardKm,fitKm(2,n,len,0.5)),Math.max(capW<999?capW:99,fitKm(2,n,len,0.5))),2,n,len,tgt,0.5,null)};
+          s={d:ds,wk:w+1,t:`빠르게 ${kmLab(len)} × ${n}`,...interval(Math.min(qT(6,fitKm(2,n,len,0.5)),Math.max(capW<999?capW:99,fitKm(2,n,len,0.5))),2,n,len,tgt,0.5,null)};
         } else {
           /* 벅차게 — 한 번에 5~15분. 주간 10% 안에서 길이와 횟수를 잡는다 */
           const cp=Math.max(km*0.10, 20*60/Z.T);   /* 본 운동 = 20분 이상 또는 주간 10% 중 큰 쪽 (A-5 · Daniels T 20분, C) — 20분 거리는 반올림하지 않은 값으로: 0.1km로 반올림한 값의 95%를 쓰면 19분에 조금 못 미치는 조합(18분 58초)이 통과했다 */
@@ -4168,7 +4171,7 @@ function makePlan(opts){
           if(bestOver===Infinity){ len=1; n=2; for(const L of tLens) for(let N=tN;N>=2;N--){ if(N*L<=tMax+0.01&&fitsCap(L,N)&&N*L>n*len){ len=L; n=N; } } }
           const tgt=sessTgt('threshold');
           const tRest=Math.max(60,Math.round(len*60));   /* Daniels 크루즈 인터벌: 일:휴 5:1 → 1km마다 약 1분 */
-          s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.min(Math.max(6,hardKm,fitKm(2,n,len,restKm(tRest,PACE.recJog))),Math.max(capW<999?capW:99,fitKm(2,n,len,restKm(tRest,PACE.recJog)))),2,n,len,tgt,0.35,tRest)};
+          s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.min(qT(6,fitKm(2,n,len,restKm(tRest,PACE.recJog))),Math.max(capW<999?capW:99,fitKm(2,n,len,restKm(tRest,PACE.recJog)))),2,n,len,tgt,0.35,tRest)};
         }
         if(taper)s.role=wkRole[w];
       } else {
@@ -4228,6 +4231,16 @@ function makePlan(opts){
   if(gPaceSec&&!SEA&&out.some(s=>s.type==='goalpace')) why.push(`목표 속도(1km ${fmtPace(gPaceSec)}) 2·3주차 → 당일 적응`);
   if(SEA&&gPaceSec&&out.some(s=>s.type==='goalpace'||s.mpFinish)) why.push(`실전 시기 목표 속도(1km ${fmtPace(gPaceSec)}) 주 1회${(SEA.D==='M'||SEA.D==='H')?' · 긴 날 후반':''} (C).`);
   if(qDropped) why.push('주간 거리 부족 → 빠른 날 제외');
+  /* 빠른 날이 그 주 긴 날보다 길면 끼워 넣은 이지런 구간을 줄인다 — 긴 날이 그 주 가장 긴 날이다(관행 C).
+     전엔 주 3일·적게 뛰는 사람에게 '페이스주 7km'(본 운동을 500m × 2로 줄인 뒤에도 그날 거리는 그대로, 남은 거리는 이지런 2.25km)가 토요일 LSD 5km보다 길었다(모의 2026-11-20).
+     본 운동·웜업·쿨다운은 건드리지 않는다 — 이지런 구간이 없으면 그대로 */
+  { let trimmed=false; const EZ=tm('easy');
+    out.forEach(s=>{ if(!s||s.type==='long'||!Array.isArray(s.segs)||!(s.dist>0))return; const lg=out.find(x=>x.wk===s.wk&&x.type==='long'); if(!lg||!(s.dist>lg.dist+0.01))return;
+      const k=s.segs.findIndex(g=>g.nm===EZ&&!g.hard); if(k<1)return; const len=+(s.segs[k].to-s.segs[k-1].to).toFixed(2), cut=Math.min(len,+(s.dist-lg.dist).toFixed(2)); if(!(cut>0.01))return;
+      for(let j=k;j<s.segs.length;j++)s.segs[j].to=+(s.segs[j].to-cut).toFixed(2);
+      if(s.segs[k].to-s.segs[k-1].to<0.05)s.segs.splice(k,1);
+      s.dist=+(s.dist-cut).toFixed(2); trimmed=true; });
+    if(trimmed&&!why.some(x=>/긴 날보다 길지 않게/.test(x)))why.push('빠른 날 거리 — 그 주 긴 날보다 길지 않게(끼워 넣은 이지런 구간을 줄임)'); }
   /* A-6: 세션 조합(빠른 날 종류·긴 날 사다리) 때문에 줄이는 주가 아닌데 앞 주보다 합이 적으면, 쉬운 날에 0.5km씩 보태 앞 주 이상으로 */
   { const sumW=w=>out.filter(x=>x.wk===w).reduce((a,x)=>a+(x.dist||0),0);
     for(let w=2;w<=4;w++){ if(wkRole[w-1])continue; const prev=sumW(w-1); if(!(prev>0))continue; let need=prev-sumW(w); if(need<=0.01)continue;
@@ -5338,6 +5351,10 @@ function cadAC(R,now){
   if(!pk.length)return null;
   const best=Math.max(...pk.map(L=>r[L])), L=pk.find(L=>r[L]>=0.7*best);   /* 짧은 주기(한 걸음)를 고른다 — 두 걸음(한 보) 주기를 고르면 반으로 나온다 */
   const a=r[L-1], b=r[L], c=r[L+1], dn=a-2*b+c, d=dn?0.5*(a-c)/dn:0;
+  /* 반 주기(한 걸음) 후보 — 폰을 손에 들고 뛰면 팔이 한 번 오가는 데 두 걸음이 걸려(한쪽 주머니도 왼발·오른발 흔들림이 달라) '두 걸음' 주기가 더 뚜렷해져 반으로 나온다(194 → 97).
+     반 주기 근처(±20%)에 봉우리가 조금이라도 있으면 그 값을 따로 돌려준다 — 고를지는 속도를 보고 onMotion에서 */
+  cadAC.alt=null; { const h0=Math.floor(L/2*0.8), h1=Math.ceil(L/2*1.2); let hb=null; for(let q=Math.max(lo-1,h0);q<=h1;q++){ if(r[q-1]==null||r[q+1]==null)continue; if(r[q]>=r[q-1]&&r[q]>=r[q+1]&&r[q]>0.05&&(hb==null||r[q]>r[hb]))hb=q; }
+    if(hb!=null){ const a2=r[hb-1], b2=r[hb], c2=r[hb+1], dn2=a2-2*b2+c2, d2=dn2?0.5*(a2-c2)/dn2:0; const s2=Math.round(60*HZ/(hb+d2)); if(s2>=100&&s2<=240)cadAC.alt=s2; } }
   const spm=Math.round(60*HZ/(L+d)); return spm>=40&&spm<=240?spm:null; }
 function onMotion(e){
   if(!S.running||S.paused)return;
@@ -5348,7 +5365,11 @@ function onMotion(e){
   if(!C.acAt){ C.acAt=now; return; }
   if(now-C.acAt<1000)return;
   const dt=Math.min(2,(now-C.acAt)/1000); C.acAt=now;   /* 멈췄다 다시 가면 긴 틈을 걸음으로 채우지 않게 2초까지만 */
-  const v=cadAC(R,now); const H=C.hist||(C.hist=[]); H.push(v); if(H.length>3)H.shift();
+  let v=cadAC(R,now);
+  /* 뛰는 속도인데 한 걸음이 1.5m를 넘으면(5'00"에 94보 = 2.1m) 두 걸음을 한 걸음으로 센 것 — 반 주기 값을 쓴다(실제 기기 2026-11-20: 달리는 화면 194, 결과 평균 94).
+     걷는 속도(8'00"보다 느림)는 그대로 — 걸을 때 100~120보는 실제 값이다 */
+  try{ const p=curPace(); if(v&&cadAC.alt&&isFinite(p)&&p>0&&p<480&&(1000/p*60/v)>1.5){ v=cadAC.alt; C.dbl=(C.dbl||0)+1; } }catch(e){}
+  const H=C.hist||(C.hist=[]); H.push(v); if(H.length>3)H.shift();
   const ok=H.filter(x=>x); C.spm=ok.length>=2?ok.slice().sort((p,q)=>p-q)[ok.length>>1]:null;   /* 1초짜리 세 번 중 가운데 값 — 한 번 튀는 값을 버린다 */
   if(C.spm){ if(!C.stepsF&&R.length)C.stepsF=C.spm/60*Math.min(8,(now-R[0][0])/1000);   /* 처음 값이 나오기까지(약 6초) 걸은 걸음도 넣는다 */
     C.stepsF=(C.stepsF||0)+C.spm/60*dt; C.steps=Math.round(C.stepsF); }
@@ -10159,6 +10180,8 @@ function shiftFrom(ds,days,dry){
   if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
   return n;
 }
+/* 일정 칸의 지금 이름 — 일정·홈 화면과 같은 값(sessionOf) */
+function liveT(x){ try{ const i=BLOCK.indexOf(x); const v=i>=0?sessionOf(i):null; return String((v&&v.t)||(x&&x.t)||''); }catch(e){ return String((x&&x.t)||''); } }
 function missedDay(){
   const t=todayStr();
   for(let i=1;i<=3;i++){ const ds=addDays(t,-i); const s=planOn(ds);
@@ -10224,7 +10247,8 @@ function openExtra(e){
     opts, back:'home', logExtra:{ref:key}, onLater:()=>{}});
 }
 function openMissed(m){
-  const {ds,s}=m, t=todayStr(), T=TYPES[s.type]||{}, isToday=!!m.today;
+  /* 이름은 화면(일정·홈)과 같은 값으로 — 걷기+달리기 칸은 저장된 이름(1단계)이 아니라 지금 단계로 다시 만든다. 전엔 같은 날이 '1단계 누락'과 '0단계 미실시'로 달리 보였다 */
+  const {ds}=m, s=Object.assign({},m.s,{t:liveT(m.s)}), t=todayStr(), T=TYPES[s.type]||{}, isToday=!!m.today;
   const today=isToday?null:planOn(t), hardT=['interval','threshold','goalpace','rep','tt','long'];
   const isHard=hardT.includes(s.type);
   const tomorrow=planOn(addDays(t,1));
@@ -10597,9 +10621,9 @@ function homeSignals(){
   if(!sigSeen('rhr',1)&&rhrAlert())sig.push(['rhr','안정 심박 평소 초과','오늘 훈련 결정']);
   if(!sigSeen('drift',7)&&driftAlert())sig.push(['drift','같은 속도 심박↑','이번 주 결정']);
   try{ const g=(PLAN&&PLAN.goal)||GOAL; if(g&&g.kind==='start'&&!sigSeen('grad',3650)&&starterState().phase==='grad')sig.push(['grad','30분 연속 — 졸업','목적별 목표 선택']); }catch(e){}
-  const tu=todayUndone(); if(tu)sig.push(['tmiss',`오늘 ${(sessionOf(BLOCK.indexOf(tu.s))||tu.s).t} 미실시`,'넘기기 · 미루기']);
+  const tu=todayUndone(); if(tu)sig.push(['tmiss',`오늘 ${liveT(tu.s)} 미실시`,'넘기기 · 미루기']);
   try{ const c=regCfg(); if(c.on&&c.pend&&c.pend.length)sig.push(['regopen',`접수 시작 — ${c.pend[0].name}${c.pend.length>1?` 외 ${c.pend.length-1}개`:''}`,'대회 찾기에서 확인']); }catch(e){}
-  const ms=missedDay(); if(ms)sig.push(['miss',`${dowOf(ms.ds)}요일 ${ms.s.t} 누락`,'넘기기 · 옮기기']);
+  const ms=missedDay(); if(ms)sig.push(['miss',`${dowOf(ms.ds)}요일 ${liveT(ms.s)} 누락`,'넘기기 · 옮기기']);
   const ex=extraPending(); if(ex)sig.push(['extra',`계획보다 ${ex.r.extraKm.toFixed(1)}km 초과`,`이번 주 ${fmtKm1(ex.proj)}km(+${ex.pct}%) — 일정 결정`]);
   const open=PROPS.filter(x=>!x.done); open.forEach(p=>sig.push(['prop',p.title,'답하기',p]));
   { const sp=selfAuto(); if(sp.length&&!sigSeen(selfAutoKey(sp),7))sig.push(['self',`앱 점검 — ${sp[0][0]}${sp.length>1?` 외 ${sp.length-1}건`:''}`,'자가 점검에서 확인']); }
@@ -10903,6 +10927,8 @@ function todayResultCard(r,sess){
   </section>`;
 }
 document.addEventListener('click',e=>{
+  /* 오늘 못 뛸 때 — 전엔 '내일로 넘기기·건너뛰기·미루기'가 저녁 7시가 지나야(그리고 그날 아무것도 안 뛰었을 때만) 알림으로 나와, 아침에 못 뛸 걸 알아도 고를 곳이 없었다(실제 회원 2026-11-19: '메뉴가 안 보여 그냥 프리런') */
+  if(e.target.closest('#todayCant')){ const t=todayStr(), s0=planOn(t); if(s0&&!RUNS.some(r=>r.planId===s0.d))openMissed({ds:t,s:s0,today:true}); return; }
   if(e.target.closest('#unskipToday')){ const t=todayStr(); MISSSEEN[t]=''; DEV.store.set('missSeen',MISSSEEN);   /* 지우지 않고 빈 값 — 다른 기기에 남은 '건너뜀'과 합쳐질 때 취소가 이긴다 */ try{ renderHome(); }catch(x){} toast('건너뛰기 취소 — 오늘 훈련으로 되돌림'); return; }
   const a=e.target.closest('[data-tres]'); if(a){ openRunView(a.dataset.tres,'home'); return; }
   const c=e.target.closest('[data-tcont]'); if(c){ const r=RUNS.find(x=>x.rid===c.dataset.tcont), ix=r?BLOCK.findIndex(b=>b.d===r.planId):-1; if(r&&ix>=0&&contLeft(r)>=0.5){ CONT={rid:r.rid,ix,left:contLeft(r)}; openConfirm(ix); } return; }
@@ -10965,7 +10991,7 @@ function todayCard(sess,idx){
         <b>${RI?`대회 <span class="num">${rlLab(RI.m)}</span>`:sess.dist>0||isTT?`${ESC(g0.e)} <span class="num">${isTT?fmtKm1(sess.ttKm||2):sess.dist}km</span>`:ESC(sess.t)}${edited?'<small> · 바꿈</small>':''}</b>${what?`<i class="he-what">${what}</i>`:''}
         <span class="he-line num">${line||'&nbsp;'}</span></div>
       <button class="he-go${done||skip?' done':''}" id="goToday">${done?ic('check',16)+'다시':skip?'그래도 뛰기':ic('play',16)+'시작'}</button></div>
-    <div class="hero-links"><button type="button" id="todayDet">상세</button>${sess.dist>0?'<button type="button" id="distEdit">거리 변경</button>':''}${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}${skip?'<button type="button" id="unskipToday">건너뛰기 취소</button>':''}</div>
+    <div class="hero-links"><button type="button" id="todayDet">상세</button>${sess.dist>0?'<button type="button" id="distEdit">거리 변경</button>':''}${snapBtn('.hero','today','오늘 훈련')}${done?'<button type="button" id="undoToday">완료 취소</button>':''}${skip?'<button type="button" id="unskipToday">건너뛰기 취소</button>':''}${!done&&!skip&&!RI?'<button type="button" id="todayCant">오늘 못 해요</button>':''}</div>
     <div class="st-pair" style="margin:8px 0 2px"><button type="button" data-stgo="dyn">출발 전 동적 스트레칭 ▶</button><button type="button" data-stgo="stat">끝나고 정적 스트레칭 ▶</button></div>
     <div class="tdist" id="distBox" hidden><button data-dd="-0.5">−</button><input type="number" id="dVal" step="0.5" inputmode="decimal" value="${sess.dist}"><span>km</span><button data-dd="0.5">+</button><button class="ok" id="dGo">확인</button></div>
   </section>`;
@@ -13954,7 +13980,7 @@ function renderGuide(){
       note('궤적 대비 0.8~1.25배 밖 → 교체')+src('함수 onPos, curPace')),
     item('cad',ic('cad'),'케이던스 (발걸음)','폰 흔들림으로 걸음 측정','분당',
       fx(`a = |가속도| · 최근 6초를 1초에 50개로 고르게<br>r(L) = a와 L만큼 밀린 a의 닮음(자기상관) · L = 0.27~1.05초<br><b>spm = 60 ÷ (r이 가장 높은 짧은 주기 L)</b> · 1초마다 · 세 번 중 가운데 값`)+
-      kv([['표시 안 함','흔들림 거의 없음 · 되풀이 주기 없음 · 70↓/230↑ · 차량 속도'],['2배 보정','안 함 — 측정값 그대로'],['평균','최근 10번 달리기 평균']])+src('함수 onMotion, cadence')),
+      kv([['표시 안 함','흔들림 거의 없음 · 되풀이 주기 없음 · 70↓/230↑ · 차량 속도'],['반으로 센 값','뛰는 속도(8\'00" 안)인데 한 걸음 1.5m 넘으면 반 주기 값'],['평균','최근 10번 달리기 평균']])+src('함수 onMotion, cadence')),
     item('hr',ic('hrmax'),'심박','워치·가슴 스트랩 수신','BPM',
       kv([['연결','블루투스 표준 심박(0x180D)'],['상한 넘음','25초 이어지면 안내'],['위험',`최대의 95%(${pct(.95)}) 이상이 120초 누적 → "멈추세요"`],['심박 표류','10분+ 등속 · 후반 심박 +6↑']])+
       fx(`권장 = 1000 ÷ (v − (심박 − 상한 + 2) ÷ b)<br>(v = m/s · b = 기울기 · ≤90초)`)+src('onTick')),
