@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.66';
+const APPVER='21.69';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4163,7 +4163,7 @@ function makePlan(opts){
           /* 벅차게 — 한 번에 5~15분. 주간 10% 안에서 길이와 횟수를 잡는다 */
           const cp=Math.max(km*0.10, 20*60/Z.T);   /* 본 운동 = 20분 이상 또는 주간 10% 중 큰 쪽 (A-5 · Daniels T 20분, C) — 20분 거리는 반올림하지 않은 값으로: 0.1km로 반올림한 값의 95%를 쓰면 19분에 조금 못 미치는 조합(18분 58초)이 통과했다 */
           let len=2, n=2, bestOver=Infinity;   /* cp의 95% 이상을 채우는 (길이×횟수) 중 넘침이 가장 적은 것 — 같으면 긴 반복 */
-          const fitsCap=(L,N)=>capW>=999||fitKm(2,N,L,restKm(Math.max(60,Math.round(L*60)),PACE.recJog))<=capW;   /* 웜업·쿨다운·사이 조깅까지 더한 그날 거리도 한 번 거리 한도(+10%) 안 — 9km 템포가 30일 최장 7.5km 사람에게 나오던 것 */
+          const fitsCap=(L,N)=>{ const f=fitKm(2,N,L,restKm(Math.max(60,Math.round(L*60)),PACE.recJog)); return (capW>=999||f<=capW)&&f<=longKm+0.01; };   /* 그 주 긴 날보다 길지 않게도 — 주 15km·긴 날 5.5km 사람에게 템포 2km×2(그날 7.5km)가 나오던 것(시즌 모의 2026-11-20). 맞는 조합이 없으면 아래 가장 작은 조합 */   /* 웜업·쿨다운·사이 조깅까지 더한 그날 거리도 한 번 거리 한도(+10%) 안 — 9km 템포가 30일 최장 7.5km 사람에게 나오던 것 */
           /* 본 운동 상한 — 전엔 모든 수준이 2km×5(본 운동 10km, 그날 약 15km)에서 멈춰, 주 100km 넘게 뛰는 빠른 목표는 주간 10%를 채우지 못했다.
              목표 수준(목표 기록의 VDOT)에 따라: 서브3 수준(54)부터 본 운동 13km(그날 약 18km) · 서브2:30 수준(67)부터 16km(약 21km) · 한 번 3km까지(T 속도로 15분 안, Daniels C) (2026-11-11 결정) */
           const tLvl=(SEA&&SEA.lvl)||0, tMax=tLvl>=67?16:tLvl>=54?13:10, tLens=tMax>10?[3,2,1.5,1]:[2,1.5,1], tN=tMax>10?6:5;
@@ -4171,7 +4171,9 @@ function makePlan(opts){
           if(bestOver===Infinity){ len=1; n=2; for(const L of tLens) for(let N=tN;N>=2;N--){ if(N*L<=tMax+0.01&&fitsCap(L,N)&&N*L>n*len){ len=L; n=N; } } }
           const tgt=sessTgt('threshold');
           const tRest=Math.max(60,Math.round(len*60));   /* Daniels 크루즈 인터벌: 일:휴 5:1 → 1km마다 약 1분 */
-          s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.min(qT(6,fitKm(2,n,len,restKm(tRest,PACE.recJog))),Math.max(capW<999?capW:99,fitKm(2,n,len,restKm(tRest,PACE.recJog)))),2,n,len,tgt,0.35,tRest)};
+          /* 가장 작은 조합(1km × 2)도 웜업 2km로는 긴 날을 넘으면 웜업을 1.5km로 — 긴 날 5km 사람에게 템포 그날 5.5km가 남던 것(시즌 모의 2026-11-20) */
+          const tRR=restKm(tRest,PACE.recJog), wuT=fitKm(2,n,len,tRR)<=longKm+0.01?2:1.5;
+          s={d:ds,wk:w+1,t:`벅차게 ${kmLab(len)} × ${n}`,...thresh(Math.min(qT(6,fitKm(wuT,n,len,tRR)),Math.max(capW<999?capW:99,fitKm(wuT,n,len,tRR))),wuT,n,len,tgt,0.35,tRest)};
         }
         if(taper)s.role=wkRole[w];
       } else {
@@ -4231,16 +4233,6 @@ function makePlan(opts){
   if(gPaceSec&&!SEA&&out.some(s=>s.type==='goalpace')) why.push(`목표 속도(1km ${fmtPace(gPaceSec)}) 2·3주차 → 당일 적응`);
   if(SEA&&gPaceSec&&out.some(s=>s.type==='goalpace'||s.mpFinish)) why.push(`실전 시기 목표 속도(1km ${fmtPace(gPaceSec)}) 주 1회${(SEA.D==='M'||SEA.D==='H')?' · 긴 날 후반':''} (C).`);
   if(qDropped) why.push('주간 거리 부족 → 빠른 날 제외');
-  /* 빠른 날이 그 주 긴 날보다 길면 끼워 넣은 이지런 구간을 줄인다 — 긴 날이 그 주 가장 긴 날이다(관행 C).
-     전엔 주 3일·적게 뛰는 사람에게 '페이스주 7km'(본 운동을 500m × 2로 줄인 뒤에도 그날 거리는 그대로, 남은 거리는 이지런 2.25km)가 토요일 LSD 5km보다 길었다(모의 2026-11-20).
-     본 운동·웜업·쿨다운은 건드리지 않는다 — 이지런 구간이 없으면 그대로 */
-  { let trimmed=false; const EZ=tm('easy');
-    out.forEach(s=>{ if(!s||s.type==='long'||!Array.isArray(s.segs)||!(s.dist>0))return; const lg=out.find(x=>x.wk===s.wk&&x.type==='long'); if(!lg||!(s.dist>lg.dist+0.01))return;
-      const k=s.segs.findIndex(g=>g.nm===EZ&&!g.hard); if(k<1)return; const len=+(s.segs[k].to-s.segs[k-1].to).toFixed(2), cut=Math.min(len,+(s.dist-lg.dist).toFixed(2)); if(!(cut>0.01))return;
-      for(let j=k;j<s.segs.length;j++)s.segs[j].to=+(s.segs[j].to-cut).toFixed(2);
-      if(s.segs[k].to-s.segs[k-1].to<0.05)s.segs.splice(k,1);
-      s.dist=+(s.dist-cut).toFixed(2); trimmed=true; });
-    if(trimmed&&!why.some(x=>/긴 날보다 길지 않게/.test(x)))why.push('빠른 날 거리 — 그 주 긴 날보다 길지 않게(끼워 넣은 이지런 구간을 줄임)'); }
   /* A-6: 세션 조합(빠른 날 종류·긴 날 사다리) 때문에 줄이는 주가 아닌데 앞 주보다 합이 적으면, 쉬운 날에 0.5km씩 보태 앞 주 이상으로 */
   { const sumW=w=>out.filter(x=>x.wk===w).reduce((a,x)=>a+(x.dist||0),0);
     for(let w=2;w<=4;w++){ if(wkRole[w-1])continue; const prev=sumW(w-1); if(!(prev>0))continue; let need=prev-sumW(w); if(need<=0.01)continue;
@@ -4261,6 +4253,17 @@ function makePlan(opts){
       /* 긴 날은 쉬운 날보다 길어야 '긴 날'이다 */
       out.forEach(x=>{ if(x.type==='long'&&x.dist&&x.dist<floor+1.5){ const L=Math.round((floor+1.5)*2)/2; Object.assign(x,long(L),{t:`${tm('long')} ${L}km`}); } });
       if(bumped) why.push(`평소 ${typ.toFixed(0)}km → 쉬운 날 ${floor}km 이상`); } }
+  /* 그 주 긴 날보다 긴 날이 있으면 이지런·리커버리런 구간을 줄인다 — 긴 날이 그 주 가장 긴 날이다(관행 C).
+     맨 끝(주간 합 맞추기·쉬운 날 최소 거리 뒤)에 둔다 — 앞에 두면 합 맞추기가 쉬운 날에 다시 보태 쉬운 날 3.5km > 긴 날 2km가 남았다(시즌 모의 2026-11-20).
+     전엔 주 3일·적게 뛰는 사람에게 '페이스주 7km'(본 운동을 500m × 2로 줄인 뒤에도 그날 거리는 그대로, 남은 거리는 이지런 2.25km)가 토요일 LSD 5km보다 길었다(모의 2026-11-20).
+     본 운동·웜업·쿨다운은 건드리지 않는다 — 이지런 구간이 없으면 그대로 */
+  { let trimmed=false; const EZ=tm('easy'), RC=tm('recovery');
+    out.forEach(s=>{ if(!s||s.type==='long'||!Array.isArray(s.segs)||!(s.dist>0))return; const lg=out.find(x=>x.wk===s.wk&&x.type==='long'); if(!lg||!(s.dist>lg.dist+0.01))return;
+      const k=s.segs.findIndex(g=>(g.nm===EZ||g.nm===RC)&&!g.hard); if(k<1)return; const len0=+(s.segs[k].to-s.segs[k-1].to).toFixed(2), len=Math.max(0,len0-(s.type==='easy'||s.type==='recovery'?1:0)), cut=Math.min(len,+(s.dist-lg.dist).toFixed(2)); if(!(cut>0.01))return;
+      for(let j=k;j<s.segs.length;j++)s.segs[j].to=+(s.segs[j].to-cut).toFixed(2);
+      if(s.segs[k].to-s.segs[k-1].to<0.05)s.segs.splice(k,1);
+      s.dist=+(s.dist-cut).toFixed(2); if(s.type==='easy'||s.type==='recovery')s.t=`${s.type==='recovery'?'회복조깅':'천천히'} ${s.dist}km`; trimmed=true; });
+    if(trimmed&&!why.some(x=>/긴 날보다 긴 날 없게/.test(x)))why.push('그 주 긴 날보다 긴 날 없게 — 이지런·리커버리런 구간을 줄임'); }
   out.forEach(termSess);
   /* 케이던스·호흡 — 날마다 무엇을 할지 일정에 적는다 */
   if(g&&g.kind==='aero'&&aeroX(g.aero)){ const a=g.aero, st0=start.getFullYear()+'-'+pad(start.getMonth()+1)+'-'+pad(start.getDate()); if(!a.since)a.since=st0;
@@ -4752,13 +4755,15 @@ $('nav').onclick=async e=>{const b=e.target.closest('button');if(!b)return;
   go(id);};
 
 /* ───────── 뒤로가기 · 종료 · 화면 켜두기 ─────────
-   안드로이드 뒤로가기는 앱을 끄지 않는다. 히스토리에 자리를 하나 깔아두고
+   안드로이드 뒤로가기는 바로 앱을 끄지 않는다. 히스토리에 자리를 하나 깔아두고
    뒤로가기가 들어올 때마다 다시 깔면서 앱 안에서만 이동한다.
-   앱을 끄는 것은 홈 상단의 전원 버튼뿐이다. */
+   홈에서 뒤로가기·홈 상단 전원 버튼 → '가지런을 닫을까요?'(3초 뒤 닫힘, 달리는 중엔 안 뜸) — 2026-11-20 */
 let EXITING=false;
 const BACKTO={confirm:'runtab',settings:'home',alerts:'home',sum:'log',
   paste:'plan',review:'home'};
 async function appBack(){
+  /* '가지런을 닫을까요?' 창이 떠 있을 때 뒤로 키를 한 번 더 — 기다리지 않고 바로 닫는다('한 번 더 누르면 종료'와 같은 손버릇) */
+  if(EXIT_ASK){ const b=$('askSheet')&&$('askSheet').querySelector('[data-ask="1"]'); if(b)b.click(); return; }
   { const mf=$('mapFull'); if(mf&&!mf.hidden&&mf._close){ mf._close(); return; } }
   /* 안드로이드 뒤로 가기 — 아래에서 올라온 창이 열려 있으면 그 창부터 닫는다(전엔 창이 남은 채 화면만 바뀌거나 아무 일도 없었다) */
   { const open=[...document.querySelectorAll('.msheet')].filter(x=>!x.hidden); const sh=open[open.length-1];
@@ -4770,7 +4775,35 @@ async function appBack(){
   if(CURVIEW==='onb'){ if(OB.i>0)$('obBack').onclick(); else show('intro'); return; }
   if(CURVIEW==='goal'){ if(GB.i>0)$('gBack').onclick(); else { renderHome(); go('home'); } return; }
   const p=CURVIEW==='confirm'?(pendingIx<0?'runtab':'home'):BACKTO[CURVIEW];
-  if(p)go(p); else if(CURVIEW!=='home')go('home'); else DEV.buzz(50);
+  if(p)go(p); else if(CURVIEW!=='home')go('home'); else exitAsk();
+}
+/* 홈에서 뒤로 키·위쪽 전원 단추 — '가지런을 닫을까요?'(계속 쓰기 / 닫기 3초). 전엔 홈에서 뒤로 키가 떨림뿐이라 앱이 멈춘 것 같았고(사용자 의견 2026-11-20),
+   전원 단추는 가운데 확인 창이라 둘이 달랐다. 달리는 중엔 창 없이 떨림만 — 기록 중에 앱이 닫히면 안 된다 */
+let EXIT_ASK=false;
+async function exitAsk(){
+  if(S.running){ DEV.buzz(50); return; }
+  if(EXIT_ASK)return;
+  EXIT_ASK=true; DEV.buzz(30);
+  const N='①②③', lab=n=>`닫기 ${N[n-1]||''}`.trim();
+  const p=askSheet({title:'가지런을 닫을까요?',text:'기록은 저장돼 있어요. 다시 열면 그대로예요.',yes:lab(3),no:'계속 쓰기'});
+  let n=3; const tm=setInterval(()=>{ n--; const b=$('askSheet')&&$('askSheet').querySelector('[data-ask="1"]'); if(!b){ clearInterval(tm); return; }
+    if(n<=0){ clearInterval(tm); b.click(); } else b.textContent=lab(n); },1000);
+  let ok=false; try{ ok=await p; }catch(e){}
+  clearInterval(tm); EXIT_ASK=false;
+  if(ok)doExit();
+}
+/* 닫기 — 올리는 중이면 끝날 때까지(최대 15초) 기다렸다 닫는다. 방금 뛴 기록이 다음에 열 때까지 안 올라가는 일을 막으려고 */
+async function doExit(){
+  if(S.running){ DEV.buzz(50); return; }
+  try{ if(typeof FB!=='undefined'&&FB._p){ toast('올리는 중… 끝나면 닫혀요'); await Promise.race([FB._p.catch(()=>{}),new Promise(r=>setTimeout(r,15000))]); } }catch(e){}
+  EXITING=true;
+  try{ DEV.wake.off(WAKE); WAKE=null; }catch(e){}
+  try{ if(S.watchId!=null){DEV.geo.stop(S.watchId);S.watchId=null;} }catch(e){}
+  try{ if(S.tick){clearInterval(S.tick);S.tick=null;} }catch(e){}
+  try{ BT.disconnect(); }catch(e){}
+  try{ speechSynthesis.cancel(); }catch(e){}
+  $('bye').hidden=false;
+  try{ window.close(); }catch(e){}
 }
 try{ history.pushState({rc:1},''); }catch(e){}
 window.addEventListener('popstate',()=>{
@@ -4798,15 +4831,7 @@ try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); 
 
 $('btnPower').onclick=async()=>{
   if(S.running)return alert('러닝 중.\n먼저 종료');
-  if(CURVIEW!=='sum'&&!(await ask('가지런을 종료할까요?','종료')))return;
-  EXITING=true;
-  try{ DEV.wake.off(WAKE); WAKE=null; }catch(e){}
-  try{ if(S.watchId!=null){DEV.geo.stop(S.watchId);S.watchId=null;} }catch(e){}
-  try{ if(S.tick){clearInterval(S.tick);S.tick=null;} }catch(e){}
-  try{ BT.disconnect(); }catch(e){}
-  try{ speechSynthesis.cancel(); }catch(e){}
-  $('bye').hidden=false;
-  try{ window.close(); }catch(e){}
+  exitAsk();
 };
 $('byeBack').onclick=()=>location.reload();
 
@@ -10275,8 +10300,10 @@ function openMissed(m){
         moveSession(s.d,today.d); return `오늘: ${s.t}`; }});
   /* 오늘 못 한 것 — 내일로 넘기기 */
   const tmr=addDays(t,1), tmrS=planOn(tmr);
-  if(isToday) opts.unshift({k:'N',t:'내일로 넘기기',rec:hardT.includes(s.type),d:tmrS?`오늘 ${s.t} → 내일 · ${tmrS.t} 제외${hardT.includes(tmrS.type)?' — 힘든 날 연속 방지':''}`:`${s.t} → 내일(휴식일)`,
-      tags:[[tmrS?`내일 ${tmrS.t} 빠짐`:'쉬는 날 1일 감소',tmrS?'':'bad']],
+  /* 입문(걷기+달리기·기본 상태 체크)은 뛴 다음 날 쉰다(NHS Couch to 5K: 달리는 날 사이 하루 쉬기 · C). 내일로 넘기면 모레 훈련과 이틀 연속이 되는 경우 — 알려 주고 '남은 일정 뒤로'를 권한다 */
+  const d2=isToday?planOn(addDays(t,2)):null, rwConsec=isToday&&(s.type==='runwalk'||s.type==='check')&&!tmrS&&!!d2;
+  if(isToday) opts.unshift({k:'N',t:'내일로 넘기기',rec:hardT.includes(s.type),d:tmrS?`오늘 ${s.t} → 내일 · ${tmrS.t} 제외${hardT.includes(tmrS.type)?' — 힘든 날 연속 방지':''}`:`${s.t} → 내일(휴식일)${rwConsec?` — 모레 ${liveT(d2)}와 이틀 연속(입문은 뛴 다음 날 쉬기)`:''}`,
+      tags:[[tmrS?`내일 ${tmrS.t} 빠짐`:'쉬는 날 1일 감소',tmrS?'':'bad']].concat(rwConsec?[['이틀 연속','bad']]:[]),
       apply:()=>{ MISSSEEN[ds]='tomorrow'; DEV.store.set('missSeen',MISSSEEN); moveSession(s.d,tmr); return `내일 ${s.t}`; }});
   /* 남은 일정을 하루씩 미루기 — 아무것도 빠지지 않는다 */
   const shiftN=isToday?1:addDaysDiff(ds,t);
@@ -10285,12 +10312,12 @@ function openMissed(m){
   const sToTx=sTo?`${s.t.split(' · ')[0]} → ${+sTo.slice(5,7)}.${+sTo.slice(8,10)} ${dowOf(sTo)}${weekMonday(sTo)!==mon?' (다음 주)':''}`:'';
   const nxtTrain=(()=>{ for(let i=1;i<=14;i++){ const d=addDays(ds,i); if(d<t)continue; const x=planOn(d); if(x)return d; } return null; })();
   const sWhy=sTo&&isHard&&nxtTrain&&sTo>nxtTrain?' — 힘든 훈련 사이 48시간을 지키려고 한 칸 더':'';
-  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}칸씩 뒤로`:'남은 일정 한 칸씩 뒤로',rec:isHard&&!canSwap&&!slot,d:sTo?`${sToTx}${sWhy} · 그 뒤 훈련도 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} 뒤로 — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 다음 운동하는 날로 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`,   /* '1일 연기'라고 했지만 실제로는 운동하는 요일 칸으로 밀려(화 → 목) 말과 결과가 달랐다(2026-11-16 시험) */
+  opts.push({k:'S',t:shiftN>1?`남은 일정 ${shiftN}칸씩 뒤로`:'남은 일정 한 칸씩 뒤로',rec:(isHard&&!canSwap&&!slot)||rwConsec,d:sTo?`${sToTx}${sWhy} · 그 뒤 훈련도 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} 뒤로 — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`:`${isToday?'오늘':dowOf(ds)+'요일'} ${s.t}부터 다음 운동하는 날로 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} — 긴 날은 긴 날 요일에, 마지막 훈련이 그만큼 뒤로`,   /* '1일 연기'라고 했지만 실제로는 운동하는 요일 칸으로 밀려(화 → 목) 말과 결과가 달랐다(2026-11-16 시험) */
       tags:[['빠지는 훈련 없음','ok'],['대회 날은 그대로','']],
       apply:()=>{ MISSSEEN[ds]='shift'; DEV.store.set('missSeen',MISSSEEN); const n=shiftFrom(ds,isToday?1:addDaysDiff(ds,t));
         const nw=(PLAN&&PLAN.sessions||[]).find(x=>String(x.moved||'').slice(0,10)===ds&&x.type===s.type&&x.d.slice(0,10)!==ds);
         return nw?`${s.t.split(' · ')[0]} → ${+nw.d.slice(5,7)}.${+nw.d.slice(8,10)} ${dowOf(nw.d.slice(0,10))} · ${n}개 뒤로`:`${n}개 ${shiftN>1?shiftN+'칸씩':'한 칸씩'} 뒤로`; }});
-  if(isToday){ opts.forEach(o=>{ if(o.k==='A'){ o.t='오늘 건너뛰기'; o.rec=!hardT.includes(s.type); o.d='몰아하기 없음 · 그대로'; } }); }
+  if(isToday){ opts.forEach(o=>{ if(o.k==='A'){ o.t='오늘 건너뛰기'; o.rec=!hardT.includes(s.type)&&!rwConsec; o.d='몰아하기 없음 · 그대로'; } }); }
   if(slot&&!isToday){ const isTod=slot===t; opts.splice(isTod?1:opts.length,0,{k:canSwap?'C':'B',t:isTod?'오늘(쉬는 날) 진행':`${dowOf(slot)}요일(쉬는 날)로 이동`,rec:isTod&&isHard,d:isTod?`오늘 ${s.t} · 휴식 −1일`:`${dowOf(slot)}요일 진행 · 휴식 −1일`,
       tags:[['쉬는 날 1일 감소','bad']].concat(isTod&&isHard?[['핵심 훈련 유지','ok']]:[]),
       apply:()=>{ MISSSEEN[ds]='move'; DEV.store.set('missSeen',MISSSEEN); moveSession(s.d,slot); return isTod?`오늘 ${s.t}`:`${dowOf(slot)}요일로 이동`; }}); }
