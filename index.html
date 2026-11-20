@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.72';
+const APPVER='21.74';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -2857,7 +2857,7 @@ const DEV = {
         /* 중국 브랜드 */ 'OPPO','OnePlus','realme','Realme','Mibro','KOSPET','Kospet','Haylou','HAYLOU','IMILAB','Imilab','QCY','Lenovo','Zeblaze','Redmi','Smart Band','Mi Band','Mi Watch','Xiaomi Watch','Xiaomi Smart','Amazfit Balance','Helio','Zepp E','Zepp Z','HUAWEI WATCH','HUAWEI Band','HONOR Watch','HONOR Band','Ticwatch','TicWatch','Mobvoi','vivo WATCH','iGPSPORT','Magene','Coospo H','H6','H808','HW9','HW706','Chileaf','CL8','Moofit','Wahoo','Bryton','Rider'];
       const filters=[{services:['heart_rate']}].concat(saved?[{name:saved}]:[]).concat(prefixes.map(p=>({namePrefix:p})));
       const all=DEV._btAll; DEV._btAll=false;
-      dev = await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true, optionalServices:['heart_rate','battery_service']}:{filters, optionalServices:['heart_rate','battery_service']});
+      dev = await navigator.bluetooth.requestDevice(all?{acceptAllDevices:true, optionalServices:['heart_rate','battery_service','running_speed_and_cadence']}:{filters, optionalServices:['heart_rate','battery_service','running_speed_and_cadence']});
     }
     const srv = await dev.gatt.connect();
     let hsvc;
@@ -2873,11 +2873,18 @@ const DEV = {
       const v=e.target.value,f=v.getUint8(0);
       const bpm=(f&1)?v.getUint16(1,true):v.getUint8(1);
       if(bpm>30&&bpm<240)onBpm(bpm); });
+    /* 워치·신발 센서가 블루투스 표준 '달리기 속도·케이던스'(0x1814)를 보내면 그 케이던스를 받는다(가민 '가상 러닝' 모드, 풋팟 등).
+       없으면 조용히 넘어가고 휴대폰 센서로 잰다(2026-11-20 결정) */
+    let rsc=false;
+    try{ const rc=await (await srv.getPrimaryService('running_speed_and_cadence')).getCharacteristic('rsc_measurement');
+      await rc.startNotifications();
+      rc.addEventListener('characteristicvaluechanged',e=>{ try{ const v=e.target.value; if(!v||v.byteLength<4)return; EXTCAD.feed(v.getUint8(3),v.getUint16(1,true)/256); }catch(_){} });
+      rsc=true; }catch(e){}
     let batt=null;
     try{ const b=await (await srv.getPrimaryService('battery_service'))
            .getCharacteristic('battery_level');
          batt=(await b.readValue()).getUint8(0); }catch(e){}
-    return {dev,batt};
+    return {dev,batt,rsc};
   },
   async knownDevices(){ try{ return await navigator.bluetooth.getDevices(); }catch(e){ return []; } },
   /* 파일 저장은 전부 이 하나(saveBlob)를 거친다 — 이미지·꾸민 사진·백업·GPX·캘린더.
@@ -4263,6 +4270,17 @@ function makePlan(opts){
       for(let j=k;j<s.segs.length;j++)s.segs[j].to=+(s.segs[j].to-cut).toFixed(2);
       if(s.segs[k].to-s.segs[k-1].to<0.05)s.segs.splice(k,1);
       s.dist=+(s.dist-cut).toFixed(2); if(s.type==='easy'||s.type==='recovery')s.t=`${s.type==='recovery'?'회복조깅':'천천히'} ${s.dist}km`; trimmed=true; });
+    /* 이지런 구간을 1km 남기고 다 줄여도 웜업·쿨다운 때문에 긴 날보다 긴 쉬운 날 — 입문자 '천천히 2.5km'(웜업 1 + 이지런 1 + 쿨다운 0.5) > 긴 날 2km(시즌 모의 2026-11-20).
+       쉬운 날·회복 날은 전 구간이 천천히라 긴 날 거리로 새로 짠다(구간 구성은 같은 규칙) */
+    out.forEach(s=>{ if(!s||!(s.type==='easy'||s.type==='recovery')||!(s.dist>0))return; const lg=out.find(x=>x.wk===s.wk&&x.type==='long'); if(!lg||!(lg.dist>0)||!(s.dist>lg.dist+0.01))return;
+      Object.assign(s,(s.type==='easy'?easy:recovery)(lg.dist),{t:`${s.type==='recovery'?'회복조깅':'천천히'} ${lg.dist}km`}); trimmed=true; });
+    /* 빠른 날은 이지런 구간이 없어 위에서 못 줄인다 — 페이스주 5km(웜업 1.5 + 1km×2 + 쿨다운 1.4) > 긴 날 4.5km(시즌 모의 2026-11-20).
+       본 운동은 그대로 두고 쿨다운(0.5km까지)·웜업(1km까지) 순으로 줄인다. 그래도 길면 그대로 둔다(본 운동이 긴 날보다 긴 것은 계획 쪽에서 막는다) */
+    out.forEach(s=>{ if(!s||s.type==='long'||!Array.isArray(s.segs)||s.segs.length<2||!(s.dist>0))return; const lg=out.find(x=>x.wk===s.wk&&x.type==='long'); if(!lg||!(s.dist>lg.dist+0.01))return;
+      let ex=+(s.dist-lg.dist).toFixed(2); const G=s.segs, n=G.length, WM=tm('warm'), CL=tm('cool');
+      if(G[n-1].nm===CL){ const c=+(G[n-1].to-G[n-2].to).toFixed(2), cut=Math.max(0,Math.min(ex,+(c-0.5).toFixed(2))); if(cut>0.01){ G[n-1].to=+(G[n-1].to-cut).toFixed(2); ex=+(ex-cut).toFixed(2); } }
+      if(ex>0.01&&G[0].nm===WM){ const w=G[0].to, cut=Math.max(0,Math.min(ex,+(w-1).toFixed(2))); if(cut>0.01){ G.forEach(g=>{ g.to=+(g.to-cut).toFixed(2); }); ex=+(ex-cut).toFixed(2); } }
+      const nd=+G[G.length-1].to.toFixed(2); if(nd<s.dist-0.01){ if(s.t)s.t=s.t.replace(new RegExp(String(s.dist).replace('.','\\.')+'km'),nd+'km'); s.dist=nd; trimmed=true; } });
     if(trimmed&&!why.some(x=>/긴 날보다 긴 날 없게/.test(x)))why.push('그 주 긴 날보다 긴 날 없게 — 이지런·리커버리런 구간을 줄임'); }
   out.forEach(termSess);
   /* 케이던스·호흡 — 날마다 무엇을 할지 일정에 적는다 */
@@ -5240,6 +5258,14 @@ const S={};
 function heldMax(arr,n){ if(!arr||arr.length<n)return null; let best=0;
   for(let i=0;i+n<=arr.length;i++){ let m=Infinity; for(let j=i;j<i+n;j++)if(arr[j]<m)m=arr[j]; if(m>best)best=m; }
   return best||null; }
+/* 기기에서 받은 케이던스 — 3초 안에 온 값만 쓴다. 기기마다 '걸음 수'(양발)를 보내기도, '한쪽 발 걸음'(보통 80~95)을 보내기도 해서
+   뛰는 속도인데 110 아래면 한쪽 발 값으로 보고 두 배로 한다(걷는 속도의 100~120은 그대로) */
+const EXTCAD={ spm:null, at:0, n:0,
+  feed(raw,sp){ let v=+raw; if(!(v>0))return; const now=Date.now();
+    let p=(sp>0.3)?1000/sp:null; if(!p){ try{ p=curPace(); }catch(e){} }
+    if(v<110&&isFinite(p)&&p>0&&p<540&&v*2<=230)v*=2;
+    if(v<70||v>230)return; EXTCAD.spm=Math.round(v); EXTCAD.at=now; EXTCAD.n++; },
+  now(){ return (EXTCAD.spm&&Date.now()-EXTCAD.at<=3000)?EXTCAD.spm:null; } };
 const BT={
   dev:null, batt:null, name:DEV.store.get('btname',''), busy:false,
   want:false,            // 사용자가 연결을 원하는 상태인가 (직접 끊으면 false)
@@ -5267,14 +5293,14 @@ const BT={
       if(!known&&!DEV._btAll&&BT.name){ let d=null; try{ d=await BT.saved(); }catch(e){}
         if(d){ BT.paint(`${BT.name} 연결 중…`); try{ r=await DEV.hr(b=>BT.feed(b), d); }catch(e){ r=null; } } }
       if(!r)r=await DEV.hr(b=>BT.feed(b), known);
-      BT.dev=r.dev; BT.batt=r.batt; S.hr.dev=r.dev; BT.want=true; BT.tries=0;
+      BT.dev=r.dev; BT.batt=r.batt; BT.rsc=!!r.rsc; S.hr.dev=r.dev; BT.want=true; BT.tries=0;
       if(S.running&&S.hrD&&(S.hrD.off+S.hrD.kick)>S.hrD.back)S.hrD.back++;
       BT.name=r.dev.name||'심박 기기'; DEV.store.set('btname',BT.name);
       if(!r.dev._rcHooked){
         r.dev._rcHooked=true;
         r.dev.addEventListener('gattserverdisconnected',()=>{
           if(BT.kicking)BT.kicking=false; else if(S.running&&S.hrD)S.hrD.off++;   /* 앱이 일부러 끊은 것(값 멈춤 → 다시 붙이기)은 '연결 끊김'으로 세지 않는다 */
-          BT.dev=null; S.hr.dev=null; S.hr.bpm=null; BT.lostAt=Date.now();
+          BT.dev=null; BT.rsc=false; S.hr.dev=null; S.hr.bpm=null; BT.lostAt=Date.now();
           if(BT.want)BT.retry(); else BT.paint();
         });
       }
@@ -5310,7 +5336,7 @@ const BT={
     return BT.name? `미연결 (지난 기기: ${BT.name})` : '미연결 — 심박 없이 진행';
   },
   paint(msg){
-    const txt=msg||BT.status();
+    const txt=(msg||BT.status())+(!msg&&BT.dev?(BT.rsc?' · 케이던스도 기기에서 받음':' · 케이던스는 휴대폰으로 잼'):'');
     const a=$('hrState'); if(a)a.textContent=txt;
     const c=$('btState'); if(c)c.textContent=txt;
     const b=$('btnHR'); if(b)b.textContent=BT.dev?`${BT.name} 연결됨 ✓ — 해제`:'기기 연결 — 워치·가슴 스트랩';
@@ -5324,6 +5350,7 @@ const WATCH_HELP=[
   ['가슴 심박계','폴라 H10·가민 HRM·와후·코스포 등 — 차면 바로 보임 (전극을 살짝 적시기)'],
   ['가민','시계 설정 → 손목 심박(센서) → <b>심박 송출</b> 켜기 · 뛰는 중이면 운동 설정의 \'운동 중 심박 송출\''],
   ['코로스','시계 설정 → <b>심박 송출</b> 켜기'],
+  ['케이던스까지 받기','가민: 운동을 <b>가상 러닝(Virtual Run)</b>으로 시작하면 심박과 함께 케이던스도 보냄 · 신발 센서(풋팟)도 됨 · 기기가 안 보내면 휴대폰으로 잼'],
   ['순토','설정 → <b>심박 송출</b> (9 Peak·5 Peak·Race 등)'],
   ['폴라 시계','Polar Flow → 운동 프로필 → <b>다른 기기와 심박 공유</b> 켜고 시계에서 운동 시작'],
   ['어메이핏 · 샤오미 밴드','Zepp(또는 Mi Fitness) 앱 → 기기 → <b>심박수 공유</b> 켜기'],
@@ -5398,6 +5425,7 @@ function onMotion(e){
   try{ const p=curPace(); if(v&&cadAC.alt&&isFinite(p)&&p>0&&p<480&&(1000/p*60/v)>1.5){ v=cadAC.alt; C.dbl=(C.dbl||0)+1; } }catch(e){}
   const H=C.hist||(C.hist=[]); H.push(v); if(H.length>3)H.shift();
   const ok=H.filter(x=>x); C.spm=ok.length>=2?ok.slice().sort((p,q)=>p-q)[ok.length>>1]:null;   /* 1초짜리 세 번 중 가운데 값 — 한 번 튀는 값을 버린다 */
+  { const X=EXTCAD.now(); if(X)C.spm=X; }   /* 기기에서 케이던스가 오면 그 값을 쓴다(걸음 수도 이 값으로 센다) */
   if(C.spm){ if(!C.stepsF&&R.length)C.stepsF=C.spm/60*Math.min(8,(now-R[0][0])/1000);   /* 처음 값이 나오기까지(약 6초) 걸은 걸음도 넣는다 */
     C.stepsF=(C.stepsF||0)+C.spm/60*dt; C.steps=Math.round(C.stepsF); }
 }
@@ -5703,7 +5731,9 @@ function onPos(pos){
    1) 간격이 들쭉날쭉 — 발걸음은 일정하다. 차 진동·손 흔들림은 아니다
    2) 사람 걸음 범위 밖 3) GPS 속도가 발로 낼 수 없는 속도 */
 function cadence(){
-  const c=S.cad; if(!c||!c.spm)return null;
+  const c=S.cad; if(c)c.srcNow=null;
+  { const X=EXTCAD.now(); if(X&&c&&!S.overSince){ const p=curPace(); if(!(isFinite(p)&&p<143)){ c.srcNow='w'; if(!c.lastAt||performance.now()-c.lastAt>3000){ c.spm=X; } return X; } } }
+  if(!c||!c.spm)return null;
   /* 걸음 신호가 3초 넘게 안 오면(화면 꺼짐·센서 멈춤) 값 없음 — 예전엔 마지막 값이 계속 남아 평균에 섞였다 */
   if(typeof performance!=='undefined'&&c.lastAt&&performance.now()-c.lastAt>3000)return null;
   /* 아래 한계는 70 — 예전엔 달리기 훈련이면 120 아래를 버려서, 달리기 훈련 중에 걸은 날(11/15 리커버리런)·걷뛰기의 걷는 구간은
@@ -5826,8 +5856,8 @@ function onTick(){
   const gpsBlind = !S.lastGoodAt || (Date.now()-S.lastGoodAt)>8000;
   const cadNow = (moving||gpsBlind) ? cadence() : null;
   $('rCad').textContent=cadNow||'—';
-  { const u=$('rCadU'); if(u)u.textContent=(cadNow&&isFinite(p)&&p>0)?`보폭 ${(1000/p*60/cadNow).toFixed(2)}m`:'분당'; }
-  if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); }
+  { const u=$('rCadU'); if(u)u.textContent=((cadNow&&S.cad&&S.cad.srcNow==='w')?'기기 · ':'')+((cadNow&&isFinite(p)&&p>0)?`보폭 ${(1000/p*60/cadNow).toFixed(2)}m`:'분당'); }
+  if(cadNow&&!S.paused){ S.cad.corr.push(cadNow); S.cad.seg.push(cadNow); if(S.cad.srcNow==='w')S.cad.wN=(S.cad.wN||0)+1; }
   /* 기기가 송출을 멈추면 마지막 값이 영원히 남는다 — 15초 넘게 새 값이 없으면 심박 없음으로 본다 */
   if(S.hr.bpm&&S.hr.at&&Date.now()-S.hr.at>15000){ S.hr.bpm=null; if(S.hrD&&BT.dev)S.hrD.stall++; }
   /* 연결은 된 채 20초 넘게 새 값이 없으면 끊고 다시 붙인다(다시 붙으면 값 보내기를 새로 신청한다) — 11/15에 심박이 2~3분씩 8번 '값 안 들어옴'으로 끊겼다.
@@ -6478,7 +6508,7 @@ function renderSummary(completed){
   $('sTime').textContent=fmtClock(S.elapsed);
   $('sAvg').textContent=km>0.05?fmtPace(S.elapsed/km):'—';
   $('sCal').textContent=cal; $('sHR').textContent=hrAvg||'—';
-  $('sCad').textContent=cadAvg||'—'; $('sAsc').textContent=Math.round(S.asc)+'m';
+  $('sCad').textContent=cadAvg?(cadAvg+((S.cad&&(S.cad.wN||0)>cc.length/2)?' · 기기':'')):'—'; $('sAsc').textContent=Math.round(S.asc)+'m';
 
   drawMap($('sMap'),S.pts);
   const sp=S.splits.map(x=>x.pace).filter(isFinite);
@@ -6566,7 +6596,7 @@ function renderSummary(completed){
     hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,
     gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
     hrAvg,hrMax:Math.max(heldMax(S.hr.samples,5)||S.hr.max||0,hrAvg||0)||null,   /* 최고는 평균보다 낮을 수 없다 — 값이 1~2씩 흔들리면 '5초 유지' 값이 평균보다 낮게 나왔다(평균 138 · 최고 137, 2026-11-17 시험) */   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
-    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadWhy,cal,calW:(PROF.w||null),asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
+    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadWhy,cadSrc:(cadAvg&&S.cad&&(S.cad.wN||0)>cc.length/2)?'dev':undefined,cal,calW:(PROF.w||null),asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)), zoneB:zoneBounds(),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
@@ -6981,7 +7011,7 @@ function renderLog(){
       `거리 ${r.km.toFixed(2)}km · 시간 ${fmtClock(r.sec)} · 평균 ${fmtPace(r.paceAvg)}\n`+
       `칼로리 ${r.cal} · 고도 ▲${r.asc}m ▼${r.desc}m\n`+
       (r.hrAvg?`심박 평균 ${r.hrAvg} / 최대 ${r.hrMax}\n`:'')+
-      (r.cadAvg?`케이던스 ${r.cadAvg}\n`:'')+
+      (r.cadAvg?`케이던스 ${r.cadAvg}${r.cadSrc==='dev'?' (기기)':''}\n`:'')+
       (r.shoe?`신발 ${r.shoe}\n`:'')+(r.rpe?`RPE ${r.rpe}\n`:'')+
       (r.terrain?`${r.terrain}`:'')+(r.weather?` · ${r.weather}`:'')+'\n'+
       (r.note?`\n메모: ${r.note}`:''));
