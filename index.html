@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.81';
+const APPVER='21.82';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10471,9 +10471,16 @@ function restPullTarget(ds){ if(!hasPlan())return null; const now=todayStr();
   return (Date.parse(nx.d.slice(0,10))-Date.parse(ds))/864e5<=3?nx:null; }
 /* 쉬는 날에 뛴 기록 묶음 — 이어 뛴 조각이면 앞 기록(머리)과 합친 거리로 본다. 전엔 조각(contOf)을 빼서, 짧게 두 번 + 10km로 묶인
    금요일 기록엔 아무 선택지도 안 나왔다(실제 기기 2026-11-21) */
+/* 프리런은 저장할 때 'free-날짜'라는 이름뿐인 계획 번호가 붙는다(6612줄) — 실제 계획에 이어진 것으로 보면 안 된다.
+   v21.81은 이걸 '이미 훈련에 이어짐'으로 봐서 실제 기기에서 상자가 안 나왔다(2026-11-21 · 시험 기록엔 이 번호를 안 넣어 못 잡음) */
+const realPlanId=x=>!!(x&&x.planId&&!String(x.planId).startsWith('free-'));
 function restDayRun(r){ if(!r||!isRun(r)||r.race||!hasPlan())return null; let h=r; if(r.contOf){ h=RUNS.find(x=>String(x.rid)===String(r.contOf)); if(!h)return null; }
-  if(h.planId||!(h.type==='free'||!h.type))return null; const d=ldate(h.date).slice(0,10); if(planOn(d))return null;
-  if(RUNS.some(x=>x!==h&&x.planId&&ldate(x.date).slice(0,10)===d))return null; return {h,d,km:+(+contTotal(h)).toFixed(1)}; }
+  if(realPlanId(h)||!(h.type==='free'||!h.type))return null; const d=ldate(h.date).slice(0,10); if(planOn(d))return null;
+  if(RUNS.some(x=>x!==h&&realPlanId(x)&&ldate(x.date).slice(0,10)===d))return null;
+  /* 같은 날 따로 뛴 프리런(조각으로 안 묶인 것)도 합친다 — 금요일: 짧게 두 번 + 10km */
+  const same=RUNS.filter(x=>isRun(x)&&!x.contOf&&!realPlanId(x)&&(x.type==='free'||!x.type)&&ldate(x.date).slice(0,10)===d);
+  const km=same.reduce((a,x)=>a+(+contTotal(x)||0),0)||+contTotal(h);
+  return {h,d,km:+km.toFixed(1),all:same.length?same:[h]}; }
 /* 이미 뛴 쉬는 날 프리런 → 다가올 훈련 대신으로 인정할 수 있나 */
 function restRunTarget(r){ const D=restDayRun(r); if(!D)return null; const d=D.d; r={km:D.km};
   const nx=restPullTarget(d); if(!nx||nx.type==='tt')return null;   /* TT는 정해진 방식으로 뛰어야 실력 기준이 된다 — 프리런으로 대신하지 않는다 */
@@ -12489,7 +12496,7 @@ function openRunView(rid,back,_l){
       if(nx)$('rvInst').onclick=async()=>{ if(!(await ask(`${nd.slice(5).replace('-','.')} ${dw} '${nx.t}'을 이 기록(${km}km)으로 대신할까요?\n${dw}요일은 쉬는 날이 돼요.`,'대신하기')))return;
         const keep=nx.d; moveSession(keep,d0+keep.slice(10)); const ns=BLOCK.find(x=>x.d.slice(0,10)===d0&&x.type!=='off');
         if(!ns){ toast('옮기지 못했어요'); return; }
-        H.planId=ns.d; H.instead=true; DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
+        (D.all||[H]).forEach(x=>{ x.planId=ns.d; x.instead=true; }); DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
         toast(`${dw}요일 ${nx.t} → 이 기록으로 대신 · ${dw}요일은 쉬는 날`); openRunView(r.rid,back,1); };
       /* 다음 훈련은 그대로 두고, 그날을 '추가 훈련'으로 일정에 넣어 기록을 잇는다 — 주간 계획 거리도 그만큼 는다 */
       $('rvAddTr').onclick=async()=>{ if(!(await ask(`${d0.slice(5).replace('-','.')} ${dowOf(d0)}을 훈련한 날로 바꿀까요?\n일정에 '추가 훈련 · 프리런 ${km}km'가 들어가고 이번 주 계획 거리가 ${km}km 늘어요.`,'훈련으로 기록')))return;
@@ -12498,7 +12505,7 @@ function openRunView(rid,back,_l){
         peSave(list=>{ for(let i=list.length-1;i>=0;i--){ if(String(list[i].d).slice(0,10)===d0&&list[i].type==='off')list.splice(i,1); }
           const m=weekMonday(d0), x=list.find(y=>weekMonday(String(y.d).slice(0,10))===m); ns.wk=x?x.wk:1; ns.edited=true; ns.added='rest'; list.push(ns); });
         const sx=BLOCK.find(x=>x.d.slice(0,10)===d0&&x.type!=='off'); if(!sx){ toast('일정에 넣지 못했어요'); return; }
-        H.planId=sx.d; H.planKm=D.km; H.title=sx.t; DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
+        (D.all||[H]).forEach(x=>{ x.planId=sx.d; x.title=sx.t; }); H.planKm=D.km; DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
         toast(`${d0.slice(5).replace('-','.')} ${dowOf(d0)} → 추가 훈련 ${km}km로 기록`); openRunView(r.rid,back,1); }; } }
   PERF.render=performance.now()-PERF.t0; try{ $('rvwBody').insertAdjacentHTML('afterbegin','<p id="perfLn" class="perfln"></p>'); }catch(e){}
   $('rvwBack').onclick=()=>go(back||'log');
