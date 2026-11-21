@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.82';
+const APPVER='21.83';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5990,10 +5990,13 @@ function onTick(){
      몸의 심박은 같은 속도에서 1~2분 만에 30씩 떨어지지 않는다. 손목 센서가 헐거워지거나 추위로 피부 혈류가 줄면 이렇게 뚝 떨어진다
      (실제 기기 2026-11-20: 5km까지 5'10" · 178~182 → 6km부터 4'40" · 152→121→108). 걸음 잠김과 같은 방식으로 심박을 쓰지 않고 속도로 코칭한다 */
   if(S.running&&!S.paused&&!T.noHR){ const H=S.hrDh||(S.hrDh=[]);
-    if(S.hr.bpm&&isFinite(p)&&p>120&&p<900)H.push([S.elapsed,S.hr.bpm,p]); while(H.length&&S.elapsed-H[0][0]>300)H.shift();
-    const win=(a,b)=>{ const x=H.filter(h=>S.elapsed-h[0]>=a&&S.elapsed-h[0]<b); if(x.length<5)return null; const ps=x.map(h=>h[2]).sort((u,v)=>u-v); return {hr:x.reduce((q,h)=>q+h[1],0)/x.length, p:ps[ps.length>>1]}; };
-    const nw=win(0,60), od=win(120,240);
-    if(!S.hrLocked&&nw&&od&&od.hr-nw.hr>=30&&nw.p<=od.p+20&&od.p<600){ S.hrLocked=true; S.hrWhy='drop'; S.hrDropRef=Math.round(od.hr); S.hrDropN=(S.hrDropN||0)+1;
+    { const lp=S.pts&&S.pts.length?S.pts[S.pts.length-1]:null; if(S.hr.bpm&&isFinite(p)&&p>120&&p<900)H.push([S.elapsed,S.hr.bpm,p,lp&&isFinite(+lp.alt)?+lp.alt:null]); } while(H.length&&S.elapsed-H[0][0]>620)H.shift();
+    const win=(a,b)=>{ const x=H.filter(h=>S.elapsed-h[0]>=a&&S.elapsed-h[0]<b); if(x.length<5)return null; const ps=x.map(h=>h[2]).sort((u,v)=>u-v); const al=x.map(h=>h[3]).filter(v=>v!=null); return {hr:x.reduce((q,h)=>q+h[1],0)/x.length, p:ps[ps.length>>1], alt:al.length?al.reduce((q,v)=>q+v,0)/al.length:null}; };
+    /* 2~4분 전과도, 5~10분 전과도 본다 — 실제 기록은 10분에 걸쳐 182→152→121로 서서히 내려가 2~4분 차이로는 30이 안 됐다(2026-11-21 실제 구간 값으로 재현).
+       내리막(그사이 15m 넘게 내려옴)은 심박이 실제로 내려갈 수 있어 뺀다 */
+    const nw=win(0,60), drop=o=>o&&nw&&o.hr-nw.hr>=30&&nw.p<=o.p+20&&o.p<600&&!(o.alt!=null&&nw.alt!=null&&nw.alt-o.alt<=-15);
+    const od=[win(120,240),win(300,600)].find(drop)||null;
+    if(!S.hrLocked&&od){ S.hrLocked=true; S.hrWhy='drop'; S.hrDropRef=Math.round(od.hr); S.hrDropN=(S.hrDropN||0)+1;
       if(S.hrDropKm==null)S.hrDropKm=+(S.dist/1000).toFixed(1); S.hrDropD=Math.max(S.hrDropD||0,Math.round(od.hr-nw.hr));
       (S.hrBadAt||(S.hrBadAt=[])).push([Math.max(0,S.hr.samples.length-60),null]);
       { const back=60, zi=Math.min(4,hrZoneIx(Math.round(nw.hr))-1); if(S.zoneSec){ const mv=Math.min(back,S.zoneSec[zi]); S.zoneSec[zi]-=mv; S.lockedSec+=mv; } }   /* 감지하는 동안 쌓인 1분도 센서 값이었다 */
@@ -6667,13 +6670,14 @@ function hrZonesOf(r){ if(!(r&&!r.hrSuspect&&Array.isArray(r.zones)))return null
 function hrFixOf(r){ if(!r||typeof r!=='object')return null; const HRFIX=window.__hrFix||(window.__hrFix=new WeakMap()); if(HRFIX.has(r))return HRFIX.get(r); let out=null;
   try{ if(!r.hrDrop&&Array.isArray(r.track)&&r.track.length>30&&Array.isArray(r.zones)){
       const P=[]; let dsum=0;
-      r.track.forEach((q,i)=>{ if(i)dsum+=haversine(r.track[i-1],q); const ts=+q.t>1e12?+q.t/1000:+q.t; if(isFinite(ts))P.push({t:ts,d:dsum,hr:+q.hr||null}); });
+      r.track.forEach((q,i)=>{ if(i)dsum+=haversine(r.track[i-1],q); const ts=+q.t>1e12?+q.t/1000:+q.t; if(isFinite(ts))P.push({t:ts,d:dsum,hr:+q.hr||null,alt:isFinite(+q.alt)&&q.alt!=null?+q.alt:null}); });
       if(P.length>30&&P.filter(x=>x.hr).length>P.length*0.6){
-        const win=(i,a,b)=>{ const t=P[i].t; let n=0,s=0,f=null,l=null; for(let j=i;j>=0;j--){ const dt=t-P[j].t; if(dt>=b)break; if(dt>=a){ if(l==null)l=P[j]; f=P[j]; if(P[j].hr){ n++; s+=P[j].hr; } } }
-          if(n<3||!f||!l||l.t-f.t<20||l.d-f.d<20)return null; return {hr:s/n, p:(l.t-f.t)/((l.d-f.d)/1000)}; };
+        const win=(i,a,b)=>{ const t=P[i].t; let n=0,s=0,f=null,l=null,an=0,as=0; for(let j=i;j>=0;j--){ const dt=t-P[j].t; if(dt>=b)break; if(dt>=a){ if(l==null)l=P[j]; f=P[j]; if(P[j].hr){ n++; s+=P[j].hr; } if(P[j].alt!=null){ an++; as+=P[j].alt; } } }
+          if(n<3||!f||!l||l.t-f.t<20||l.d-f.d<20)return null; return {hr:s/n, p:(l.t-f.t)/((l.d-f.d)/1000), alt:an?as/an:null}; };
         const bad=[]; let on=null, ref=null, dmax=0, km=null;
-        for(let i=0;i<P.length;i++){ const nw=win(i,0,60), od=win(i,120,240); if(!nw)continue;
-          if(on==null&&od&&od.hr-nw.hr>=30&&nw.p<=od.p+20&&od.p<600){ let k=i; while(k>0&&P[i].t-P[k-1].t<60)k--; on=k; ref=od.hr; if(km==null)km=+(P[k].d/1000).toFixed(1); }
+        for(let i=0;i<P.length;i++){ const nw=win(i,0,60); if(!nw)continue;
+          const drop=o=>o&&o.hr-nw.hr>=30&&nw.p<=o.p+20&&o.p<600&&!(o.alt!=null&&nw.alt!=null&&nw.alt-o.alt<=-15), od=[win(i,120,240),win(i,300,600)].find(drop)||null;   /* 달리는 중과 같은 규칙 */
+          if(on==null&&od){ let k=i; while(k>0&&P[i].t-P[k-1].t<60)k--; on=k; ref=od.hr; if(km==null)km=+(P[k].d/1000).toFixed(1); }
           if(on!=null){ dmax=Math.max(dmax,ref-nw.hr); if(nw.hr>=ref-12){ bad.push([on,i]); on=null; } } }
         if(on!=null)bad.push([on,P.length-1]);
         if(bad.length){
@@ -11501,7 +11505,7 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
   const ts=now.tsb, state=ts>5?['가벼운 상태','피로가 적게 쌓였어요 — 대회나 TT 직전에 좋은 상태']:ts>=-10?['균형','훈련과 회복이 비슷하게 가고 있어요']:ts>=-30?['훈련이 쌓이는 중','체력이 오르는 구간이에요 — 잠과 쉬운 날을 챙기세요']:['피로가 많음','쉬운 날을 더 쉽게, 하루 쉬기도 생각해 보세요'];
   const loadSec=`<section class="wstrip ws-more"><div class="ws-h"><b>체력 · 피로 · 컨디션</b><span>오늘 기준</span></div>
     <div class="pm-now"><div><i>체력</i><b class="num" style="color:${CC}">${Math.round(now.C)}</b><em>최근 6주 하루 평균${ramp?` · 1주 ${ramp>0?'+':''}${ramp.toFixed(1)}`:''}</em></div>
-      <div><i>피로</i><b class="num" style="color:${AC}">${Math.round(now.A)}</b><em>최근 7일 하루 평균</em></div>
+      <div><i>피로</i><b class="num" style="color:${AC}">${Math.round(now.A)}</b><em>최근 7일 부하 · 최근 날 비중 큼</em></div>
       <div><i>컨디션</i><b class="num" style="color:${tcol(ts)}">${ts>0?'+':''}${Math.round(ts)}</b><em>${state[0]}</em></div></div>
     ${chartTop}${chartTsb}
     <div class="wk-leg"><span><i style="background:${CC}"></i>체력</span><span><i style="background:${AC}"></i>피로</span><span><i class="dash"></i>계획대로 하면</span></div>
