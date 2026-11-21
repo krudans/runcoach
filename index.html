@@ -493,6 +493,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink);bac
 .cell.sel .v{color:var(--rbg)}
 
 .rctl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 16px 6px;flex:none}
+.apbox{margin:0 16px 6px;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,#F2C94C 22%,var(--panel,#1E1428));border:1px solid #F2C94C;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;position:relative;z-index:61}
+.apbox[hidden]{display:none}
+.apbox b{font-size:16px;color:#F2C94C}.apbox span{flex:1 1 180px;font-size:14px;line-height:1.4}.apbox .btn{min-height:44px}
 .rrow{display:flex;align-items:center;justify-content:center;gap:18px}
 .pz{width:148px;height:148px;border-radius:50%;flex:none;background:var(--rbtn);border:none;
   display:flex;align-items:center;justify-content:center;transition:background .4s}
@@ -1746,7 +1749,8 @@ html[data-theme="dark"] [stroke="#5B6A64" i]:not(.tc>svg *):not(.st-mv>svg *):no
     <div class="opt"><input type="checkbox" id="optVoice" checked><label for="optVoice">음성</label></div>
     <div id="vOptBox"></div>
     <div class="opt"><input type="checkbox" id="optCad" checked><label for="optCad">케이던스</label></div>
-    <div class="opt"><input type="checkbox" id="optWake" checked><label for="optWake">화면 켜둠</label></div></details>
+    <div class="opt"><input type="checkbox" id="optWake" checked><label for="optWake">화면 켜둠</label></div>
+    <div class="opt"><input type="checkbox" id="optAP" checked><label for="optAP">멈추면 자동 일시정지</label></div></details>
     <div class="opt" hidden><select id="optShoe" style="background:transparent;border:none;padding:0"></select></div>
     <details class="cset"><summary>준비운동 8가지 · 4분 (선택)</summary><div id="cStretch"></div></details>
     <button type="button" class="mpick" id="cMusic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><b>음악 넣기</b><i>▾</i></button>
@@ -1978,6 +1982,7 @@ html[data-theme="dark"] [stroke="#5B6A64" i]:not(.tc>svg *):not(.st-mv>svg *):no
     </div>
   </div>
 
+  <div class="apbox" id="apBox" role="status" aria-live="polite" hidden><b>자동 일시정지</b><span id="apTxt">멈춰 있어서 기록을 잠시 멈췄어요 · 다시 움직이면 이어서 잽니다</span><button type="button" class="btn sm" id="apGo">지금 다시 시작</button></div>
   <div class="rctl" id="rCtl">
     <div class="mbar" id="mBar" hidden>
       <button class="mb-t" type="button"></button>
@@ -2759,7 +2764,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.85';
+const APPVER='21.86';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5181,8 +5186,8 @@ async function loginGate(why){
 }
 /* 코칭 설정(음성·케이던스·화면 켜둠)은 이 폰에 기억한다 — 예전엔 꺼도 앱을 다시 켜면 모두 켜짐으로 돌아갔다 */
 function coptLoad(){ let o=null; try{ o=JSON.parse(localStorage.getItem('rc_copt')||'null'); }catch(e){} if(!o)return;
-  [['optVoice','voice'],['optCad','cad'],['optWake','wake']].forEach(([id,k])=>{ const el=$(id); if(el&&typeof o[k]==='boolean')el.checked=o[k]; }); }
-['optVoice','optCad','optWake'].forEach(id=>{ const el=$(id); if(el)el.addEventListener('change',()=>{ try{ localStorage.setItem('rc_copt',JSON.stringify({voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked})); }catch(e){} }); });
+  [['optVoice','voice'],['optCad','cad'],['optWake','wake'],['optAP','ap']].forEach(([id,k])=>{ const el=$(id); if(el&&typeof o[k]==='boolean')el.checked=o[k]; }); }
+['optVoice','optCad','optWake','optAP'].forEach(id=>{ const el=$(id); if(el)el.addEventListener('change',()=>{ try{ localStorage.setItem('rc_copt',JSON.stringify({voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked,ap:!$('optAP')||$('optAP').checked})); }catch(e){} }); });
 function openConfirm(i){
   if(!loggedIn()){ loginGate().then(ok=>{ if(ok)openConfirm(i); }); return; }
   try{ coptLoad(); }catch(e){}
@@ -5419,7 +5424,7 @@ function cadAC(R,now){
     if(hb!=null){ const a2=r[hb-1], b2=r[hb], c2=r[hb+1], dn2=a2-2*b2+c2, d2=dn2?0.5*(a2-c2)/dn2:0; const s2=Math.round(60*HZ/(hb+d2)); if(s2>=100&&s2<=240)cadAC.alt=s2; } }
   const spm=Math.round(60*HZ/(L+d)); return spm>=40&&spm<=240?spm:null; }
 function onMotion(e){
-  if(!S.running||S.paused)return;
+  if(!S.running||(S.paused&&!S.autoPz))return;
   const a=e.accelerationIncludingGravity; if(!a)return;
   const mag=Math.hypot(a.x||0,a.y||0,a.z||0), now=e.timeStamp||performance.now(), C=S.cad;
   const R=C.raw||(C.raw=[]); R.push([now,mag]); C.lastAt=now; C.nEv=(C.nEv||0)+1;
@@ -5434,6 +5439,10 @@ function onMotion(e){
   const H=C.hist||(C.hist=[]); H.push(v); if(H.length>3)H.shift();
   const ok=H.filter(x=>x); C.spm=ok.length>=2?ok.slice().sort((p,q)=>p-q)[ok.length>>1]:null;   /* 1초짜리 세 번 중 가운데 값 — 한 번 튀는 값을 버린다 */
   { const X=EXTCAD.now(); if(X)C.spm=X; }   /* 기기에서 케이던스가 오면 그 값을 쓴다(걸음 수도 이 값으로 센다) */
+  /* 반 주기 봉우리가 안 잡혀도 — 달리기 속도(7'30"보다 빠름)인데 115보 아래로 나와 한 걸음이 1.5m를 넘으면 두 걸음을 한 걸음으로 센 것이다.
+     실제 기기 2026-11-21: 16km째 가지런 88 · 같은 시각 시계 160~170대(88의 두 배 176). 걷기·등산·자전거는 그대로 */
+  try{ const p=curPace(); if(S.act==='run'&&C.spm&&C.spm<115&&isFinite(p)&&p>0&&p<450&&(1000/p*60/C.spm)>1.5&&C.spm*2<=230){ C.spm*=2; C.dbl2=(C.dbl2||0)+1; } }catch(e){}
+  if(S.paused){ if(S.autoPz&&S.act!=='bike'){ const need=S.act==='run'?140:90; S.apStep=(C.spm&&C.spm>=need)?(S.apStep||0)+1:0; if(S.apStep>=3)apResume('step'); } return; }   /* 자동 일시정지 중엔 걸음을 세지 않는다 */
   if(C.spm){ if(!C.stepsF&&R.length)C.stepsF=C.spm/60*Math.min(8,(now-R[0][0])/1000);   /* 처음 값이 나오기까지(약 6초) 걸은 걸음도 넣는다 */
     C.stepsF=(C.stepsF||0)+C.spm/60*dt; C.steps=Math.round(C.stepsF); }
 }
@@ -5491,12 +5500,12 @@ async function startRun(){
   S._fin=null; liveClear();
   { const RI=raceInfo(s); S.rp=RI&&RI.pace?racePlanOf(RI.m,RI.sec):null; }   /* 구간 계획 — 대회 날·목표 정한 프리런 */
   Object.assign(S,{session:{...s,segs:(s.segs||[]).map(g=>({...g}))},T,adj,
-    opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked},
+    opts:{voice:$('optVoice').checked,cad:$('optCad').checked,wake:$('optWake').checked,ap:!$('optAP')||$('optAP').checked},
     lastTickEl:null,lastMoveEl:0,lastRestCue:0,lastAnyCue:0,lastHrCue:0,hrCueN:0,ceilCueN:0,repHrNote:'',gpsAcc:null,
     contOf:(CONT&&CONT.ix===pendingIx)?CONT.rid:null,
     shoe:$('optShoe').value, running:true,paused:false,t0:Date.now(),elapsed:0,pausedAt:0,
     dist:0,pts:[],win:[],anchor:null,smooth:null,rawLast:null,lastMove:0,overSince:0,vehWarn:false,altBuf:[],asc:0,desc:0,lastAlt:null,gpsWarn:false,
-    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,
+    segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,autoPz:false,apN:0,apSec:0,apStep:0,apMv:0,apRef:null,lastFix:null,
     ceilSec:0,bannerState:'',lastCue:0,offCount:0,lastOffDir:0,lastCeilCue:0,result:null,
     hrOverSec:0,hrHoldSec:0,lastHrCue:0,liveRows:[],rail:null,lastHrEnd:null,drift:null,driftCue:false,noHrCue:false,noHrSaid:false,hrBackSaid:false,frozenCue:false,restHrCue:null,hrSoft:(S.factors||[]).length>0,hrLocked:false,hrWhy:null,hrDh:[],hrBadAt:[],hrDropN:0,hrDropKm:null,hrDropD:0,hrDropRef:null,hrLockSaid:false,lockSec:0,lockedSec:0,unlockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,hrSince:0,liveDrift:null,segPace0:null,
     critSec:0,urgent:false,lastCrit:0,zoneSec:[0,0,0,0,0],hrCueN:0,ceilCueN:0,lastAnyCue:0,
@@ -5648,6 +5657,7 @@ document.querySelector('.laphd').onclick=e=>{
 function onPosErr(e){$('rDot').className='dot bad'; try{ const q=S.gq||(S.gq={n:0,bad:0,sum:0,max:0,gapSec:0,rearm:0,err:0}); q.err++; q.errCode=e&&e.code; }catch(x){}
   $('rGps').textContent=e.code===1?'위치 권한 거부됨':e.code===3?'GPS 신호 없음':'GPS 오류';}
 function onPos(pos){
+  if(S.running&&S.paused&&S.autoPz){ try{ apWatch(pos); }catch(e){} return; }   /* 자동 일시정지 중 — 거리는 넣지 않고 다시 움직였는지만 본다 */
   if(!S.running||S.paused)return;
   /* 안드로이드 앱이 다른 앱 뒤에 있을 때 — 웹뷰가 타이머를 늦춘다(1초~1분에 한 번). 위치는 휴대폰이 계속 넘겨 주므로, 좌표가 올 때마다 화면 계산(거리·구간·음성 안내)을 직접 돌린다 */
   if(document.hidden&&window.GAJI_NATIVE)Promise.resolve().then(()=>{ try{ onTick(); }catch(e){} });
@@ -5658,6 +5668,7 @@ function onPos(pos){
   if(!(S.overSince&&now-S.overSince>10000))
     $('rGps').textContent=`GPS 정확도 ±${Math.round(acc)}m`+(acc>25?' — 샘플 무시':'');
   if(acc>25)return;
+  S.lastFix={lat:c.latitude,lon:c.longitude,t:Date.now()};   /* 자동 일시정지의 기준점 */
   /* ── GPS 끊김에서 돌아올 때 ──────────────────────────
      자동차 내비처럼: 끊긴 동안은 멈춰 두고, 신호가 돌아오면 '끊기기 전 마지막 점 → 돌아온 첫 점'의 거리와
      그 사이 시간으로 한 번에 메운다. 사람이 낼 수 있는 속도일 때만 넣는다(아니면 차 탄 구간 처리로). */
@@ -5861,6 +5872,7 @@ function onTick(){
      페이스가 아니라 거리가 늘고 있는지로 판단한다(페이스가 없어도 동작해야 한다) */
   const moving = (!!S.lastMove && (Date.now()-S.lastMove)<8000) || !!S.gpsGap;   /* 터널 안에서도 걸음은 센다 */
   { const tdS=Math.min(S._stillT!=null?S.elapsed-S._stillT:0,5); S._stillT=S.elapsed; S.stillSec=moving?0:(S.stillSec||0)+Math.max(0,tdS); }
+  try{ if(apCheck(tg))return; }catch(e){}
   /* GPS가 쓸 만한 좌표를 아직 못 주는 동안(시작 직후·건물 옆·실내)은 '움직임'을 거리로 알 수 없다 — 그때는 걸음 센서를 그대로 믿는다.
      예전엔 거리가 늘 때만 보여 줘서, GPS가 늦게 잡히면 걸음 수는 오르는데 케이던스는 '—'로 남았다 */
   const gpsBlind = !S.lastGoodAt || (Date.now()-S.lastGoodAt)>8000;
@@ -6001,11 +6013,15 @@ function onTick(){
      몸의 심박은 같은 속도에서 1~2분 만에 30씩 떨어지지 않는다. 손목 센서가 헐거워지거나 추위로 피부 혈류가 줄면 이렇게 뚝 떨어진다
      (실제 기기 2026-11-20: 5km까지 5'10" · 178~182 → 6km부터 4'40" · 152→121→108). 걸음 잠김과 같은 방식으로 심박을 쓰지 않고 속도로 코칭한다 */
   if(S.running&&!S.paused&&!T.noHR){ const H=S.hrDh||(S.hrDh=[]);
-    { const lp=S.pts&&S.pts.length?S.pts[S.pts.length-1]:null; if(S.hr.bpm&&isFinite(p)&&p>120&&p<900)H.push([S.elapsed,S.hr.bpm,p,lp&&isFinite(+lp.alt)?+lp.alt:null]); } while(H.length&&S.elapsed-H[0][0]>620)H.shift();
-    const win=(a,b)=>{ const x=H.filter(h=>S.elapsed-h[0]>=a&&S.elapsed-h[0]<b); if(x.length<5)return null; const ps=x.map(h=>h[2]).sort((u,v)=>u-v); const al=x.map(h=>h[3]).filter(v=>v!=null); return {hr:x.reduce((q,h)=>q+h[1],0)/x.length, p:ps[ps.length>>1], alt:al.length?al.reduce((q,v)=>q+v,0)/al.length:null}; };
+    { const lp=S.pts&&S.pts.length?S.pts[S.pts.length-1]:null, okNow=!S.gpsGap&&!((S.stillSec||0)>0)&&!!S.lastGoodAt&&Date.now()-S.lastGoodAt<5000&&!!S.lastMove&&Date.now()-S.lastMove<3000;
+      if(!okNow)S.hrStopEl=S.elapsed;   /* 멈췄거나 GPS가 끊긴 때 — 그 뒤 3분은 심박이 회복 중이라 판정하지 않는다 */
+      if(S.hr.bpm&&isFinite(p)&&p>120&&p<900)H.push([S.elapsed,S.hr.bpm,p,lp&&isFinite(+lp.alt)?+lp.alt:null,okNow]); } while(H.length&&S.elapsed-H[0][0]>620)H.shift();
+    const win=(a,b)=>{ const x=H.filter(h=>h[4]!==false&&S.elapsed-h[0]>=a&&S.elapsed-h[0]<b); if(x.length<5)return null; const ps=x.map(h=>h[2]).sort((u,v)=>u-v); const al=x.map(h=>h[3]).filter(v=>v!=null); return {hr:x.reduce((q,h)=>q+h[1],0)/x.length, p:ps[ps.length>>1], alt:al.length?al.reduce((q,v)=>q+v,0)/al.length:null}; };
     /* 2~4분 전과도, 5~10분 전과도 본다 — 실제 기록은 10분에 걸쳐 182→152→121로 서서히 내려가 2~4분 차이로는 30이 안 됐다(2026-11-21 실제 구간 값으로 재현).
        내리막(그사이 15m 넘게 내려옴)은 심박이 실제로 내려갈 수 있어 뺀다 */
-    const nw=win(0,60), drop=o=>o&&nw&&o.hr-nw.hr>=30&&nw.p<=o.p+20&&o.p<600&&!(o.alt!=null&&nw.alt!=null&&nw.alt-o.alt<=-15);
+    /* 최근 1분에 GPS 끊김·멈춤이 한 초라도 있으면 판정하지 않는다 — 끊긴 동안은 직전 페이스를 붙잡아 두어 멈춰 서도 '속도 그대로'로 보였다
+       (실제 기기 2026-11-21: 1.8km에서 신호 대기로 멈춰 심박 175→95, 시계 기록 2km째 8'37" — 그런데 '센서 이상'으로 판정) */
+    const nw=(H.some(h=>S.elapsed-h[0]<60&&h[4]===false)||(S.hrStopEl!=null&&S.elapsed-S.hrStopEl<180))?null:win(0,60), drop=o=>o&&nw&&o.hr-nw.hr>=30&&nw.p<=o.p+20&&o.p<600&&!(o.alt!=null&&nw.alt!=null&&nw.alt-o.alt<=-15);
     const od=[win(120,240),win(300,600)].find(drop)||null;
     if(!S.hrLocked&&od){ S.hrLocked=true; S.hrWhy='drop'; S.hrDropRef=Math.round(od.hr); S.hrDropN=(S.hrDropN||0)+1;
       if(S.hrDropKm==null)S.hrDropKm=+(S.dist/1000).toFixed(1); S.hrDropD=Math.max(S.hrDropD||0,Math.round(od.hr-nw.hr));
@@ -6321,6 +6337,7 @@ function renderLaps(){
    일시정지를 눌러야 나타나고, 2초를 눌러 버텨야 실제로 끝난다. */
 $('btnPause').onclick=()=>{
   if(!S.running)return;
+  if(S.autoPz){ apResume('btn'); return; }   /* 자동 일시정지 중에 누르면 = 다시 시작 */
   S.paused=!S.paused; setPauseIcon(S.paused);
   /* 멈춘 동안 움직인 거리는 넣지 않는다 — 다시 시작하면 그 자리부터 잰다(GPS 끊김으로 오인하지 않게) */
   if(!S.paused){ S.gpsGap=null; S.anchor=null; S.smooth=null; S.lastFixAt=S.lastGoodAt=Date.now(); S.win=[{t:S.elapsed,d:S.dist}]; }
@@ -6330,9 +6347,47 @@ $('btnPause').onclick=()=>{
   if(S.paused){S._p=Date.now(); S.anchor=null; S.smooth=null; S.win=[];
     liveSave();
     DEV.speak('일시정지했습니다. 끝내려면 종료 버튼을 2초 동안 누르세요.',true);}
-  else{S.pausedAt+=(Date.now()-S._p)/1000;S.win=[];S._pzNext=true;DEV.speak('다시 시작합니다.',true);}
+  else{S.pausedAt+=(Date.now()-S._p)/1000;S.win=[];S._pzNext=true;S.hrStopEl=S.elapsed;DEV.speak('다시 시작합니다.',true);}
 };
 const BZ={tick:[140], off:[130,90,130,90,130], stop:[600,200,600,200,600]};
+/* ───────── 자동 일시정지 ─────────
+   멈추는 조건(모두): GPS가 잘 잡힘(정확도 25m 안 좌표를 4초 안에 받음 · 끊김 아님) + 6초 넘게 제자리 + 걸음 센서에 뛰는 걸음 없음.
+   GPS가 끊긴 때(터널·고가 밑·빌딩 사이)는 절대 멈추지 않는다 — 신호만 없을 뿐 뛰고 있을 수 있다.
+   시간으로 정한 구간(걷기·뛰기 번갈아, 시간 휴식)과 인터벌 휴식은 서 있어도 시간이 흘러야 하므로 멈추지 않는다.
+   다시 시작: GPS로 12m 넘게 움직임(좌표 두 번 연속, 또는 속도 초속 1.2m 넘음) 또는 걸음 센서에 걸음이 3초 이어짐(달리기 140보, 걷기·등산 90보) */
+function apCheck(tg){
+  if(!S.running||S.paused||!S.opts||S.opts.ap===false)return false;
+  if(S.elapsed<30||S.dist<50||(S.stillSec||0)<6)return false;
+  if(S.gpsGap||!S.lastGoodAt||Date.now()-S.lastGoodAt>4000)return false;
+  if(tg&&(tg.end==='time'||tg.nm===tm('rest')))return false;
+  if(S.act!=='bike'&&S.cad&&S.cad.spm&&S.cad.spm>=(S.act==='run'?130:90))return false;
+  const back=Math.min(S.stillSec||0,10);   /* 제자리였던 초(최대 10초)도 시간에서 뺀다 */
+  S.paused=true; S.autoPz=true; S._p=Date.now()-back*1000; S.elapsed=Math.max(0,S.elapsed-back); S.lastTickEl=S.elapsed;
+  S.apN=(S.apN||0)+1; S.apStep=0; S.apMv=0; S.apRef=S.lastFix?{lat:S.lastFix.lat,lon:S.lastFix.lon}:null;
+  S.anchor=null; S.smooth=null; S.win=[];
+  setPauseIcon(true); $('btnStop').hidden=false; try{ $('rRow').classList.add('pzd'); }catch(e){} $('rCtl').classList.remove('one');
+  const b=$('apBox'); if(b)b.hidden=false; $('rTime').textContent=fmtClock(S.elapsed);
+  try{ DEV.buzz(BZ.tick); }catch(e){}
+  DEV.speak('멈춰서 자동으로 일시정지했습니다. 다시 움직이면 이어서 기록합니다.',true);
+  liveSave(); return true; }
+function apWatch(pos){
+  const c=pos.coords, acc=c.accuracy||99, now=pos.timestamp||Date.now(); S.lastFixAt=Date.now(); if(acc>20)return;
+  S.lastGoodAt=Date.now(); const cur={lat:c.latitude,lon:c.longitude}; S.rawLast={lat:cur.lat,lon:cur.lon,t:now};
+  if(!S.apRef){ S.apRef=cur; return; }
+  const d=haversine(S.apRef,cur), sp=c.speed;
+  if(d>=12){ S.apMv=(S.apMv||0)+1; if(S.apMv>=2||(sp!=null&&sp>=1.2))apResume('gps'); } else S.apMv=0; }
+function apResume(why){
+  if(!S.running||!S.paused||!S.autoPz)return;
+  const sec=Math.max(0,(Date.now()-S._p)/1000); S.pausedAt+=sec; S.apSec=(S.apSec||0)+sec;
+  S.paused=false; S.autoPz=false; S.apStep=0; S.apMv=0;
+  /* 멈춘 자리를 거리 기준점으로 둔다 — 다시 출발해 움직인 12m가량도 거리에 들어간다(시각은 6초 전으로 잡아 '차 탄 속도'로 오인하지 않게) */
+  S.gpsGap=null; S.smooth=null; S.anchor=(why==='gps'&&S.apRef)?{lat:S.apRef.lat,lon:S.apRef.lon,t:Date.now()-6000}:null; S.apRef=null;
+  S.lastFixAt=S.lastGoodAt=Date.now(); S.stillSec=0; S._stillT=null; S.lastMove=Date.now();
+  S.win=[]; S._pzNext=true; S.hrStopEl=S.elapsed;
+  setPauseIcon(false); $('btnStop').hidden=true; try{ $('rRow').classList.remove('pzd'); }catch(e){} $('rCtl').classList.add('one');
+  const b=$('apBox'); if(b)b.hidden=true;
+  DEV.speak('다시 시작합니다.',true); }
+$('apGo').onclick=()=>apResume('btn');
 /* 길게 누르는 시간 — 종료 2초(전 3초: 뛰다 멈춘 손으로 버티기 길다는 사용자 의견 2026-11-18), 잠금 풀기 0.8초(전 1.5초). 뺨·소매가 스치는 것을 막는 용도라 길 필요는 없다 */
 const HOLD_STOP=2000, HOLD_UNLOCK=800;
 let holdT=null,holdAt=0;
@@ -6626,6 +6681,7 @@ function renderSummary(completed){
   S.result={planId:s.d==='free'?('free-'+todayStr()):s.d,date:isoLocal(new Date(S.t0||Date.now())),name:runName(),title:s.t,type:s.type,
     km:+km.toFixed(3),sec:Math.round(S.elapsed),paceAvg:km>0.05?Math.round(S.elapsed/km):null,
     hidSec:S.hidSec?Math.round(S.hidSec):null,hidN:S.hidN||null,
+    ap:S.apN?{n:S.apN,sec:Math.round(S.apSec||0)}:null,   /* 자동 일시정지 — 횟수·뺀 시간 */
     gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
     hrAvg,hrMax:Math.max(heldMax(S.hr.samples,5)||S.hr.max||0,hrAvg||0)||null,   /* 최고는 평균보다 낮을 수 없다 — 값이 1~2씩 흔들리면 '5초 유지' 값이 평균보다 낮게 나왔다(평균 138 · 최고 137, 2026-11-17 시험) */   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
     hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadWhy,cadSrc:(cadAvg&&S.cad&&(S.cad.wN||0)>cc.length/2)?'dev':undefined,cal,calW:(PROF.w||null),asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
@@ -6878,6 +6934,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden)liveSave()
    전엔 아무 표시가 없어 다 뛰고서야 알았다 → 꺼지는 순간 소리·진동, 돌아오면 못 받은 시간을 화면에 띄우고 기록에도 남긴다 */
 function hidFmt(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), x=sec%60; return m?(x?`${m}분 ${x}초`:`${m}분`):`${x}초`; }
 function hidNote(r){ return r&&r.hidSec>=20?`<p class="hidnote">⚠ 화면 꺼짐·다른 앱 <b>${hidFmt(r.hidSec)}</b>${r.hidN>1?` (${r.hidN}번)`:''} — 그동안 위치를 못 받아 거리가 실제보다 짧을 수 있어요</p>`:''; }
+function apNote(r){ const a=r&&r.ap; return a&&a.n?`<p class="gqnote">자동 일시정지 ${a.n}번 · ${hidFmt(a.sec)} (시간에서 뺌)</p>`:''; }
 function gqNote(r){ const q=r&&r.gq; if(!q||!q.n&&!q.gapSec&&!q.err)return q?'<p class="gqnote bad">GPS 좌표를 하나도 받지 못했어요</p>':'';
   const badPct=q.n?Math.round(q.bad/q.n*100):0, per=r.sec&&q.n?(r.sec/q.n):0, warn=badPct>=30||q.gapSec>=60||(per>3);
   return `<p class="gqnote${warn?' bad':''}">GPS 좌표 ${q.n.toLocaleString()}개${per?` (${per<0.9?'1초에 '+(1/per).toFixed(1)+'개':per<1.05?'1초마다':per.toFixed(1)+'초에 1개'})`:''} · 평균 정확도 ±${q.acc}m · 버린 좌표 ${badPct}%${q.gapSec>=10||q.gapN?` · 끊김 ${q.gapN||0}번 ${hidFmt(q.gapSec)}`:''}${q.rearm?` · 다시 연결 ${q.rearm}번`:''}${warn?' — 거리가 실제보다 짧을 수 있어요':''}</p>`; }
@@ -6931,6 +6988,7 @@ function liveResume(o,ix){
   /* 이어서 — 꺼져 있던 동안은 멈춘 것으로. 다시 시작하면 그 자리부터 잰다 */
   S.running=true; S.paused=true; S._p=Date.now();
   S.pausedAt=(Date.now()-S.t0)/1000-(S.elapsed||0);
+  S.autoPz=false; S.apRef=null; try{ $('apBox').hidden=true; }catch(e){}   /* 꺼졌다 이어 열면 손으로 다시 시작 */
   S.anchor=null; S.smooth=null; S.win=[]; S.gpsGap=null;
   try{ renderLaps(); paintLapChips(); buildRail(); }catch(e){ console.warn('live rail',e); }
   runPage(1); $('run').dataset.state='ok';
@@ -7245,7 +7303,7 @@ async function selfTest(){
     Object.assign(S,{session:sess,T,adj:0,running:true,paused:false,
       dist:0,pts:[],win:[],anchor:null,smooth:null,lastMove:0,altBuf:[],asc:0,desc:0,lastAlt:null,
       hrLocked:false,hrWhy:null,hrDh:[],hrBadAt:[],hrDropN:0,hrDropKm:null,hrDropD:0,hrDropRef:null,hrLockSaid:false,lockSec:0,lockedSec:0,unlockSec:0,coolCueN:0,lastCoolCue:0,extraWarned:false,
-      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,
+      segIx:0,segStart:{d:0,t:0},segRecords:[],splits:[],lapKm:0,lapStart:{d:0,t:0},liveRows:[],extra:null,planHalf:false,planNear:false,gpsGap:null,lastFixAt:null,lastGoodAt:null,paceHold:null,gapCued:0,gapN:0,gapEndEl:null,hrSec:null,hidAt:null,hidSec:0,hidN:0,gq:null,rearmAt:0,gpsT0:null,autoPz:false,apN:0,apSec:0,apStep:0,apMv:0,apRef:null,lastFix:null,
       ceilSec:0,hrOverSec:0,hrHoldSec:0,lastHrEnd:null,bannerState:'',lastCue:0,offCount:0,
       lastOffDir:0,lastCeilCue:0,lastHrCue:0,elapsed:0,hrCueN:0,ceilCueN:0,lastAnyCue:0,
       hr:{dev:null,bpm:null,samples:[],max:0,segSamples:[]},
@@ -12210,7 +12268,7 @@ function renderResult(host,r,s,opt){
     ${r.note?`<p class="rnote">${ESC(r.note)}</p>`:r.rid&&RUNS.includes(r)?'<button type="button" class="rnote-add" data-rtedit>+ 메모 추가</button>':''}
     ${r.cont?`<div class="note green" style="margin:0 0 10px">${r.cont.rids.length+1}번에 나눠 뛴 훈련 — 합계 <b>${contTotal(r).toFixed(2)}km · ${fmtClock(r.own.sec+r.cont.sec)}</b> (이 기록 ${(+r.own.km).toFixed(2)}km + 이어서 ${(+r.cont.km).toFixed(2)}km) · 판정은 합친 값</div>`:r.contOf?(()=>{ let f=null; try{ f=RUNS.find(x=>x.rid===r.contOf); }catch(e){} return `<div class="note blue cont-frag" style="margin:0 0 10px">앞 기록에 이어서 뛴 조각${f?` — 합계 <b>${(contTotal(f)+(RUNS.includes(r)?0:(+r.km||0))).toFixed(2)}km</b>${f.planKm?` / 약속 ${fmtKm1(f.planKm)}km`:''}`:''} · 판정은 앞 기록과 합쳐서 한 번</div>`; })():''}
     ${hasMap?`<div class="rroute">${routeBoxHTML()}</div>`:'<div class="rmap" hidden></div>'}
-    ${SEC(vc,ldate(r.date).slice(0,10)===todayStr()?'오늘 결과':'이날 결과','',hidNote(r)+hero+gqNote(r))}
+    ${SEC(vc,ldate(r.date).slice(0,10)===todayStr()?'오늘 결과':'이날 결과','',hidNote(r)+hero+gqNote(r)+apNote(r))}
     ${chart||mv?SEC('ana','페이스 · 심박','거리순',(chart?`<div class="rcard rvch-w">${chart}</div>`:'')+mv):''}
     ${r.rw?'<details class="bmore rw-more"><summary>상세 — 구간 · 1km · 부하 · 심박 존</summary>':''}
     ${segSec}
