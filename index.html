@@ -2764,7 +2764,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.86';
+const APPVER='21.87';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5439,9 +5439,10 @@ function onMotion(e){
   const H=C.hist||(C.hist=[]); H.push(v); if(H.length>3)H.shift();
   const ok=H.filter(x=>x); C.spm=ok.length>=2?ok.slice().sort((p,q)=>p-q)[ok.length>>1]:null;   /* 1초짜리 세 번 중 가운데 값 — 한 번 튀는 값을 버린다 */
   { const X=EXTCAD.now(); if(X)C.spm=X; }   /* 기기에서 케이던스가 오면 그 값을 쓴다(걸음 수도 이 값으로 센다) */
-  /* 반 주기 봉우리가 안 잡혀도 — 달리기 속도(7'30"보다 빠름)인데 115보 아래로 나와 한 걸음이 1.5m를 넘으면 두 걸음을 한 걸음으로 센 것이다.
+  /* 반 주기 봉우리가 안 잡혀도 — 달리기 속도(7'30"보다 빠름)인데 100보 이하로 나와 한 걸음이 1.5m를 넘으면 두 걸음을 한 걸음으로 센 것이다.
      실제 기기 2026-11-21: 16km째 가지런 88 · 같은 시각 시계 160~170대(88의 두 배 176). 걷기·등산·자전거는 그대로 */
-  try{ const p=curPace(); if(S.act==='run'&&C.spm&&C.spm<115&&isFinite(p)&&p>0&&p<450&&(1000/p*60/C.spm)>1.5&&C.spm*2<=230){ C.spm*=2; C.dbl2=(C.dbl2||0)+1; } }catch(e){}
+  /* 3초 이어질 때만 · 두 배 값은 140~200 안(달리다 걷기로 바꾼 순간엔 속도가 늦게 따라와 걷는 114보가 228로 바뀌던 것 막음, 시험 t205) */
+  try{ const p=curPace(), hit=S.act==='run'&&C.spm&&C.spm<=100&&isFinite(p)&&p>0&&p<450&&(1000/p*60/C.spm)>1.5&&C.spm*2>=140&&C.spm*2<=200; C.dblK=hit?(C.dblK||0)+1:0; if(hit&&C.dblK>=3){ C.spm*=2; C.dbl2=(C.dbl2||0)+1; } }catch(e){}
   if(S.paused){ if(S.autoPz&&S.act!=='bike'){ const need=S.act==='run'?140:90; S.apStep=(C.spm&&C.spm>=need)?(S.apStep||0)+1:0; if(S.apStep>=3)apResume('step'); } return; }   /* 자동 일시정지 중엔 걸음을 세지 않는다 */
   if(C.spm){ if(!C.stepsF&&R.length)C.stepsF=C.spm/60*Math.min(8,(now-R[0][0])/1000);   /* 처음 값이 나오기까지(약 6초) 걸은 걸음도 넣는다 */
     C.stepsF=(C.stepsF||0)+C.spm/60*dt; C.steps=Math.round(C.stepsF); }
@@ -5873,6 +5874,7 @@ function onTick(){
   const moving = (!!S.lastMove && (Date.now()-S.lastMove)<8000) || !!S.gpsGap;   /* 터널 안에서도 걸음은 센다 */
   { const tdS=Math.min(S._stillT!=null?S.elapsed-S._stillT:0,5); S._stillT=S.elapsed; S.stillSec=moving?0:(S.stillSec||0)+Math.max(0,tdS); }
   try{ if(apCheck(tg))return; }catch(e){}
+  try{ walkTail(tg); }catch(e){}
   /* GPS가 쓸 만한 좌표를 아직 못 주는 동안(시작 직후·건물 옆·실내)은 '움직임'을 거리로 알 수 없다 — 그때는 걸음 센서를 그대로 믿는다.
      예전엔 거리가 늘 때만 보여 줘서, GPS가 늦게 잡히면 걸음 수는 오르는데 케이던스는 '—'로 남았다 */
   const gpsBlind = !S.lastGoodAt || (Date.now()-S.lastGoodAt)>8000;
@@ -6370,6 +6372,18 @@ function apCheck(tg){
   try{ DEV.buzz(BZ.tick); }catch(e){}
   DEV.speak('멈춰서 자동으로 일시정지했습니다. 다시 움직이면 이어서 기록합니다.',true);
   liveSave(); return true; }
+/* 달리기 중 걷는 속도가 3분 이어지면 한 번 알림 — 시계 기록 2026-11-21: 하프 뒤 집까지 걸은 8km가 같은 기록에 섞여 평균 7'11"이 됨.
+   걷는 속도 = 1km 9분보다 느리고(20분보다는 빠름) 걸음이 130보 아래(또는 센서 값 없음) · GPS 정상 · 시작 10분·2km 지남.
+   웜업·쿨다운·휴식·걷기 구간과 시간 구간(걷뛰)에서는 하지 않는다. 다시 5분 뛰면 다시 켠다 */
+function walkTail(tg){
+  if(S.act!=='run'||S.paused||S.elapsed<600||S.dist<2000)return;
+  if(tg&&(tg.end==='time'||/웜업|쿨다운|마무리|준비|도입|레스트|회복|걷|쉬기/.test(tg.nm||'')))return;
+  const now=S.elapsed, dt=Math.max(0,Math.min(5,now-(S._wkT||now))); S._wkT=now;
+  const p=curPace(), spm=S.cad&&S.cad.spm, good=!S.gpsGap&&S.lastGoodAt&&Date.now()-S.lastGoodAt<5000;
+  const walking=good&&isFinite(p)&&p>540&&p<1200&&!(spm&&spm>=130);
+  if(walking){ S.walkSec=(S.walkSec||0)+dt; S.runSec=0; } else if(good&&isFinite(p)&&p<480){ S.runSec=(S.runSec||0)+dt; if(S.runSec>=300){ S.walkSec=0; S.walkTold=false; } }
+  if(!S.walkTold&&(S.walkSec||0)>=180){ S.walkTold=true; S.walkN=(S.walkN||0)+1;
+    DEV.speak('3분째 걷는 속도예요. 달리기를 마쳤다면 종료 버튼을 눌러 주세요. 계속 기록하면 평균 페이스에 걷기가 섞입니다.',true); } }
 function apWatch(pos){
   const c=pos.coords, acc=c.accuracy||99, now=pos.timestamp||Date.now(); S.lastFixAt=Date.now(); if(acc>20)return;
   S.lastGoodAt=Date.now(); const cur={lat:c.latitude,lon:c.longitude}; S.rawLast={lat:cur.lat,lon:cur.lon,t:now};
@@ -6740,8 +6754,9 @@ function hrFixOf(r){ if(!r||typeof r!=='object')return null; const HRFIX=window.
       const P=[]; let dsum=0;
       r.track.forEach((q,i)=>{ if(i)dsum+=haversine(r.track[i-1],q); const ts=+q.t>1e12?+q.t/1000:+q.t; if(isFinite(ts))P.push({t:ts,d:dsum,hr:+q.hr||null,alt:isFinite(+q.alt)&&q.alt!=null?+q.alt:null}); });
       if(P.length>30&&P.filter(x=>x.hr).length>P.length*0.6){
-        const win=(i,a,b)=>{ const t=P[i].t; let n=0,s=0,f=null,l=null,an=0,as=0; for(let j=i;j>=0;j--){ const dt=t-P[j].t; if(dt>=b)break; if(dt>=a){ if(l==null)l=P[j]; f=P[j]; if(P[j].hr){ n++; s+=P[j].hr; } if(P[j].alt!=null){ an++; as+=P[j].alt; } } }
-          if(n<3||!f||!l||l.t-f.t<20||l.d-f.d<20)return null; return {hr:s/n, p:(l.t-f.t)/((l.d-f.d)/1000), alt:an?as/an:null}; };
+        /* 창 안에 점 사이가 10초 넘게 빈 곳(GPS 끊김·멈춤)이 있으면 판정하지 않는다 — 달리는 중 규칙과 같게(v21.86) */
+        const win=(i,a,b)=>{ const t=P[i].t; let n=0,s=0,f=null,l=null,an=0,as=0,gap=false,pv=null; for(let j=i;j>=0;j--){ const dt=t-P[j].t; if(dt>=b)break; if(dt>=a){ if(pv!=null&&pv-P[j].t>10)gap=true; pv=P[j].t; if(l==null)l=P[j]; f=P[j]; if(P[j].hr){ n++; s+=P[j].hr; } if(P[j].alt!=null){ an++; as+=P[j].alt; } } }
+          if(gap||n<3||!f||!l||l.t-f.t<20||l.d-f.d<20)return null; return {hr:s/n, p:(l.t-f.t)/((l.d-f.d)/1000), alt:an?as/an:null}; };
         const bad=[]; let on=null, ref=null, dmax=0, km=null;
         for(let i=0;i<P.length;i++){ const nw=win(i,0,60); if(!nw)continue;
           const drop=o=>o&&o.hr-nw.hr>=30&&nw.p<=o.p+20&&o.p<600&&!(o.alt!=null&&nw.alt!=null&&nw.alt-o.alt<=-15), od=[win(i,120,240),win(i,300,600)].find(drop)||null;   /* 달리는 중과 같은 규칙 */
@@ -6756,7 +6771,16 @@ function hrFixOf(r){ if(!r||typeof r!=='object')return null; const HRFIX=window.
           out={zones:zs.map(x=>Math.round(x)), hrAvg:wn>0?Math.round(ws/wn):null, okSec:Math.round(wn), drop:{km,d:Math.round(dmax),retro:true}}; } } } }catch(e){ out=null; }
   HRFIX.set(r,out); return out; }
 function hrAvgOf(r){ const f=hrFixOf(r); return (f&&f.hrAvg)||r.hrAvg; }
-function hrDropOf(r){ if(!r)return null; if(r.hrDrop)return r.hrDrop; const f=hrFixOf(r); return f?f.drop:null; }
+/* v21.85까지 달리는 중 판정은 GPS가 끊긴 동안 직전 페이스를 붙잡아 두어, 신호 대기로 멈춰 심박이 내려간 것도 '속도 그대로 급락'으로 저장했다(2026-11-21 장거리 1.8km).
+   저장된 급락 지점 앞 0.4km~뒤 0.2km에 10초 넘게 빈 곳이나 초속 1m 아래로 10초 넘게 머문 곳이 있으면 멈춤 때문으로 보고 읽을 때 뺀다 — 기록 자체는 고치지 않는다 */
+function hrDropStopped(r){ try{ const D=r&&r.hrDrop, tr=r&&r.track; if(!D||!isFinite(+D.km)||!Array.isArray(tr)||tr.length<10)return false;
+  const W=window.__hrDS||(window.__hrDS=new WeakMap()); if(W.has(r))return W.get(r);
+  let d=0, out=false; const lo=(+D.km-0.4)*1000, hi=(+D.km+0.2)*1000; let slow=0;
+  for(let i=1;i<tr.length;i++){ const a=tr[i-1], b=tr[i], m=haversine(a,b); d+=m; if(d<lo)continue; if(d>hi)break;
+    const ta=+a.t>1e12?+a.t/1000:+a.t, tb=+b.t>1e12?+b.t/1000:+b.t, dt=tb-ta; if(!isFinite(dt))continue;
+    if(dt>10){ out=true; break; } if(dt>0&&m/dt<1){ slow+=dt; if(slow>10){ out=true; break; } } else slow=0; }
+  W.set(r,out); return out; }catch(e){ return false; } }
+function hrDropOf(r){ if(!r)return null; if(r.hrDrop)return hrDropStopped(r)?null:r.hrDrop; const f=hrFixOf(r); return f?f.drop:null; }
 function paintZones(host,zs,T,zbIn){
   if(!host)return;
   const tot=(zs||[]).reduce((a,b)=>a+b,0);
@@ -11060,7 +11084,7 @@ function todayResultCard(r,sess){
     <div class="tr-top"><span class="tr-chip">${ic('check',14)}</span><span class="tr-type">${r.race?'대회':(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span></div>
     <div class="tr-main"><div><b class="num">${(r.own?contTotal(r):+r.km).toFixed(2)}</b><span>km${r.cont?` · ${r.cont.rids.length+1}번에 나눠`:''}</span></div>${map?`<div class="tr-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}</div>
     <div class="tr-stats"><span>${ic('clock')}<b class="num">${fmtClock(r.own?r.own.sec+r.cont.sec:r.sec)}</b></span><span>${ic('pace')}<b class="num">${fmtPace(r.own?Math.round((r.own.sec+r.cont.sec)/Math.max(0.01,contTotal(r))):r.paceAvg)}</b>/km</span>${hrAvgOf(r)?`<span>${ic('heart')}<b class="num">${hrAvgOf(r)}</b> <small>${zLab(hrAvgOf(r))}</small></span>`:''}${r.cadAvg?`<span>👣<b class="num">${r.cadAvg}</b></span>`:''}</div>
-    ${hidNote(r)}
+    ${hidNote(r)}${apNote(r)}
     ${vd?`<div class="tr-vd ${tone}">${vd[0]}</div>`:''}
     ${loadCard(r,true)}
     ${rows?`<ul class="tr-rows">${rows}</ul>`:''}
@@ -11994,6 +12018,12 @@ function routeBoxHTML(full){
 /* 지도 아래 골라 보기 — 거리별(1km씩, 모든 기록) · 구간별(훈련 구간이 있는 기록).
    예전엔 같은 곳을 도는 코스로 판정될 때만 '바퀴' 단추가 나오고, 일직선 코스는 골라 볼 것이 아예 없었다(2026-11-15).
    묶음 모양은 바퀴 때와 같다({laps:[[처음,끝,덜]],cm}) — 지도 그리기·저장 그림이 같은 규칙을 그대로 쓴다 */
+/* 위치 튐 의심 1km — 고르게 뛰는 날(이지·회복·장거리·그냥 뛰기)에만, 앞뒤 1km(각 2개까지)의 가운데 값보다 20% 넘게 빠르면. 인터벌·템포처럼 일부러 빠른 칸이 섞이는 날은 보지 않는다. 시계(Zepp) 2026-11-21 18km째 4'12"(앞뒤 5'27"·5'26")처럼 좌표가 튀어 거리가 늘어난 칸.
+   기록은 고치지 않고 '튐?'으로 표시하고 '가장 빠른 1km'에서 뺀다 */
+function splitJumps(sp,type){ if(type&&!['easy','recovery','long','free'].includes(type))return new Set(); const L=(sp||[]).filter(x=>x&&!x.part&&isFinite(+x.pace)&&+x.pace>0), J=new Set();
+  const all=L.map(y=>+y.pace).sort((a,b)=>a-b), om=all.length?all[Math.floor(all.length/2)]:0;   /* 전체 가운데 값보다도 15% 넘게 빨라야 — 옆 칸이 멈춤 때문에 느렸던 경우(11/21 1km째)는 튐이 아니다 */
+  L.forEach((x,i)=>{ if(!(+x.pace<om*0.85))return; const nb=L.slice(Math.max(0,i-2),i).concat(L.slice(i+1,i+3)).map(y=>+y.pace).sort((a,b)=>a-b); if(nb.length<2)return; const md=nb.length%2?nb[(nb.length-1)/2]:(nb[nb.length/2-1]+nb[nb.length/2])/2; if(+x.pace<md*0.8)J.add(+x.km); });
+  return J; }
 function routeGroups(r){ const tr=r.track||[]; if(tr.length<8)return {km:null,seg:null};
   const cm=trackCum(tr), n=tr.length-1, tot=cm[n];
   const kmL=[]; { let a=0, k=1; for(let i=1;i<=n;i++){ if(cm[i]>=k*1000){ kmL.push([a,i,0,String(k)]); a=i; k++; } }
@@ -12014,7 +12044,7 @@ function routeWire(root,r,st,full){
     const LS=G?lapStats(r.track,G):null;
     /* 거리별 칸의 1km 페이스는 1km 기록표(r.splits)와 같은 값으로 — 경로 점으로 다시 재면 몇 초씩 달랐다(음성 10분 8초 · 칸 10'04", 2026-11-17 시험) */
     if(LS&&g==='km')LS.forEach(x=>{ if(x.part)return; const sp=(r.splits||[]).find(z=>z&&!z.part&&+z.km===x.j+1&&z.pace>0); if(sp){ x.pace=sp.pace; x.dt=Math.round(sp.pace); x.m=1000; if(sp.hr)x.hr=sp.hr; } });   /* 1.00km의 시간 = 그 1km 페이스 — 전엔 '1.00km · 13:34 · 1km 13'38"'처럼 시간과 페이스가 달랐다(실제 기기 2026-11-17) */
-    const fullOK=LS&&g==='km'?LS.filter(x=>!x.part&&x.pace):[], fast=fullOK.length>1?fullOK.reduce((m,x)=>x.pace<m.pace?x:m):null;
+    const JM=splitJumps(r.splits,r.type||'free'), fullOK=LS&&g==='km'?LS.filter(x=>!x.part&&x.pace&&!JM.has(x.j+1)):[], fast=fullOK.length>1?fullOK.reduce((m,x)=>x.pace<m.pace?x:m):null;
     sw.hidden=!pcd.lo; sw.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.mm===st.mode));
     paintMap(mh,pace?pcd.tr:r.track,r.segments,null,{laps:st.sel!=null?G:null,sel:st.sel,full,onTap:full?null:()=>routeFull(r,st,paint)});
     if(pace) lg.innerHTML=`<span class="pgl">더 느림 ${fmtPace(pcd.hi)}</span><span class="pgr">${PACE_COLS.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="pgl">${fmtPace(pcd.lo)} 더 빠름</span>`;
@@ -12244,7 +12274,8 @@ function renderResult(host,r,s,opt){
     segs+=`<div class="sgr sgt"><span>합계</span><span>${K.toFixed(2)}</span><span>${fmtClock(Ts)}</span><span>${K>0?fmtPace(r.paceAvg||Ts/K):'—'}</span><span>${hrAvgOf(r)||th||'—'}</span><span>${r.cadAvg||tc||'—'}</span><span></span></div>`; }
   const sgf=SG.length>=5&&new Set(SG.map(sgKind)).size>1?`<div class="sgf"><button type="button" class="on" data-sgf="all">모두</button>${SG.some(g=>sgKind(g)==='wc')?'<button type="button" data-sgf="wc">웜업·쿨다운</button>':''}<button type="button" data-sgf="main">본 구간</button>${SG.some(g=>sgKind(g)==='rest')?'<button type="button" data-sgf="rest">쉬기</button>':''}</div>`:'';
   const sp=sp0(); const spMin=sp.length?Math.min(...sp.map(x=>x.pace)):0, spMax=sp.length?Math.max(...sp.map(x=>x.pace)):1;
-  const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i><i>${x.cad?x.cad+'<small>spm</small>':''}</i></div>`).join('');
+  const JMP=splitJumps(sp,r.type||'free');
+  const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}${!x.part&&JMP.has(+x.km)?'<small style="color:var(--ink-3)" title="앞뒤 1km보다 20% 넘게 빠름 — 위치가 튀었을 수 있어요"> 튐?</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i><i>${x.cad?x.cad+'<small>spm</small>':''}</i></div>`).join('');
   /* 판정 — 색: 지킴 초록 · 애매 호박 · 벗어남 빨강 */
   const vc=vd?(vd[1]==='ok'?'#1E9B5C':vd[1]==='bad'?'#D9412B':'#C98A00'):'#7A55B8';
   const rows=(pr.rows||[]).map(x=>`<li class="${x[2]||''}${String(x[1]).replace(/<[^>]+>/g,'').length>18?' long':''}"><i>${x[2]==='ok'?'✓':x[2]==='bad'?'✗':'·'}</i><span>${x[0]}</span><b>${x[1]}</b></li>`).join('');
@@ -12549,7 +12580,7 @@ function renderActResult(host,r){
     <h2 class="rt">${ESC(actTitle(r))}</h2>
     ${SEC(a.col,'기록','달리기 거리에는 안 들어감',`<div class="actbig" style="margin:0"><b class="num">${big[0]}</b><i>${big[1]}</i></div>
     <div class="rsm">${tiles.map(t=>`<div><b class="num">${t[0]}</b><i>${t[1]}</i></div>`).join('')}</div>
-    ${note?`<p class="meta" style="line-height:1.7;margin:8px 4px 2px">${note}</p>`:''}`)}
+    ${note?`<p class="meta" style="line-height:1.7;margin:8px 4px 2px">${note}</p>`:''}${apNote(r)}`)}
     ${r.track&&r.track.length>3?SEC('train','경로','',`<div class="rmap"></div>`):'<div class="rmap" hidden></div>'}
     ${alts.length>3&&r.act!=='walk'?SEC('ana','높이',`▲${r.asc||0}m ▼${r.desc||0}m`,`<div class="rcard">${spark(alts,300,70,false,'#3F6E3A').replace('class="spk"','class="spk" style="width:100%;height:80px" preserveAspectRatio="none"')}</div>`):''}
     ${tOnly?'':`<button class="btn ghost" data-rs="share" style="margin-top:14px">사진 공유</button>`}`;
@@ -15304,7 +15335,9 @@ function debriefPoints(r,s){
   if(r.drift&&r.drift.bpm>=6)bad.push(['심박 표류',`같은 속도에서 심박 +${r.drift.bpm} — 피로?`]);
   else if(hrAvgOf(r)&&r.sec>1500&&r.drift&&r.drift.bpm!=null&&r.drift.bpm<6)good.push(['심박',`후반도 안정 (표류 +${r.drift.bpm})`]);   /* 표류를 못 쟀으면 '안정적'이라 말하지 않는다 */
   const z=hrZonesOf(r)||[], zt=z.reduce((a,b)=>a+b,0);
-  if(zt>300&&['easy','recovery','long'].includes(r.type)){ const e=(z[0]+z[1])/zt; if(e>=0.8)good.push(['심박 존',`${Math.round(e*100)}%를 Z1·Z2에서 — 이지 날답게`]); }
+  if(zt>300&&['easy','recovery','long'].includes(r.type)){ const e=(z[0]+z[1])/zt; if(e>=0.8)good.push(['심박 존',`${Math.round(e*100)}%를 Z1·Z2에서 — 이지 날답게`]);
+    /* 반대 경우도 알려 준다 — 2026-11-21 장거리: 8~22km 심박 160대, 시계 기준 '최고강도' 50%. 쉬운 날이 힘들면 회복이 안 되고 다음 강한 날을 망친다(80/20 원칙, Seiler 2010 B) */
+    else if(e<0.6&&zt>600){ const hi=z.slice(2).reduce((a,b)=>a+b,0); bad.push(['심박 존',`Z1·Z2 ${Math.round(e*100)}% · Z3 이상 ${Math.round(hi/60)}분 — ${tm(r.type)} 날치고 힘들게 뛰었어요. 다음엔 속도를 낮춰 Z2 안에서`]); } }
   const L=loadOf(r); if(L&&L.main){ const b=loadBand(L.main.k,L.main.v);
     /* rTSS는 속도만 본다. 같은 속도에 심박이 유난히 높았던 날(피로·더위·센서)은 몸이 받은 부하가 더 크다 — 그날은 '가벼움'을 좋은 점으로 쓰지 않는다 */
     const tb=L.trimp!=null?loadBand('trimp',L.trimp):null, rank={ok:0,mid:1,hi:2,bad:3};
