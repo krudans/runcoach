@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.76';
+const APPVER='21.77';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3502,7 +3502,7 @@ function judgeTh(){
   const R=RUNS.slice(-60);
   const sp=R.filter(r=>r.spread!=null&&(TYPES[r.type]||{}).judgeBy==='spread').map(r=>r.spread);
   const ce=R.filter(r=>r.ceilRatio!=null&&r.ceiling&&r.paceAvg&&r.paceAvg>=r.ceiling+10).map(r=>r.ceilRatio);
-  const ho=R.filter(r=>r.hrOverRatio!=null&&r.hrAvg&&r.hrCap&&r.hrAvg<=r.hrCap-5).map(r=>r.hrOverRatio);
+  const ho=R.filter(r=>r.hrOverRatio!=null&&hrAvgOf(r)&&r.hrCap&&hrAvgOf(r)<=r.hrCap-5).map(r=>r.hrOverRatio);
   const out={spread:5, ceil:0.10, hrOver:0.20, dist:0.90, src:{spread:'C',ceil:'C',hrOver:'C'}, n:{spread:sp.length,ceil:ce.length,hrOver:ho.length}};
   if(sp.length>=3){ out.spread=Math.max(3,Math.min(12,Math.round(med(sp)))); out.src.spread='D'; }
   if(ce.length>=3){ out.ceil=Math.max(0.05,Math.min(0.25,+(p75(ce)+0.03).toFixed(2))); out.src.ceil='D'; }
@@ -4622,7 +4622,7 @@ function sessionOf(i){
 /* 저장된 기록만 보고 그날 계획을 지켰는지 되살린다 */
 /* 심박이 기준인 날(회복·이지)에 심박 기록이 있는가 — 판정·결과 화면·달력이 모두 이 한 규칙을 쓴다 */
 function hrJudged(r){ const T=TYPES[r&&r.type]||{}; if(SURVEY&&SURVEY.f&&SURVEY.f.med)return false;   /* 베타차단제 등 — 심박으로 판정하지 않는다(ACSM: RPE 처방) */
-  return !!(r&&T.primary==='hr'&&r.hrAvg&&r.hrOverRatio!=null&&r.hrCap&&!r.hrSuspect); }   /* 뛰는 중에 믿지 않기로 한 심박(튐·잠금)으로는 판정하지 않는다 */
+  return !!(r&&T.primary==='hr'&&hrAvgOf(r)&&r.hrOverRatio!=null&&r.hrCap&&!r.hrSuspect); }   /* 뛰는 중에 믿지 않기로 한 심박(튐·잠금)으로는 판정하지 않는다 */
 function runPass(r){
   if(!r||!r.type||r.manual)return null;
   if(r.contOf)return null;   /* 이어서 뛴 조각 — 앞 기록에서 합쳐 판정 */
@@ -4891,11 +4891,11 @@ function rhrAlert(){
     return `안정 심박 이틀 연속 (${Math.round(b.m)}±${Math.round(2*b.sd)}) 초과 (${b.last2.map(x=>x.bpm).join(', ')}) · 기록 ${b.n}번 → 훈련 선택`;
   return null;}
 function driftAlert(){
-  const es=RUNS.filter(r=>['easy','recovery'].includes(r.type)&&r.hrAvg&&r.paceAvg).slice(-8);
+  const es=RUNS.filter(r=>['easy','recovery'].includes(r.type)&&hrAvgOf(r)&&r.paceAvg).slice(-8);
   if(es.length<3)return null;
   const last=es[es.length-1], peers=es.slice(0,-1).filter(r=>Math.abs(r.paceAvg-last.paceAvg)<=10);
   if(peers.length<2)return null;
-  const avg=peers.reduce((s,r)=>s+r.hrAvg,0)/peers.length;
+  const avg=peers.reduce((s,r)=>s+hrAvgOf(r),0)/peers.length;
   if(last.hrAvg>=avg+5)
     return `같은 이지런 속도 심박 ${Math.round(last.hrAvg-avg)}회(BPM)↑ (${Math.round(avg)} → ${last.hrAvg}) · 회복 부족·더위·탈수·수면 부족`;
   return null;}
@@ -6660,7 +6660,31 @@ function renderSummary(completed){
 const ZNAME=['아주 편함 (Z1)','편함 (Z2)','보통 (Z3)','힘듦 (Z4)','아주 힘듦 (Z5)'];
 const ZCOL=['#8FB8D8','#19A47C','#C9A227','#E35A32','#C0352F'];
 /* 판정·부하·이번 주 합계에 쓰는 심박 존 — 심박을 믿지 않기로 한 기록(걸음을 읽음)은 빼다. 표시는 결과 화면에서 이유와 함께 */
-function hrZonesOf(r){ return r&&!r.hrSuspect&&Array.isArray(r.zones)?r.zones:null; }
+function hrZonesOf(r){ if(!(r&&!r.hrSuspect&&Array.isArray(r.zones)))return null; const f=hrFixOf(r); return f?f.zones:r.zones; }
+/* 저장된 기록에서 심박 급락(센서) 구간 찾기 — v21.75 전에 저장돼 달리는 중에 못 거른 기록용. 기록은 그대로 두고, 읽을 때 그 구간을 뺀 존·평균을 쓴다.
+   규칙은 달리는 중과 같다: 최근 1분 평균 심박이 2~4분 전보다 30 넘게 낮은데 속도는 그대로(20초/km 넘게 안 느려짐). 경로 점(시각·위치·심박)으로 본다
+   (실제 기록 2026-11-20 20:50: 5km까지 178~182 → 6km부터 4'40"인데 152→121→108 — 추위로 손목 센서가 놓침) */
+function hrFixOf(r){ if(!r||typeof r!=='object')return null; const HRFIX=window.__hrFix||(window.__hrFix=new WeakMap()); if(HRFIX.has(r))return HRFIX.get(r); let out=null;
+  try{ if(!r.hrDrop&&Array.isArray(r.track)&&r.track.length>30&&Array.isArray(r.zones)){
+      const P=[]; let dsum=0;
+      r.track.forEach((q,i)=>{ if(i)dsum+=haversine(r.track[i-1],q); const ts=+q.t>1e12?+q.t/1000:+q.t; if(isFinite(ts))P.push({t:ts,d:dsum,hr:+q.hr||null}); });
+      if(P.length>30&&P.filter(x=>x.hr).length>P.length*0.6){
+        const win=(i,a,b)=>{ const t=P[i].t; let n=0,s=0,f=null,l=null; for(let j=i;j>=0;j--){ const dt=t-P[j].t; if(dt>=b)break; if(dt>=a){ if(l==null)l=P[j]; f=P[j]; if(P[j].hr){ n++; s+=P[j].hr; } } }
+          if(n<3||!f||!l||l.t-f.t<20||l.d-f.d<20)return null; return {hr:s/n, p:(l.t-f.t)/((l.d-f.d)/1000)}; };
+        const bad=[]; let on=null, ref=null, dmax=0, km=null;
+        for(let i=0;i<P.length;i++){ const nw=win(i,0,60), od=win(i,120,240); if(!nw)continue;
+          if(on==null&&od&&od.hr-nw.hr>=30&&nw.p<=od.p+20&&od.p<600){ let k=i; while(k>0&&P[i].t-P[k-1].t<60)k--; on=k; ref=od.hr; if(km==null)km=+(P[k].d/1000).toFixed(1); }
+          if(on!=null){ dmax=Math.max(dmax,ref-nw.hr); if(nw.hr>=ref-12){ bad.push([on,i]); on=null; } } }
+        if(on!=null)bad.push([on,P.length-1]);
+        if(bad.length){
+          const ZB=Array.isArray(r.zoneB)?r.zoneB:null, zi=b=>{ if(ZB){ for(let i=0;i<5;i++){ const [lo,hi]=ZB[i]||[]; if(b>=lo&&(hi==null||b<hi))return i; } return 0; } return Math.min(4,hrZoneIx(b)-1); };
+          const zs=r.zones.slice(); let ws=0,wn=0;
+          for(let i=1;i<P.length;i++){ const dt=P[i].t-P[i-1].t; if(!(dt>0&&dt<120)||!P[i].hr)continue; const inBad=bad.some(([a,b])=>i>a&&i<=b);
+            if(inBad){ const z=zi(P[i].hr); zs[z]=Math.max(0,zs[z]-dt); } else { ws+=P[i].hr*dt; wn+=dt; } }
+          out={zones:zs.map(x=>Math.round(x)), hrAvg:wn>0?Math.round(ws/wn):null, okSec:Math.round(wn), drop:{km,d:Math.round(dmax),retro:true}}; } } } }catch(e){ out=null; }
+  HRFIX.set(r,out); return out; }
+function hrAvgOf(r){ const f=hrFixOf(r); return (f&&f.hrAvg)||r.hrAvg; }
+function hrDropOf(r){ if(!r)return null; if(r.hrDrop)return r.hrDrop; const f=hrFixOf(r); return f?f.drop:null; }
 function paintZones(host,zs,T,zbIn){
   if(!host)return;
   const tot=(zs||[]).reduce((a,b)=>a+b,0);
@@ -7022,13 +7046,13 @@ function renderLog(){
     b.innerHTML=`<span class="t">${r.name} · ${r.title}</span>`+
       `<span class="d">${r.km.toFixed(2)}<span style="font-size:11px"> km</span></span>`+
       `<span class="m">${ldate(r.date).slice(5,10)} · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}`+
-      `${r.hrAvg?' · ♥'+r.hrAvg:''}${r.cadAvg?' · 발걸음 '+r.cadAvg:''}${judge?' · '+judge:''}</span>`+
+      `${hrAvgOf(r)?' · ♥'+hrAvgOf(r):''}${r.cadAvg?' · 발걸음 '+r.cadAvg:''}${judge?' · '+judge:''}</span>`+
       `<button class="x" aria-label="삭제">✕</button>`;
     b.querySelector('.x').onclick=e=>{ e.stopPropagation(); deleteRun(idx); };
     b.onclick=()=>alert(`${r.name} · ${r.title}\n${ldate(r.date).slice(0,10)} · ${T.nm}\n\n`+
       `거리 ${r.km.toFixed(2)}km · 시간 ${fmtClock(r.sec)} · 평균 ${fmtPace(r.paceAvg)}\n`+
       `칼로리 ${r.cal} · 고도 ▲${r.asc}m ▼${r.desc}m\n`+
-      (r.hrAvg?`심박 평균 ${r.hrAvg} / 최대 ${r.hrMax}\n`:'')+
+      (hrAvgOf(r)?`심박 평균 ${hrAvgOf(r)} / 최대 ${r.hrMax}\n`:'')+
       (r.cadAvg?`케이던스 ${r.cadAvg}${r.cadSrc==='dev'?' (기기)':''}\n`:'')+
       (r.shoe?`신발 ${r.shoe}\n`:'')+(r.rpe?`RPE ${r.rpe}\n`:'')+
       (r.terrain?`${r.terrain}`:'')+(r.weather?` · ${r.weather}`:'')+'\n'+
@@ -11005,7 +11029,7 @@ function todayResultCard(r,sess){
   return `<section class="tres" style="--tc:${col}" aria-label="오늘 결과">
     <div class="tr-top"><span class="tr-chip">${ic('check',14)}</span><span class="tr-type">${r.race?'대회':(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span></div>
     <div class="tr-main"><div><b class="num">${(r.own?contTotal(r):+r.km).toFixed(2)}</b><span>km${r.cont?` · ${r.cont.rids.length+1}번에 나눠`:''}</span></div>${map?`<div class="tr-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}</div>
-    <div class="tr-stats"><span>${ic('clock')}<b class="num">${fmtClock(r.own?r.own.sec+r.cont.sec:r.sec)}</b></span><span>${ic('pace')}<b class="num">${fmtPace(r.own?Math.round((r.own.sec+r.cont.sec)/Math.max(0.01,contTotal(r))):r.paceAvg)}</b>/km</span>${r.hrAvg?`<span>${ic('heart')}<b class="num">${r.hrAvg}</b> <small>${zLab(r.hrAvg)}</small></span>`:''}${r.cadAvg?`<span>👣<b class="num">${r.cadAvg}</b></span>`:''}</div>
+    <div class="tr-stats"><span>${ic('clock')}<b class="num">${fmtClock(r.own?r.own.sec+r.cont.sec:r.sec)}</b></span><span>${ic('pace')}<b class="num">${fmtPace(r.own?Math.round((r.own.sec+r.cont.sec)/Math.max(0.01,contTotal(r))):r.paceAvg)}</b>/km</span>${hrAvgOf(r)?`<span>${ic('heart')}<b class="num">${hrAvgOf(r)}</b> <small>${zLab(hrAvgOf(r))}</small></span>`:''}${r.cadAvg?`<span>👣<b class="num">${r.cadAvg}</b></span>`:''}</div>
     ${hidNote(r)}
     ${vd?`<div class="tr-vd ${tone}">${vd[0]}</div>`:''}
     ${loadCard(r,true)}
@@ -11277,7 +11301,7 @@ function runScore(r,s){ try{
   if(ratio!=null) P.push(['거리',Math.round(40*Math.min(1,ratio/th.dist)),40]);
   const reps=(r.segments||[]).filter(g=>g.hard&&g.pace), tgt=repTargetOf(r,s);
   if(reps.length&&tgt){ const dev=reps.reduce((a,g)=>a+Math.abs(g.pace-tgt),0)/reps.length; P.push(['목표 속도',Math.round(40*Math.max(0,1-Math.max(0,dev-5)/20)),40]); }
-  else if(r.hrCap&&r.hrOverRatio!=null&&!r.hrSuspect&&(r.hrAvg||r.ceilRatio==null)) P.push(['심박 상한',Math.round(40*Math.max(0,1-Math.max(0,r.hrOverRatio-th.hrOver)/0.3)),40]);
+  else if(r.hrCap&&r.hrOverRatio!=null&&!r.hrSuspect&&(hrAvgOf(r)||r.ceilRatio==null)) P.push(['심박 상한',Math.round(40*Math.max(0,1-Math.max(0,r.hrOverRatio-th.hrOver)/0.3)),40]);
   else if(r.ceilRatio!=null) P.push(['속도 상한',Math.round(40*Math.max(0,1-Math.max(0,r.ceilRatio-th.ceil)/0.3)),40]);
   if(reps.length>=2&&r.spread!=null) P.push(['회차 고르게',Math.round(20*Math.max(0,1-Math.max(0,r.spread-th.spread)/15)),20]);
   else if(hrZonesOf(r)&&(T.primary==='hr'||T.judgeBy==='distance')){ const z=hrZonesOf(r), t=z.reduce((a,b)=>a+b,0); if(t>=60) P.push(['편한 구간',Math.round(20*Math.min(1,((z[0]||0)+(z[1]||0))/t/0.7)),20]); }
@@ -11413,8 +11437,8 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
     const restDay=!x.s, nm=x.s?termify(x.s.t||(TYPES[x.s.type]||{}).nm||''):(x.rk?x.rk.lab:'쉬는 날');
     const ic=x.s?`<i class="wl-ic" style="background:${(LOOK[x.s.type]||LOOK.free).bg}">${symSVG(x.s.type)}</i>`:`<i class="wl-ic rest">☾</i>`;
     let sub='', right='', act='';
-    if(ran){ const km=rs.reduce((a,r)=>a+(+r.km||0),0), sec=rs.reduce((a,r)=>a+(+r.sec||0),0), hr=rs.find(r=>r.hrAvg), man=rs.some(r=>r.manual);
-      sub=`${fmtKm1(km)}km · ${fmtClock(sec)} · 1km ${fmtPace(sec/Math.max(.01,km))}${hr?` · ♥${hr.hrAvg}`:''}${man?' · 직접 입력':''}`; act=` data-wkrun="${ESC(rs[rs.length-1].rid)}"`; }
+    if(ran){ const km=rs.reduce((a,r)=>a+(+r.km||0),0), sec=rs.reduce((a,r)=>a+(+r.sec||0),0), hr=rs.find(r=>hrAvgOf(r)), man=rs.some(r=>r.manual);
+      sub=`${fmtKm1(km)}km · ${fmtClock(sec)} · 1km ${fmtPace(sec/Math.max(.01,km))}${hr?` · ♥${hrAvgOf(hr)}`:''}${man?' · 직접 입력':''}`; act=` data-wkrun="${ESC(rs[rs.length-1].rid)}"`; }
     const skip=!!x.s&&!ran&&skippedDay(x.d);   /* '건너뛰기'로 정한 날 — 플랜·홈 카드와 같은 말로 */
     if(ran){}
     else if(x.s){ sub=skip?`계획 ${fmtKm1(+x.km||0)}km`:`계획 ${fmtKm1(+x.km||0)}km${x.plan?` · 부하 약 ${x.plan}`:''}`; }
@@ -11498,11 +11522,11 @@ function goalCardOld(){
 }
 /* 같은 심박에서 속도 — 날씨·컨디션에 덜 흔들리는, 실력이 붙었다는 증거 */
 function sameHrTrend(){
-  const es=RUNS.filter(r=>isRun(r)&&['easy','long','recovery','free'].includes(r.type)&&r.hrAvg&&r.paceAvg&&r.km>=2)
+  const es=RUNS.filter(r=>isRun(r)&&['easy','long','recovery','free'].includes(r.type)&&hrAvgOf(r)&&r.paceAvg&&r.km>=2)
     .filter(r=>Date.parse(r.date)>Date.now()-84*864e5);
   if(es.length<4)return {need:4-es.length};
-  const hs=es.map(r=>r.hrAvg).sort((a,b)=>a-b), ref=hs[Math.floor(hs.length/2)];
-  const near=es.filter(r=>Math.abs(r.hrAvg-ref)<=5).sort((a,b)=>a.date<b.date?-1:1);
+  const hs=es.map(r=>hrAvgOf(r)).sort((a,b)=>a-b), ref=hs[Math.floor(hs.length/2)];
+  const near=es.filter(r=>Math.abs(hrAvgOf(r)-ref)<=5).sort((a,b)=>a.date<b.date?-1:1);
   if(near.length<4)return {need:4-near.length, ref};
   const half=Math.floor(near.length/2), A=near.slice(0,half), B=near.slice(-half);
   const av=a=>a.reduce((s,r)=>s+r.paceAvg,0)/a.length;
@@ -12094,7 +12118,7 @@ function promiseRows(r,s){
     if(kind==='kept'&&(restFast.length||wcFast.length)) kind='softfast';
   }
   const z=hrZonesOf(r)||[], zt=z.reduce((a,b)=>a+b,0);
-  if(r.hrDrop) rows.push(['심박',`${r.hrDrop.km}km쯤 갑자기 ${r.hrDrop.d} 떨어짐 — 속도는 그대로라 심박계 문제로 보고 그 뒤 심박은 존·평균·판정에서 뺌 · 밴드를 조이거나 팔 안쪽으로`,'']);
+  if(hrDropOf(r)) rows.push(['심박',`${hrDropOf(r).km}km쯤 갑자기 ${hrDropOf(r).d} 떨어짐 — 속도는 그대로라 심박계 문제로 보고 그 뒤 심박은 존·평균·판정에서 뺌 · 밴드를 조이거나 팔 안쪽으로`,'']);
   else if(r.hrSuspect&&(r.zones||[]).some(v=>v>0)) rows.push(['심박',`걸음 수와 같아 판정에서 뺌${r.hrLockSec?` (${fmtClock(r.hrLockSec)})`:''} — 속도로 판정`,'']);
   const hardFr=(r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec);
   if(zt>300&&T.judgeBy==='spread'&&(z[3]+z[4])/zt>hardFr+0.15) rows.push(['힘듦(Z4) 이상 시간',`${Math.round((z[3]+z[4])/zt*100)}% — 회차 ${Math.round((r.segments||[]).filter(g=>g.hard).reduce((a,g)=>a+g.sec,0)/Math.max(1,r.sec)*100)}%`,'bad']);
@@ -12186,7 +12210,7 @@ function renderResult(host,r,s,opt){
     const cs=SG.filter(g=>g.cad&&g.sec), tc=cs.length?Math.round(cs.reduce((a,g)=>a+g.cad*g.sec,0)/cs.reduce((a,g)=>a+g.sec,0)):null;
     /* 합계 = 이 기록 전체 값 그대로(위 '오늘 결과'·'이날 결과'와 같은 숫자). 지난 기록을 열면 '오늘 결과'로 보이던 것 → 날짜가 오늘이 아니면 '이날 결과'. 구간을 더한 값은 구간 경계에서 1~2초·반올림이 달라진다 */
     const K=r.km||tk, Ts=r.sec||ts;
-    segs+=`<div class="sgr sgt"><span>합계</span><span>${K.toFixed(2)}</span><span>${fmtClock(Ts)}</span><span>${K>0?fmtPace(r.paceAvg||Ts/K):'—'}</span><span>${r.hrAvg||th||'—'}</span><span>${r.cadAvg||tc||'—'}</span><span></span></div>`; }
+    segs+=`<div class="sgr sgt"><span>합계</span><span>${K.toFixed(2)}</span><span>${fmtClock(Ts)}</span><span>${K>0?fmtPace(r.paceAvg||Ts/K):'—'}</span><span>${hrAvgOf(r)||th||'—'}</span><span>${r.cadAvg||tc||'—'}</span><span></span></div>`; }
   const sgf=SG.length>=5&&new Set(SG.map(sgKind)).size>1?`<div class="sgf"><button type="button" class="on" data-sgf="all">모두</button>${SG.some(g=>sgKind(g)==='wc')?'<button type="button" data-sgf="wc">웜업·쿨다운</button>':''}<button type="button" data-sgf="main">본 구간</button>${SG.some(g=>sgKind(g)==='rest')?'<button type="button" data-sgf="rest">쉬기</button>':''}</div>`:'';
   const sp=sp0(); const spMin=sp.length?Math.min(...sp.map(x=>x.pace)):0, spMax=sp.length?Math.max(...sp.map(x=>x.pace)):1;
   const splits=sp.map((x,i)=>`<div class="spr"><span>${x.part?x.part+'<small>km</small>':i+1}${x.est?'<small style="color:var(--ink-3)"> 추정</small>':''}</span><u><s style="width:${(30+70*(1-(x.pace-spMin)/Math.max(1,spMax-spMin))).toFixed(0)}%"></s></u><b>${fmtPace(x.pace)}</b><i>${x.hr?'♥'+x.hr:''}</i><i>${x.cad?x.cad+'<small>spm</small>':''}</i></div>`).join('');
@@ -12201,7 +12225,7 @@ function renderResult(host,r,s,opt){
   const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.race&&r.race.m?'대회 기록':r.type==='free'?'그냥 뛰기 — 판정 없음':r.type==='tt'?'TT 기록':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
   /* 순서: 숫자(사실) → 판정(해석) */
   const hero=`<div class="rnum"><div class="r1"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
-      <div class="r2"><div><b class="num">${r.hrAvg||'—'}</b><i>심박${r.hrMax?`·최고${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${r.cadAvg||!r.cadWhy?tm('cad'):r.cadWhy==='off'?'케이던스 꺼짐':r.cadWhy==='nosig'?'걸음 신호 없음':`걸음 ${r.cadWhy.valid||0}초뿐`}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
+      <div class="r2"><div><b class="num">${hrAvgOf(r)||'—'}</b><i>심박${r.hrMax?`·최고${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${r.cadAvg||!r.cadWhy?tm('cad'):r.cadWhy==='off'?'케이던스 꺼짐':r.cadWhy==='nosig'?'걸음 신호 없음':`걸음 ${r.cadWhy.valid||0}초뿐`}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
   const chart=rvPaceHR(r), mv=moveStripHTML(moveSplit(r.track));
   const hasMap=r.track&&r.track.length>3;
   const bullets=rvBullets(reps,tgt);
@@ -12225,8 +12249,8 @@ function renderResult(host,r,s,opt){
         <label><input type="checkbox" data-bs="${i}"${b.stitch?' checked':''}>결림</label></span></div>`).join('')}</div>`:''}
     ${r.rw?'</details>':''}
         <div class="rs-snap">${snapBtn('#'+host.id,'result','훈련 결과','wide')}<button class="btn ghost" data-rs="share">꾸며서 공유</button></div>`;
-  { const zh=host.querySelector('.rsZones'); const tmp=document.createElement('div'); paintZones(tmp,r.zones,r.hrSuspect?null:T,r.zoneB);   /* 심박 의심이면 '쉬운 날 Z4↑' 같은 판정 문구 없이 */
-    if(!tmp.hidden&&tmp.innerHTML){ const card=tmp.querySelector('.card'); zh.innerHTML=SEC('body','심박 존','',`${r.hrSuspect?'<p class="rv-note">심박이 걸음 수와 같았어요(손목 심박계가 걸음을 읽음) — 이 존은 판정·부하·이번 주 합계에 쓰지 않아요</p>':''}<div class="rv-zw">${rvDonut(r.zones)}<div class="rv-zr">${card?card.innerHTML:tmp.innerHTML}</div></div>`); } else zh.hidden=true; }
+  { const zh=host.querySelector('.rsZones'); const tmp=document.createElement('div'); paintZones(tmp,hrZonesOf(r)||r.zones,r.hrSuspect?null:T,r.zoneB);   /* 심박 의심이면 '쉬운 날 Z4↑' 같은 판정 문구 없이 */
+    if(!tmp.hidden&&tmp.innerHTML){ const card=tmp.querySelector('.card'); zh.innerHTML=SEC('body','심박 존','',`${r.hrSuspect?'<p class="rv-note">심박이 걸음 수와 같았어요(손목 심박계가 걸음을 읽음) — 이 존은 판정·부하·이번 주 합계에 쓰지 않아요</p>':''}<div class="rv-zw">${rvDonut(hrZonesOf(r)||r.zones)}<div class="rv-zr">${card?card.innerHTML:tmp.innerHTML}</div></div>`); } else zh.hidden=true; }
   /* 지도 — 구간 색 / 페이스 색 · 바퀴 · 크게 보기 */
   { const rb=host.querySelector('.rroute'); if(rb){ let m0='seg'; try{ m0=localStorage.getItem('mapMode')||'seg'; }catch(e){} routeWire(rb,r,{mode:m0,sel:null},false); } }
   /* 제목 · 메모 바로 고치기 */
@@ -12364,7 +12388,7 @@ function drawShare(cv){
   x.font=F('800',56); T2('km',72+kw+16,by);
   /* 걷기·자전거·등산은 결과 화면과 같은 숫자 — 자전거에 '2'47\" /km', 등산에 '16'43\" /km'가 찍혔다 */
   const ak=(r.act&&r.act!=='run'&&ACTK[r.act])?r.act:null, kmh=r.sec>0?r.km/(r.sec/3600):0;
-  const cells=[[fmtClock(r.sec),'시간'], ak==='bike'?[kmh.toFixed(1),'평균 km/h']:ak==='hike'?[`+${r.asc||0}`,'오른 높이 m']:ak==='walk'?[String(r.steps||'—'),'걸음']:[fmtPace(r.paceAvg),'평균 /km']]; if(o.hr&&r.hrAvg)cells.push([String(r.hrAvg),'평균 심박']);
+  const cells=[[fmtClock(r.sec),'시간'], ak==='bike'?[kmh.toFixed(1),'평균 km/h']:ak==='hike'?[`+${r.asc||0}`,'오른 높이 m']:ak==='walk'?[String(r.steps||'—'),'걸음']:[fmtPace(r.paceAvg),'평균 /km']]; if(o.hr&&hrAvgOf(r))cells.push([String(hrAvgOf(r)),'평균 심박']);
   cells.forEach((c,i)=>{ const X=72+i*320; x.font=F('900',64); T2(c[0],X,by+110); x.font=F('700',30); x.globalAlpha=STK?1:.85; T2(c[1],X,by+152); x.globalAlpha=1; });
   x.font=F('900',32); x.globalAlpha=.92; x.textAlign='right'; T2('가지런하다',W-60,H-52); const tw=x.measureText('가지런하다').width; x.textAlign='left';
   drawBrand(x,W-60-tw-50,H-88,46,'#fff',null); x.globalAlpha=1; x.shadowBlur=0;
@@ -12471,7 +12495,7 @@ function renderActResult(host,r){
   const tOnly=!!r.manual&&!(r.km>0)&&!(r.track&&r.track.length);
   const alts=(r.track||[]).map(p=>p.alt).filter(v=>v!=null);
   const big = tOnly ? [fmtClock(r.sec),'시간 (직접 입력)'] : r.act==='hike' ? [`+${r.asc||0}`,'m 오른 높이'] : r.act==='bike' ? [kmh.toFixed(1),'km/h 평균'] : [r.km.toFixed(2),'km'];
-  const spm=r.steps&&r.sec>60?Math.round(r.steps/(r.sec/60)):(r.cadAvg||null), hr=[r.hrAvg||'—','평균 심박'];
+  const spm=r.steps&&r.sec>60?Math.round(r.steps/(r.sec/60)):(r.cadAvg||null), hr=[hrAvgOf(r)||'—','평균 심박'];
   /* 운동마다 맞는 숫자 — 등산에 1km 페이스는 의미가 없고, 자전거에 걸음은 없다 */
   const tiles = tOnly ? [['—','km'],['—','오른 높이 m'],hr] : r.act==='hike' ? [[r.km.toFixed(2),'km'],[fmtClock(r.sec),'시간'],[r.sec>600?Math.round((r.asc||0)/(r.sec/3600)):'—','시간당 오른 m'],hr]
               : r.act==='bike' ? [[r.km.toFixed(2),'km'],[fmtClock(r.sec),'시간'],[`+${r.asc||0}`,'오른 높이 m'],hr]
@@ -12737,12 +12761,12 @@ function breathResultHTML(){
 function hourGroup(h){ return h<10?'am':h<17?'day':'pm'; }
 const HGN={am:'아침 (10시 전)',day:'낮',pm:'저녁 (5시 후)'};
 function timeStats(){
-  const es=RUNS.filter(r=>isRun(r)&&['easy','long','recovery','free'].includes(r.type)&&r.hrAvg&&r.paceAvg&&r.km>=2);
+  const es=RUNS.filter(r=>isRun(r)&&['easy','long','recovery','free'].includes(r.type)&&hrAvgOf(r)&&r.paceAvg&&r.km>=2);
   if(es.length<4)return null;
-  const hs=es.map(r=>r.hrAvg).sort((a,b)=>a-b), ref=hs[Math.floor(hs.length/2)];
-  const g={}; es.filter(r=>Math.abs(r.hrAvg-ref)<=5).forEach(r=>{ const h=r.hour!=null?r.hour:lwhen(r.date).getHours(), k=hourGroup(h);
+  const hs=es.map(r=>hrAvgOf(r)).sort((a,b)=>a-b), ref=hs[Math.floor(hs.length/2)];
+  const g={}; es.filter(r=>Math.abs(hrAvgOf(r)-ref)<=5).forEach(r=>{ const h=r.hour!=null?r.hour:lwhen(r.date).getHours(), k=hourGroup(h);
     (g[k]=g[k]||[]).push(r); });
-  const out=Object.entries(g).map(([k,a])=>({k,n:a.length,pace:a.reduce((s,r)=>s+r.paceAvg,0)/a.length,hr:a.reduce((s,r)=>s+r.hrAvg,0)/a.length,
+  const out=Object.entries(g).map(([k,a])=>({k,n:a.length,pace:a.reduce((s,r)=>s+r.paceAvg,0)/a.length,hr:a.reduce((s,r)=>s+hrAvgOf(r),0)/a.length,
     dow:(()=>{ const c={}; a.forEach(r=>{ const d=dowOf(ldate(r.date).slice(0,10)); c[d]=(c[d]||0)+1; }); return Object.entries(c).sort((x,y)=>y[1]-x[1])[0][0]; })()}));
   return {ref,groups:out.sort((a,b)=>a.pace-b.pace)};
 }
@@ -13227,7 +13251,7 @@ function logList(){
     const sp=paceBars(r);
     return `<div class="li" data-rid="${r.rid}"><div class="map" data-maprid="${ESC(r.rid||'')}">${routeSVG(r.track,r.segments,{w:52,h:52,pad:5,sw:3,marks:false,ends:false,mono:TCOL[r.type]||'#2E9E6A'})}</div>
       <div class="m"><b>${ESC(runTitle(r))}</b> <span class="s">· ${when} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><div class="tg">${r.race&&r.race.m?(/대회/.test(runTitle(r))?'':`<span class="tchip3" style="background:${TCOL.race||TCOL[r.type]||'#5F7A6E'}">대회</span>`):runTitle(r).startsWith(T.nm||'@')?'':`<span class="tchip3" style="background:${TCOL[r.type]||'#5F7A6E'}">${T.nm||''}</span>`}${chip}${r.breath&&r.breath.length?'<span class="chip p">호흡 실험</span>':''}</div>
-      <div class="s">${fmtKm1(r.km)}km · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}${r.hrAvg?' · ♥'+r.hrAvg:''}</div></div><div class="sp">${sp}</div></div>`; }).join('');
+      <div class="s">${fmtKm1(r.km)}km · ${fmtClock(r.sec)} · ${fmtPace(r.paceAvg)}${hrAvgOf(r)?' · ♥'+hrAvgOf(r):''}</div></div><div class="sp">${sp}</div></div>`; }).join('');
   return `<div class="flt">${F.map(f=>`<button class="${LOGFLT===f[0]?'on':''}" data-flt="${f[0]}">${f[1]}</button>`).join('')}</div>${ymBar}
     <div class="lcard" style="padding:4px 12px">${rows||`<div class="empty">${perRange()[2]} 기록 없음</div>`}</div>
     ${total>shown?`<button type="button" class="btn ghost" data-logmore="1" style="margin:8px 0 0">더 보기 · ${total-shown}개 남음</button>`:''}
@@ -14208,7 +14232,7 @@ function renderGuide(){
   ].map(t=>`<div class="gt">${t[0]}<b>${t[1]}</b><i>${t[2]}</i></div>`).join('')}</div></section>`;
   const sec=(t,x)=>`<div class="gd-sec"><h3>${t}${autoBanner(true)}</h3>${x.join('')}</div>`;
   /* ── 달릴 때 보는 6가지 — 시계 화면 + 내 맞춤 값 등록 (자동 = 최근 훈련 · 직접 입력 우선) ── */
-  const lr=runs.slice().reverse().find(r=>isRun(r)&&r.paceAvg&&r.paceAvg<720&&(+r.km||0)>=1&&(r.cadAvg||r.hrAvg))||runs.slice().reverse().find(r=>isRun(r)&&r.paceAvg&&r.paceAvg<720&&(+r.km||0)>=1)||null;   /* 걷기 수준(12분/km 넘는) 기록은 기준으로 쓰지 않는다 */
+  const lr=runs.slice().reverse().find(r=>isRun(r)&&r.paceAvg&&r.paceAvg<720&&(+r.km||0)>=1&&(r.cadAvg||hrAvgOf(r)))||runs.slice().reverse().find(r=>isRun(r)&&r.paceAvg&&r.paceAvg<720&&(+r.km||0)>=1)||null;   /* 걷기 수준(12분/km 넘는) 기록은 기준으로 쓰지 않는다 */
   const O=ovGet(), wp=lr&&lr.paceAvg||pNow, wc=lr&&lr.cadAvg||cu, wh=lr&&lr.hrAvg||null;
   const wz=wh?hrZoneIx(wh):2, ws=wc?(1000/wp*60/wc):null, zc=['','var(--z1)','var(--z2)','var(--z3)','var(--z4)','var(--z5)'][wz];
   const ca=typeof cadAuto==='function'?cadAuto():null;
@@ -15127,10 +15151,12 @@ function loadOf(r){
     let v=segs.length?segs.reduce((a,g)=>a+tss(g.sec,g.pace),0):(r.paceAvg?tss(r.sec,r.paceAvg):null);
     if(v!=null){ out.tss=Math.round(v); out.if=+(segs.length?Math.sqrt(v/100*3600/r.sec):T/r.paceAvg).toFixed(2); out.thr=Math.round(T); } }
   /* Banister TRIMP */
-  if(r.hrAvg&&HM){ const rhr=RH, x=Math.max(0,Math.min(1,(r.hrAvg-rhr)/Math.max(20,HM-rhr)));
-    const k=PROF.sex==='f'?0.86*Math.exp(1.67*x):0.64*Math.exp(1.92*x); out.trimp=Math.round(min*x*k); out.dhr=+x.toFixed(2); out.rh=rhr; out.hm=HM; out.rhOld=!!(r.base&&r.base.rhr&&r.base.rhr!==restHr());   /* '그날 기준'은 지금 값과 다를 때만 — 전엔 값이 같아도 저장 전 결과 화면은 '설정', 저장 뒤 기록 화면은 '그날 기준'으로 이름이 갈렸다(2026-11-17 시험) */ }
+  /* 심박을 믿을 수 있는 시간만 — 심박계가 놓친 구간(급락·걸음 잠김)의 실제 심박은 알 수 없다. 부하의 대표값은 페이스로 낸 rTSS */
+  const hA=hrAvgOf(r), hf=hrFixOf(r), hMin=hf&&hf.okSec?hf.okSec/60:(r.hrDrop&&r.hrLockSec?Math.max(0,r.sec-r.hrLockSec)/60:min);
+  if(hA&&HM){ const rhr=RH, x=Math.max(0,Math.min(1,(hA-rhr)/Math.max(20,HM-rhr)));
+    const k=PROF.sex==='f'?0.86*Math.exp(1.67*x):0.64*Math.exp(1.92*x); out.trimp=Math.round(hMin*x*k); out.hrMin=Math.round(hMin); out.dhr=+x.toFixed(2); out.rh=rhr; out.hm=HM; out.rhOld=!!(r.base&&r.base.rhr&&r.base.rhr!==restHr());   /* '그날 기준'은 지금 값과 다를 때만 — 전엔 값이 같아도 저장 전 결과 화면은 '설정', 저장 뒤 기록 화면은 '그날 기준'으로 이름이 갈렸다(2026-11-17 시험) */ }
   /* Edwards 존 TRIMP — 이 앱의 존(최대 70/80/88/92/97% 또는 여유 60/70/80/90%)은 Edwards 원본(50/60/70/80/90%)보다 높게 잘려 있어 보수적인 값 */
-  if(hrZonesOf(r)&&r.zones.some(z=>z>0)){ out.edw=Math.round(r.zones.reduce((a,sec,i)=>a+sec/60*(i+1),0)); }
+  { const zz=hrZonesOf(r); if(zz&&zz.some(z=>z>0)){ out.edw=Math.round(zz.reduce((a,sec,i)=>a+sec/60*(i+1),0)); } }
   /* sRPE */
   if(r.rpe){ out.srpe=Math.round(r.rpe*min); }
   /* 대표 점수 — 페이스 기준 rTSS, 없으면 TRIMP, 없으면 sRPE */
@@ -15153,7 +15179,7 @@ function loadCard(r,compact){
   const L=loadOf(r); if(!L)return '';
   const m=L.main, band=loadBand(m.k,m.v), pct=Math.min(100,m.v/(m.k==='tss'?450:m.k==='trimp'?200:600)*100);
   const rows=[L.tss!=null?['rTSS',`${L.tss}`,`IF ${L.if} · 템포 ${fmtPace(L.thr)} 기준${Math.abs(L.thr-Z.T)>=2?' (그날 기준 · 지금은 '+fmtPace(Z.T)+')':''}`]:null,
-    L.trimp!=null?['TRIMP (Banister)',`${L.trimp}`,`평균 심박 ${r.hrAvg} · 안정 ${L.rh}(${L.rhOld?'그날 기준':restHrSrc()}) · 최대 ${L.hm}${L.rhOld&&L.hm!==HRMAX?' (그날 기준)':''}`]:null,
+    L.trimp!=null?['TRIMP (Banister)',`${L.trimp}`,`평균 심박 ${hrAvgOf(r)} · 안정 ${L.rh}(${L.rhOld?'그날 기준':restHrSrc()}) · 최대 ${L.hm}${L.hrMin!=null&&L.hrMin<Math.round(r.sec/60)-1?` · 심박 믿은 ${L.hrMin}분만`:''}${L.rhOld&&L.hm!==HRMAX?' (그날 기준)':''}`]:null,
     L.edw!=null?['존 TRIMP (Edwards)',`${L.edw}`,'존별 분 × 1~5']:null,
     L.srpe!=null?['sRPE (Foster)',`${L.srpe}`,`RPE ${r.rpe} × ${Math.round(r.sec/60)}분`]:null].filter(Boolean);
   if(compact) return `<span class="ld-chip ${band[2]}">${m.nm} <b>${m.v}</b> · ${band[0]}</span>`;
@@ -15225,13 +15251,13 @@ function debriefPoints(r,s){
   /* 빠른 회차가 여럿인 훈련(인터벌·템포런·페이스주)은 앞뒤 절반 비교를 하지 않는다 — 사이 쉬기·쿨다운이 섞인 1km가 들어가 계획대로 뛰어도 '후반 느려짐 — 초반 과속?'이 나왔다(페이스주, 2026-11-17 시험). 회차끼리는 '회차 고르게'가 본다 */
   if(sp.length>=4&&sg.filter(g=>g.hard).length<2){ const h=Math.floor(sp.length/2), a=sp.slice(0,h).reduce((q,x)=>q+x.pace,0)/h, b=sp.slice(h).reduce((q,x)=>q+x.pace,0)/(sp.length-h);
     const d=Math.round(a-b); if(d>=3)good.push(['후반',`네거티브 스플릿 ${d}초/km`]); else if(d<=-8)bad.push(['후반',`후반 1km ${-d}초 느려짐 — 초반 과속?`]); }
-  if(r.hrDrop)bad.push(['심박',`${r.hrDrop.km}km쯤 갑자기 ${r.hrDrop.d} 떨어짐(속도는 그대로) — 심박계 문제로 보고 그 뒤 심박은 존·평균·판정에서 뺌 · 밴드를 조이거나 팔 안쪽으로`]);
+  if(hrDropOf(r))bad.push(['심박',`${hrDropOf(r).km}km쯤 갑자기 ${hrDropOf(r).d} 떨어짐(속도는 그대로) — 심박계 문제로 보고 그 뒤 심박은 존·평균·판정에서 뺌 · 밴드를 조이거나 팔 안쪽으로`]);
   /* 같은 종류의 최근 러닝과 비교 — 인터벌과 이지런의 케이던스는 원래 다르다 */
   const same=RUNS.filter(x=>x!==r&&x.type===r.type&&x.cadAvg).slice(-5), cu=same.length>=3?Math.round(same.reduce((a,x)=>a+x.cadAvg,0)/same.length):null;
   if(r.cadAvg&&cu){ if(r.cadAvg>=cu+3)good.push(['케이던스',`${r.cadAvg} — ${tm(r.type)} 5번 평균 ${cu}보다 가벼움`]); else if(r.cadAvg<140||r.cadAvg<=cu-25)bad.push(['케이던스',`${r.cadAvg} — 평소(${tm(r.type)} 5번 평균 ${cu})보다 크게 낮음 · 걸은 시간이 섞였거나 걸음 센서가 덜 잰 것`]);
     else if(r.cadAvg<=cu-6)bad.push(['케이던스',`${r.cadAvg} — ${tm(r.type)} 5번 평균 ${cu}보다 낮음 · 보폭은 짧게, 발은 더 자주(+5%) (Heiderscheit 2011)`]); }
   if(r.drift&&r.drift.bpm>=6)bad.push(['심박 표류',`같은 속도에서 심박 +${r.drift.bpm} — 피로?`]);
-  else if(r.hrAvg&&r.sec>1500&&r.drift&&r.drift.bpm!=null&&r.drift.bpm<6)good.push(['심박',`후반도 안정 (표류 +${r.drift.bpm})`]);   /* 표류를 못 쟀으면 '안정적'이라 말하지 않는다 */
+  else if(hrAvgOf(r)&&r.sec>1500&&r.drift&&r.drift.bpm!=null&&r.drift.bpm<6)good.push(['심박',`후반도 안정 (표류 +${r.drift.bpm})`]);   /* 표류를 못 쟀으면 '안정적'이라 말하지 않는다 */
   const z=hrZonesOf(r)||[], zt=z.reduce((a,b)=>a+b,0);
   if(zt>300&&['easy','recovery','long'].includes(r.type)){ const e=(z[0]+z[1])/zt; if(e>=0.8)good.push(['심박 존',`${Math.round(e*100)}%를 Z1·Z2에서 — 이지 날답게`]); }
   const L=loadOf(r); if(L&&L.main){ const b=loadBand(L.main.k,L.main.v);
@@ -15275,7 +15301,7 @@ function openDebrief(r,s){
     ${vd?`<div class="db-vd ${vd[1]}">${vd[1]==='ok'?'🏅':vd[1]==='mid'?'🔎':'💬'} ${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
     <div class="db-hero">${map?`<div class="db-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}<div class="db-nums">
       ${r.rw?`<div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${rwMin(r.rw.runSec||0)}</b><i>뛴 시간(계획)</i></div><div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div>`:`<div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div>
-      <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>`}${r.hrAvg?`<div><b class="num">${r.hrAvg}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
+      <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>`}${hrAvgOf(r)?`<div><b class="num">${hrAvgOf(r)}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
     ${r.rw?'':`${debriefShape(r,s)?`<div class="db-card"><div class="db-lab">계획(띠)·실제(막대)</div>${debriefShape(r,s)}</div>`:''}
     ${zt>300?`<div class="db-card"><div class="db-lab">심박 존</div><div class="db-zones">${z.map((v,i)=>v?`<i style="flex:${v};background:${ZCOL[i]}" title="Z${i+1} ${Math.round(v/60)}분"></i>`:'').join('')}</div><div class="db-zl">${z.map((v,i)=>v/zt>0.08?`<span style="color:${ZCOL[i]}">Z${i+1} ${Math.round(v/zt*100)}%</span>`:'').join('')}</div></div>`:''}
     ${L?`<div class="db-card">${loadCard(r,true)}</div>`:''}`}
