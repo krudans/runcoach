@@ -2759,7 +2759,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.77';
+const APPVER='21.81';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10458,7 +10458,7 @@ function restScore(ds){ const K=restKind(ds); if(K.k==='plain')return null;
   { const pf=planFrom(); if(pf&&ds<pf)return null; }   /* 일정을 만들기 전 쉬는 날은 점수 없음 — 전엔 '0점'으로 찍혔다 */ const M=restMissions(K.k), m=restMis(ds);
   /* 그날 뛰었으면: 가볍게(심박·속도 상한 안) = '뛰지 않기'만 잃음, 빠르게 = 0 */
   const runs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds);
-  let got=0; const parts=[]; M.forEach(x=>{ if(!x.pts)return; let ok=!!m[x.k]; if(x.k==='norun'&&runs.length)ok=false; if(ok)got+=x.pts; parts.push([x.t.split(' — ')[0],ok?x.pts:0,x.pts]); });
+  let got=0; const parts=[]; M.forEach(x=>{ if(!x.pts)return; let ok=!!m[x.k]; if(x.k==='norun')ok=!runs.length;   /* 뛰지 않기는 체크가 아니라 기록으로 — 쉬었는데 체크를 안 해서 0점이던 것(실제 기기 2026-11-19 목) */ if(ok)got+=x.pts; parts.push([x.t.split(' — ')[0],ok?x.pts:0,x.pts]); });
   if(runs.length){ const th=judgeTh(); const hard=runs.some(r=>HARD_T.includes(r.type)||(r.ceilRatio||0)>th.ceil||(r.hrOverRatio||0)>th.hrOver); if(hard)got=0; }
   return {score:got,kind:K,parts,closed:!!(RESTLOG[ds]&&RESTLOG[ds].closed)}; }
 function restLoad(ds){ const r=RESTLOG[ds]; if(!r||!r.m)return 0; const rpe=r.rpe||5; return (r.m.str?rpe*20:0)+(r.m.core?rpe*8:0); }   /* sRPE = 힘든 정도 × 분 (Foster 2001) */
@@ -10469,11 +10469,16 @@ function setMis(ds,k,v){ RESTLOG[ds]=RESTLOG[ds]||{}; RESTLOG[ds].m=Object.assig
 function restPullTarget(ds){ if(!hasPlan())return null; const now=todayStr();
   const nx=BLOCK.find(x=>x.d.slice(0,10)>ds&&x.d.slice(0,10)>=now&&x.type!=='off'&&!x.race&&!RUNS.some(r=>r.planId===x.d)); if(!nx)return null;
   return (Date.parse(nx.d.slice(0,10))-Date.parse(ds))/864e5<=3?nx:null; }
+/* 쉬는 날에 뛴 기록 묶음 — 이어 뛴 조각이면 앞 기록(머리)과 합친 거리로 본다. 전엔 조각(contOf)을 빼서, 짧게 두 번 + 10km로 묶인
+   금요일 기록엔 아무 선택지도 안 나왔다(실제 기기 2026-11-21) */
+function restDayRun(r){ if(!r||!isRun(r)||r.race||!hasPlan())return null; let h=r; if(r.contOf){ h=RUNS.find(x=>String(x.rid)===String(r.contOf)); if(!h)return null; }
+  if(h.planId||!(h.type==='free'||!h.type))return null; const d=ldate(h.date).slice(0,10); if(planOn(d))return null;
+  if(RUNS.some(x=>x!==h&&x.planId&&ldate(x.date).slice(0,10)===d))return null; return {h,d,km:+(+contTotal(h)).toFixed(1)}; }
 /* 이미 뛴 쉬는 날 프리런 → 다가올 훈련 대신으로 인정할 수 있나 */
-function restRunTarget(r){ if(!r||!isRun(r)||r.planId||r.contOf||r.race||r.type!=='free')return null; const d=ldate(r.date).slice(0,10);
-  if(planOn(d)||RUNS.some(x=>x!==r&&x.planId&&ldate(x.date).slice(0,10)===d))return null;
+function restRunTarget(r){ const D=restDayRun(r); if(!D)return null; const d=D.d; r={km:D.km};
   const nx=restPullTarget(d); if(!nx||nx.type==='tt')return null;   /* TT는 정해진 방식으로 뛰어야 실력 기준이 된다 — 프리런으로 대신하지 않는다 */
-  return (+r.km||0)>=Math.min(3,sKm(nx)*0.5)?nx:null; }
+  /* 거리가 모자라면 대신할 수 없다 — 10km 빠른 달리기로 LSD 21km를 대신하면 장거리 자극이 빠진다(실제 계획 2026-11-21). 그 훈련 거리의 60%, LSD는 80% 이상 */
+  const need=sKm(nx)*(nx.type==='long'?0.8:0.6); return (+r.km||0)>=Math.max(1,need)?nx:null; }
 function openWantRun(){
   const t=todayStr(), nx=BLOCK.find(x=>x.d.slice(0,10)>t&&x.type!=='off');
   const wk=BLOCK.filter(x=>weekMonday(x.d)===weekMonday(t)).reduce((a,x)=>a+sKm(x),0);
@@ -10549,7 +10554,12 @@ function startAct(k){
         back:'home'}); }
     /* 일정 안의 쉬는 날 — '그래도 뛰고 싶으세요?'(참기·걷기·리커버리런 20분)를 먼저 보여 준다. 쉬는 날 카드를 새로 만들 때 이 버튼이 빠져,
        쉬는 날에 '달리기'를 누르면 아무 안내 없이 바로 기록만 시작됐다(이 선택 화면은 어디서도 열리지 않았다) */
-    if(!s&&hasPlan()&&BLOCK.length&&t>=BLOCK[0].d.slice(0,10)&&t<=BLOCK[BLOCK.length-1].d.slice(0,10)&&!RUNS.some(r=>isRun(r)&&ldate(r.date).slice(0,10)===t)&&!(RESTLOG[t]&&RESTLOG[t].chose))return openWantRun();
+    if(!s&&hasPlan()&&BLOCK.length&&t>=BLOCK[0].d.slice(0,10)&&t<=BLOCK[BLOCK.length-1].d.slice(0,10)){
+      /* 처음 뛸 때(아직 안 뛰었고 고른 적 없음) — 또는 이미 뛰었어도 당겨 뛸 다음 훈련이 있으면 한 번 더. 짧게 두 번 뛴 뒤 10km를 시작할 땐
+         이 화면이 건너뛰어져 '다음 훈련 당겨 뛰기'가 안 보였다(실제 기기 2026-11-20 · 다음 날 LSD) */
+      const ran=RUNS.some(r=>isRun(r)&&ldate(r.date).slice(0,10)===t), RL=RESTLOG[t]||{};
+      if(!ran&&!RL.chose)return openWantRun();
+      if(ran&&!RL.pullSeen&&restPullTarget(t)){ RESTLOG[t]=Object.assign(RL,{pullSeen:1}); DEV.store.set('restlog',RESTLOG); return openWantRun(); } }
     FREE_MODE=true; return openConfirm(-1); }
   ACT_MODE=k; FREE_MODE=true;
   openConfirm(-1);
@@ -11121,10 +11131,11 @@ function basisLine(sess){
 function restCard(t){
   /* 쉬는 날 카드 — 훈련일 카드(he)와 같은 틀: 아이콘·이름·제목·설명 / 오른쪽 버튼 / 아래 링크 3개.
      그 사이에 할 일을 동그란 아이콘 한 줄로(누르면 체크). 점수 막대는 두지 않는다 — 점수는 설명 줄에 숫자로. */
-  const K=restKind(t), M=restMissions(K.k), m=restMis(t), R=restScore(t), closed=!!(RESTLOG[t]&&RESTLOG[t].closed);
+  const K=restKind(t), M=restMissions(K.k), R=restScore(t), closed=!!(RESTLOG[t]&&RESTLOG[t].closed); let m=restMis(t);
+  const ranT=RUNS.some(r=>isRun(r)&&ldate(r.date).slice(0,10)===t); m=Object.assign({},m,{norun:!ranT});   /* 뛰지 않기는 기록으로 자동 — 체크하지 않아도 됨 */
   const scored=K.k!=='plain', nDone=M.filter(x=>m[x.k]).length;
   const RI={norun:'<path d="M5 5l14 14"/><circle cx="13" cy="4.5" r="1.6"/><path d="M9 20l3-6 3 2v4M8 11l3-3 3 3"/>',core:'<path d="M3 16h18M6 16l3-6h6l3 6"/>',str:'<path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>',rhr:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',sleep:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',walk:'<circle cx="12" cy="4.5" r="1.8"/><path d="M12 7v6l-3 7M12 13l3 7M9 10l3-2 3 2"/>'};
-  const icons=M.map(x=>`<label class="rmi${m[x.k]?' on':''}"><input type="checkbox" data-mis="${x.k}"${m[x.k]?' checked':''}${closed?' disabled':''}><u><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RI[x.k]||''}</svg></u><span>${x.s||x.t}</span></label>`).join('');
+  const icons=M.map(x=>`<label class="rmi${m[x.k]?' on':''}"><input type="checkbox" data-mis="${x.k}"${m[x.k]?' checked':''}${closed||x.k==='norun'?' disabled':''}><u><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RI[x.k]||''}</svg></u><span>${x.s||x.t}</span></label>`).join('');
   const go=M.find(x=>x.go);
   const why=[K.lab.replace(/^쉬는 날 · /,''),K.why].filter(Boolean).join(' — ');
   const line=scored?`할 일 ${nDone}/${M.length} · <b class="num">${R.score}</b>점${closed?' · 마감':''}`:(closed?'기록됨 · 약속 연속 유지':'플랜 밖 쉬는 날 — 기록만');
@@ -12461,22 +12472,34 @@ function openRunEdit(rid){
   requestAnimationFrame(()=>sh.classList.add('up')); }
 function runEditClose(){ const sh=$('reSheet'); sh.classList.remove('up'); setTimeout(()=>sh.hidden=true,200); }
 function openRunView(rid,back,_l){
-  const r=RUNS.find(x=>x.rid===rid)||ACTS.find(x=>x.rid===rid); if(!r)return;
-  if(!_l&&!TRK.isHyd(r)){ TRK.load(r).then(()=>openRunView(rid,back,1)); return; }   /* 전체 경로를 큰 저장소에서 꺼낸 뒤 그린다 */
+  /* 번호는 글자로 맞춰 찾는다 — 목록에서 넘어오는 번호는 늘 글자라, 숫자로 저장된 기록이면 못 찾고 아무 반응 없이 끝났다 */
+  const rk=String(rid), r=RUNS.find(x=>String(x.rid)===rk)||ACTS.find(x=>String(x.rid)===rk); if(!r){ toast('기록을 찾지 못했어요'); return; }
+  /* 전체 경로를 큰 저장소에서 꺼낸 뒤 그린다 — 저장소가 1.5초 안에 답하지 않으면 기다리지 않고 연다(눌러도 반응이 없던 것 방지) */
+  if(!_l&&!TRK.isHyd(r)){ Promise.race([TRK.load(r).catch(()=>{}),new Promise(ok=>setTimeout(ok,1500))]).then(()=>openRunView(r.rid,back,1)); return; }
   const b0=runSessOf(r)||(()=>{ const d=ldate(r.date).slice(0,10), rs=RUNS.filter(x=>isRun(x)&&ldate(x.date).slice(0,10)===d), b=planOn(d); return b&&!rs.some(x=>x.planId===b.d)&&rs[0]===r?b:null; })();   /* dayScore와 같은 짝 */
   /* 그날 실제 약속 거리(거리 바꾸기 포함)는 기록의 비율로 되살린다 — 지금 일정의 거리를 쓰면 '거리 약속 9km · 5.0km ✓'가 된다 */
   const s=r.act&&r.act!=='run'?null:runSess(r,b0);
   SH.fromView='rview'; PERF.begin();
   if(r.act&&r.act!=='run') renderActResult($('rvwBody'),r); else renderResult($('rvwBody'),r,s);
-  { const nx=restRunTarget(r); if(nx){ const nd=nx.d.slice(0,10), dw=dowOf(nd), d0=ldate(r.date).slice(0,10);
-      $('rvwBody').insertAdjacentHTML('afterbegin',`<div class="hc" style="margin:0 0 12px"><div class="hh"><b>쉬는 날에 뛴 기록</b><span class="r">${(+r.km).toFixed(1)}km</span></div>
-        <p class="meta" style="margin:4px 2px 10px;line-height:1.6">계획에 없던 날이라 주간 거리·부하에만 들어가 있어요. 다가올 <b>${nd.slice(5).replace('-','.')} ${dw} ${ESC(nx.t)}</b> 대신 한 것으로 치면 그 훈련은 이 날로 옮겨져 끝난 것으로 표시되고, ${dw}요일은 쉬는 날이 돼요.</p>
-        <button type="button" class="btn" id="rvInst">이 달리기로 ${dw}요일 훈련 대신하기</button></div>`);
-      $('rvInst').onclick=async()=>{ if(!(await ask(`${nd.slice(5).replace('-','.')} ${dw} '${nx.t}'을 이 기록(${(+r.km).toFixed(1)}km)으로 대신할까요?\n${dw}요일은 쉬는 날이 돼요.`,'대신하기')))return;
+  { const D=restDayRun(r); if(D){ const nx=restRunTarget(r), H=D.h, d0=D.d, km=D.km.toFixed(1), nd=nx&&nx.d.slice(0,10), dw=nd&&dowOf(nd);
+      $('rvwBody').insertAdjacentHTML('afterbegin',`<div class="hc" style="margin:0 0 12px"><div class="hh"><b>쉬는 날에 뛴 기록</b><span class="r">${km}km</span></div>
+        <p class="meta" style="margin:4px 2px 10px;line-height:1.6">계획에 없던 날이라 주간 거리에만 들어가고, 쉬는 날 점수는 뛰어서 깎였어요. 훈련으로 칠 수 있어요.${nx?` 다가올 <b>${nd.slice(5).replace('-','.')} ${dw} ${ESC(nx.t)}</b>를 대신하면 그 훈련이 이 날로 옮겨지고 ${dw}요일은 쉬는 날이 돼요.`:''}</p>
+        ${nx?`<button type="button" class="btn" id="rvInst" style="margin-bottom:8px">이 달리기로 ${dw}요일 훈련 대신하기</button>`:''}
+        <button type="button" class="btn ${nx?'ghost':''}" id="rvAddTr">이 날을 훈련으로 기록 (추가 훈련 ${km}km)</button></div>`);
+      if(nx)$('rvInst').onclick=async()=>{ if(!(await ask(`${nd.slice(5).replace('-','.')} ${dw} '${nx.t}'을 이 기록(${km}km)으로 대신할까요?\n${dw}요일은 쉬는 날이 돼요.`,'대신하기')))return;
         const keep=nx.d; moveSession(keep,d0+keep.slice(10)); const ns=BLOCK.find(x=>x.d.slice(0,10)===d0&&x.type!=='off');
         if(!ns){ toast('옮기지 못했어요'); return; }
-        r.planId=ns.d; r.instead=true; DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
-        toast(`${dw}요일 ${nx.t} → 이 기록으로 대신 · ${dw}요일은 쉬는 날`); openRunView(r.rid,back,1); }; } }
+        H.planId=ns.d; H.instead=true; DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
+        toast(`${dw}요일 ${nx.t} → 이 기록으로 대신 · ${dw}요일은 쉬는 날`); openRunView(r.rid,back,1); };
+      /* 다음 훈련은 그대로 두고, 그날을 '추가 훈련'으로 일정에 넣어 기록을 잇는다 — 주간 계획 거리도 그만큼 는다 */
+      $('rvAddTr').onclick=async()=>{ if(!(await ask(`${d0.slice(5).replace('-','.')} ${dowOf(d0)}을 훈련한 날로 바꿀까요?\n일정에 '추가 훈련 · 프리런 ${km}km'가 들어가고 이번 주 계획 거리가 ${km}km 늘어요.`,'훈련으로 기록')))return;
+        const L=peStore(); if(!L){ toast('일정이 없어요'); return; }
+        const tpl=L.find(x=>String(x.d).length>10), ds=tpl?d0+String(tpl.d).slice(10):d0, ns=peBuild(ds,1,'free',D.km); ns.t=`추가 훈련 · 프리런 ${km}km`;
+        peSave(list=>{ for(let i=list.length-1;i>=0;i--){ if(String(list[i].d).slice(0,10)===d0&&list[i].type==='off')list.splice(i,1); }
+          const m=weekMonday(d0), x=list.find(y=>weekMonday(String(y.d).slice(0,10))===m); ns.wk=x?x.wk:1; ns.edited=true; ns.added='rest'; list.push(ns); });
+        const sx=BLOCK.find(x=>x.d.slice(0,10)===d0&&x.type!=='off'); if(!sx){ toast('일정에 넣지 못했어요'); return; }
+        H.planId=sx.d; H.planKm=D.km; H.title=sx.t; DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(e){}
+        toast(`${d0.slice(5).replace('-','.')} ${dowOf(d0)} → 추가 훈련 ${km}km로 기록`); openRunView(r.rid,back,1); }; } }
   PERF.render=performance.now()-PERF.t0; try{ $('rvwBody').insertAdjacentHTML('afterbegin','<p id="perfLn" class="perfln"></p>'); }catch(e){}
   $('rvwBack').onclick=()=>go(back||'log');
   $('rvwEdit').onclick=()=>openRunEdit(r.rid);
@@ -13017,7 +13040,7 @@ function logPage(){
       <div><i>달린 시간</i><b class="num">${Math.floor(Math.round(sec/60)/60)}:${pad(Math.round(sec/60)%60)}</b></div></div>`;
   let ana=''; try{ ana=calCard()+weekBars()+(R.length?`<div class="small">쉬운 날 ${km?Math.round(easyKm/km*100):0}% — 쉬운 날 80% 원칙 ${GRB('B')}</div>`:'')+logSkill()+logTips(); }catch(e){}
   return `${per}${SEC('train','달린 양',(perRange()[2]||''),nums)}${logList()}
-    <details class="sec log-ana"><summary class="sec-hd"><b>내 기록 분석</b><i>달력 · 훈련 구성 · 좋아지는 것 · 고칠 것</i></summary>${ana}</details>`;
+    <details class="sec log-ana" open><summary class="sec-hd"><b>내 기록 분석</b><i>달력 · 훈련 구성 · 좋아지는 것 · 고칠 것</i></summary>${ana}</details>`;
 }
 function logSum(){
   const [a,b,lab]=perRange();
@@ -14712,8 +14735,10 @@ function planListHTML0(src,monsIn){
       if(!list.length){ const K=restKind(ds), scored=K.k!=='plain', R=scored?restScore(ds):null, closed=!!(RESTLOG[ds]&&RESTLOG[ds].closed), m=restMis(ds), any=Object.values(m).some(Boolean);
         const lab=K.lab.replace(/^쉬는 날 · (.+)$/,'쉬는 날 · <b>$1</b>');
         const sub=scored?restMissions(K.k).filter(x=>x.pts).map(x=>x.s).join(' · '):'';
-        const st=freeKm?`<em class="pd-st ok">✓ 프리런 ${fmtKm1(freeKm)}km</em>`:!scored?'':closed?`<em class="pd-st ok">☾ ${R.score}점 ✓</em>`:ds===t?`<em class="pd-st now">오늘${any?` · ${R.score}점`:''}</em>`:ds<t?(any?`<em class="pd-st rest">☾ ${R.score}점</em>`:'<em class="pd-st rest">기록 없음</em>'):'';
-        return `<div class="pd-row rest${ds<t?' past':''}${freeKm||closed?' did':''}${ds===t?' today':''}">${dn}<span class="pd-bar rest"><i style="height:${scored?Math.max(18,(closed||any?R.score:0)):0}%"></i></span><span class="pd-rest"><b class="pd-rl">${lab}</b>${sub?`<i>${sub}</i>`:''}</span>${st}${ds>t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`; }
+        /* 날마다 화면과 같은 점수를 쓴다 — 쉬는 날에 빠르게 뛴 날이 여기선 초록 '✓ 프리런 12km', 날마다에선 0점으로 달랐다(실제 기기 2026-11-21) */
+        const st=freeKm?(scored?`<em class="pd-st rest">☾ ${R.score}점 · 프리런 ${fmtKm1(freeKm)}km</em>`:`<em class="pd-st ok">프리런 ${fmtKm1(freeKm)}km</em>`):!scored?'':closed?`<em class="pd-st ok">☾ ${R.score}점 ✓</em>`:ds===t?`<em class="pd-st now">오늘 · ${R.score}점</em>`:ds<t?`<em class="pd-st rest">☾ ${R.score}점</em>`:'';
+        const fr=freeKm?RUNS.filter(r=>isRun(r)&&!r.contOf&&ldate(r.date).slice(0,10)===ds).sort((a,b)=>(+b.km||0)-(+a.km||0))[0]:null;   /* 뛴 쉬는 날은 눌러서 그 기록을 연다 — 전엔 눌리지 않았다 */
+        return `<div class="pd-row rest${ds<t?' past':''}${freeKm||closed?' did':''}${ds===t?' today':''}"${fr?` data-wkrun="${ESC(String(fr.rid))}" role="button" tabindex="0"`:''}>${dn}<span class="pd-bar rest"><i style="height:${scored?Math.max(18,(closed||any||ds<t?R.score:0)):0}%"></i></span><span class="pd-rest"><b class="pd-rl">${lab}</b>${sub?`<i>${sub}</i>`:''}</span>${st}${ds>t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`; }
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=(i>=0&&sessionOf(i))||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         /* 놓침 = 홈·알림과 같은 기준 — 일정을 만들기 전 날은 놓침이 아니고(전엔 만든 날이 목요일이면 그 주 화요일도 '놓침'), 건너뛰기로 정한 날은 '건너뜀'으로만 센다 */
         const did=RUNS.some(r=>r.planId===sx.d), pre=!did&&ds<t&&!!planFrom()&&ds<planFrom(), miss=!did&&ds<t&&!pre&&!skippedDay(ds), word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
