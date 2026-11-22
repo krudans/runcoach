@@ -2765,7 +2765,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.88';
+const APPVER='21.89';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -4437,12 +4437,17 @@ function planPrevLong(start,opts){ try{
    어제 이미 빠른 날을 뛴 다음 날 다시 짜기)에서 빠른 날이 LSD 옆이나 다른 빠른 날 48시간 안에 놓였다(2026-11-11 무작위 시즌 시험).
    앱이 놓은 빠른 날만 고친다: ① 같은 주 쉬운 날과 날짜 맞바꾸기 ② 안 되면 그 빠른 날을 쉬운 달리기로(개수를 줄인다) ③ TT가 LSD와 붙으면 LSD를 쉬운 달리기로.
    사용자가 직접 옮기거나 고친 날·이미 뛴 날은 건드리지 않는다. 목표 날짜 뒤의 훈련은 뺀다 */
+/* 확정 일정이 끝나는 일요일 — 밀린 훈련은 원래 날짜(moved)로 센다. 밀려서 이 날을 넘어가면 다음 주가 그 훈련 하나만 있는 '확정 주'가 되고,
+   예상 일정은 그다음 주부터 이어져 그 주 나머지가 통째로 '쉬는 날'로 보였다(2026-11-22 사용자 화면: 5주차 11.30 이지런 하나 + 6일 쉬는 날) */
+function planBlockEnd(p){ const L=((p&&p.sessions)||[]).filter(x=>x&&x.type!=='off'&&x.d).map(x=>String(x.moved&&x.shifted?x.moved:x.d).slice(0,10)).sort(); return L.length?addDays(weekMonday(L[L.length-1]),6):null; }
 function planFix(p){ try{
   if(!p||!p.sessions||p.imported||(p.goal&&p.goal.kind==='custom'))return p;
   const t=todayStr(), HT=['threshold','interval','goalpace','rep','hill','mpace','tt'], d10=x=>String(x.d).slice(0,10);
   const ran=x=>RUNS.some(r=>r.planId===x.d), user=x=>!!x.edited||!!(x.moved&&!x.shifted);
   const gd=p.goal&&p.goal.date?String(p.goal.date).slice(0,10):null;
   if(gd) p.sessions=p.sessions.filter(x=>d10(x)<=gd||d10(x)<t||ran(x)||user(x));
+  /* 밀려서 확정 일정 끝(일요일)을 넘어간 앞날 훈련은 뺀다 — 그 주는 예상 일정이 기록을 보고 새로 채운다(v21.89) */
+  { const be=planBlockEnd(p); if(be) p.sessions=p.sessions.filter(x=>!(x.shifted&&x.moved&&d10(x)>be&&d10(x)>=t&&!ran(x)&&!x.edited)); }
   try{ uprFix(p); }catch(e){}
   const gap=(a,b)=>Math.abs(Date.parse(a)-Date.parse(b))/864e5;
   const dH=RUNS.filter(r=>HT.includes(r.type)).map(r=>ldate(r.date).slice(0,10)).filter(d=>d>=addDays(t,-2));
@@ -10289,9 +10294,10 @@ function shiftFrom(ds,days,dry){
   const isRan=x=>RUNS.some(r=>r.planId===x.d), d10=x=>x.d.slice(0,10), dw=d=>'일월화수목금토'[new Date(d+'T12:00:00').getDay()];
   const movable=x=>d10(x)>=ds&&!isRan(x)&&x.type!=='off'&&x.type!=='race'&&!x.race&&!(race&&d10(x)>=race);
   const fixedD=new Set(PLAN.sessions.filter(x=>!movable(x)&&x.type!=='off').map(d10));
+  const blockEnd=planBlockEnd(PLAN);   /* 확정 일정 밖(다음 주)으로는 밀지 않는다 — 자리가 없으면 아래 '자리 없음' 처리(v21.89) */
   const L=PLAN.sessions.filter(movable).sort((a,b)=>a.d<b.d?-1:1); if(!L.length)return 0;
   const longDay=(()=>{ const c={}; L.filter(x=>x.type==='long').forEach(x=>{ const w=dw(d10(x)); c[w]=(c[w]||0)+1; }); return Object.keys(c).sort((a,b)=>c[b]-c[a])[0]||((SURVEY.dayPref||{}).long)||'토'; })();
-  const slotsFrom=(from,isLong)=>{ const out=[]; for(let i=0;i<800&&out.length<L.length+days+8;i++){ const d=addDays(from,i); if(race&&d>=race)break; const w=dw(d);
+  const slotsFrom=(from,isLong)=>{ const out=[]; for(let i=0;i<800&&out.length<L.length+days+8;i++){ const d=addDays(from,i); if(race&&d>=race)break; if(blockEnd&&d>blockEnd)break; const w=dw(d);
       if(!D.includes(w)||fixedD.has(d))continue; if(isLong?w!==longDay:w===longDay&&D.length>1)continue; out.push(d); } return out; };
   const first=L[0], firstLong=first.type==='long';
   const skip=(arr,from,to)=>arr.filter(d=>d>=from&&d<addDays(from,Math.max(1,days))).length||1;   /* 밀어야 할 칸 수 = 쉬게 된 날들에 있던 훈련 칸 수 */
