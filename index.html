@@ -2765,7 +2765,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.90';
+const APPVER='21.91';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -9719,7 +9719,8 @@ function reviewData(mon){
     const r=RUNS.find(x=>x.planId===s.d);
     return {s,r,v:r?runPass(r):null};
   });
-  const planKm=sess.reduce((a,s)=>a+(DIST[s.d]||s.dist||0),0);
+  /* 계획 거리에서 '추가 훈련'(쉬는 날 뛴 프리런을 훈련으로 넣은 것)은 뺀다 — 원래 약속한 양이 아니다. 넣으면 '같은 양 한 주 더'가 그만큼 커진다(v21.91) */
+  const planKm=sess.filter(s=>s.type!=='free').reduce((a,s)=>a+(DIST[s.d]||s.dist||0),0);
   /* 뛴 거리 = 그 주에 뛴 모든 러닝(프리런·계획 없는 날 포함) — 일지·플랜 화면과 같은 규칙 */
   const ranKm=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=mon&&ldate(r.date).slice(0,10)<end).reduce((a,r)=>a+(+r.km||0),0);
   const ran=rows.filter(x=>x.r).length;
@@ -9769,7 +9770,10 @@ function applyReview(act,v){
     DEV.store.set('rvSeen',v.mon); BLOCK=loadPlan(); toast('이번 주·다음 주 쉽게 — 거리 −5% · 빠른 날 하나 → 쉬운 달리기'); go('plan'); return; }
   /* 결산한 주가 이미 지난 4주(새 4주로 바뀐 월요일)면 새 4주는 실제 뛴 양으로 막 짜인 것이다 — '예정대로'는 그대로 둔다.
      전엔 줄이는 주(4주차) 계획 거리로 새 4주를 다시 짜서 '예정대로 계속'을 눌렀는데 일정이 줄었다(LSD 18.5→15km, 모의 2026-11-19) */
-  if(act==='grow'&&!(PLAN&&PLAN.sessions||[]).some(x=>weekMonday(x.d)===v.mon)){ DEV.store.set('rvSeen',v.mon); toast('예정대로 — 새 4주 그대로'); go('plan'); return; }
+  /* '예정대로 계속'(B)은 일정을 손대지 않는다(v21.91) — 늘리는 양(주마다 8%·4주째 줄이는 주)은 이미 일정에 들어 있다.
+     전엔 4주가 안 끝났으면 지난주 계획 거리로 남은 날을 새로 짰다. 지난주에 '추가 훈련'(프리런 12km)이 있으면 그것까지 계획 거리로 잡혀
+     줄이는 주(4주차)가 68km로 커지고, 다음 주로 옮긴 월요일 인터벌이 쉬운 달리기로 바뀌었다(2026-11-23 사용자 화면) */
+  if(act==='grow'){ DEV.store.set('rvSeen',v.mon); toast('예정대로 — 일정 그대로'); go('plan'); return; }
   if(act==='repeat'){ o.baseOverride=Math.max(6,v.planKm/1); o.growOverride=1.0; }
   else if(act==='shrink'){ o.baseOverride=Math.max(6,v.ranKm||v.planKm*0.7); }
   else if(act==='easier'){ o.baseOverride=Math.max(6,v.planKm*0.95); o.hardMinus=1; }
