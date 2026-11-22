@@ -2765,7 +2765,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.91';
+const APPVER='21.92';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6877,6 +6877,7 @@ function commitRun(){
   if(S.result.planId&&!(S.result.km>=0.5&&S.result.sec>=120)){ S.result.planId=null; S.result.tooShort=true; }
   /* 그때 쓴 기준값을 기록에 박아 둔다 — 역치·최대심박·안정심박. 뒤에 기준이 바뀌어도 이 기록의 점수(rTSS·TRIMP)는 이 값으로 */
   try{ S.result.base={T:Math.round(Z.T),tv:2,hrmax:HRMAX,rhr:restHr()}; }catch(e){}
+  if(!S.result.src)S.result.src='app';   /* 가지런으로 기록한 달리기 — 러닝 마일리지는 이것만 센다(v21.92) */
   RUNS.push(S.result);
   if(S.result.contOf){ contMerge(S.result.contOf); CONT=null; }   /* 이어서 뛴 조각 — 앞 기록의 판정을 합친 값으로 */
   try{ setTimeout(()=>{ try{ usagePing(true); }catch(e){} },2500); }catch(e){}
@@ -10758,7 +10759,7 @@ function manOpen(pid){
       <label>평균 심박 (선택)<input type="number" id="manHr" inputmode="numeric" min="60" max="230" placeholder="예: 165"></label>
       <label>메모 (선택)<input type="text" id="manNote" maxlength="80" placeholder="예: 비 와서 기록이 끊김 · 거리는 시계 기준"></label>
       <div class="meta" id="manOut"></div>
-      <div class="note gray" style="margin:0">직접 넣은 기록은 <b>러닝 마일리지</b>와 <b>이날 훈련 완료</b>에 들어가요. 확인할 수 없는 기록이라 약속 판정과 <b>훈련 기준(실력 점수)</b>에는 쓰지 않아요${sx.type==='tt'?' — 기준은 다음 TT에서 바뀌어요':''}.</div>
+      <div class="note gray" style="margin:0">직접 넣은 기록은 <b>이날 훈련 완료</b>와 <b>평생 거리</b>에 들어가요. <b>러닝 마일리지</b>는 가지런으로 기록한 달리기만 세서 여기엔 안 들어가요. 확인할 수 없는 기록이라 약속 판정과 <b>훈련 기준(실력 점수)</b>에는 쓰지 않아요${sx.type==='tt'?' — 기준은 다음 TT에서 바뀌어요':''}.</div>
       <button type="button" class="btn" id="manSave" style="margin:0">기록 저장</button></div>`;
   const sec=()=>(+$('manH').value||0)*3600+(+$('manM').value||0)*60+(+$('manS').value||0);
   const paint=()=>{ const t=sec(), k=+$('manKm').value, o=$('manOut'); if(!(t>60&&k>0)){ o.textContent=''; return; }
@@ -10777,7 +10778,7 @@ function manOpen(pid){
       src:'manual',manual:true,track:[],_saved:true};
     RUNS.push(r); RUNS.sort((a,c)=>String(a.date).localeCompare(String(c.date))); DEV.store.set('runs',RUNS);
     if(typeof FB!=='undefined'&&FB.user)FB.sync().catch(()=>{});
-    manClose(); toast(`${+ds.slice(5,7)}.${+ds.slice(8,10)} 기록 저장 · 마일리지 +${fmtKm1(r.km)}km`);
+    manClose(); toast(`${+ds.slice(5,7)}.${+ds.slice(8,10)} 기록 저장 · 평생 거리 +${fmtKm1(r.km)}km`);
     try{ renderHome(); }catch(e){} try{ if(typeof renderPlan==='function')renderPlan(); }catch(e){} };
   $('manClose').onclick=manClose; sh.onclick=e=>{ if(e.target===sh)manClose(); };
   sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up')); }
@@ -12928,27 +12929,45 @@ function bodyLight(){
    대회 = 대회 기록(🏅)의 거리 — 같은 날 러닝 기록이 있으면 그 러닝에 이미 들어 있으므로 더하지 않는다(중복 없음).
    저장값이 아니라 기록에서 매번 합산 — 삭제·수정하면 바로 바뀐다 */
 const MILE_STEPS=[100,300,500,1000,1500,2000,3000,5000,10000];
+/* ───────── 러닝 마일리지 = 가지런으로 기록한 달리기만 (v21.92) ─────────
+   전엔 이전 마일리지(설정에 손으로 넣은 거리) + 모든 달리기(손으로 넣은 기록·GPX로 가져온 기록 포함) + 기록 없는 대회 거리를 더했다 — 누구나 숫자를 넣을 수 있었다.
+   이제 머리 숫자판·마일리지 칸·기록 이미지·레벨이 쓰는 숫자(total)는 이 앱이 GPS로 기록한 달리기만. 손으로 넣은 기록·가져온 기록·대회만 넣은 거리·이전 마일리지는
+   지우지 않고 따로 셈해 '평생 거리'(life)로만 보인다.
+   차·자전거로 움직인 구간: 1km 2'30"보다 빠른 1km 구간은 빼고, 평균이 2'30"보다 빠른 기록은 통째로 뺀다(남자 마라톤 세계 기록 평균 약 2'53"/km보다도 빠름 — 사람이 달린 거리가 아님) */
+const MILE_FAST=150;
+function isAppRun(r){ return isRun(r)&&!r.manual&&r.src!=='manual'&&r.src!=='gpx'&&!r.imported; }
+function fastKmOf(r){ const km=+r.km||0; if(!(km>0))return 0; const pc=+r.paceAvg||((+r.sec||0)/km); if(pc>0&&pc<MILE_FAST)return km;
+  let f=0; (r.splits||[]).forEach(x=>{ if(!x||x.est)return; const p=+x.pace; if(p>0&&p<MILE_FAST)f+=(+x.part||1); }); return Math.min(km,f); }
+function appKmOf(r){ return Math.max(0,(+r.km||0)-fastKmOf(r)); }
 function mileage(){
   const H=mileHist();   /* [{y:2024,km:1200},{y:null,km:300}] — 이 앱에 없는 거리만 */
   const from=null;
-  const R=RUNS.filter(isRun), t=todayStr(), y=t.slice(0,4), m=t.slice(0,7), mon=weekMonday(t);
-  const runKm=R.reduce((a,r)=>a+(+r.km||0),0), runSec=R.reduce((a,r)=>a+(+r.sec||0),0);
+  const R=RUNS.filter(isRun), A=R.filter(isAppRun), O=R.filter(r=>!isAppRun(r)), t=todayStr(), y=t.slice(0,4), m=t.slice(0,7), mon=weekMonday(t);
+  const runKm=A.reduce((a,r)=>a+appKmOf(r),0), runSec=A.reduce((a,r)=>a+(+r.sec||0),0);
+  const fastKm=A.reduce((a,r)=>a+fastKmOf(r),0), outRunKm=O.reduce((a,r)=>a+(+r.km||0),0);
   const runDays=new Set(R.map(r=>ldate(r.date).slice(0,10)));
   const races=(RLOG||[]).filter(x=>x&&x.kind!=='solo'&&x.m&&(!from||String(x.date)>=from)), raceKm=races.reduce((a,x)=>a+x.m/1000,0);
-  const raceExtra=races.filter(x=>!runDays.has(x.date)).reduce((a,x)=>a+x.m/1000,0);   /* 러닝 기록 없는 대회만 더한다 */
+  const raceExtra=races.filter(x=>!runDays.has(x.date)).reduce((a,x)=>a+x.m/1000,0);   /* 러닝 기록 없는 대회 — 평생 거리에만 */
   const base=H.reduce((a,x)=>a+(+x.km||0),0);
-  const total=base+runKm+raceExtra;
-  const sumIf=f=>R.filter(f).reduce((a,r)=>a+(+r.km||0),0);
-  const byYear={}; R.forEach(r=>{ const yy=ldate(r.date).slice(0,4); const o=byYear[yy]=byYear[yy]||{km:0,n:0,sec:0,race:0}; o.km+=+r.km||0; o.n++; o.sec+=+r.sec||0; });
-  races.forEach(x=>{ const yy=String(x.date).slice(0,4); const o=byYear[yy]=byYear[yy]||{km:0,n:0,sec:0,race:0}; o.race++; if(!runDays.has(x.date))o.km+=x.m/1000; });
-  H.forEach(x=>{ if(x.y){ const o=byYear[String(x.y)]=byYear[String(x.y)]||{km:0,n:0,sec:0,race:0}; o.km+=+x.km||0; o.prev=(o.prev||0)+(+x.km||0); } });
+  const total=runKm;
+  const outKm=outRunKm+raceExtra;            /* 가지런 밖: 손으로 넣은 기록 · 가져온 기록 · 대회만 넣은 거리 */
+  const life=total+fastKm+outKm+base;        /* 평생 거리 = 모두 */
+  const sumIf=f=>A.filter(f).reduce((a,r)=>a+appKmOf(r),0);
+  const byYear={}; A.forEach(r=>{ const yy=ldate(r.date).slice(0,4); const o=byYear[yy]=byYear[yy]||{km:0,n:0,sec:0,race:0}; o.km+=appKmOf(r); o.n++; o.sec+=+r.sec||0; });
+  races.forEach(x=>{ const yy=String(x.date).slice(0,4); const o=byYear[yy]=byYear[yy]||{km:0,n:0,sec:0,race:0}; o.race++; });
+  H.forEach(x=>{ if(x.y){ const o=byYear[String(x.y)]=byYear[String(x.y)]||{km:0,n:0,sec:0,race:0}; o.prev=(o.prev||0)+(+x.km||0); } });
   const unknown=H.filter(x=>!x.y).reduce((a,x)=>a+(+x.km||0),0);
-  const byMonth={}; R.forEach(r=>{ const k=ldate(r.date).slice(0,7); byMonth[k]=(byMonth[k]||0)+(+r.km||0); });
+  const byMonth={}; A.forEach(r=>{ const k=ldate(r.date).slice(0,7); byMonth[k]=(byMonth[k]||0)+appKmOf(r); });
   const bestMonth=Object.entries(byMonth).sort((a,b)=>b[1]-a[1])[0]||null;
   const next=MILE_STEPS.find(v=>v>total)||Math.ceil(total/5000)*5000+5000, prev=[0].concat(MILE_STEPS).filter(v=>v<=total).pop()||0;
-  return {total,base,unknown,hist:H,from,runKm,runSec,raceExtra,n:R.length,race:{n:races.length,km:raceKm},year:(byYear[y]||{km:0}).km,   /* 올해 = 연도별 목록·연별 막대의 올해와 같은 값(이 앱 달리기 + 기록 없는 대회 + 올해로 넣은 이전 마일리지). 전엔 이 앱 달리기만이라 둘이 다를 수 있었다 */
+  return {total,base,unknown,hist:H,from,runKm,runSec,raceExtra,n:A.length,race:{n:races.length,km:raceKm},year:(byYear[y]||{km:0}).km,
+    outKm,outN:O.length,fastKm,life,
     month:sumIf(r=>ldate(r.date).slice(0,7)===m),week:sumIf(r=>weekMonday(ldate(r.date).slice(0,10))===mon),byYear,bestMonth,next,prev,badges:MILE_STEPS.filter(v=>v<=total)};
 }
+/* 바뀐 첫날 한 번 — 숫자가 줄어 '기록이 사라졌다'고 여기지 않게, 줄어든 만큼이 어디 있는지 알린다 */
+function mileNoteOnce(){ try{ if(PROF.mileV2)return; const M=mileage(); PROF=Object.assign({},PROF,{mileV2:todayStr()}); DEV.store.set('prof',PROF);
+  if(M.life-M.total<0.5)return;
+  setTimeout(()=>{ try{ askSheet({title:'러닝 마일리지가 바뀌었어요',html:`러닝 마일리지는 이제 <b>가지런으로 기록한 달리기</b>만 셉니다.<br><br><b class="num">${fmtMile(M.life)} km → ${fmtMile(M.total)} km</b><br><br>손으로 넣은 기록 · 가져온 기록 · 대회만 넣은 거리 · 이전 마일리지${M.fastKm>=0.05?' · 차·자전거로 보이는 빠른 구간':''} <b class="num">${fmtMile(M.life-M.total)} km</b>는 지우지 않았어요. 러닝 마일리지 칸의 <b>평생 거리</b>에 그대로 있어요.`,yes:'확인',no:'닫기'}); }catch(e){} },2500); }catch(e){} }
 function mileHist(){ let h=Array.isArray(PROF.mileHist)?PROF.mileHist.filter(x=>x&&+x.km>0):[];
   if(!h.length&&PROF.mileBase){ const mb=typeof PROF.mileBase==='object'?PROF.mileBase:{km:+PROF.mileBase||0}; if(mb.km>0){ h=[{y:null,km:Math.round(mb.km*10)/10}]; PROF=Object.assign({},PROF,{mileHist:h,mileBase:null}); try{ DEV.store.set('prof',PROF); }catch(e){} } }
   return h.sort((a,b)=>(a.y||9999)-(b.y||9999)); }
@@ -13004,13 +13023,17 @@ function odoHTML(){ try{ const M=mileage(), n=Math.max(0,Math.floor(M.total+1e-9
   const cells=[...str].map((d,i)=>{ const z=lead&&d==='0'&&i<str.length-1; if(d!=='0')lead=false; return `<i class="${z?'z':''}">${d}</i>`; }).join('');
   return `<button type="button" class="odo" id="hOdo" aria-label="누적 ${fmtMile(M.total)}km · 다음 ${fmtMile(M.next)}km까지 ${fmtMile(M.next-M.total)}km"><i>러닝 마일리지 <b>km</b></i><span class="odo-d">${cells}</span></button>`; }catch(e){ return ''; } }
 function paintOdo(){ try{ const o=$('hOdo'); if(o)o.outerHTML=odoHTML(); }catch(e){} }
+/* 켜고 기록을 불러온 뒤 한 번 — 클라우드에서 기록이 늦게 와도 잡히게 3초마다 최대 10번 본다 */
+(function mileNoteBoot(){ let k=0; const tk=setInterval(()=>{ k++; try{ if(typeof RUNS!=='undefined'&&RUNS.length&&typeof PROF!=='undefined'&&PROF&&PROF.by){ clearInterval(tk); mileNoteOnce(); return; } }catch(e){} if(k>=10)clearInterval(tk); },3000); })();
 function mileCard(opt){ opt=opt||{};
   const M=mileage(), open=opt.open||MILE_OPEN, pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
   const years=Object.keys(M.byYear).sort().reverse();
   return `<div class="lcard mile${open?' open':''}" id="mileCard">
-    ${opt.open?`<div class="mile-hd"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>내가 달린 총 거리</i></div>`:`<button type="button" class="mile-hd" data-mileopen="1"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>내가 달린 총 거리</i><em class="mile-chev" aria-label="${open?'접기':'펼치기'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${open?'M6 15l6-6 6 6':'M6 9l6 6 6-6'}"/></svg></em></button>`}
+    ${opt.open?`<div class="mile-hd"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>가지런으로 기록한 거리</i></div>`:`<button type="button" class="mile-hd" data-mileopen="1"><span class="mile-odo"><b class="num">${fmtMile(M.total)}</b><span>km</span></span><i>가지런으로 기록한 거리</i><em class="mile-chev" aria-label="${open?'접기':'펼치기'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${open?'M6 15l6-6 6 6':'M6 9l6 6 6-6'}"/></svg></em></button>`}
     <div class="mile-more"${open?'':' hidden'}>
-    <div class="mile-row"><span><i>달리기</i><b class="num">${fmtMile(M.runKm)}</b><em>${M.n}회 · ${fmtHM(M.runSec)}</em></span><span><i>대회</i><b class="num">${fmtMile(M.race.km)}</b><em>${M.race.n}회</em></span><span><i>올해</i><b class="num">${fmtMile(M.year)}</b><em>이달 ${fmtMile(M.month)} · 이번 주 ${fmtMile(M.week)}</em></span></div>
+    <div class="mile-row"><span><i>가지런 기록</i><b class="num">${fmtMile(M.runKm)}</b><em>${M.n}회 · ${fmtHM(M.runSec)}</em></span><span><i>대회</i><b class="num">${fmtMile(M.race.km)}</b><em>${M.race.n}회</em></span><span><i>올해</i><b class="num">${fmtMile(M.year)}</b><em>이달 ${fmtMile(M.month)} · 이번 주 ${fmtMile(M.week)}</em></span></div>
+    <div class="mile-row"><span><i>직접·가져온 기록·대회</i><b class="num">${fmtMile(M.outKm)}</b><em>${M.outN}회${M.fastKm>=0.05?` · 빠른 구간 ${fmtMile(M.fastKm)}`:''}</em></span><span><i>이전 마일리지</i><b class="num">${fmtMile(M.base)}</b><em>설정에서 넣은 거리</em></span><span><i>평생 거리</i><b class="num">${fmtMile(M.life)}</b><em>모두 더한 값</em></span></div>
+    <div class="small" style="margin:2px 0 8px">러닝 마일리지 = 가지런으로 기록한 달리기만 · 나머지는 지우지 않고 평생 거리에 ${M.fastKm>=0.05?'· 1km 2\'30"보다 빠른 구간(차·자전거)은 뺌':''}</div>
     ${opt.open?mileCharts(M):''}
     ${(years.length>1||M.unknown||M.hist.length||!opt.open)&&(years.length||M.unknown)?`<div class="mile-years">${years.map(yy=>`<div><b>${yy}</b><span class="num">${fmtMile(M.byYear[yy].km)} km</span><i>${M.byYear[yy].n?`${M.byYear[yy].n}회`:''}${M.byYear[yy].race?` · 대회 ${M.byYear[yy].race}`:''}${M.byYear[yy].prev?` · 이전 ${fmtMile(M.byYear[yy].prev)}`:''}</i></div>`).join('')}${M.unknown?`<div><b>모름</b><span class="num">${fmtMile(M.unknown)} km</span><i>연도 모름 · 이전 마일리지</i></div>`:''}</div>`:''}
     <div class="mile-prev"><div class="mile-ph"><b>이전 마일리지</b><i>다른 앱·수첩에 있던 거리 — 이 앱에 없는 것만</i></div>${M.hist.length?M.hist.map((x,i)=>`<button type="button" class="mile-pr" data-mhist="${i}"><b>${x.y?x.y+'년':'연도 모름'}</b><span class="num">${fmtMile(x.km)} km</span><i>✎</i></button>`).join(''):'<div class="small">아직 없음</div>'}
@@ -13024,8 +13047,8 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-mileopen]
 /* ───────── 러닝 마일리지 크게 보기 — 다음 목표 · 주별/월별 막대 · 올해 흐름 · 훈련 종류별 거리 · 내 기록 ───────── */
 var MILE_PER='w';
 function mileCharts(M){
-  const R=RUNS.filter(isRun), t=todayStr(), mon=weekMonday(t), ym=t.slice(0,7);
-  const kmIn=(a,b)=>R.reduce((s,r)=>{ const d=ldate(r.date).slice(0,10); return d>=a&&d<=b?s+(+r.km||0):s; },0);
+  const R=RUNS.filter(isAppRun), t=todayStr(), mon=weekMonday(t), ym=t.slice(0,7);   /* 마일리지 칸의 그래프도 머리 숫자와 같은 규칙 — 가지런 기록만(v21.92) */
+  const kmIn=(a,b)=>R.reduce((s,r)=>{ const d=ldate(r.date).slice(0,10); return d>=a&&d<=b?s+appKmOf(r):s; },0);
   /* 다음 목표 · 비유 */
   const togo=Math.max(0,M.next-M.total), pct=Math.max(0,Math.min(100,(M.total-M.prev)/Math.max(1,M.next-M.prev)*100));
   const goal=`<div class="mc-goal"><div class="mc-gh"><b>다음 목표 ${fmtMile(M.next)} km</b><span>${togo>0?`${fmtMile(togo)} km 남음`:'도달'}</span></div><div class="mc-bar"><u style="width:${pct.toFixed(1)}%"></u></div>
@@ -13061,7 +13084,7 @@ function mileCharts(M){
   const yr=`<section class="mc-sec"><div class="mc-h"><b>올해</b><span>${y}</span></div>
     <div class="mc-yr"><div><i>올해 달린 날</i><b class="num">${new Set(R.filter(r=>ldate(r.date).startsWith(y)).map(r=>ldate(r.date).slice(0,10))).size}<small> 일</small></b></div><div><i>이 속도면 연말</i><b class="num">${fmtMile(proj)}<small> km</small></b></div><div><i>${wkLab} 주 평균</i><b class="num">${fmtKm1(wkAvg)}<small> km/주</small></b></div></div></section>`;
   /* 훈련 종류별 거리 (전체) */
-  const byT={}; R.forEach(r=>{ const k=TYPES[r.type]?r.type:'free'; byT[k]=(byT[k]||0)+(+r.km||0); });
+  const byT={}; R.forEach(r=>{ const k=TYPES[r.type]?r.type:'free'; byT[k]=(byT[k]||0)+appKmOf(r); });
   const tot=Object.values(byT).reduce((a,b)=>a+b,0); let ty='';
   if(tot>0){ let L=Object.entries(byT).sort((a,b)=>b[1]-a[1]); if(L.length>6){ const rest=L.slice(5).reduce((a,x)=>a+x[1],0); L=L.slice(0,5).concat([['_etc',rest]]); }
     const col=k=>k==='_etc'?'#B9AFC6':(typeCol(k)||'#999'), nm=k=>k==='_etc'?'기타':(TYPES[k].nm||k);
@@ -13069,7 +13092,7 @@ function mileCharts(M){
       <div class="wk-zl">${L.map(([k,v])=>`<span><i style="background:${col(k)}"></i>${nm(k)} <b>${fmtKm1(v)}</b> · ${Math.round(v/tot*100)}%</span>`).join('')}</div></section>`; }
   /* 내 기록 */
   const longest=R.reduce((m,r)=>(+r.km||0)>(m?+m.km:0)?r:m,null);
-  const wk={}; R.forEach(r=>{ const w=weekMonday(ldate(r.date).slice(0,10)); wk[w]=(wk[w]||0)+(+r.km||0); }); const bw2=Object.entries(wk).sort((a,b)=>b[1]-a[1])[0];
+  const wk={}; R.forEach(r=>{ const w=weekMonday(ldate(r.date).slice(0,10)); wk[w]=(wk[w]||0)+appKmOf(r); }); const bw2=Object.entries(wk).sort((a,b)=>b[1]-a[1])[0];
   const rec=`<section class="mc-sec"><div class="mc-h"><b>내 기록</b></div><div class="mc-yr">
     <div><i>가장 긴 달리기</i><b class="num">${longest?fmtKm1(+longest.km):'—'}<small> km</small></b><em>${longest?ldate(longest.date).slice(5,10).replace('-','.'):''}</em></div>
     <div><i>가장 많이 달린 주</i><b class="num">${bw2?fmtKm1(bw2[1]):'—'}<small> km</small></b><em>${bw2?bw2[0].slice(5).replace('-','.')+' 주':''}</em></div>
@@ -13120,7 +13143,7 @@ function logSum(){
   const pb=(LOGPER==='week'||LOGPER==='month')?addDays(pa,nd):addDays(a,-1), pLab=LOGPER==='week'?'지난주 같은 요일까지':LOGPER==='month'?'지난달 같은 날까지':'직전 같은 기간';
   const pkm=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)>=pa&&ldate(r.date).slice(0,10)<=pb).reduce((s,r)=>s+r.km,0);
   const easyKm=R.filter(r=>!isHardT(r.type)).reduce((s,r)=>s+r.km,0);
-  return `${SEC('rec','러닝 마일리지','평생 누적',mileCard())}
+  return `${SEC('rec','러닝 마일리지','가지런 기록',mileCard())}
     <div class="per">${[['week','이번 주'],['month','이번 달'],['3m','3달'],['all','전체']].map(p=>`<button class="${LOGPER===p[0]?'on':''}" data-per="${p[0]}">${p[1]}</button>`).join('')}</div>
     ${SEC('body','몸 상태','',bodyLight())}
     ${SEC('train','달린 양',(perRange()[2]||''),`<div class="nums3"><div><i>달린 거리</i><b class="num">${km.toFixed(0)}<small>km</small></b><em>${LOGPER!=='all'&&pkm>0?`${pLab} ${km>=pkm?'+':''}${Math.round((km-pkm)/pkm*100)}%`:''}</em></div>
