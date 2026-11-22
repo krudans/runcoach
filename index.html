@@ -2329,6 +2329,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pw-prog{height:4px;background:var(--line);margin:0 14px 6px;border-radius:2px;overflow:hidden}.pw-prog i{display:block;height:100%;background:var(--ok)}
 .pw-rows{padding:0 6px 4px}
 .pd-row{display:flex;align-items:center;gap:6px;min-height:52px;border-top:1px solid var(--line);padding:4px 4px}
+.pd-km{flex:none;min-width:50px;text-align:right;font-family:var(--num);line-height:1.15}.pd-km b{display:block;font-size:15px;font-weight:800;color:var(--ink)}.pd-km small{display:block;font-size:11px;font-weight:600;color:var(--ink-3)}.pd-km.pl b{color:var(--ink-2)}
 .pd-row.today{background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:14px;box-shadow:inset 3px 0 0 var(--accent);border-top-color:transparent}.pd-row.today+.pd-row{border-top-color:transparent}.pd-row.today .pd-dt b{background:var(--accent-bg);color:#fff;border-radius:10px;width:26px;margin:0 auto;line-height:24px}
 .pd-dt{flex:none;width:38px;text-align:center;line-height:1.1}.pd-dt b{display:block;font-family:var(--num);font-size:16px}.pd-dt i{font-style:normal;font-size:11px;color:var(--ink-3)}
 .pd-dt.t b{color:var(--accent)}
@@ -2764,7 +2765,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.87';
+const APPVER='21.88';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13367,14 +13368,16 @@ function renderReview(mon){
    앞으로 기운 가지 실루엣 + 같은 간격의 레인 세 줄 + 각진 꼭지.
    색: 가지색(#2A1638) · 자두(#5B2D86) · 세이지(#8DB89A) · 미색(#F4F0EA) */
 const BR_BODY='M50 22C58 22 62 30 62 38C62 46 72 54 72 70C72 85 62 93 50 93C38 93 28 85 28 70C28 54 38 46 38 38C38 30 42 22 50 22Z';
-const BR_CAP='M37 33L45 29L50 16L55 29L63 33L55 35L50 40L45 35Z';
+/* 꼭지 — v21.88: 별 모양 → 진짜 가지 꼭지(짧고 굵은 꼭지 + 어깨로 흘러내리는 꽃받침 3장). 크리스탈 GAJIRUN과 같은 모양 */
+const BR_CAP='M50 19.2C55.6 19.2 59.6 22.4 61.2 26.4L62.8 35.2L56 28.8L50 38.4L44 28.8L37.2 35.2L38.8 26.4C40.4 22.4 44.4 19.2 50 19.2Z';
+const BR_STEM='M47.2 21L46.4 11.5Q50 9.5 53.8 11.5L52.8 21Z', BR_STEMC='#5E8F72';
 const BR_LANES=['M20 58Q50 50 80 58','M20 68Q50 60 80 68','M20 78Q50 70 80 78'];
 let BR_N=0;
 function brandSVG(o){
   o=o||{}; const id='bm'+(++BR_N), body=o.body||'#2A1638', lane=o.lane||'#F4F0EA', cap=o.cap||'#8DB89A', sw=o.small?4.5:3.4;
   const lanes=o.small?['M20 60Q50 52 80 60','M20 74Q50 66 80 74']:BR_LANES;
   return `<svg viewBox="0 0 100 100" aria-hidden="true">${o.bg?`<rect width="100" height="100" fill="${o.bg}"/>`:''}<defs><clipPath id="${id}"><path d="${BR_BODY}"/></clipPath></defs>
-    <g transform="rotate(32 50 58)"><path d="${BR_BODY}" fill="${body}"/><g clip-path="url(#${id})" fill="none" stroke="${lane}" stroke-width="${sw}">${lanes.map(d=>`<path d="${d}"/>`).join('')}</g><path d="${BR_CAP}" fill="${cap}"/></g></svg>`;
+    <g transform="rotate(32 50 58)"><path d="${BR_BODY}" fill="${body}"/><g clip-path="url(#${id})" fill="none" stroke="${lane}" stroke-width="${sw}">${lanes.map(d=>`<path d="${d}"/>`).join('')}</g><path d="${BR_STEM}" fill="${o.stem||BR_STEMC}"/><path d="${BR_CAP}" fill="${cap}"/></g></svg>`;
 }
 function mountBrand(){ document.querySelectorAll('.brandmark').forEach(el=>{ if(el.firstChild)return;
   el.innerHTML = el.dataset.bm==='light' ? brandSVG({body:'#F4F0EA',lane:'#2A1638',cap:'#8DB89A'}) : brandSVG({body:'#2A1638',lane:'#FDFBF6',cap:'#8DB89A',small:el.classList.contains('sm')}); }); }
@@ -13388,7 +13391,7 @@ function drawBrand(x,left,top,size,body,lane){
     g.save(); g.clip(bp); g.lineWidth=3.6;
     if(lane){ g.strokeStyle=lane; } else { g.globalCompositeOperation='destination-out'; g.strokeStyle='#000'; }
     BR_LANES.forEach(d=>g.stroke(new Path2D(d))); g.restore();
-    g.globalCompositeOperation='source-over'; g.fillStyle='#8DB89A'; g.fill(new Path2D(BR_CAP));
+    g.globalCompositeOperation='source-over'; g.fillStyle=BR_STEMC; g.fill(new Path2D(BR_STEM)); g.fillStyle='#8DB89A'; g.fill(new Path2D(BR_CAP));
     x.drawImage(c,left,top,size,size);
   }catch(e){}
 }
@@ -14773,7 +14776,8 @@ function planListHTML0(src,monsIn){
     const plan=items.reduce((a,x)=>a+sKm(x),0);
     /* 한 것 = 실제로 뛴 거리(기록 기준). 계획 3km에 9km를 뛰었으면 9km다 */
     const ranOn=ds=>RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===ds).reduce((a,r)=>a+(+r.km||0),0);
-    const done=[0,1,2,3,4,5,6].reduce((a,k)=>a+ranOn(addDays(mon,k)),0);
+    /* v21.88: 한 날마다 실제 km를 보이므로, 머리 합계도 줄마다 보인 값(0.1km 반올림)을 더한다 — 화면 숫자끼리 더하면 맞아야 한다 */
+    const done=[0,1,2,3,4,5,6].reduce((a,k)=>a+Math.round(ranOn(addDays(mon,k))*10)/10,0);
     const role=(items.find(x=>x.role)||{}).role, cur=t>=mon&&t<=sun, past=sun<t;
     const max=Math.max(1,...items.map(x=>DIST[x.d]||x.dist||0));
     const rows=[0,1,2,3,4,5,6].map(k=>{ const ds=addDays(mon,k), list=items.filter(x=>x.d.slice(0,10)===ds&&x.type!=='off');
@@ -14787,18 +14791,20 @@ function planListHTML0(src,monsIn){
         const lab=K.lab.replace(/^쉬는 날 · (.+)$/,'쉬는 날 · <b>$1</b>');
         const sub=scored?restMissions(K.k).filter(x=>x.pts).map(x=>x.s).join(' · '):'';
         /* 날마다 화면과 같은 점수를 쓴다 — 쉬는 날에 빠르게 뛴 날이 여기선 초록 '✓ 프리런 12km', 날마다에선 0점으로 달랐다(실제 기기 2026-11-21) */
-        const st=freeKm?(scored?`<em class="pd-st rest">☾ ${R.score}점 · 프리런 ${fmtKm1(freeKm)}km</em>`:`<em class="pd-st ok">프리런 ${fmtKm1(freeKm)}km</em>`):!scored?'':closed?`<em class="pd-st ok">☾ ${R.score}점 ✓</em>`:ds===t?`<em class="pd-st now">오늘 · ${R.score}점</em>`:ds<t?`<em class="pd-st rest">☾ ${R.score}점</em>`:'';
+        const st=freeKm?(scored?`<em class="pd-st rest">☾ ${R.score}점 · 프리런</em>`:`<em class="pd-st ok">프리런</em>`)+`<span class="pd-km"><b>${fmtKm1(freeKm)}</b><small>계획 없음</small></span>`:!scored?'':closed?`<em class="pd-st ok">☾ ${R.score}점 ✓</em>`:ds===t?`<em class="pd-st now">오늘 · ${R.score}점</em>`:ds<t?`<em class="pd-st rest">☾ ${R.score}점</em>`:'';
         const fr=freeKm?RUNS.filter(r=>isRun(r)&&!r.contOf&&ldate(r.date).slice(0,10)===ds).sort((a,b)=>(+b.km||0)-(+a.km||0))[0]:null;   /* 뛴 쉬는 날은 눌러서 그 기록을 연다 — 전엔 눌리지 않았다 */
         return `<div class="pd-row rest${ds<t?' past':''}${freeKm||closed?' did':''}${ds===t?' today':''}"${fr?` data-wkrun="${ESC(String(fr.rid))}" role="button" tabindex="0"`:''}>${dn}<span class="pd-bar rest"><i style="height:${scored?Math.max(18,(closed||any||ds<t?R.score:0)):0}%"></i></span><span class="pd-rest"><b class="pd-rl">${lab}</b>${sub?`<i>${sub}</i>`:''}</span>${st}${ds>t?`<button type="button" class="pd-add" data-padd="${ds}" data-wk="${wkRaw}" aria-label="${ds} 훈련 추가">＋</button>`:''}</div>`; }
       return list.map(sx=>{ const i=BLOCK.indexOf(sx), sv=(i>=0&&sessionOf(i))||sx, km=DIST[sx.d]||sx.dist, T=TYPES[sx.type]||{}, col=T.col||'#5B2D86';
         /* 놓침 = 홈·알림과 같은 기준 — 일정을 만들기 전 날은 놓침이 아니고(전엔 만든 날이 목요일이면 그 주 화요일도 '놓침'), 건너뛰기로 정한 날은 '건너뜀'으로만 센다 */
         const did=RUNS.some(r=>r.planId===sx.d), pre=!did&&ds<t&&!!planFrom()&&ds<planFrom(), miss=!did&&ds<t&&!pre&&!skippedDay(ds), word=(T.nm||'').replace(/\s*\([^)]*\)/g,'');
         /* 뛴 날 표시는 주간 막대와 같은 등급(80↑ 초록 ✓ · 50↑ 호박 · 그 아래 빨강) — 전엔 뛰기만 하면 점수와 상관없이 초록 '✓ 25점' */
-        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ${dsc==null||dsc>=80?'ok':dsc>=50?'mid':'miss'}">${dsc==null||dsc>=80?'✓':''}${dsc!=null?` ${dsc}점`:''}${Math.abs(freeKm-km)>=0.5?` · ${fmtKm1(freeKm)}km`:''}</em>`:(!did&&skippedDay(ds))?'<em class="pd-st miss">건너뜀</em>':miss?'<em class="pd-st miss">놓침</em>':pre?'<em class="pd-st">일정 전</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
+        const dsc=did?((dayScore(ds)||{}).score??null):null, st=did?`<em class="pd-st ${dsc==null||dsc>=80?'ok':dsc>=50?'mid':'miss'}">${dsc==null||dsc>=80?'✓':''}${dsc!=null?` ${dsc}점`:''}</em>`:(!did&&skippedDay(ds))?'<em class="pd-st miss">건너뜀</em>':miss?'<em class="pd-st miss">놓침</em>':pre?'<em class="pd-st">일정 전</em>':ds===t?'<em class="pd-st now">오늘</em>':'';
         return `<div class="pd-row${did?' did':''}${miss?' past':''}${ds===t?' today':''}" style="--tc:${col}">${dn}
           <button type="button" class="pd-main" ${i>=0?`data-pgo="${i}"`:(()=>{ const r=RUNS.find(r=>r.planId===sx.d); return r?`data-wkrun="${ESC(r.rid)}"`:'disabled'; })()}><span class="pd-bar"><i style="height:${Math.max(18,km/max*100)}%"></i></span>
             <span class="pd-tx"><b>${ESC(String(sv.t).replace(/\s*\([^)]*\)/g,''))}${sx.edited?'<small>바꿈</small>':''}${!sx.edited&&sx.capCut?`<small title="최근 30일 최장 +10% 한도">줄임 ${fmtKm1(sx.capCut.from)}→${fmtKm1(sx.capCut.to)}km</small>`:''}${CUSTOM&&CUSTOM[sx.d]&&!did?`<small class="pd-unp" data-unpaste="${sx.d}" role="button">받아 적음 · 되돌리기</small>`:''}${ds>=t&&km&&overCap(km,sx.d)?'<small style="background:var(--bad-bg);color:var(--bad-ink)">⚠ 최장+10% 넘음</small>':''}</b><i>${boldNums(summary(sv))}</i></span></button>
-          ${st}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:(miss||(!did&&ds<t&&!pre&&skippedDay(ds)))?`<button type="button" class="pd-add" data-pman="${sx.d}" aria-label="기록 직접 넣기">+</button>`:''}</div>`; }).join(''); }).join('');
+          ${st}${(()=>{ /* v21.88: 오른쪽 = 한 거리 / 해야 할 거리. 주 머리 '한 것 / 계획'과 같은 순서라 세로로 더하면 머리 숫자가 된다 */
+            const pk=fmtKm1(+sKm(sx)||0); if(!(+sKm(sx)>0))return '';
+            return (did||miss)?`<span class="pd-km"><b>${fmtKm1(did?freeKm:0)}</b><small>/ ${pk}km</small></span>`:`<span class="pd-km pl"><b>${pk}</b><small>km</small></span>`; })()}${!did&&ds>=t?`<button type="button" class="pd-ed" data-ped0="${sx.d}" aria-label="고치기">✎</button>`:(miss||(!did&&ds<t&&!pre&&skippedDay(ds)))?`<button type="button" class="pd-add" data-pman="${sx.d}" aria-label="기록 직접 넣기">+</button>`:''}</div>`; }).join(''); }).join('');
     const pf=planFrom(), isPre=x=>!RUNS.some(r=>r.planId===x.d)&&!!pf&&x.d.slice(0,10)<pf&&x.d.slice(0,10)<t;
     const nPlan=items.filter(x=>x.type!=='off'&&!isPre(x)).length, nDid=items.filter(x=>x.type!=='off'&&RUNS.some(r=>r.planId===x.d)).length, nMiss=items.filter(x=>x.type!=='off'&&x.d.slice(0,10)<t&&!isPre(x)&&!RUNS.some(r=>r.planId===x.d)&&!skippedDay(x.d.slice(0,10))).length;
     /* 쉬는 날도 훈련 — 할 일이 있는 쉬는 날(근력·회복)을 마감했는지 같이 센다 */
