@@ -2765,7 +2765,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.89';
+const APPVER='21.90';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -3679,13 +3679,16 @@ async function renderRaces(host){
   let lastM='';
   L.slice(0,RCF.n).forEach(r=>{ const m=r.date.slice(0,7); if(m!==lastM){ lastM=m; h+=`<div class="rc-m">${+m.slice(0,4)}년 ${+m.slice(5)}월</div>`; }
     const dd=Math.round((Date.parse(r.date)-Date.parse(t))/864e5), open=RCF.x===r.id, mine=goalD&&goalD.slice(0,10)===r.date;
-    h+=`<div class="rc-it" data-rcx="${ESC(r.id)}"${mine?' style="outline:2px solid var(--accent)"':''}><div class="rc-d"><b class="num">${+r.date.slice(8)}</b><i>${dowOf(r.date)} · D-${dd}</i></div>
+    /* 신청한 대회 표시(v21.90) — 전엔 '신청한 대회에 추가'를 눌러도 이 목록엔 표시가 없어, 넣었는지 알 수 없었다(2026-11-22 인천 K마라톤).
+       찾은 대회에서 넣은 것은 rc(대회 id)로, 예전에 넣은 것은 같은 날 + 이 대회 코스 안의 거리로 맞춘다 */
+    const reg=(()=>{ try{ const ms=r.courses.map(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).filter(Boolean); return uprAll().find(u=>u.rc===r.id||(!u.rc&&u.date===r.date&&(u.name===r.name||ms.includes(+u.m)))); }catch(e){ return null; } })();
+    h+=`<div class="rc-it" data-rcx="${ESC(r.id)}"${mine?' style="outline:2px solid var(--accent)"':reg?' style="outline:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--panel))"':''}><div class="rc-d"><b class="num">${+r.date.slice(8)}</b><i>${dowOf(r.date)} · D-${dd}</i></div>
       <div class="rc-t"><b>${ESC(r.name)}</b><span>${ESC(r.place)}${r.area?' · '+ESC(r.area):''}</span>
-        <div class="rc-cs">${r.courses.map(c=>`<em>${ESC(c)}</em>`).join('')}${r.open?'<em class="op">접수중</em>':rcClosed(r,t)?'<em class="cl">접수 마감</em>':''}${REGNEW&&REGNEW.has(r.id)?'<em class="dd">새 접수</em>':''}${mine?'<em class="dd">목표일</em>':''}</div></div>
+        <div class="rc-cs">${r.courses.map(c=>`<em>${ESC(c)}</em>`).join('')}${r.open?'<em class="op">접수중</em>':rcClosed(r,t)?'<em class="cl">접수 마감</em>':''}${REGNEW&&REGNEW.has(r.id)?'<em class="dd">새 접수</em>':''}${mine?'<em class="dd">목표일</em>':''}${reg?`<em class="dd">신청함 · ${UPR_NM(reg.m)} · ${(UPR_TAG[uprRole(reg)]||['',''])[0]}</em>`:''}</div></div>
       ${open?`<div class="rc-x">${r.host?`주최 ${ESC(r.host)}`:''}${r.tel?` · ☎ ${ESC(r.tel)}`:''}
         <div class="rc-b">${r.view?`<a href="${ESC(r.view)}" target="_blank" rel="noopener">대회 정보(원본)</a>`:''}${r.home?`<a href="${ESC(r.home)}" target="_blank" rel="noopener">홈페이지</a>`:''}
         ${r.courses.filter(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).map(c=>`<button type="button" class="go" data-rcg="${ESC(r.id)}" data-rcm="${RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]}">${c==='풀'?'풀코스':ESC(c)}로 목표 설정</button>`).join('')}
-        ${(()=>{ const ms=r.courses.map(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).filter(Boolean); return ms.length?`<button type="button" class="go" data-rcu="${ESC(r.id)}" data-rcm="${Math.max(...ms)}">신청한 대회에 추가</button>`:''; })()}</div></div>`:''}</div>`; });
+        ${(()=>{ const ms=r.courses.map(c=>RC_DIST[c.replace(/코스$/,'')]||RC_DIST[c]).filter(Boolean); return reg?`<button type="button" class="go" disabled>신청한 대회에 있음 ✓</button>`:ms.length?`<button type="button" class="go" data-rcu="${ESC(r.id)}" data-rcm="${Math.max(...ms)}">신청한 대회에 추가</button>`:''; })()}</div></div>`:''}</div>`; });
   if(L.length>RCF.n) h+=`<button type="button" class="btn sm ghost" data-rcmore="1" style="margin:6px 0 0">더 보기 (${L.length-RCF.n}개)</button>`;
   el.innerHTML=h;
   const ar=el.querySelector('#rcArea'); if(ar)ar.onchange=()=>{ RCF.a=ar.value; RCF.n=40; renderRaces(); };
@@ -3702,7 +3705,7 @@ document.addEventListener('click',e=>{ const rh=e.target.closest('.rc-host'); if
   if(e.target.closest('[data-rcmore]')){ RCF.n+=40; return renderRaces(); }
   const g=e.target.closest('[data-rcg]'); if(g){ const r=RACES.races.find(x=>x.id===g.dataset.rcg); if(!r)return;
     try{ tileClose(); }catch(err){} goalStart(); try{ Object.assign(GB.d,{kind:'race',m:+g.dataset.rcm,date:r.date,raceName:r.name,sec:null}); GB.i=1; gPaint(); }catch(err){} return; }
-  const u=e.target.closest('[data-rcu]'); if(u){ const r=RACES.races.find(x=>x.id===u.dataset.rcu); if(!r)return; const pr=uprAddSheet({name:r.name,date:r.date,m:+u.dataset.rcm}); setTimeout(uprNote,30); return; }
+  const u=e.target.closest('[data-rcu]'); if(u){ const r=RACES.races.find(x=>x.id===u.dataset.rcu); if(!r)return; const pr=uprAddSheet({name:r.name,date:r.date,m:+u.dataset.rcm,rc:r.id}); setTimeout(uprNote,30); Promise.resolve(pr).then(()=>{ try{ renderRaces(); }catch(err){} }); return; }
   if(e.target.closest('a'))return;
   const x=e.target.closest('[data-rcx]'); if(x){ RCF.x=RCF.x===x.dataset.rcx?null:x.dataset.rcx; renderRaces(); } });
 
@@ -10080,7 +10083,7 @@ async function uprAddSheet(pre){ const t=todayStr(), v=pre||{}, ed=v.editId||nul
   if(ed){ const r=uprAll().find(x=>x.id===ed); if(!r)return false;
     uprUndo(r.id); Object.assign(r,{name:name||(UPR_NM(m)+' 대회'),date,m,sec:sec||null,edited:t}); uprSave(); uprApply();
     toast('대회 고침 — 일정에 다시 반영'); return true; }
-  const r={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name||(UPR_NM(m)+' 대회'),date,m,sec:sec||null,made:t};
+  const r={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:name||(UPR_NM(m)+' 대회'),date,m,sec:sec||null,made:t,rc:(!ed&&v.rc&&date===v.date)?v.rc:null};
   uprAll().push(r); uprSave(); const ro=uprRole(r); uprApply();
   toast(ro==='next'?`대회 추가 — 지금 목표가 끝나면 이어서 준비`:`대회 추가 — ${UPR_TAG[ro][0]} · 일정에 반영`);
   return true; }
