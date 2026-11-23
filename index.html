@@ -2804,7 +2804,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.99';
+const APPVER='22.00';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8587,6 +8587,8 @@ async function afterLogin(){
     if(PLAN&&PLAN.sessions&&PLAN.sessions.length)got.push('목표·일정');
     setTimeout(()=>toast(`구글 계정에서 가져옴 — ${got.join(' · ')}`),80);   /* 브라우저 기본 알림창 대신 앱 안내 */
   } else {
+    /* 처음 로그인한 사람은 간략 화면으로 시작(사용자 2026-11-23) — 이 폰에서 이미 고른 적이 있으면 그대로. 쓰던 계정(위 갈래)은 건드리지 않는다 */
+    try{ if(localStorage.getItem('rc_ui')==null){ localStorage.setItem('rc_ui','lite'); uiPaint(); foldAll(); } }catch(e){}
     obStart();
     setTimeout(()=>toast('일정을 짜려고 몇 가지 물어볼게요 · 기본 정보 뒤 바로 뛸 수도 있어요'),80);
   }
