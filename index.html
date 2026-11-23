@@ -1691,6 +1691,12 @@ html[data-theme="dark"] [stroke="#5B6A64" i]:not(.tc>svg *):not(.st-mv>svg *):no
     <div class="meta" style="margin-top:9px">블랙은 검은 바탕이라 밤에 눈이 덜 부셔요 · 이 휴대폰에만 적용</div>
   </div>
 
+  <div class="lbl" style="margin:18px 0 9px">화면 구성</div>
+  <div class="card tight">
+    <div class="tagrow" id="uiSel" style="margin:0"><button type="button" class="tag" data-v="lite">간략</button><button type="button" class="tag" data-v="full">풀</button></div>
+    <div class="meta" style="margin-top:9px">간략은 자주 안 보는 칸을 제목만 남기고 접어 둬요 · 제목을 누르면 펼쳐져요(펼친 모습은 풀과 같음) · 이 휴대폰에만 적용</div>
+  </div>
+
   <div class="lbl" style="margin:18px 0 9px">심박 기기</div>
   <div class="card tight">
     <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">
@@ -2493,7 +2499,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .pe-days button.busy{background:var(--warn-bg)}.pe-days button.on{border-color:var(--accent);background:var(--accent-bg)}.pe-days button.on i,.pe-days button.on b,.pe-days button.on em{color:#fff}
 .pe-days button:disabled{opacity:.35}
 .pe-other{display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12px;color:var(--ink-3);margin-top:8px;white-space:nowrap}.pe-other input{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:5px 8px;background:var(--panel)}
-.pe-warn{font-size:12px;font-weight:700;color:var(--bad-ink);margin:10px 2px 0}.pe-knote{color:var(--accent-ink,var(--accent));font-weight:700}.ft-km{display:inline-flex;align-items:center;gap:4px}.ft-km input{width:52px}
+.pe-warn{font-size:12px;font-weight:700;color:var(--bad-ink);margin:10px 2px 0}.fold-off{display:none!important}.fold-mk{color:var(--accent);font-weight:900;font-size:.85em;margin-left:3px;white-space:nowrap;line-height:0}[data-fold]{cursor:pointer;-webkit-tap-highlight-color:transparent}.pe-knote{color:var(--accent-ink,var(--accent));font-weight:700}.ft-km{display:inline-flex;align-items:center;gap:4px}.ft-km input{width:52px}
 .ask-body{font-size:14px;line-height:1.7;color:var(--ink)}.ask-body .meta{display:inline-block;margin-top:6px}.btn.danger{background:#C2410C}
 .myinfo .mi-hd{display:flex;align-items:baseline;gap:8px;margin:4px 2px 8px}.myinfo .mi-hd b{font-size:16px}.myinfo .mi-hd i{font-style:normal;font-size:12px;color:var(--ink-3)}
 .mi-row{display:flex;align-items:center;gap:12px;min-height:46px;border-bottom:1px solid var(--line);padding:6px 0}.mi-row:last-of-type{border-bottom:none}.mi-row>label{flex:0 0 88px;font-size:13px;font-weight:700;color:var(--ink-2)}.mi-v{flex:1;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mi-v b{font-size:14px}.mi-out{margin-left:auto;flex:none;border:none;background:none;font:inherit;font-size:12px;font-weight:700;color:var(--ink-3);text-decoration:underline;cursor:pointer;padding:4px 2px}
@@ -2765,7 +2771,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.93';
+const APPVER='21.94';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5101,6 +5107,42 @@ function themeApply(v){ const d=v==='dark'; try{ localStorage.setItem('rc_theme'
 function themePaint(){ const t=themeNow(); document.querySelectorAll('#themeSel .tag').forEach(b=>b.classList.toggle('on',b.dataset.v===t)); }
 $('themeSel').addEventListener('click',e=>{ const b=e.target.closest('.tag'); if(!b)return; themeApply(b.dataset.v); toast(b.dataset.v==='dark'?'블랙 화면으로 바꿨어요':'화이트 화면으로 바꿨어요'); });
 themePaint();
+
+/* ───────── 화면 구성 — 간략 / 풀 (v21.94) ─────────
+   풀 = 지금 화면 그대로. 간략 = 같은 화면에서 자주 안 보는 칸을 '제목 줄만' 남기고 접는다(▸) — 제목을 누르면 펼쳐지고(▾) 펼친 모습은 풀과 같다.
+   따로 그린 화면이 없어 두 모양이 어긋날 일이 없다(사용자 결정 2026-11-23: 모양은 그대로, 접고 펴기만).
+   접는 칸: 홈 — 다음 훈련 · 내 훈련 · 내 몸·기록 · 도구 / 플랜 — 설정 한계 · 예상 주(5주차~) / 러닝일지 — 내 기록 분석 / 훈련 원리 — 훈련 기준 · 심박 존 · 훈련 종류·스트레칭 카드(이름·속도 줄만).
+   '직전 일정 복원'·오늘 훈련·이번 주는 접지 않는다. 이 휴대폰에만 저장(화면 색과 같음). 펼친 칸은 앱을 켜 둔 동안 유지 */
+function uiNow(){ try{ return localStorage.getItem('rc_ui')==='lite'?'lite':'full'; }catch(e){ return 'full'; } }
+const FOLDOPEN=new Set();
+function foldMk(t,open){ if(!t)return; let m=t.querySelector(':scope > .fold-mk'); if(!m){ m=document.createElement('span'); m.className='fold-mk'; t.appendChild(m); } m.textContent=open?' ▾':' ▸'; }
+function foldBox(box,hd,key,title){ if(!box||!hd)return; if(!hd.dataset.fold)hd.dataset.fold=key; const k=hd.dataset.fold, open=FOLDOPEN.has(k);
+  foldMk(title||hd.querySelector('b')||hd,open); [...box.children].forEach(c=>{ if(c!==hd&&!c.contains(hd))c.classList.toggle('fold-off',!open); }); }
+const keyOf=(p,el)=>p+':'+String((el&&el.textContent)||'').replace(/[▸▾]/g,'').trim().slice(0,20);
+function applyFold(id){ const V=document.getElementById(id); if(!V||uiNow()!=='lite')return;
+  if(id==='home'){ const x=V.querySelector('.hc.nx3'); if(x){ const h=x.querySelector('.nx3-hd'); foldBox(x,h,'h:next'); }
+    V.querySelectorAll('.hlg').forEach(g=>{ const h=g.querySelector('.hlg-h'); if(h)foldBox(g,h,keyOf('h',h),h); }); }
+  if(id==='plan'){ const w=V.querySelector('.plwarn'), wb=w&&w.querySelector(':scope > b'); if(wb)foldBox(w,wb,'p:warn',wb);
+    const fh=V.querySelector('.fu-hd'); if(fh){ fh.dataset.fold='p:fut'; const open=FOLDOPEN.has('p:fut'); foldMk(fh.querySelector('b')||fh,open); V.querySelectorAll('.pw.fu').forEach(x=>x.classList.toggle('fold-off',!open)); } }
+  if(id==='log'){ const d=V.querySelector('details.log-ana'); if(d&&!d.dataset.foldInit){ d.dataset.foldInit='1'; if(!FOLDOPEN.has('l:ana'))d.removeAttribute('open');
+      d.addEventListener('toggle',()=>{ if(uiNow()!=='lite')return; if(d.open)FOLDOPEN.add('l:ana'); else FOLDOPEN.delete('l:ana'); }); } }
+  if(id==='guide'){ V.querySelectorAll('#gdBody > section.sec').forEach(sec=>{ const hd=sec.querySelector(':scope > .sec-hd'); if(!hd)return; const t=hd.textContent;
+      if(/훈련 기준|심박 존/.test(t))foldBox(sec,hd,keyOf('g',hd.querySelector('b')||hd));
+      if(/훈련 종류|스트레칭/.test(t))sec.querySelectorAll('article.tc').forEach(a=>{ const h=a.querySelector(':scope > .tc-hd'); if(h)foldBox(a,h,'g:'+(a.id||keyOf('c',h)),h.querySelector('b')||h.firstElementChild); }); }); } }
+/* 화면은 여러 곳에서 다시 그려진다 — 바뀔 때마다 접기를 다시 입힌다(입히는 동안은 보지 않아 되풀이되지 않음) */
+const FOLD_VIEWS=['home','plan','log','guide'];
+const foldObs=new MutationObserver(()=>{ if(foldObs._q)return; foldObs._q=requestAnimationFrame(()=>{ foldObs._q=0; foldAll(); }); });
+function foldWatch(){ FOLD_VIEWS.forEach(id=>{ const v=document.getElementById(id); if(v)foldObs.observe(v,{childList:true,subtree:true}); }); }
+function foldAll(){ foldObs.disconnect(); try{ if(uiNow()==='lite')FOLD_VIEWS.forEach(id=>{ try{ applyFold(id); }catch(e){} }); } finally{ if(uiNow()==='lite')foldWatch(); } }
+function unfoldAll(){ foldObs.disconnect(); document.querySelectorAll('.fold-off').forEach(e=>e.classList.remove('fold-off')); document.querySelectorAll('.fold-mk').forEach(e=>e.remove());
+  document.querySelectorAll('[data-fold]').forEach(e=>e.removeAttribute('data-fold')); document.querySelectorAll('details.log-ana[data-fold-init]').forEach(d=>{ d.removeAttribute('data-fold-init'); d.setAttribute('open',''); }); }
+document.addEventListener('click',e=>{ if(uiNow()!=='lite')return; const f=e.target.closest('[data-fold]'); if(!f)return;
+  const ctl=e.target.closest('button,a,select,input,label'); if(ctl&&ctl!==f&&f.contains(ctl))return;   /* 제목 줄 안의 다른 버튼(예: '플랜 전체 보기')은 원래대로 */
+  e.stopPropagation(); const k=f.dataset.fold; if(FOLDOPEN.has(k))FOLDOPEN.delete(k); else FOLDOPEN.add(k); foldAll(); },true);
+function uiPaint(){ const t=uiNow(); document.querySelectorAll('#uiSel .tag').forEach(b=>b.classList.toggle('on',b.dataset.v===t)); }
+$('uiSel').addEventListener('click',e=>{ const b=e.target.closest('.tag'); if(!b)return; try{ localStorage.setItem('rc_ui',b.dataset.v==='lite'?'lite':'full'); }catch(err){}
+  FOLDOPEN.clear(); if(b.dataset.v==='lite')foldAll(); else unfoldAll(); uiPaint(); toast(b.dataset.v==='lite'?'간략 화면으로 바꿨어요 · 제목을 누르면 펼쳐져요':'풀 화면으로 바꿨어요'); });
+uiPaint(); foldAll();
 
 /* 숫자만 굵게 — 속도·거리·심박·시간이 설명 글 속에서 바로 보이게 */
 function boldNums(t){ return String(t||'').replace(/(\d+'\d{2}"(?:~\d+'\d{2}")?|\d+(?:\.\d+)?\s?km|\d+(?:\.\d+)?m\b|♥\s?\d{2,3}(?:~\d{2,3})?|\b\d+:\d{2}(?::\d{2})?\b|\bZ[1-5]|\d+회|\d+분)/g,'<b>$1</b>'); }
