@@ -2810,7 +2810,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.06';
+const APPVER='22.07';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8461,9 +8461,9 @@ const OBSTEP=[
       OB.d.rt=null; paintRT(); }; });
     paintRT();
     function paintHr(){ if(!OB.d.birth&&OB.d.by)OB.d.birth=`${OB.d.by}-07-01`; const a=ageOf(OB.d.birth);
-      $('obHrNote').innerHTML=a?`만 ${a}세 · 최대 심박 <b>${estHrMax(a)}</b> (208 − 0.7 × 나이). `+
+      $('obHrNote').innerHTML=!a?'':uiNow()==='lite'?`만 ${a}세 · 최대 심박 <b>${estHrMax(a)}</b>(추정) · 뛰면서 맞춰 가요`:`만 ${a}세 · 최대 심박 <b>${estHrMax(a)}</b> (208 − 0.7 × 나이). `+
         `오차 ±10 · 실측이 높으면 대체`+
-        (OB.d.sex==='f'?`<br>여성은 더 낮음(${Math.round(206-0.88*a)}) · 실측 최선`:''):''; }
+        (OB.d.sex==='f'?`<br>여성은 더 낮음(${Math.round(206-0.88*a)}) · 실측 최선`:''); }
     paintHr();
     $('obRK').onclick=e=>{ const b=e.target.closest('.tag'); if(!b)return;
       OB.d.rk=b.dataset.v; $('obRK').querySelectorAll('.tag').forEach(x=>x.classList.toggle('on',x===b)); paintRT(); };
@@ -8538,6 +8538,9 @@ const OBSTEP=[
     return true; }}
 ];
 function obPaint(){ const same=OB._pi===OB.i; OB._pi=OB.i; keepScroll($('obBody'),same,obPaint0); obDraftSave(); }   /* 뒤로 가서 첫 화면이면 다시 시작도 1단계부터 — 답은 그대로 */
+/* 간략 화면 — 설문·목표 글 속 근거 괄호('(ACSM 주 3~5일, B)' 같은)를 뺀다. 뜻은 그대로, 근거는 풀 화면·구성 이유에 남는다 */
+function liteEv(root){ try{ if(uiNow()!=='lite'||!root)return; const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT); let n;
+  while((n=w.nextNode())){ const t=n.nodeValue, u=t.replace(/\s*\([^()]*,\s*[ABC]\)/g,''); if(u!==t)n.nodeValue=u; } }catch(e){} }
 function obPaint0(){
   const st=OBSTEP[OB.i];
   $('obStep').textContent=`STEP ${OB.i+1} / ${OBSTEP.length}`;
@@ -8558,6 +8561,7 @@ function obPaint0(){
       g.querySelectorAll('.obopt').forEach(x=>x.classList.toggle('on',x===b)); };
   });
   if(st.wire)st.wire();
+  liteEv($('obBody'));
 }
 function obHint(m,fid){
   $('obHint').textContent=m; $('obHint').className='note red'; $('obHint').hidden=false;
@@ -8977,7 +8981,8 @@ function startReview(p){ const st=starterState(), first=p.sessions.slice(0,6);
   return `<div class="note green" style="margin:0 0 12px;line-height:1.8"><b>처음 시작</b><br>${st.phase==='check'?'상태 체크 2번 → 단계':`${st.lv}단계부터 — ${rwLabel(RW_LV[st.lv])}`} · 주 ${p.days.length}번 · 30분</div>
     <div class="card tight">${first.map(x=>`<div class="srow" style="grid-template-columns:62px 1fr"><span class="meta">${+x.d.slice(5,7)}/${+x.d.slice(8,10)} ${dowOf(x.d)}</span><span><b>${ESC(x.t)}</b><br><span class="meta">${ESC(x.rw.sum)}</span></span></div>`).join('')}
       ${p.sessions.length>6?`<div class="meta" style="padding:6px 0">… 총 ${p.sessions.length}번 · 단계 자동</div>`:''}</div>
-    <div class="oblab">구성 이유</div><div class="card tight" style="line-height:1.75;font-size:12px">${p.why.map(w=>`<p style="margin:0 0 8px">${ESC(w)}</p>`).join('')}</div>
+    ${(()=>{ const c=`<div class="card tight" style="line-height:1.75;font-size:12px">${p.why.map(w=>`<p style="margin:0 0 8px">${ESC(w)}</p>`).join('')}</div>`;
+      return uiNow()==='lite'?`<details class="bmore"><summary>구성 이유</summary>${c}</details>`:`<div class="oblab">구성 이유</div>${c}`; })()}
     ${disclaimBox(true)}
     <details class="bmore"><summary>안내 전문</summary>${disclaimBox(false)}</details>
     <label class="ack"><input type="checkbox" id="gAck"${GB.ack?' checked':''}> 본인 책임</label>`; }
@@ -9495,6 +9500,7 @@ function gPaint0(){
   $('gNext').textContent=st.next||'다음';
   $('gBack').hidden=GB.i===0; $('gHint').hidden=true;
   if(st.wire)st.wire();
+  liteEv($('gBody'));
 }
 function gHint(m){ $('gHint').textContent=m; $('gHint').hidden=false;
   $('gHint').scrollIntoView({block:'nearest'}); }
