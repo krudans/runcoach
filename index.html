@@ -2808,7 +2808,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.02';
+const APPVER='22.03';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -10691,7 +10691,9 @@ function quickGo(planned){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg><span>${a.nm}</span></button>`).join('')}</div>
     <button type="button" class="qg-go" data-act="${last}" id="qgGo">${verb[last]} ▶</button>`;
   /* 계획 있는 날: 접힌 한 줄 → 누르면 종류 고르기 + 시작 버튼이 펼쳐진다 */
-  if(planned) return `<div class="qrow"><div class="qr-hd"><b>바로 기록</b><i>계획 없이 · 달리기는 프리런</i></div><div class="qr-row">${Object.entries(ACTK).map(([k,a])=>`<button type="button" class="qr-a" data-act="${k}" aria-label="${a.nm} 바로 시작"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg></b><i>${a.nm}</i></button>`).join('')}</div></div>`;
+  /* 이름 '바로 기록' → '계획 없이 시작'(사용자 2026-11-23 — '기록'은 지난 기록 보기로 읽혔다). '오늘 훈련과 따로'는 오늘 훈련이 있는 날만 */
+  const tdS=(()=>{ try{ const t=todayStr(); return hasPlan()&&BLOCK.some(x=>x.d.slice(0,10)===t&&x.type!=='off'); }catch(e){ return false; } })();
+  if(planned) return `<div class="qrow"><div class="qr-hd"><b>계획 없이 시작</b><i>판정 없이 기록만${tdS?' · 오늘 훈련과 따로':''}</i></div><div class="qr-row">${Object.entries(ACTK).map(([k,a])=>`<button type="button" class="qr-a" data-act="${k}" aria-label="${a.nm} 바로 시작"><b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON[k]}</svg></b><i>${a.nm}</i></button>`).join('')}</div></div>`;
   if(false) return `<details class="qslim"><summary><span class="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ACTICON.run}</svg></span>
     <span><b>그냥 뛰기</b><i>걷기·자전거·등산</i></span><em>열기</em></summary>
     <div class="qs-body">${acts}</div></details>`;
