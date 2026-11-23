@@ -2791,7 +2791,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.97';
+const APPVER='21.98';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -16229,6 +16229,10 @@ async function snapCard(el,name,title){
   wrap.remove();
   const img=new Image(); img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   try{ await img.decode(); }catch(e){ toast('이미지 생성 실패'); return; }
+  /* 머리 아이콘 자리 = 내 레벨 메달(앱 머리와 같게 · 그림이라 돌지 않고 정면) — 전엔 앱 로고였다(사용자 2026-11-23 '여기는 로고 적용 안 되어 있음') */
+  let medal=null; try{ lvDefs(); const i=lvIx(mileage().total), d=document.querySelector('#lvDefs defs').innerHTML;
+    const m=coinSVG(i,144).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ').replace(/>/,'><defs>'+d+'</defs>');
+    const mi=new Image(); mi.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(m); await mi.decode(); medal=mi; }catch(e){ medal=null; }
   /* 모든 저장 이미지는 9:16 쪽으로 — 맨 위 머리줄(브랜드·제목·날짜), 가운데 내용, 쪽 번호는 하나만:
      오른쪽 가장자리 한가운데 탭(갤러리 썸네일은 가운데 정사각형만 보여서 위·아래 번호는 잘린다) */
   const k=4, ML=SNAP_M.l, MR=SNAP_M.r, PW=W+ML+MR, PH=Math.round(PW*16/9), HEAD=SNAP_M.head, FOOT=SNAP_M.foot, CH=PH-HEAD-FOOT;
@@ -16243,7 +16247,8 @@ async function snapCard(el,name,title){
     x.fillStyle=bg; x.fillRect(0,0,PW,PHi);
     /* 머리 띠 — 모든 쪽 같게: 진보라 띠 + 앱 아이콘 칸 + 큰 '가지런하다' + 버전 · 오른쪽 화면 이름·날짜 (B안) */
     const BH=SNAP_M.band; x.fillStyle=BAND_C; x.fillRect(0,0,PW,BH);
-    { const bs=36, bx=ML, by=(BH-bs)/2, r=10; x.fillStyle='#4A2470'; x.beginPath(); x.moveTo(bx+r,by); x.arcTo(bx+bs,by,bx+bs,by+bs,r); x.arcTo(bx+bs,by+bs,bx,by+bs,r); x.arcTo(bx,by+bs,bx,by,r); x.arcTo(bx,by,bx+bs,by,r); x.closePath(); x.fill();
+    if(medal){ const bs=38; x.drawImage(medal,ML-1,(BH-bs)/2,bs,bs); }
+    else { const bs=36, bx=ML, by=(BH-bs)/2, r=10; x.fillStyle='#4A2470'; x.beginPath(); x.moveTo(bx+r,by); x.arcTo(bx+bs,by,bx+bs,by+bs,r); x.arcTo(bx+bs,by+bs,bx,by+bs,r); x.arcTo(bx,by+bs,bx,by,r); x.arcTo(bx,by,bx+bs,by,r); x.closePath(); x.fill();
       x.strokeStyle='rgba(255,255,255,.18)'; x.lineWidth=1.5; x.stroke(); try{ drawBrand(x,bx+4,by+3,28,'#F4F0EA','#4A2470'); }catch(e){} }
     x.textBaseline='alphabetic'; x.textAlign='left';
     { const nx=ML+48; x.font='900 21px '+FK; x.fillStyle='#FDFBF6'; x.fillText('가지런',nx,BH/2+3); const w1=x.measureText('가지런').width;
