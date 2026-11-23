@@ -2504,6 +2504,7 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .lv3d-in>i,.lv3d-f{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden}.lv3d-in>i{inset:3%;backface-visibility:visible}.lv3d-f svg{display:block;width:100%;height:100%}
 @keyframes lvspin{from{transform:rotateY(0deg)}to{transform:rotateY(360deg)}}
 @media (prefers-reduced-motion:reduce){.lv3d-in{animation:none}}
+.happ-lv .lv3d{width:100%;height:100%;display:block;perspective:330px}   /* 머리 아이콘 칸 크기(54 또는 44px)를 그대로 채운다 — 전엔 54px로 고정해 44px 칸 밖으로 넘쳐 아래로 5px 내려가 보였다(v21.96) */
 .happ-lv{background:none!important;box-shadow:none!important;border-radius:50%;overflow:visible}html[data-theme="dark"] .happ-lv{box-shadow:none!important}
 .lv-wrap{margin:0 0 14px}.lv-card{background:#22142F;color:#F5F1FA;border-radius:26px;padding:22px 20px 20px;text-align:center}
 .lv-big{background:none;border:0;padding:0;display:block;margin:0 auto}.lv-en{font-family:Outfit,sans-serif;font-weight:800;letter-spacing:.1em;font-size:14px;margin-top:10px}
@@ -2790,7 +2791,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.95';
+const APPVER='21.96';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
