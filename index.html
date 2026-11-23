@@ -2530,6 +2530,10 @@ body.has-dock .view.on{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
 .lv-g3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.lv-c{background:none;border:0;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink-2);font-family:Outfit,sans-serif;font-weight:700;font-size:12px}
 .lv-c.now .lv3d{border-radius:50%;box-shadow:0 0 0 3px var(--accent)}.lv-c.now span{color:var(--ink)}
 .lv-crys{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:none;border:0;border-top:1px solid var(--line);margin-top:6px;padding:12px 0 4px;color:var(--ink-2);font-size:14px}.lv-crys b{font-weight:900}.lv-crys em{font-style:normal;font-size:12px;font-weight:700;color:var(--accent)}.lv-crys.now b{color:var(--ink)}
+.lv-crys2{display:flex;flex-direction:column;align-items:center;gap:4px;border-top:1px solid var(--line);margin-top:6px;padding:16px 0 6px;color:var(--ink-2);font-size:14px;text-align:center}
+.lv-crys2 b{font-weight:900;color:var(--ink);margin-top:8px}.lv-crys2 .num{font-size:13px}
+.lv-cvid{width:min(180px,52vw);aspect-ratio:1;border-radius:24px;overflow:hidden;background:#231634}.lv-cvid video{width:100%;height:100%;display:block;object-fit:cover}
+.lv-crys2.now .lv-cvid{box-shadow:0 0 0 3px var(--accent)}
 .lv-vid{position:fixed;inset:0;z-index:9999;background:rgba(10,6,16,.72);display:flex;align-items:center;justify-content:center;padding:16px}
 .lv-vbox{background:#231634;color:#F5F1FA;border-radius:26px;padding:20px 20px 16px;width:min(340px,100%);display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .lv-vbox video{width:100%;max-width:300px;aspect-ratio:1;border-radius:18px;display:block}.lv-vbox b{font-family:Outfit,'Noto Sans KR',sans-serif;letter-spacing:.06em;color:#F2C94C;margin-top:6px}.lv-vbox i{font-style:normal;font-size:12px;color:#CDBFDC}.lv-vbox .btn{margin-top:10px;width:100%}.fold-off{display:none!important}.fold-mk{color:var(--accent);font-weight:900;font-size:.85em;margin-left:3px;white-space:nowrap;line-height:0}[data-fold]{cursor:pointer;-webkit-tap-highlight-color:transparent}.pe-knote{color:var(--accent-ink,var(--accent));font-weight:700}.ft-km{display:inline-flex;align-items:center;gap:4px}.ft-km input{width:52px}
@@ -2804,7 +2808,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.01';
+const APPVER='22.02';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -11059,7 +11063,7 @@ function tileOpen(k){
   else if(k==='mile') body=lvBlock()+mileCard({open:true});   /* 러닝 마일리지를 누르면 레벨 설명이 맨 위에(v21.95) */
   else if(k==='warm') body=exerciseSheet();
   else if(k==='race') body=`<div id="tileRaces" class="rc-host"></div>`;
-  $('tileTitle').textContent=title; $('tileBody').innerHTML=body;
+  $('tileTitle').textContent=title; $('tileBody').innerHTML=body; if(k==='mile')lvVidPlay();
   const sh=$('tileSheet'); sh.hidden=false; requestAnimationFrame(()=>sh.classList.add('up'));
   try{ wireHome(null,-1); }catch(e){}
   if(k==='body'){ try{ wireLog($('tileBody')); }catch(e){} }
@@ -13079,7 +13083,7 @@ function mileHistSave(h){ PROF=Object.assign({},PROF,{mileHist:h.filter(x=>x&&+x
   try{ paintOdo(); }catch(e){}
   try{ if($('logBody'))renderLog(); }catch(e){}
   /* 홈 타일 시트(마일리지)가 열려 있으면 그 안도 다시 그린다 */
-  try{ const sh=$('tileSheet'); if(sh&&!sh.hidden&&$('tileTitle').textContent==='러닝 마일리지'){ $('tileBody').innerHTML=lvBlock()+mileCard({open:true}); } }catch(e){}
+  try{ const sh=$('tileSheet'); if(sh&&!sh.hidden&&$('tileTitle').textContent==='러닝 마일리지'){ $('tileBody').innerHTML=lvBlock()+mileCard({open:true}); lvVidPlay(); } }catch(e){}
   try{ const h2=$('hMain'); if(h2&&!$('tileSheet').classList.contains('up'))renderHome(); }catch(e){} }
 /* 이전 마일리지 입력 시트 — 연도 칩 + 거리 + 미리보기. prompt() 대신 */
 function mileHistAsk(ix,opt){ opt=opt||{}; const h=mileHist().slice(), cur=ix!=null?h[ix]:null, M=mileage();
@@ -13186,7 +13190,9 @@ function lvBlock(){ const M=mileage(), km=M.total, i=lvIx(km), L=LV[i], N=LV[i+1
     ${N?`<div class="lv-ends"><span>${L.ko} ${kmc(L.km)}km</span><span>${N.ko} ${kmc(N.km)}km</span></div><div class="lv-left">${N.ko}까지 <b class="num">${kmc(Math.max(0,N.km-kmF(km)))}km</b></div>`:'<div class="lv-left">맨 위 단계 — 크리스탈 가지</div>'}</div>
     <p class="lv-note">가지런으로 기록한 달리기만 셉니다 · 직접 입력·이전 거리·걷기·자전거·등산은 빠짐 · 레벨은 내려가지 않아요${i===0?' · <b>그라운드</b>: 처음 30km를 뛰며 편한 속도·심박·한 번에 뛸 수 있는 거리를 재는 단계':''}</p>
     <div class="lv-grid"><div class="lv-g1">${cell(0)}<i>그라운드 · 기초 평가</i></div><div class="lv-g3">${[1,2,3,4,5,6,7,8,9].map(cell).join('')}</div>
-    <button type="button" class="lv-crys${i===10?' now':''}" data-lvcrys="1"><span class="lv-cimg">${coinSVG(10,46,{dim:i<10})}</span><b>크리스탈 가지</b><span class="num">10,000km</span><em>▶ 영상</em></button></div></div>`; }
+    <div class="lv-crys2${i===10?' now':''}"><div class="lv-cvid"><video src="${CRYS_MP4}" autoplay loop muted playsinline aria-label="크리스탈 가지 — 6초에 한 바퀴"></video></div><b>크리스탈 가지</b><span class="num">10,000km</span></div></div></div>`; }   /* '▶ 영상'을 눌러 보던 것 → 맨 아래 가운데에서 바로 돈다(사용자 2026-11-23) */
+/* 아래 크리스탈 영상 — 시트가 열리는 중에 넣으면 저절로 재생되지 않아(시험 2026-11-23) 직접 튼다. 소리 없음 */
+function lvVidPlay(){ setTimeout(()=>{ document.querySelectorAll('.lv-cvid video').forEach(v=>{ try{ v.muted=true; const p=v.play(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} }); },60); }
 /* 크리스탈 가지 — 영상으로 본다(승인된 3D 크리스탈, 6초에 한 바퀴) */
 function lvCrystalOpen(){ let v=document.getElementById('lvVid'); if(v)v.remove(); v=document.createElement('div'); v.id='lvVid'; v.className='lv-vid'; v.setAttribute('role','dialog'); v.setAttribute('aria-label','크리스탈 가지 영상');
   v.innerHTML=`<div class="lv-vbox"><video src="${CRYS_MP4}" autoplay loop muted playsinline></video><b>CRYSTAL GAJI · 크리스탈 가지</b><span class="num">10,000km</span><i>크리스탈로 깎은 가지(앱 로고 모양) · 6초에 한 바퀴</i><button type="button" class="btn ghost" data-lvclose="1">닫기</button></div>`;
