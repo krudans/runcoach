@@ -2791,7 +2791,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.96';
+const APPVER='21.97';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -14208,7 +14208,7 @@ function guideShape(k,col){
     rep:[[2,.3],[.6,1],[.8,.18],[.6,1],[.8,.18],[.6,1],[.8,.18],[.6,1],[2,.3]],
     stride:[[6,.32],[.3,.85],[.6,.25],[.3,.85],[.6,.25],[.3,.85],[.6,.25],[.3,.85]],
     tt:[[2,.3],[3,1],[1.4,.28]],goalpace:[[2,.3],[2.6,.75],[.6,.25],[2.6,.75],[2,.3]],
-    hill:[[2,.3],[.8,.9],[.8,.2],[.8,.9],[.8,.2],[.8,.9],[2,.3]]}[k]||[[10,.35]];
+    hill:[[2,.3],[.8,.9],[.8,.2],[.8,.9],[.8,.2],[.8,.9],[2,.3]],off:[[10,.08]]}[k]||[[10,.35]];
   const tot=P.reduce((a,p)=>a+p[0],0), W=64, H=34, g=1.2; let x=0;
   const r=P.map(p=>{ const w=Math.max(1.4,p[0]/tot*(W-g*(P.length-1))), h=Math.max(4,p[1]*H);
     const s=`<rect x="${x.toFixed(1)}" y="${(H-h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.6" fill="${p[1]>=.6?col:col+'66'}"/>`; x+=w+g; return s; }).join('');
@@ -14844,7 +14844,7 @@ const PE={d:null,wk:1,type:'easy',km:6,n:4,len:1,date:null,isNew:false,byTime:fa
 /* 종류를 바꾸면 거리(·횟수·길이)도 그 종류에 맞춘다 — 전엔 속도만 바뀌고 거리는 그대로라 LSD 20km를 이지런으로 바꾸면 '이지런 20km'가 됐다(실제 기기 2026-11-23).
    기준은 플랜에 이미 있는 같은 종류 훈련 — 같은 주 먼저, 없으면 날짜가 가장 가까운 것. 플랜 거리는 주간 거리·회복을 계산해 정한 값이라 따로 공식을 두지 않는다.
    프리런은 거리를 그대로 둔다(동료와 길게 뛰는 날 등 — 거리는 직접 정함). 플랜에 같은 종류가 없으면 예전처럼 둔다 */
-function peTypeFit(was){ PE.kmNote=''; const t=PE.type; if(t==='free')return;
+function peTypeFit(was){ PE.kmNote=''; const t=PE.type; if(t==='free'||t==='off')return;
   const d0=PE.date, mon=weekMonday(d0), L=(typeof BLOCK!=='undefined'?BLOCK:[]).filter(x=>x.type===t&&x.d!==PE.d&&!x.race);
   const near=L.filter(x=>weekMonday(x.d.slice(0,10))===mon).concat([...L].sort((a,b)=>Math.abs(Date.parse(a.d.slice(0,10))-Date.parse(d0))-Math.abs(Date.parse(b.d.slice(0,10))-Date.parse(d0))))[0];
   const old=PE.km;
@@ -14879,13 +14879,13 @@ function peRender(){
   if((hard||PE.type==='tt')&&!lens.includes(PE.len))PE.len=PE.type==='tt'?5:lens[Math.min(lens.length-1,Math.floor(lens.length/2))];
   const prev=planOn(addDays(PE.date,-1)), next=planOn(addDays(PE.date,1)), H=['interval','threshold','goalpace','tt','long'];
   const warn=hard&&((prev&&prev.d!==PE.d&&H.includes(prev.type))||(next&&next.d!==PE.d&&H.includes(next.type)))?'연속 힘든 날 → 띄우기':'';
-  const s=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len,PE.tsec), orig=PE.d&&(peStore()||[]).find(x=>x.d===PE.d);
+  const s=PE.type==='off'?{t:tm('off'),type:'off',dist:0,segs:[]}:peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len,PE.tsec), orig=PE.d&&(peStore()||[]).find(x=>x.d===PE.d);
   $('peBody').innerHTML=`
     <div class="pe-prev" style="--tc:${col}"><span class="pe-shape">${guideShape(PE.type==='goalpace'?'goalpace':PE.type,col)}</span>
       <div><b>${ESC(String(s.t).replace(/\s*\([^)]*\)/g,''))}</b><i>${peSum(s)}</i></div></div>
     <div class="pe-lab">종류</div>
-    <div class="pe-chips">${PE_TYPES.map(([k,n])=>`<button type="button" data-pet="${k}" class="${PE.type===k?'on':''}" style="--tc:${(TYPES[k]||{}).col}"><i></i>${n}</button>`).join('')}</div>
-    ${PE.type==='tt'?`<div class="pe-lab">TT 거리 <small style="font-weight:700;color:var(--ink-3)">· 앞뒤 천천히 + 가운데 힘껏 · 평지·같은 코스</small></div>
+    <div class="pe-chips">${PE_TYPES.map(([k,n])=>`<button type="button" data-pet="${k}" class="${PE.type===k?'on':''}" style="--tc:${(TYPES[k]||{}).col}"><i></i>${n}</button>`).join('')}${PE.isNew?'':`<button type="button" data-pet="off" class="${PE.type==='off'?'on':''}" style="--tc:${(TYPES.off||{}).col||'#5E6A63'}"><i></i>${tm('off')}</button>`}</div>
+    ${PE.type==='off'?`<p class="pe-est">쉬는 날 — 이 날 훈련을 빼고 쉬어요 · 저장을 누르면 바뀌어요</p>`:PE.type==='tt'?`<div class="pe-lab">TT 거리 <small style="font-weight:700;color:var(--ink-3)">· 앞뒤 천천히 + 가운데 힘껏 · 평지·같은 코스</small></div>
       <div class="pe-chips sm">${lens.map(l=>`<button type="button" data-pel="${l}" class="${PE.len===l?'on':''}">${l}km</button>`).join('')}</div>`
     :hard?`<div class="pe-lab">반복 횟수</div>
       <div class="pe-step"><button type="button" data-pen="-1">−</button><b class="num">${PE.n}<small>회</small></b><button type="button" data-pen="1">+</button></div>
@@ -14918,10 +14918,12 @@ function peRender(){
     ${PE.kmNote?`<p class="pe-est pe-knote">↻ ${ESC(PE.kmNote)}</p>`:''}
     ${warn?`<p class="pe-warn">⚠ ${warn}</p>`:''}${peFreeWarn(next)}
     <button type="button" class="btn" id="peOk" style="margin:14px 0 0">${PE.isNew?'추가':'저장'}</button>
-    <div class="pe-row2">${PE.isNew?'':`<button type="button" id="peDel">${tm('off')}로 바꾸기</button>`}${orig&&orig.orig?`<button type="button" id="peUndo">원래대로</button>`:''}</div>`;
+    <div class="pe-row2">${orig&&orig.orig?`<button type="button" id="peUndo">원래대로</button>`:''}</div>`;
   peTgtLine();
+  if(PE.type==='off'){ document.querySelectorAll('#peBody .pe-days, #peBody .pe-other').forEach(e=>e.hidden=true); const l=[...document.querySelectorAll('#peBody .pe-lab')].find(e=>e.textContent.trim()==='날짜'); if(l)l.hidden=true; }   /* 쉬는 날은 날짜를 옮길 일이 없다 */
 }
-async function peApply(){ peReadInputs();
+async function peApply(){ if(PE.type==='off')return peDelete();   /* 종류에서 '쉬는 날'을 고르고 저장 — 전엔 맨 아래 작은 글씨 '쉬는 날로 바꾸기'뿐이라 종류 목록에서 찾을 수 없었다(사용자 2026-11-23) */
+  peReadInputs();
   { const x=PE.d&&BLOCK.find(y=>y.d===PE.d); if(x&&x.role==='줄이는 주'&&PE.km>sKm(x)+0.01&&!(await ask(`줄이는 주예요\n${x.dist}km → ${PE.km}km로 늘리면 회복 효과가 줄어요(관행 C)`,'늘리기')))return; }
   peReadTgt(); const L=peStore(); const ns=peBuild(PE.date,PE.wk,PE.type,PE.km,PE.n,PE.len,PE.type==='free'?PE.tsec:null);
   if(!L){ /* 예시 일정 — 받아적기 덮어쓰기로 저장 */
@@ -15063,7 +15065,7 @@ document.addEventListener('input',e=>{ if(['peKm','peH','peMin'].includes(e.targ
   if(['peTH','peTM','peTS'].includes(e.target.id)){ peReadTgt(); peTgtLine(); } });
 /* 프리런 목표 줄 — 목표 시간을 넣으면 1km 페이스와 '구간 계획대로 안내', 안 넣으면 기록만 */
 /* 미리 보기 둘째 줄 — 목표 프리런이면 목표 기록·1km 페이스(전엔 목표를 넣어도 '자유') */
-function peSum(s){ return s&&s.ftgt&&s.ftgt.sec?`목표 ${fmtClock(s.ftgt.sec)} · 1km ${fmtPace(s.ftgt.sec/(s.ftgt.m/1000))}`:summary(s); }
+function peSum(s){ if(s&&s.type==='off')return '훈련 없음 · 저장하면 이 날을 쉬어요'; return s&&s.ftgt&&s.ftgt.sec?`목표 ${fmtClock(s.ftgt.sec)} · 1km ${fmtPace(s.ftgt.sec/(s.ftgt.m/1000))}`:summary(s); }
 function peTgtLine(){ const el=$('peTgtTx'); if(!el)return; const ok=peTgtOk(PE.km,PE.tsec);
   el.innerHTML=ok?`1km <b>${fmtPace(PE.tsec/PE.km)}</b> · 대회처럼 구간 계획대로 안내`:(PE.tsec?'목표 시간을 다시 확인해요 (1km 2분 30초~15분)':'목표 시간 없음 → 기록만 · 판정 없음'); }
 document.addEventListener('change',e=>{
