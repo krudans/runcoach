@@ -2804,7 +2804,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.00';
+const APPVER='22.01';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -13862,7 +13862,7 @@ function pdDetail(s,its,j){
   /* 목표 — 숫자만 */
   const chips=[];
   if(p){ if(g.end==='time'){ const d0=(g.sec||60)/p[1], d1=(g.sec||60)/p[0]; chips.push(`${ic('pace',13)}${Math.round(d0*100)*10}~${Math.round(d1*100)*10}m`); }
-    else if(x.km>0) chips.push(`${ic('clock',13)}${fmtClock(x.km*p[0])}~${fmtClock(x.km*p[1])}`); }
+    else if(x.km>0) chips.push(`${ic('clock',13)}${x.km<1?Math.round(x.km*1000)+'m':+x.km.toFixed(2)+'km'}에 ${fmtClock(x.km*p[0])}~${fmtClock(x.km*p[1])}`); }   /* 거리를 붙여 '이 구간 걸리는 시간'임을 — 숫자만 있으면 속도와 다른 목표로 읽혔다(사용자 2026-11-23 '어떤 걸 따라야 함?') */
   /* 긴 날 후반 목표 속도 구간은 쉬운 날 심박이 아니다 — 목표 속도 날의 심박 범위로 */
   const HT=(g.hard&&s.mpFinish&&TYPES.mpace&&TYPES.mpace.hrZone)?TYPES.mpace:T;
   if(g.hard&&HT.hrZone&&HT.hrZone[0]) chips.push(`${ic('heart',13)}${HT.hrZone[0]}~${HT.hrZone[1]} ${zLab(HT.hrZone[1]-1)}`);
