@@ -2809,7 +2809,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.04';
+const APPVER='22.05';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6982,7 +6982,9 @@ function commitRun(){
   }catch(e){ console.error(e); }
   /* '오늘 계획 대체'는 고른 그날 뛴 프리런에만 — 전엔 고르고 안 뛰면 값이 남아, 며칠 뒤 프리런이 그 지난 날 계획을 '대체'했다 */
   if(S.result.type==='free'){ const rd=ldate(S.result.date).slice(0,10);
-    if(FREE_INSTEAD&&FREE_INSTEAD.slice(0,10)===rd){ S.result.planId=FREE_INSTEAD; S.result.instead=true; DEV.store.set('runs',RUNS); }
+    if(FREE_INSTEAD&&FREE_INSTEAD.slice(0,10)===rd){ const ps=BLOCK.find(x=>x.d===FREE_INSTEAD);
+      if(!ps||freeCanReplace(ps,S.result.km)){ S.result.planId=FREE_INSTEAD; S.result.instead=true; DEV.store.set('runs',RUNS); }
+      else setTimeout(()=>toast(`거리가 모자라 따로 기록했어요 — ${ps.type==='long'?'LSD':'이지런'}은 ${fmtKm1(freeNeed(ps))}km 넘게 뛰어야 대신해요`),400); }
     if(FREE_DEC&&FREE_DEC.day===rd){ try{ const a=FREE_DEC.a.slice(); a[4]=Object.assign({},a[4],{ref:S.result.rid}); decLog(...a); }catch(e){} }
     FREE_INSTEAD=null; FREE_DEC=null; }
   /* 테스트 러닝이면 새 기준 후보(적용은 '확인' 뒤 결과 시트에서 고른다) */
@@ -7017,6 +7019,8 @@ function sumPlanAdd(sv){ const n=$('sSaved'); if(!n)return; let pb=$('sPlanAdd')
   pb.hidden=true; pb.innerHTML=''; const r=S.result;
   if(!sv||!r||!isRun(r)||r.race||realPlanId(r)||!(r.type==='free'||!r.type)||!hasPlan())return;
   const t=todayStr(), d0=ldate(r.date).slice(0,10), s=planOn(t);
+  if(s&&d0===t&&!RUNS.some(x=>x.planId===s.d)&&!freeCanReplace(s,r.km)){
+    pb.innerHTML=`<p class="meta" style="margin:2px;line-height:1.6">${freeKind(s)?`오늘 훈련(<b>${ESC(s.t||'')}</b>)을 대신하려면 <b>${fmtKm1(freeNeed(s))}km</b> 넘게 뛰어야 해요(${s.type==='long'?'LSD 80%':'이지런 60%'})`:`오늘 훈련(<b>${ESC(s.t||'')}</b>)은 프리런으로 대신할 수 없어요 — 이지런·LSD만 돼요`} · 이 기록은 주간 거리에 들어가요</p>`; pb.hidden=false; pb.onclick=null; return; }
   if(s&&d0===t&&!RUNS.some(x=>x.planId===s.d)&&(+r.km||0)>=0.5&&(+r.sec||0)>=120){
     pb.innerHTML=`<div class="hh"><b>계획에 넣기</b></div><p class="meta" style="margin:4px 2px 10px;line-height:1.6">오늘 훈련 <b>‘${ESC(s.t||'')}’</b> — 이 기록으로 칠 수 있어요</p><button type="button" class="btn" data-spa="link">오늘 훈련으로 기록</button>`;
     pb.hidden=false; pb.onclick=e=>{ if(!e.target.closest('[data-spa="link"]'))return; TRK.load(r).then(()=>{ linkToPlan(r,s); DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(err){} toast('오늘 훈련으로 기록'); pb.innerHTML=`<p class="meta" style="margin:2px">오늘 훈련으로 기록했어요 ✓</p>`; pb.onclick=null; }); };
@@ -10653,8 +10657,15 @@ function restDayRun(r){ if(!r||!isRun(r)||r.race||!hasPlan())return null; let h=
   const km=same.reduce((a,x)=>a+(+contTotal(x)||0),0)||+contTotal(h);
   return {h,d,km:+km.toFixed(1),all:same.length?same:[h]}; }
 /* 이미 뛴 쉬는 날 프리런 → 다가올 훈련 대신으로 인정할 수 있나 */
+/* 프리런이 대신할 수 있는 훈련 = 이지런과 LSD뿐(사용자 2026-11-23). 이지런은 계획 거리의 60%, LSD는 80% 넘게 뛰어야 한다 —
+   LSD는 오래 뛰는 것 자체가 목적이라 짧으면 대신 못 한다. 인터벌·템포·역치·TT·목표 페이스는 정해진 속도가 목적, 회복런은 이지보다 느려야 해서 대신하지 않는다 */
+const freeKind=x=>!!x&&(x.type==='easy'||x.type==='long');
+const freeNeed=x=>Math.max(0.5,sKm(x)*(x&&x.type==='long'?0.8:0.6));
+const freeCanReplace=(x,km)=>freeKind(x)&&(km==null||(+km||0)>=freeNeed(x));
 function restRunTarget(r){ const D=restDayRun(r); if(!D)return null; const d=D.d; r={km:D.km};
-  const nx=restPullTarget(d); if(!nx||nx.type==='tt')return null;   /* TT는 정해진 방식으로 뛰어야 실력 기준이 된다 — 프리런으로 대신하지 않는다 */
+  /* 다가올 3일 안의 '이지런'만 찾는다(바로 다음 훈련이 인터벌이어도 그 뒤 이지런을 대신할 수 있게) */
+  const now=todayStr(), nx=BLOCK.find(x=>x.d.slice(0,10)>d&&x.d.slice(0,10)>=now&&freeCanReplace(x,r.km)&&!x.race&&!RUNS.some(q=>q.planId===x.d)&&(Date.parse(x.d.slice(0,10))-Date.parse(d))/864e5<=3);
+  if(!nx)return null;
   /* 거리가 모자라면 대신할 수 없다 — 10km 빠른 달리기로 LSD 21km를 대신하면 장거리 자극이 빠진다(실제 계획 2026-11-21). 그 훈련 거리의 60%, LSD는 80% 이상 */
   const need=sKm(nx)*(nx.type==='long'?0.8:0.6); return (+r.km||0)>=Math.max(1,need)?nx:null; }
 function openWantRun(){
@@ -10725,6 +10736,7 @@ function actTiles(){
 }
 function startAct(k){
   if(k==='run'){ ACT_MODE=null; const t=todayStr(), s=planOn(t);
+    if(s&&!RUNS.some(r=>r.planId===s.d)&&!freeKind(s)){ FREE_MODE=true; openConfirm(-1); setTimeout(()=>toast(`따로 기록돼요 · 오늘 훈련(${s.t})은 그대로 — 프리런은 이지런·LSD만 대신해요`),300); return; }
     if(s&&!RUNS.some(r=>r.planId===s.d)){
       return openDec({kind:'free',deferLog:true,kicker:'프리런',title:`오늘 계획 있음`,
         rows:[['오늘 계획',ESC(s.t)]],
@@ -11230,7 +11242,7 @@ function todayResultCard(r,sess){
     ${contCan(r,sess)?`<button type="button" class="btn" data-tcont="${r.rid}" style="margin:10px 0 0">이어서 뛰기 · 남은 ${fmtKm1(contLeft(r))}km</button>
       ${todayRuns().filter(x=>x!==r&&!x.contOf&&x.planId!==sess.d&&(x.type==='free'||/^free-/.test(String(x.planId||'')))).map(x=>`<button type="button" class="btn ghost" data-tattach="${x.rid}" data-to="${r.rid}" style="margin:8px 0 0">${String(ldate(x.date)).slice(11,16)} 프리런 ${(+x.km).toFixed(1)}km를 이 훈련에 이어 붙이기</button>`).join('')}`:''}
     <button type="button" class="tr-go" data-tres="${r.rid}">결과 ›</button>
-    <div class="tr-links">${snapBtn('.tres','result','오늘 결과')}${sess&&!linked&&!RUNS.some(x=>x.planId===sess.d)&&(+r.km||0)>=0.5&&(+r.sec||0)>=120?`<button type="button" data-tlink="${r.rid}">오늘 훈련으로 기록</button>`:''}<button type="button" data-tstr="1">스트레칭</button><button type="button" data-redit="${r.rid}">기록 수정</button>${sess?`<button type="button" id="goAgain">다시 뛰기</button>`:''}</div>
+    <div class="tr-links">${snapBtn('.tres','result','오늘 결과')}${sess&&freeCanReplace(sess,+contTotal(r)||r.km)&&!linked&&!RUNS.some(x=>x.planId===sess.d)&&(+r.km||0)>=0.5&&(+r.sec||0)>=120?`<button type="button" data-tlink="${r.rid}">오늘 훈련으로 기록</button>`:''}<button type="button" data-tstr="1">스트레칭</button><button type="button" data-redit="${r.rid}">기록 수정</button>${sess?`<button type="button" id="goAgain">다시 뛰기</button>`:''}</div>
   </section>`;
 }
 document.addEventListener('click',e=>{
