@@ -95,12 +95,21 @@ html[data-theme="dark"]{
 .itop i{display:block;font-style:normal;font-family:var(--num);font-size:11px;font-weight:700;letter-spacing:.42em;color:var(--sage);margin-top:5px}
 .ibig{margin-top:30px;font-size:clamp(38px,11.5vw,50px);font-weight:700;
   line-height:1.2;letter-spacing:-.035em}
-.isub{margin-top:12px;font-size:16px;font-weight:700;color:var(--bone);opacity:.8;letter-spacing:-.2px}
-.ilines{margin-top:34px;display:flex;flex-direction:column;gap:13px}
+.isub{margin-top:34px;font-size:16px;font-weight:700;color:var(--bone);opacity:.8;letter-spacing:-.2px}
+.ilines{margin-top:34px;display:flex;flex-direction:column;gap:13px;position:relative}
+.isteps{margin-top:26px}
+.is{display:grid;grid-template-columns:34px 1fr;column-gap:14px;position:relative;padding-bottom:26px}.is:last-child{padding-bottom:0}
+.is:not(:last-child)::before{content:'';position:absolute;left:16px;top:34px;bottom:4px;width:1.5px;background:rgba(255,255,255,.14)}
+.is .n{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(191,224,200,.55);color:#BFE0C8;display:flex;align-items:center;justify-content:center;font-family:var(--num);font-weight:700;font-size:15px}
+.is b{display:block;font-size:19px;font-weight:700;color:#fff;letter-spacing:-.3px;line-height:1.3;padding-top:4px}
+.is span{display:block;font-size:13.5px;color:rgba(255,255,255,.55);margin-top:5px;line-height:1.55}
+.ileg{display:flex;flex-direction:column;gap:7px;margin-top:11px}.ileg i{font-style:normal;display:flex;align-items:center;gap:9px;font-size:13.5px;color:rgba(255,255,255,.72)}
+.ileg s{width:14px;height:14px;border-radius:5px;flex:none;text-decoration:none}
+#intro .iglink{margin-top:34px}
 .il{display:flex;align-items:center;gap:13px;font-size:16px;color:rgba(255,255,255,.72)}
 .il s{width:30px;height:30px;border-radius:10px;flex:none;text-decoration:none}
 .il b{color:#fff;font-weight:700}
-.ifoot{margin:28px 0 0;font-size:13px;line-height:1.75;color:rgba(255,255,255,.45)}
+.ifoot{margin:22px 0 0;font-size:13px;line-height:1.75;color:rgba(255,255,255,.45)}
 .ibtn{margin-top:auto;width:100%;border:none;border-radius:999px;padding:19px;
   background:var(--bone);color:var(--aub);font-family:inherit;font-size:16px;font-weight:700}
 .iglink{margin-top:12px;width:100%;border:1px solid rgba(255,255,255,.22);border-radius:999px;
@@ -945,6 +954,7 @@ details.noti .sigc{margin:6px 0}
 .qr-row{display:flex;gap:6px;margin-top:8px}
 .qr-a{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;border:none;background:none;color:var(--accent);font:inherit;cursor:pointer;padding:4px 0;border-radius:14px}
 .qr-a b{display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--bg)}
+.qr-a.qs-hi b{box-shadow:0 0 0 2.5px var(--ok)}
 .qr-a:active b{background:color-mix(in srgb,var(--accent) 16%,var(--panel))}.qr-a svg{width:28px;height:28px}.qr-a i{font-style:normal;font-size:13px;font-weight:700;color:var(--ink-2)}
 .hlink{display:block;margin:14px auto 0;background:none;border:none;font:inherit;font-size:12px;font-weight:700;color:var(--ink-3);text-decoration:underline;padding:8px}
 .hsec{margin:20px 20px 0;font-size:13px;font-weight:700;color:var(--ink-2)}
@@ -1347,6 +1357,10 @@ body.mf-on{overflow:hidden}
 .sp-c b{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:36px}
 .sp-c em{font-style:normal;font-size:15px;font-weight:700;color:#BFE0C8;letter-spacing:.01em;margin-top:18px;text-align:center;line-height:1.55}
 .sp-ft{text-align:center;font-size:12px;letter-spacing:.24em;opacity:.55}
+/* 시작 화면 메달 — 내 레벨 메달이 반짝이며 한 바퀴 돈다. 다 돌면 닫힌다(사용자 2026-11-23) */
+.sp-c .sp-med{width:96px;height:96px;display:block}.sp-med .lv3d{width:100%;height:100%;display:block;perspective:600px}
+.sp-med .lv3d-in{animation:lvspin 2.4s cubic-bezier(.45,.05,.35,1) 1 both}
+.sp-lv{margin-top:26px;font-size:14px;line-height:1.7;color:rgba(244,240,234,.62);text-align:center}.sp-c .sp-lv b{display:inline;font-size:inherit;line-height:inherit;letter-spacing:0;margin:0;color:#F4F0EA;font-weight:700}   /* .sp-c b(큰 제목)를 물려받지 않게 */
 @media (prefers-reduced-motion:reduce){#splash{transition:none}}
 
 .calnav{justify-content:flex-start!important;gap:6px}.calnav span{margin-left:auto}.calnav button{border:1px solid var(--line,#E4DCEB);background:var(--panel);border-radius:10px;min-width:30px;height:28px;font-size:16px;font-weight:700;color:var(--ink,#2A1638);cursor:pointer}.calnav button:disabled{opacity:.3}.calnav button.now{font-size:11px;padding:0 8px}.cal .cd.o{opacity:.55}.cal .cd.o em{font-style:normal;font-size:.85em;opacity:.8}
@@ -1546,7 +1560,7 @@ html[data-theme="dark"] [stroke="#5B6A64" i]:not(.tc>svg *):not(.st-mv>svg *):no
 </head>
 <body>
 <div id="splash" role="img" aria-label="가지런하다 · 내 기록 × 검증된 훈련 이론 → 실시간 코칭 프로그램">
-  <div class="sp-c"><span class="brandmark" data-bm="light"></span><b>가지런하다</b><em>내 기록 × 검증된 훈련 이론<br>→ 실시간 코칭 프로그램</em></div>
+  <div class="sp-c"><span class="brandmark" data-bm="light" id="spMark"></span><b>가지런하다</b><em>내 기록 × 검증된 훈련 이론<br>→ 실시간 코칭 프로그램</em><div class="sp-lv" id="spLv"></div></div>
   <div class="sp-ft">가지런</div>
 </div>
 <script>
@@ -1849,21 +1863,20 @@ html[data-theme="dark"] [stroke="#5B6A64" i]:not(.tc>svg *):not(.st-mv>svg *):no
 </style>
 <div class="view" id="intro">
   <div class="ipad">
-    <div class="itop"><span class="brandmark" data-bm="light"></span><span><b>가지런</b><i><span id="verIntro" style="opacity:.55;letter-spacing:.1em"></span></i></span></div>
-    <div class="ibig">가지런하다</div>
-    <div class="isub"><span class="ichip">실시간 코칭 프로그램</span><br>정한 강도·거리·시간대로</div>
-    <div class="ilines">
-      <div class="il"><s style="background:var(--fast)"></s>빠르면 <b>주황</b></div>
-      <div class="il"><s style="background:#7355D6"></s>느리면 <b>보라</b></div>
-      <div class="il"><s style="background:var(--ok)"></s>맞으면 <b>그대로</b></div>
+    <div class="itop"><span class="brandmark" data-bm="light"></span><span><b>가지런하다</b><i><span id="verIntro" style="opacity:.55;letter-spacing:.1em"></span></i></span></div>
+    <div class="isub"><span class="ichip">실시간 러닝 코칭</span></div>
+    <div class="isteps">
+      <div class="is"><div class="n">1</div><div><b>몇 가지 물어보고</b><span>요즘 달리는 양 · 기록 · 달릴 수 있는 요일</span></div></div>
+      <div class="is"><div class="n">2</div><div><b>내 수준에 맞게 일정 짜 주고</b><span>대회·완주 목표까지 매주 훈련을 정해 줘요</span></div></div>
+      <div class="is"><div class="n">3</div><div><b>달릴 때 색·소리로 잡아 준다</b><span>화면을 안 봐도 돼요</span>
+        <div class="ileg"><i><s style="background:var(--fast)"></s>빠르면 주황</i><i><s style="background:#7355D6"></s>느리면 보라</i><i><s style="background:var(--ok)"></s>맞으면 그대로</i></div></div></div>
     </div>
-    <p class="ifoot">화면 안 봐도 됨<br>색·소리로 안내</p>
     <div id="introErr" style="display:none;font-size:12px;color:#FF9B85;margin-bottom:10px;line-height:1.6"></div>
     <button class="iglink" id="introGoogle">
       <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-2.8-.4-4H24v7.3h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36.2 45 30.9 45 24.5z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8.1 41 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4l-7.1-5.5C2.9 17 2 20.4 2 24s.9 7 2.4 9.9l7.1-5.5z"/><path fill="#EA4335" d="M24 10.3c4.1 0 6.9 1.8 8.5 3.3l6.1-6C34.9 4.1 29.9 2 24 2 15.4 2 8.1 7 4.4 14.1l7.1 5.5C13.3 14.1 18.2 10.3 24 10.3z"/></svg>
       구글 계정으로 시작
     </button>
-    <p class="ihint">구글 계정으로 로그인해야 시작돼요<br>기록이 <b>계정에 저장</b>돼 폰을 바꾸거나 앱을 지워도 남아요</p>
+    <p class="ihint">로그인하면 1번부터 시작해요<br>급하면 기본 정보 한 화면 뒤 <b>바로 뛸 수도</b> 있어요</p>
   </div>
 </div>
 
@@ -2791,7 +2804,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='21.98';
+const APPVER='21.99';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -8575,7 +8588,7 @@ async function afterLogin(){
     setTimeout(()=>toast(`구글 계정에서 가져옴 — ${got.join(' · ')}`),80);   /* 브라우저 기본 알림창 대신 앱 안내 */
   } else {
     obStart();
-    setTimeout(()=>toast('처음 한 번만 설문 — 다음 로그인부터 바로 홈'),80);
+    setTimeout(()=>toast('일정을 짜려고 몇 가지 물어볼게요 · 기본 정보 뒤 바로 뛸 수도 있어요'),80);
   }
 }
 $('obSkip').onclick=()=>{
@@ -8598,12 +8611,31 @@ $('obNext').onclick=async()=>{
   btn.disabled=true; let v=true; try{ v=st.ok?await st.ok():true; }finally{ btn.disabled=false; }
   if(v!==true)return obHint(v.m||v, v.f);
   if(OB.i===0){ saveBasics(OB.d); if(OB.only){ OB.only=false; renderHome(); go('home'); toast('기본 정보 저장'); return; } }
+  /* 처음 쓰는 사람 — 설문이 이어지기 전에 고른다. 예전엔 로그인하자마자 설문 4단계 + 목표 질문이 이어져 '뭐 하는 앱인지도 모르는데 설문만' 이었다(사용자 2026-11-23) */
+  if(OB.i===0&&!DEV.store.get('onboarded',false)&&OB.pick!=='plan'){ const c=await startChoice(); if(c==='quick'){ quickStartGo(); return; } if(c!=='plan')return; OB.pick='plan'; }   /* 2단계에서 '이전'으로 돌아와 다시 '다음'이면 또 묻지 않는다 */
   if(OB.i===2&&OB.d.f&&(OB.d.f.heart||OB.d.f.pain)){   /* 체크만 받고 아무 일도 없던 항목 — 시작 전에 한 번 알린다 (ACSM 2015 운동 전 확인, B) */
     const cont=await askSheet({title:'시작 전에 확인해 주세요',html:(OB.d.f.heart?'<b>심장·혈압 관련 진단</b>이 있으면 달리기를 시작하기 전에 <b>의사와 상의</b>해 주세요. 운동 중 가슴 통증·어지럼·숨이 비정상으로 차면 바로 멈춰요.<br><br>':'')+(OB.d.f.pain?'<b>달리다 생긴 통증·부상</b>이 있으면 통증이 없는 범위에서 시작하고, 계속 아프면 진료를 받아 주세요.':''),yes:'확인했어요 · 계속',no:'돌아가기'});
     if(!cont)return; }
   if(OB.i<OBSTEP.length-1){ OB.i++; obPaint(); return; }
   obFinish();
 };
+/* 시작 방법 고르기 — 빠른 시작 / 내 계획 만들기. ✕나 바깥을 누르면 그대로 1단계에 남는다 */
+async function startChoice(){ let pick=null; const cap=e=>{ const b=e.target.closest&&e.target.closest('[data-sc]'); if(b)pick=b.dataset.sc; };
+  document.addEventListener('click',cap,true);
+  const ok=await askSheet({title:'어떻게 시작할까요?',html:`<style>#askSheet .mile-act{display:none}.sc-opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:16px;padding:14px 16px;margin-top:10px;font:inherit;cursor:pointer}.sc-opt b{display:block;font-size:16px}.sc-opt span{display:block;font-size:13px;color:var(--ink-2);margin-top:4px;line-height:1.5}.sc-opt.pri{border-color:var(--accent)}</style>
+    <button type="button" class="sc-opt pri" data-ask="1" data-sc="quick"><b>빠른 시작 · 일단 뛰어 보기</b><span>홈에서 바로 달려요. 첫 번은 기록만 하고, 계획은 나중에 만들어요</span></button>
+    <button type="button" class="sc-opt" data-ask="1" data-sc="plan"><b>내 계획 만들기</b><span>질문 3단계와 목표를 정하면 매주 일정을 짜 주고, 달릴 때 그 속도로 안내해요</span></button>`});
+  document.removeEventListener('click',cap,true); return ok?pick:null; }
+/* 빠른 시작 — '나중에'와 같은 저장(기본 정보만) + 표시. 홈 '계획 없음' 카드가 '내 계획 만들기'로 이어 준다 */
+function quickStartGo(){
+  try{ obSave(); }catch(e){ console.warn('obSave',e); }
+  SURVEY=Object.assign({},SURVEY,{quick:true}); DEV.store.set('survey',SURVEY);
+  DEV.store.set('onboarded',true);
+  renderHome(); go('home');
+  setTimeout(()=>toast('빠른 시작 — 맨 위 ‘달리기’를 누르면 바로 뛰어요'),80);
+}
+/* 빠른 시작으로 들어온 사람 — 설문 2단계부터 이어 하고, 끝나면 목표로 */
+function quickPlanStart(){ obStart(true); OB.i=1; obPaint(); show('onb'); }
 function obFinish(){ obSave();
   /* 설문은 재료일 뿐이다. 바로 목표를 묻고 일정을 만들어 준다 —
      여기서 홈으로 보내면 '설문만 하고 아무것도 안 생기는' 그 앱이 된다. */
@@ -10931,7 +10963,9 @@ function renderHome(){
     ${sig.map(s=>`<button class="sigc" data-sig="${s[0]}"><i class="sig-ic" aria-hidden="true">!</i><span class="sig-t"><b>${ESC(s[1])}</b></span><span class="sig-go">결정</span></button>`).join('')}</details>`+h;
   sysNotify(sig);
   /* 1. 프리런 줄 — 계획이 있든 없든 맨 위, 같은 모양 */
+  if(planned&&SURVEY&&SURVEY.quick){ SURVEY=Object.assign({},SURVEY); delete SURVEY.quick; DEV.store.set('survey',SURVEY); }   /* 계획이 생기면 빠른 시작 표시는 끝 */
   h+=quickGo(true);
+  if(SURVEY&&SURVEY.quick&&!RUNS.length)h=h.replace('class="qr-a" data-act="run"','class="qr-a qs-hi" data-act="run"');   /* 빠른 시작 — 처음 누를 곳 */
   /* 2. 오늘 카드 */
   let hw='';
   const tR=todayRuns()[0], tDone=sess&&RUNS.some(x=>x.planId===sess.d);
@@ -10940,10 +10974,11 @@ function renderHome(){
   else if(sess) hw+=todayCard(sess,idx);
   else if(inP) hw+=restCard(today);
   else hw+=`<div class="tcard lite" style="--k1:${hexes(LOOK.free.bg)[0]};--k2:${hexes(LOOK.free.bg)[1]}">${symSVG('free')}<div class="tin">
-      ${(()=>{ const I=goalEndInfo(); if(!I)return `<span class="tchip">아직 계획 없음</span><div class="ttl">그냥 뛰어도<br>됩니다</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">기록이 3번 쌓이면 내 페이스·심박으로 목표를 제안해요</div>`;
+      ${(()=>{ const I=goalEndInfo(); if(!I){ if(SURVEY&&SURVEY.quick)return RUNS.length?`<span class="tchip">빠른 시작</span><div class="ttl">이 기록으로<br>내 계획 만들기</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">질문 3단계와 목표 → 매주 일정 · 달릴 때 그 속도로 안내</div>`:`<span class="tchip">빠른 시작</span><div class="ttl">일단 한 번<br>뛰어 보세요</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">맨 위 ‘달리기’를 누르면 바로 시작 · 첫 번은 기록만 해요(속도 안내는 기준이 생긴 뒤)</div>`;
+        return `<span class="tchip">아직 계획 없음</span><div class="ttl">그냥 뛰어도<br>됩니다</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">기록이 3번 쌓이면 내 페이스·심박으로 목표를 제안해요</div>`; }
         const md=d=>d.slice(5).replace('-','.'), rest=I.rec&&today<=I.restTo, easy=I.rec&&today<=I.easyTo;
         return `<span class="tchip">${I.hit?'목표 달성':'목표 기간 끝'}</span><div class="ttl">${rest?'오늘은<br>쉬어요':easy?'가볍게<br>회복':'다음 목표를<br>정할 때'}</div><div class="mis-hint" style="max-width:none;margin:6px 0 10px">${ESC(goalLabel(I.g))}${I.race?` · ${fmtClock(I.race.sec)}`:''}${I.rec?` · ${md(I.restTo)}까지 쉼 → ${md(I.easyTo)}까지 가볍게 (Pfitzinger·Daniels 관행)`:''}</div>`; })()}
-      <button class="tgo" id="hGoal">목표 세우기</button></div></div>`;
+      <button class="tgo" id="hGoal">${SURVEY&&SURVEY.quick&&!goalEndInfo()?'내 계획 만들기':'목표 세우기'}</button></div></div>`;
   /* 3. 다음 훈련 한 줄 (훈련 날·계획 없는 날 — 쉬는 날 카드는 자체에 있음) */
   /* 다음 3일 — 날짜·모양·제목·거리. 줄을 누르면 그날 훈련, 머리 글자를 누르면 플랜 전체 */
   { const N3=hasPlan()?BLOCK.filter(x=>x.d.slice(0,10)>today).slice(0,3):[];
@@ -11054,7 +11089,7 @@ function wireHome(sess,idx){
     m.querySelectorAll('[data-qact]').forEach(x=>{ x.classList.toggle('on',x===b); x.setAttribute('aria-checked',x===b); });
     const g=$('qgGo'); if(g){ g.dataset.act=k; g.textContent={run:'달리기 시작',walk:'걷기 시작',bike:'자전거 시작',hike:'등산 기록 시작'}[k]+' ▶'; } });
   const np=$('notiPerm'); if(np)np.onclick=async()=>{ try{ const r=await Notification.requestPermission(); if(r==='granted'){ DEV.store.set('notiSeen',{}); toast('알림창 표시'); } }catch(e){} renderHome(); };
-  const hg=$('hGoal'); if(hg)hg.onclick=()=>goalStart();
+  const hg=$('hGoal'); if(hg)hg.onclick=()=>(SURVEY&&SURVEY.quick?quickPlanStart():goalStart());
   const hg2=$('homeGoal2'); if(hg2)hg2.onclick=()=>goalStart();
   const go1=$('goToday'); if(go1)go1.onclick=()=>openConfirm(idx);
   const ga=$('goAgain'); if(ga)ga.onclick=()=>openConfirm(idx);
@@ -13942,9 +13977,15 @@ function goalBadge(){
 /* 시작 화면 — 브랜드 한 장: 가지런 · 실시간 코칭 프로그램 · 가지런하다 */
 function splashRun(){ const sp=$('splash'); if(!sp)return;
   try{ sessionStorage.setItem('rc_splashed','1'); }catch(e){}
+  /* 로고 자리 = 내 레벨 메달(반짝이며 한 바퀴) + 아래에 다음 레벨까지 남은 러닝 마일리지. 못 그리면 예전 로고 */
+  let medal=false; try{ const km=mileage().total, i=lvIx(km), L=LV[i], N=LV[i+1], mk=$('spMark');
+    if(mk){ mk.removeAttribute('data-bm'); mk.className='sp-med'; mk.innerHTML=coin3D(i,96,{once:true}); medal=true; }
+    const lv=$('spLv'); if(lv)lv.innerHTML=N?`다음 <b>${N.ko}</b>까지 <b>${kmc(N.km-kmF(km))}km</b>`:`최고 레벨이에요`;   /* 지금 레벨·누적 km 줄은 뺌(사용자 2026-11-23 '지금 레벨 설명은 필요없음') */
+    sp.setAttribute('aria-label',`가지런하다 · ${L.ko} 레벨`+(N?` · 다음 ${N.ko}까지 ${kmc(N.km-kmF(km))}km`:'')); }catch(e){ medal=false; }
   try{ mountBrand(); }catch(e){}
   let done=false; const end=()=>{ if(done)return; done=true; sp.classList.add('out'); setTimeout(()=>sp.remove(),300); };
-  sp.addEventListener('click',end); setTimeout(end,1100); }
+  /* 메달이 한 바퀴(2.4초) 다 돈 뒤 닫는다 — 예전엔 1.1초. 로고만 뜬 경우도 같은 길이. 누르면 바로 넘어간다 */
+  sp.addEventListener('click',end); setTimeout(end,medal?2600:2400); }
 /* 지난번에 연결했던 기기가 켜져 있으면 조용히 다시 붙는다 */
 (async()=>{ try{
   if(!BT.name||!navigator.bluetooth)return;
