@@ -1814,7 +1814,8 @@ html[data-theme="dark"] [stroke="#5B6A64" i]:not(.tc>svg *):not(.st-mv>svg *):no
 .mpick.on{border-style:solid;border-color:var(--accent);color:var(--accent)}
 .mbar{display:flex;align-items:center;gap:4px;width:100%;max-width:420px;background:var(--panel-2);border-radius:14px;padding:4px 6px 4px 14px}
 .mbar .mb-t{flex:1;min-width:0;text-align:left;background:none;border:none;font:inherit;font-size:13px;font-weight:700;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:10px 0;cursor:pointer}
-.mbar.on .mb-t{color:var(--ink)}.sum-saved{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:var(--ok-bg,#E3F4EC);color:var(--ok,#167A4F);font-size:13px;font-weight:700}.rv-note{margin:0 0 10px;padding:8px 10px;border-radius:10px;background:var(--panel-2);font-size:12px;color:var(--ink-2);line-height:1.5}.mbar.empty [data-m]{display:none}
+.mbar.on .mb-t{color:var(--ink)}.sum-padd{margin:10px 0 4px}
+.sum-saved{margin:0 0 10px;padding:9px 12px;border-radius:10px;background:var(--ok-bg,#E3F4EC);color:var(--ok,#167A4F);font-size:13px;font-weight:700}.rv-note{margin:0 0 10px;padding:8px 10px;border-radius:10px;background:var(--panel-2);font-size:12px;color:var(--ink-2);line-height:1.5}.mbar.empty [data-m]{display:none}
 .mbar [data-m]{width:40px;height:40px;border:none;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;border-radius:10px}
 .mbar [data-m] svg{width:20px;height:20px}.mbar [data-m=toggle]{background:var(--accent-bg);color:#fff}
 .msheet{position:fixed;inset:0;z-index:80;background:rgba(42,22,56,.38);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .2s}
@@ -2808,7 +2809,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.03';
+const APPVER='22.04';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -7009,7 +7010,20 @@ function sumLeave(){ try{ sumFlush(); }catch(e){}
 function sumButtons(){ const sv=!!(S.result&&S.result._saved), b=$('btnSave'), d=$('btnDone');
   /* 버튼 이름은 늘 '기록 저장'·'저장 없이 닫기' — v20.95에서 자동 저장을 넣으며 '확인'·'이 기록 지우기'로 바꿨다가, 쓰던 이름이 사라져 혼란을 줘서 되돌렸다(2026-11-17). 하는 일은 같다: 위는 고른 것까지 저장하고 닫기, 아래는 이 기록을 남기지 않기(한 번 묻는다) */
   if(b)b.textContent='기록 저장'; if(d)d.textContent='저장 없이 닫기';
-  const n=$('sSaved'); if(n){ n.hidden=false; n.textContent=sv?'저장됨 · 아래 고르는 것도 바로 저장돼요':'1분·50m 미만이라 저장하지 않았어요 · 남기려면 아래 기록 저장'; } }
+  const n=$('sSaved'); if(n){ n.hidden=false; n.textContent=sv?'저장됨 · 아래 고르는 것도 바로 저장돼요':'1분·50m 미만이라 저장하지 않았어요 · 남기려면 아래 기록 저장'; }
+  try{ sumPlanAdd(sv); }catch(e){} }
+/* 계획 없이 뛴 기록을 끝난 자리에서 계획에 넣는다(사용자 2026-11-23) — 전엔 홈 카드('오늘 훈련으로 기록')나 러닝일지('쉬는 날에 뛴 기록')에서만 할 수 있어 찾기 어려웠다. 하는 일은 그 둘과 같다 */
+function sumPlanAdd(sv){ const n=$('sSaved'); if(!n)return; let pb=$('sPlanAdd'); if(!pb){ pb=document.createElement('div'); pb.id='sPlanAdd'; pb.className='hc sum-padd'; n.after(pb); }
+  pb.hidden=true; pb.innerHTML=''; const r=S.result;
+  if(!sv||!r||!isRun(r)||r.race||realPlanId(r)||!(r.type==='free'||!r.type)||!hasPlan())return;
+  const t=todayStr(), d0=ldate(r.date).slice(0,10), s=planOn(t);
+  if(s&&d0===t&&!RUNS.some(x=>x.planId===s.d)&&(+r.km||0)>=0.5&&(+r.sec||0)>=120){
+    pb.innerHTML=`<div class="hh"><b>계획에 넣기</b></div><p class="meta" style="margin:4px 2px 10px;line-height:1.6">오늘 훈련 <b>‘${ESC(s.t||'')}’</b> — 이 기록으로 칠 수 있어요</p><button type="button" class="btn" data-spa="link">오늘 훈련으로 기록</button>`;
+    pb.hidden=false; pb.onclick=e=>{ if(!e.target.closest('[data-spa="link"]'))return; TRK.load(r).then(()=>{ linkToPlan(r,s); DEV.store.set('runs',RUNS); try{ afterRunsChanged(); }catch(err){} toast('오늘 훈련으로 기록'); pb.innerHTML=`<p class="meta" style="margin:2px">오늘 훈련으로 기록했어요 ✓</p>`; pb.onclick=null; }); };
+    return; }
+  if(restDayRun(r)){
+    pb.innerHTML=`<div class="hh"><b>계획에 넣기</b></div><p class="meta" style="margin:4px 2px 10px;line-height:1.6">쉬는 날에 뛴 기록이에요 · 다가올 훈련을 대신하거나 추가 훈련으로 넣을 수 있어요</p><button type="button" class="btn ghost" data-spa="rest">계획에 넣기 ›</button>`;
+    pb.hidden=false; pb.onclick=e=>{ if(!e.target.closest('[data-spa="rest"]'))return; openRunView(r.rid,'home'); }; } }
 $('btnSave').onclick=()=>{
   if(!S.result)return;
   if(!S.result._saved){ commitRun(); }
