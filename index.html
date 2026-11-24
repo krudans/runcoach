@@ -2810,7 +2810,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.07';
+const APPVER='22.08';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6181,6 +6181,9 @@ function onTick(){
     else { state='ok'; pill=tg.rwk==='run'?'달리는 중 · 말할 수 있게':tg.rwk==='walk'?'걷는 중 · 숨 고르기':'편하게 걷기'; say=tg.rwk==='run'&&s.rw.check&&tg.rep===3?'말 끊기면 감속':''; } }
   if(S.extra&&(state==='ok'||state==='okhr')){ pill='계획 완료 · 계속 기록 중'; say='초과도 기록 · 1km 안내'; }
   if(S.act&&S.act!=='run'){ try{ const A=actTick(km,moving); state='ok'; pill=A.pill; say=A.say||''; $('rSegName').textContent=ACTK[S.act].nm; $('rSegTgt').textContent='판정 없음 · 현재만'; }catch(e){} }
+  /* GPS가 끊겨 속도를 모르는데(심박 판정도 없을 때) '좋아요'라고 하면 거짓말이다 — 실제 달리기 2026-11-24 새벽 화면: 'GPS 끊김 · 멈춤'인데 큰 글씨는 '좋아요'.
+     원인: 상태는 매초 'ok'로 시작하고, 속도가 없을 때는 아무 규칙도 그걸 바꾸지 않았다. 이제 사실대로 + 주의 색 */
+  if(S.gpsGap&&(!S.act||S.act==='run')&&(state==='ok'||state==='okhr')&&!(hrPrimary&&S.hr&&S.hr.bpm)){ state='soon'; pill=(S.stride&&S.cad&&S.cad.spm)?'GPS 끊김 · 걸음으로 거리 추정':'GPS 끊김 · 거리·판정 잠시 멈춤'; say=''; }
   if(state!==S.bannerState){ S.bannerState=state; $('run').dataset.state=state; }
 
   /* 중단 권고 — 이것만 맥박친다. 아끼지 않으면 늑대 소년이 된다. */
@@ -6454,18 +6457,22 @@ const BZ={tick:[140], off:[130,90,130,90,130], stop:[600,200,600,200,600]};
    다시 시작: GPS로 12m 넘게 움직임(좌표 두 번 연속, 또는 속도 초속 1.2m 넘음) 또는 걸음 센서에 걸음이 3초 이어짐(달리기 140보, 걷기·등산 90보) */
 function apCheck(tg){
   if(!S.running||S.paused||!S.opts||S.opts.ap===false)return false;
-  if(S.elapsed<30||S.dist<50||(S.stillSec||0)<6)return false;
+  /* '6초 제자리'를 마지막으로 GPS가 움직인 때부터 바로 잰다 — 예전엔 '움직임 없음'이 마지막 움직임 8초 뒤부터 세어져 실제로는 14~16초를 서 있어야 멈췄다(시험 2026-11-24).
+     걸음은 cadence()로 본다 — 3초 넘게 신호가 없으면 값 없음. 예전엔 마지막 값(예: 180)이 남아 서 있어도 '뛰는 걸음'으로 보고 멈추지 않을 수 있었다 */
+  const stillFor=S.lastMove?(Date.now()-S.lastMove)/1000:(S.stillSec||0);
+  if(S.elapsed<30||S.dist<50||stillFor<6)return false;
   if(S.gpsGap||!S.lastGoodAt||Date.now()-S.lastGoodAt>4000)return false;
   if(tg&&(tg.end==='time'||tg.nm===tm('rest')))return false;
-  if(S.act!=='bike'&&S.cad&&S.cad.spm&&S.cad.spm>=(S.act==='run'?130:90))return false;
-  const back=Math.min(S.stillSec||0,10);   /* 제자리였던 초(최대 10초)도 시간에서 뺀다 */
+  let cn=null; try{ cn=cadence(); }catch(e){}
+  if(S.act!=='bike'&&cn&&cn>=(S.act==='run'?130:90))return false;
+  const back=Math.min(stillFor,10);   /* 제자리였던 초(최대 10초)도 시간에서 뺀다 */
   S.paused=true; S.autoPz=true; S._p=Date.now()-back*1000; S.elapsed=Math.max(0,S.elapsed-back); S.lastTickEl=S.elapsed;
   S.apN=(S.apN||0)+1; S.apStep=0; S.apMv=0; S.apRef=S.lastFix?{lat:S.lastFix.lat,lon:S.lastFix.lon}:null;
   S.anchor=null; S.smooth=null; S.win=[];
   setPauseIcon(true); $('btnStop').hidden=false; try{ $('rRow').classList.add('pzd'); }catch(e){} $('rCtl').classList.remove('one');
   const b=$('apBox'); if(b)b.hidden=false; $('rTime').textContent=fmtClock(S.elapsed);
   try{ DEV.buzz(BZ.tick); }catch(e){}
-  DEV.speak('멈춰서 자동으로 일시정지했습니다. 다시 움직이면 이어서 기록합니다.',true);
+  DEV.speak('움직임이 없어 일시정지합니다.',true);   /* 짧게 — 사용자 2026-11-24 'Pausing due to no movement'. GPS가 잘 잡히는데 안 움직일 때만(끊김엔 멈추지 않음) */
   liveSave(); return true; }
 /* 달리기 중 걷는 속도가 3분 이어지면 한 번 알림 — 시계 기록 2026-11-21: 하프 뒤 집까지 걸은 8km가 같은 기록에 섞여 평균 7'11"이 됨.
    걷는 속도 = 1km 9분보다 느리고(20분보다는 빠름) 걸음이 130보 아래(또는 센서 값 없음) · GPS 정상 · 시작 10분·2km 지남.
