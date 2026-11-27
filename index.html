@@ -2810,7 +2810,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.08';
+const APPVER='22.09';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -5311,7 +5311,9 @@ function openConfirm(i){
     (T.hint?`<div class="bi more"><div class="bk">알아둘 것</div><div class="bv">${T.hint}</div></div>`:'')+
     '';   /* 문헌 인용은 화면에 안 쓴다. 계산에만 쓴다. */
   br.innerHTML=
-    (T.primaryLabel?`<div class="bi key">${ic('flag',16)}<b>${T.primaryLabel}</b></div>`:'')+
+    /* 목표 기록을 넣은 프리런이면 '목표 없음'이라 쓰지 않는다 — 실제 화면 2026-11-26: 바로 위엔 '구간 계획 · 목표 2:50:00', 아래 줄엔 '목표 없음 — 편한 대로'.
+       원인: 이 줄은 훈련 종류의 고정 문구만 썼고, 목표를 고를 때(upd)만 바꿨다 — 저장된 목표로 다시 열면 고정 문구가 그대로 */
+    (()=>{ const tg=(s.ftgt&&s.ftgt.sec)||(s.race&&s.race.self&&s.race.sec); return (T.primaryLabel||tg)?`<div class="bi key">${ic('flag',16)}<b>${tg?'목표 기록 — 구간 계획대로':T.primaryLabel}</b></div>`:''; })()+
     auditSession(s).map(w=>`<div class="bi warn"><div class="bv">${w.m}</div></div>`).join('')+
     '';
   const tg=$('cTog');
@@ -16232,7 +16234,7 @@ function goalPageHTML(){ try{
   let prog=''; try{ const st=PLAN&&PLAN.start?String(PLAN.start).slice(0,10):null; if(st&&g.date&&st<gd){ const a=Date.parse(st+'T12:00:00'), b=Date.parse(gd+'T12:00:00'), n=Date.parse(t+'T12:00:00');
       const f=Math.max(0,Math.min(1,(n-a)/(b-a))), totW=Math.max(1,Math.round((b-a)/6048e5)), curW=Math.max(1,Math.min(totW,Math.floor((n-a)/6048e5)+1));
       prog=`<div class="gp-prog"><div class="gp-pk"><span>준비 기간</span><b>${totW}주 중 ${curW}주째 · ${Math.round(f*100)}%</b></div><div class="gp-bar"><i style="width:${(f*100).toFixed(1)}%"></i></div><div class="gp-pe"><span>${dot(st)}</span><span>${dot(gd)}</span></div></div>`; } }catch(e){}
-  const eq=RL_D.map(([d,l])=>{ const q=predRange(VDOT,d); return `<div class="${rlDist(m)===d?'on':''}"><i>${l}</i><b class="num">${Math.abs(q.hi-q.lo)<60?fmtClock(q.lo):fmtHMr(q.lo)+'~'+fmtHMr(q.hi)}</b></div>`; }).join('');
+  const eq=RL_D.map(([d,l])=>{ const q=predRange(VDOT,d); return `<div class="${rlDist(m)===d?'on':''}"><i>${l}</i><b class="num">${predText(q)}</b></div>`; }).join('');
   /* 최근 8주 주간 거리 — 작은 막대(이번 주는 진하게). 얼마나 쌓아 왔는지 한눈에 */
   let wkBars=''; try{ const mon0=weekMonday(t), W8=[]; for(let i=7;i>=0;i--){ const mon=addDays(mon0,-7*i); W8.push({mon,km:0}); }
     (RUNS||[]).forEach(r=>{ if((r.act||'run')!=='run')return; const w=W8.find(x=>x.mon===weekMonday(ldate(r.date).slice(0,10))); if(w)w.km+=(+r.km||0); });
@@ -16240,7 +16242,7 @@ function goalPageHTML(){ try{
       wkBars=`<div class="gp-opt gp-wk"><div class="gp-eqh">최근 8주 달린 거리</div><svg viewBox="0 0 ${BW} ${BH}" role="img" aria-label="최근 8주 주간 거리" style="display:block;width:100%">
         ${W8.map((x,i)=>{ const h=x.km>0?Math.max(3,x.km/mx*30):0, cx=P+bw*i+bw/2, cur=i===7;
           return `${h?`<rect x="${(cx-bw*0.32).toFixed(1)}" y="${(B0-h).toFixed(1)}" width="${(bw*0.64).toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${cur?'#5B2D8C':'#C9B8E0'}"/>`:`<line x1="${(cx-bw*0.32).toFixed(1)}" x2="${(cx+bw*0.32).toFixed(1)}" y1="${B0}" y2="${B0}" stroke="#D9D2E3" stroke-width="2"/>`}
-            <text x="${cx.toFixed(1)}" y="${(B0-h-4).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${cur?'#2A1638':'#6B6078'}">${x.km>0?(x.km>=10?Math.round(x.km):x.km.toFixed(1)):''}</text>
+            <text x="${cx.toFixed(1)}" y="${(B0-h-4).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${cur?'#2A1638':'#6B6078'}">${x.km>0?x.km.toFixed(1):''}</text>
             <text x="${cx.toFixed(1)}" y="${B0+14}" text-anchor="middle" font-size="9.5" fill="#8A8096" font-weight="${cur?700:500}">${cur?'이번 주':(+x.mon.slice(5,7))+'.'+(+x.mon.slice(8,10))}</text>`; }).join('')}
       </svg></div>`; } }catch(e){}
   const pr=snapFills('__parts'); let ol='', mg='', pmc=''; try{ ol=pr.ol().replace(/<div class="ol-now">[\s\S]*?<\/div>\s*(?=<svg)/,''); }catch(e){}   /* 지금·대회일 예상은 위 칸에 이미 있다 — 그래프만 */ try{ mg=pr.mGoal(); }catch(e){} try{ pmc=pr.pmc(); }catch(e){}
