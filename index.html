@@ -2810,7 +2810,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
    런코치 v3
    기기 기능은 DEV 창구 한 겹을 거친다 → 네이티브 이식 시 안쪽만 교체
    ══════════════════════════════════════════════════════════════════════ */
-const APPVER='22.09';
+const APPVER='22.10';
 
 /* ───────── 새 버전 자동 받기 ─────────
    옛날 서비스워커가 헌 파일을 붙들고 안 놓는 일이 계속 있었다.
@@ -6689,7 +6689,12 @@ function renderSummary(completed){
   const cadAvg=cc.length>20?Math.round(cc.reduce((a,b)=>a+b,0)/cc.length):null;
   /* 케이던스가 '—'일 때 까닭을 기록에 남긴다 — 전엔 왜 안 잡혔는지 알 길이 없었다(실제 기기 2026-11-18: 1분 40초 프리런에 '—') */
   const cadWhy=cadAvg?null:!(S.opts&&S.opts.cad)?'off':!(S.cad&&S.cad.nEv)?'nosig':{valid:cc.length,ev:S.cad.nEv||0,spm:S.cad.spm||null};
-  const cal=Math.round(1.036*(PROF.w||75)*km);
+  /* 열량 — 달린 부분은 1.036 × 체중 × km(어림식), 걸은 부분(시속 2~6.3km)은 ACSM 걷기 식 (0.1 × 분속 + 3.5) mL/kg/분 × 5kcal/L = (0.5 + 17.5 ÷ 분속) kcal/kg/km.
+     전엔 걸은 거리까지 달리기 식 — 8분 걸은 4.13km가 347kcal(나이키 262, 실제 화면 2026-11-26) */
+  const calSplit=(()=>{ try{ const P=(S.pts||[]).filter(p=>isFinite(p.t)&&!p.veh); let wk=0,wkc=0,rk=0;
+    for(let i=1;i<P.length;i++){ const dt=(P[i].t-P[i-1].t)/1000; if(!(dt>0)||dt>60||P[i].pz)continue; const d=haversine(P[i-1],P[i]), v=d/dt; if(v<0.55)continue; if(v<1.75){ wk+=d; wkc+=d*(0.5+17.5/Math.max(40,v*60)); } else rk+=d; }
+    const tot=wk+rk; if(tot<100||S.act&&S.act!=='run')return null; const f=km*1000/tot; return {walkKm:+(wk*f/1000).toFixed(2),walkK:wkc*f/1000}; }catch(e){ return null; } })();
+  const W0=PROF.w||75, useW=calSplit&&calSplit.walkKm>=0.05, cal=useW?Math.round(W0*(1.036*Math.max(0,km-calSplit.walkKm)+calSplit.walkK)):Math.round(1.036*W0*km);
   const reps=S.segRecords.filter(r=>r.hard&&isFinite(r.actual)).map(r=>r.actual);
   const spread=reps.length>=2?Math.round(Math.max(...reps)-Math.min(...reps)):null;
   /* 판정은 계획한 부분만 — 더 뛴 부분은 거리·부하에는 들어가지만 약속 판정에는 넣지 않는다 */
@@ -6802,7 +6807,7 @@ function renderSummary(completed){
     ap:S.apN?{n:S.apN,sec:Math.round(S.apSec||0)}:null,   /* 자동 일시정지 — 횟수·뺀 시간 */
     gq:S.gq?{n:S.gq.n,bad:S.gq.bad,acc:S.gq.n?Math.round(S.gq.sum/S.gq.n):null,max:S.gq.max,gapN:S.gapN||0,gapSec:Math.round(S.gq.gapSec||0),rearm:S.gq.rearm||0,err:S.gq.err||0}:null,   /* GPS 품질 */   /* 화면 꺼짐·다른 앱으로 위치를 못 받은 시간 */
     hrAvg,hrMax:Math.max(heldMax(S.hr.samples,5)||S.hr.max||0,hrAvg||0)||null,   /* 최고는 평균보다 낮을 수 없다 — 값이 1~2씩 흔들리면 '5초 유지' 값이 평균보다 낮게 나왔다(평균 138 · 최고 137, 2026-11-17 시험) */   /* 최고 심박 = 5초 넘게 유지된 값 — 광학 센서가 한 번 튄 값이 아니라 */
-    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadWhy,cadSrc:(cadAvg&&S.cad&&(S.cad.wN||0)>cc.length/2)?'dev':undefined,cal,calW:(PROF.w||null),asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
+    hrMaxHeld:heldMax(S.hr.samples,30),drift:S.drift||null,cadAvg,cadRun:(()=>{ const a=cc.filter(v=>v>=130); return a.length>20&&a.length<cc.length*0.97?Math.round(a.reduce((x,y)=>x+y,0)/a.length):null; })(),cadWhy,cadSrc:(cadAvg&&S.cad&&(S.cad.wN||0)>cc.length/2)?'dev':undefined,cal,calW:(PROF.w||null),calWalkKm:useW?calSplit.walkKm:undefined,asc:isFinite(S.asc)?Math.round(S.asc):null,desc:isFinite(S.desc)?Math.round(S.desc):null,
     ceilSec:Math.round(S.ceilSec),ceilRatio:+ceilRatio.toFixed(3),
     zones:(S.zoneSec||[]).map(x=>Math.round(x)), zoneB:zoneBounds(),
     hrOverSec:Math.round(S.hrOverSec),hrOverRatio:+hrOverRatio.toFixed(3),spread,distRatio:isFree?null:+distRatio.toFixed(3),
@@ -7084,7 +7089,7 @@ function hidNote(r){ return r&&r.hidSec>=20?`<p class="hidnote">⚠ 화면 꺼�
 function apNote(r){ const a=r&&r.ap; return a&&a.n?`<p class="gqnote">자동 일시정지 ${a.n}번 · ${hidFmt(a.sec)} (시간에서 뺌)</p>`:''; }
 function gqNote(r){ const q=r&&r.gq; if(!q||!q.n&&!q.gapSec&&!q.err)return q?'<p class="gqnote bad">GPS 좌표를 하나도 받지 못했어요</p>':'';
   const badPct=q.n?Math.round(q.bad/q.n*100):0, per=r.sec&&q.n?(r.sec/q.n):0, warn=badPct>=30||q.gapSec>=60||(per>3);
-  return `<p class="gqnote${warn?' bad':''}">GPS 좌표 ${q.n.toLocaleString()}개${per?` (${per<0.9?'1초에 '+(1/per).toFixed(1)+'개':per<1.05?'1초마다':per.toFixed(1)+'초에 1개'})`:''} · 평균 정확도 ±${q.acc}m · 버린 좌표 ${badPct}%${q.gapSec>=10||q.gapN?` · 끊김 ${q.gapN||0}번 ${hidFmt(q.gapSec)}`:''}${q.rearm?` · 다시 연결 ${q.rearm}번`:''}${warn?' — 거리가 실제보다 짧을 수 있어요':''}</p>`; }
+  return `<p class="gqnote${warn?' bad':''}">GPS 좌표 ${q.n.toLocaleString()}개${per?` (${per<0.9?'1초에 '+(1/per).toFixed(1)+'개':per<1.05?'1초마다':per.toFixed(1)+'초에 1개'})`:''} · 평균 정확도 ±${q.acc}m · 버린 좌표 ${badPct}%${q.gapSec>=10||q.gapN?` · 끊김 ${q.gapN||0}번 ${q.gapSec>=1?hidFmt(q.gapSec):'1초 미만'}`:''}${q.rearm?` · 다시 연결 ${q.rearm}번`:''}${warn?' — 거리가 실제보다 짧을 수 있어요':''}</p>`; }
 function hidBanner(sec,tot){ let b=$('hidBan'); if(!b){ b=document.createElement('div'); b.id='hidBan'; b.setAttribute('role','alert'); document.body.appendChild(b); b.addEventListener('click',()=>{ b.hidden=true; }); }
   b.innerHTML=`<b>위치를 못 받은 시간 ${hidFmt(sec)}</b><span>${window.GAJI_NATIVE?'앱이 가려진 동안 휴대폰이 위치를 넘겨 주지 않았어요.':'화면이 꺼지거나 다른 앱이 앞에 있었어요.'} 그 구간은 직선거리로만 이어져 실제보다 짧게 기록돼요.${tot>sec?` 오늘 합계 ${hidFmt(tot)}.`:''}</span><span>${window.GAJI_NATIVE?'휴대폰 설정에서 가지런의 위치 권한·배터리 사용 제한 확인':'이 화면을 켜 둔 채로 뛰세요'} · 눌러서 닫기</span>`; b.hidden=false; }
 document.addEventListener('visibilitychange',()=>{ try{
@@ -11550,9 +11555,9 @@ function runScore(r,s){ try{
   else if(hrZonesOf(r)&&(T.primary==='hr'||T.judgeBy==='distance')){ const z=hrZonesOf(r), t=z.reduce((a,b)=>a+b,0); if(t>=60) P.push(['편한 구간',Math.round(20*Math.min(1,((z[0]||0)+(z[1]||0))/t/0.7)),20]); }
   if(!P.length)return null;
   /* 강도를 지킨 점수(심박·속도 상한, 편한 구간, 목표 속도, 회차 고르게)는 약속한 거리를 뛴 만큼만 준다 — 전엔 8.5km 약속에 1.9km를 걷고도 '심박 상한 40/40 · 편한 구간 20/20'으로 70점(실제 기기 2026-11-17) */
-  if(ratio!=null){ const k=Math.min(1,Math.max(0,ratio)/th.dist); if(k<1)P.forEach(x=>{ if(x[0]!=='거리')x[1]=Math.round(x[1]*k); }); }
+  let scaleK=null; if(ratio!=null){ const k=Math.min(1,Math.max(0,ratio)/th.dist); if(k<1){ scaleK=k; P.forEach(x=>{ if(x[0]!=='거리')x[1]=Math.round(x[1]*k); }); } }
   const max=P.reduce((a,x)=>a+x[2],0), got=P.reduce((a,x)=>a+x[1],0);
-  return {score:Math.round(got/max*100),parts:P};
+  return {score:Math.round(got/max*100),parts:P,scaleK,ratio,thDist:th.dist};
 }catch(e){ return null; } }
 function dayScore(d){ /* 그날 점수 — 계획과 짝이 맞는 기록 우선. 계획 없는 날(쉬는 날)은 휴식 점수 */
   const rs=RUNS.filter(r=>isRun(r)&&ldate(r.date).slice(0,10)===d);
@@ -11650,7 +11655,7 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
   const planned=days.filter(x=>(x.s||(x.rk&&x.rk.k!=='plain'))&&!preP(x)), nP=planned.length, got=planned.reduce((a,x)=>a+(x.sc||0),0), doneN=planned.filter(x=>x.s&&x.sc!=null).length, nRun=planned.filter(x=>x.s).length;
   const wkPct=nP?Math.round(got/(nP*100)*100):null; if(isCur)WEEK_PCT={pct:wkPct,done:doneN,n:nRun};
   const todaySc=days[dIx]&&days[dIx].sc;
-  const cmp=prevL?`부하 ${sumL} · ${isCur?'지난주':'그 전 주'} ${Math.round(prevL)}${diff!=null?` (${isCur?'같은 요일까지 ':''}${diff>0?'+':''}${diff}%)`:''}`:`부하 ${sumL}`;
+  const cmp=prevL?(isCur&&diff!=null?`부하 ${sumL} · 지난주 같은 요일까지 ${Math.round(prevUpto)} (${diff>0?'+':''}${diff}%)`:`부하 ${sumL} · ${isCur?'지난주':'그 전 주'} ${Math.round(prevL)}${diff!=null?` (${diff>0?'+':''}${diff}%)`:''}`):`부하 ${sumL}`;   /* 전엔 '지난주 342 (같은 요일까지 -67%)' — 342는 한 주 전체, -67%는 같은 요일까지(61)와 비교라 숫자가 맞지 않아 보였다 */
   if(!o.full) return `<section class="wstrip" aria-label="이번 주 훈련">
     <div class="ws-h"><b>이번 주 달성</b><span class="num">${wkPct!=null?`<b>${wkPct}</b>%`:'<b>—</b>'}</span></div>
     <div class="ws-sub">${nP?`훈련 ${nRun}회 중 ${doneN}회${nP>nRun?` · ${tm('off')} ${nP-nRun}일`:''}${todaySc!=null?` · 오늘 ${todaySc}점`:''} · `:''}${cmp}</div>
@@ -11736,7 +11741,7 @@ function weekStrip0(o){ /* 계획이 없어도(끝났거나 그냥 뛰는 사람
   const zt=zs.reduce((a,b)=>a+b,0);
   let zSec='';
   if(zt>=600){ const g=[[zs[0]+zs[1],'쉬운 (존 1~2)',ZCOL[1]],[zs[2],'중간 (존 3)',ZCOL[2]],[zs[3]+zs[4],'힘든 (존 4~5)',ZCOL[3]]].map(([v,n,c])=>({v,n,c,p:Math.round(v/zt*100)}));
-    const easyP=g[0].p, msg=easyP>=75?'쉬운 강도가 충분해요':easyP>=60?'쉬운 강도가 조금 모자라요 — 이지·LSD는 심박 상한을 지켜 보세요':'힘든 쪽이 많아요 — 이지·LSD 날 심박 상한을 지켰는지 확인해 보세요';
+    const easyP=g[0].p, msg=easyP>=80?'쉬운 강도가 충분해요':easyP>=60?'쉬운 강도가 조금 모자라요 — 이지·LSD는 심박 상한을 지켜 보세요':'힘든 쪽이 많아요 — 이지·LSD 날 심박 상한을 지켰는지 확인해 보세요';
     zSec=`<section class="wstrip ws-more"><div class="ws-h"><b>이번 주 강도 나눔</b><span>이번 주 심박 존 시간 ${fmtClock(zt)}</span></div>
       <div class="wk-zb">${g.filter(x=>x.v>0).map(x=>`<i style="flex:${x.v};background:${x.c}"></i>`).join('')}<u style="left:80%"></u></div>
       <div class="wk-zl">${g.map(x=>`<span><i style="background:${x.c}"></i>${x.n} <b>${x.p}%</b></span>`).join('')}</div>
@@ -12331,7 +12336,7 @@ function promiseRows(r,s){
     const ce=r.ceiling||s.ceiling, hj=hrJudged(r);
     /* 심박이 기준인 날은 심박으로 판정하고 속도 줄은 참고로만 — 목록·달력(runPass)과 같은 결론 */
     if(hj&&r.hrCap&&r.hrCap>HRMAX*0.82) rows.push([`쉬운 날 심박 상한 ${r.hrCap}`,`최대 ${HRMAX}의 ${Math.round(r.hrCap/HRMAX*100)}% — 쉬운 날(80%, ${Math.round(HRMAX*0.8)})↑ · 88%↑ = 역치(템포) (Daniels, B)`,'bad']);
-    if(hj) rows.push([`심박 ${r.hrCap+3} 넘은 시간 (상한 ${r.hrCap} + 3)`,`${Math.round(r.hrOverRatio*100)}% (기준 ${Math.round(th.hrOver*100)}%)`,r.hrOverRatio>th.hrOver?'bad':'ok']);
+    if(hj) rows.push([`심박 ${r.hrCap+3} 넘은 시간 (♥${r.hrCap} 아래 + 여유 3)`,`${Math.round(r.hrOverRatio*100)}% (기준 ${Math.round(th.hrOver*100)}%)`,r.hrOverRatio>th.hrOver?'bad':'ok']);
     if(ce){ const pa=(r.cont&&r.own&&contTotal(r)>0)?(r.own.sec+r.cont.sec)/contTotal(r):r.paceAvg;   /* 나눠 뛴 훈련은 평균도 합친 값 — 전엔 '판정은 합친 값'이라면서 이 줄만 앞 기록의 평균(13'46")을 보였다(2026-11-17 시험) */
       rows.push([`1km ${fmtPace(ce)}보다 느리게`,`평균 ${fmtPace(pa)}${r.cont?` (${r.cont.rids.length+1}번 합쳐)`:''}${hj?' · 참고':''}`,hj?'':pa&&pa<ce?'bad':'ok']);
       rows.push(['약속보다 빨랐던 시간',`${Math.round((r.ceilRatio||0)*100)}% (기준 ${Math.round(th.ceil*100)}%)${hj?' · 참고':''}`,hj?'':(r.ceilRatio||0)>th.ceil?'bad':'ok']); }
@@ -12354,7 +12359,8 @@ function promiseRows(r,s){
     else if(r.spread<=3&&r.rpe&&r.rpe<=4)kind='easyreps';
   }
   if(T.judgeBy==='distance'&&r.distRatio<th.dist)kind='short';
-  if(r.cadGoal) rows.push([`케이던스 목표 ${r.cadGoal}`,r.cadAvg?`평균 ${r.cadAvg}`:'못 잼',r.cadAvg&&r.cadAvg>=r.cadGoal-2?'ok':'bad']);
+  /* 케이던스 목표는 달린 부분(130보/분↑)으로 본다 — 전엔 걸은 시간까지 평균해 20분 중 11분 걸은 날 '평균 114 ✗'(실제 화면 2026-11-26) */
+  if(r.cadGoal){ const cv=r.cadRun||r.cadAvg; rows.push([`케이던스 목표 ${r.cadGoal}`,cv?`${r.cadRun?'달린 부분 ':''}평균 ${cv}`:'못 잼',cv&&cv>=r.cadGoal-2?'ok':'bad']); }
   if(r.talk) rows.push(['숨 확인 (말하기 테스트)',['','한 문장 편함 — 환기 역치 아래','끊어 말함 — 역치 근처','말하기 힘듦 — 역치 위'][r.talk],r.talk===1?'ok':r.talk===3?'bad':'']);
   /* 세트가 있는 날 — 사이 쉬기·준비·마무리도 약속의 일부다 */
   const soft=(r.segments||[]).filter(g=>!g.hard&&g.pace&&g.plan);
@@ -12374,7 +12380,7 @@ function promiseRows(r,s){
   if(zt>300&&['easy','recovery','long'].includes(r.type)){ const hi=(z[3]+z[4])/zt;
     /* 쉬운 날 — Z4 이상이 20% 넘으면 그게 먼저다. 그때 'Z3 적었음'을 좋은 점으로 내세우면 거꾸로 읽힌다 */
     if(hi>=0.2) rows.push(['힘듦(Z4) 이상 시간',`${Math.round(hi*100)}% — 쉬운 날 기준 Z2 이하`,'bad']);
-    else rows.push(['보통(Z3) 시간',`${Math.round(z[2]/zt*100)}%`,z[2]/zt>0.3?'bad':'ok']); }
+    else rows.push(['보통(Z3) 시간',`${Math.round(z[2]/zt*100)}% (기준 30%)`,z[2]/zt>0.3?'bad':'ok']); }
   /* 속도는 지켰는데 거리가 모자란 쉬운 날 — '약속대로'라고만 하면 4km/8km에도 같은 말이 나갔다. 판정(지킴)은 그대로, 말만 사실대로 */
   if(kind==='kept'&&T.judgeBy!=='distance'&&r.distRatio!=null&&r.distRatio<th.dist)kind='keptShort';
   return {rows,kind};
@@ -12427,7 +12433,7 @@ function rvPaceHR(r){   /* 거리에 따른 페이스·심박 선그래프. 트�
   if(hasT){ for(let k=step;k<totKm;k+=step)tx.push(`<text x="${X(k).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9" fill="var(--ink-3)">${k}km</text>`); }
   else { let d=0; pts.forEach((x,i)=>{ const w=x.bar||1; if(i%step===0)tx.push(`<text x="${X(d+w/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9" fill="var(--ink-3)">${i+1}</text>`); d+=w; }); }
   return `<svg class="rvch" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="페이스·심박 그래프">${bands}${ty}${th}${tx.join('')}${line}${hrl}</svg>
-    <div class="rvch-lg"><span><i style="background:var(--accent-bg)"></i>페이스 (위 = 빠름)</span>${hrs.length?'<span><i style="background:var(--alarm)"></i>심박</span>':''}${segs.some(g=>g.hard&&g.plan)?'<span><i style="border:1.2px dashed #E35A32;background:none"></i>목표 범위</span>':''}</div>`;
+    <div class="rvch-lg"><span><i style="background:var(--accent-bg)"></i>페이스 (위 = 빠름 · 멈춘 곳 빼고)</span>${hrs.length?'<span><i style="background:var(--alarm)"></i>심박</span>':''}${segs.some(g=>g.hard&&g.plan)?'<span><i style="border:1.2px dashed #E35A32;background:none"></i>목표 범위</span>':''}</div>`;
 }
 function rvBullets(reps,tgt){   /* 회차마다 목표 범위(띠)와 실제(점) — 한눈에 몇 초 차이인지 */
   if(!reps.length)return '';
@@ -12452,8 +12458,14 @@ function renderResult(host,r,s,opt){
   const SG=r.segments||[], sp0=()=>(r.splits||[]).filter(x=>x&&isFinite(x.pace));
   const sgKind=g=>g.hard?'main':/사이 쉬기|회복 조깅|레스트|걷/.test(g.nm||'')?'rest':/웜업|준비|도입|쿨다운|마무리|출발/.test(g.nm||'')?'wc':'main';
   /* 차이 = 목표 범위의 가까운 끝과 비교(뛰는 화면 'N초 빠름'·1km 음성과 같은 기준). 범위 안이면 0 — 가운데 값과 빼면 같은 구간이 화면마다 다른 초가 된다 */
-  let segs=SG.map(g=>{ const d=g.pace&&g.plan?paceOff(g.pace,g.plan):null;
-    return `<div class="sgr${g.hard?' hard':''}" data-k="${sgKind(g)}"><span>${ESC(g.nm)}</span><span>${g.km!=null?g.km.toFixed(2):''}</span><span>${g.sec?fmtClock(g.sec):'—'}</span><span>${g.pace?fmtPace(g.pace):'—'}</span><span>${g.hr||'—'}</span><span>${g.cad||'—'}</span><span class="${g.pass===false&&!((TYPES[r.type]||{}).primary==='hr'&&!g.hard&&d>0)?'bad':g.pass?'ok':''}">${offTxt(d)}${g.pass===false&&!((TYPES[r.type]||{}).primary==='hr'&&!g.hard&&d>0)?' ✗':g.pass===false?' 느림 허용':g.pass?' ✓':''}</span></div>`; }).join('');   /* 심박이 걸음을 읽은 쉬운 날 — 느린 쪽은 판정(runPass)과 같게 허용 */
+  /* 구간 줄을 더하면 합계(=오늘 결과)와 같게 — 줄마다 따로 반올림하면 1.00+2.50+0.50+0.14=4.14인데 합계 4.13, '추가 0.13km'(결과 카드)와 '추가 0.14'(표)가 달랐다(실제 화면 2026-11-26).
+     줄마다 반올림한 뒤 남는 0.01km·1초는 '추가' 줄(없으면 가장 긴 줄)에, 페이스는 보이는 시간 ÷ 보이는 거리 */
+  const _fx=SG.findIndex(g=>g.extra), _lr=(v,T,f)=>{ const o=v.map(x=>Math.round(x*f)), k=_fx>=0?_fx:o.indexOf(Math.max(...o)); o[k]+=T-o.reduce((a,b)=>a+b,0); return o[k]>=0?o:null; };   /* 더 뛴 줄('추가')이 남는 0.01km·1초를 받는다 — 결과 카드 '추가 = 합계 − 약속 거리'와 같은 값 */
+  const _tk=SG.reduce((a,g)=>a+(g.km||0),0), _ts=SG.reduce((a,g)=>a+(g.sec||0),0), _K=r.km||_tk, _T=r.sec||_ts;
+  const _ok=SG.length>=2&&SG.every(g=>g.km!=null&&g.sec)&&Math.abs(_tk-_K)<0.06&&Math.abs(_ts-_T)<15;
+  const dKm=_ok?_lr(SG.map(g=>g.km),Math.round(_K*100),100):null, dSec=_ok?_lr(SG.map(g=>g.sec),Math.round(_T),1):null;
+  let segs=SG.map((g,gi)=>{ const shP=dKm&&dSec&&g.pace&&dKm[gi]>0?dSec[gi]/(dKm[gi]/100):g.pace, d=shP&&g.plan?paceOff(shP,g.plan):null;
+    return `<div class="sgr${g.hard?' hard':''}" data-k="${sgKind(g)}"><span>${ESC(g.nm)}</span><span>${dKm?(dKm[gi]/100).toFixed(2):g.km!=null?g.km.toFixed(2):''}</span><span>${dSec?fmtClock(dSec[gi]):g.sec?fmtClock(g.sec):'—'}</span><span>${shP?fmtPace(shP):'—'}</span><span>${g.hr||'—'}</span><span>${g.cad||'—'}</span><span class="${g.pass===false&&!((TYPES[r.type]||{}).primary==='hr'&&!g.hard&&d>0)?'bad':g.pass?'ok':''}">${offTxt(d)}${g.pass===false&&!((TYPES[r.type]||{}).primary==='hr'&&!g.hard&&d>0)?' ✗':g.pass===false?' 느림 허용':g.pass?' ✓':''}</span></div>`; }).join('');   /* 심박이 걸음을 읽은 쉬운 날 — 느린 쪽은 판정(runPass)과 같게 허용 */
   if(SG.length<2&&sp0().length) segs='';
   if(SG.length>=2){ const tk=SG.reduce((a,g)=>a+(g.km||0),0), ts=SG.reduce((a,g)=>a+(g.sec||0),0), hs=SG.filter(g=>g.hr&&g.sec), th=hs.length?Math.round(hs.reduce((a,g)=>a+g.hr*g.sec,0)/hs.reduce((a,g)=>a+g.sec,0)):null;
     const cs=SG.filter(g=>g.cad&&g.sec), tc=cs.length?Math.round(cs.reduce((a,g)=>a+g.cad*g.sec,0)/cs.reduce((a,g)=>a+g.sec,0)):null;
@@ -12472,7 +12484,7 @@ function renderResult(host,r,s,opt){
   /* 잘한 점은 위 약속↔결과 줄과 겹치므로 주의할 점만 */
   const pts=rows?'':((P.bad.length||P.good.length)?`<ul class="db-pts rv-pts">${P.bad.map(x=>prow(x,'bad')).join('')}${P.good.map(x=>prow(x,'ok')).join('')}</ul>`:'');
   const sc=runScore(r,s);
-  const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.race&&r.race.m?'대회 기록':r.type==='free'?'그냥 뛰기 — 판정 없음':r.type==='tt'?'TT 기록':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
+  const verd=vd||rows||r.type==='free'?`<div class="rv-verd" style="--vc:${vc}"><div class="rv-vh"><b>${vd?vd[0]:r.race&&r.race.m?'대회 기록':r.type==='free'?'그냥 뛰기 — 판정 없음':r.type==='tt'?'TT 기록':'약속 ↔ 결과'}</b>${sc?`<span class="rv-sc num">${sc.score}<small>점</small></span>`:''}</div>${sc?`<div class="rv-parts">${sc.parts.map(x=>`${x[0]} <b>${x[1]}</b>/${x[2]}`).join(' · ')}${sc.scaleK!=null?`<br>약속 거리의 ${Math.round(sc.ratio*100)}%만 뛰어 거리 외 점수도 ${Math.round(sc.scaleK*100)}%만 (${Math.round(sc.thDist*100)}% 뛰면 전부) — 지킨 것은 ✓ 그대로`:''}</div>`:''}${rows?`<ul class="rv-rows">${rows}</ul>`:''}</div>`:'';
   /* 순서: 숫자(사실) → 판정(해석) */
   const hero=`<div class="rnum"><div class="r1"><div><b class="num">${r.km.toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${fmtPace(r.paceAvg)}</b><i>평균 /km</i></div></div>
       <div class="r2"><div><b class="num">${hrAvgOf(r)||'—'}</b><i>심박${r.hrMax?`·최고${r.hrMax}`:''}</i></div><div><b class="num">${r.cadAvg||'—'}</b><i>${r.cadAvg||!r.cadWhy?tm('cad'):r.cadWhy==='off'?'케이던스 꺼짐':r.cadWhy==='nosig'?'걸음 신호 없음':`걸음 ${r.cadWhy.valid||0}초뿐`}</i></div><div><b class="num">${isFinite(r.asc)&&r.asc!=null?'+'+r.asc+'m':'—'}</b><i>오르막</i></div><div><b class="num">${r.cal||'—'}</b><i>kcal</i></div></div></div>${verd}${pts}`;
@@ -15605,7 +15617,7 @@ function loadCard(r,compact){
     <details class="ld-src"><summary>계산 근거</summary><p><b>rTSS</b> = 초 × IF² ÷ 3600 × 100, IF = 역치 ÷ 실제 (Coggan, TrainingPeaks)<br>
       <b>TRIMP</b> = 분 × ΔHR비 × 0.64·e<sup>1.92x</sup> (Banister 1991, 여성 0.86·e<sup>1.67x</sup>), ΔHR비 = (평균 − 안정) ÷ (최대 − 안정).<br>
       <b>존 TRIMP</b> = Σ 존 분 × 존 번호 (Edwards 1993).<br><b>sRPE</b> = RPE × 분 (Foster 2001).<br>
-      <b>단조도</b> = 7일 평균 ÷ 표준편차, <b>긴장</b> = 합 × 단조도 (Foster 1998) · 2.0↑ → 과훈련 위험${r.cal?`<br><b>kcal</b> = 1.036 × 체중 × 거리 (어림식)${r.calW!==undefined?` — 이 기록: 1.036 × ${r.calW?r.calW+'kg':'75kg(체중 없음 · 기본값)'} × ${(+r.km).toFixed(2)}km = ${r.cal}`:''}`:''}</p></details></div>`;   /* 열량이 어떤 체중으로 계산됐는지 보이게 — 0.34km에 61kcal이 나온 까닭을 화면만으로는 알 수 없었다(실제 기기 2026-11-18) */
+      <b>단조도</b> = 7일 평균 ÷ 표준편차, <b>긴장</b> = 합 × 단조도 (Foster 1998) · 2.0↑ → 과훈련 위험${r.cal?`<br><b>kcal</b> = ${r.calWalkKm?`달린 거리 1.036 × 체중 × km (어림식) + 걸은 거리 (0.5 + 17.5 ÷ 분속) × 체중 × km (ACSM 걷기 식) — 이 기록: ${r.calW?r.calW+'kg':'75kg(체중 없음 · 기본값)'} · 달리기 ${Math.max(0,+r.km-r.calWalkKm).toFixed(2)}km + 걷기 ${(+r.calWalkKm).toFixed(2)}km = ${r.cal}`:`1.036 × 체중 × 거리 (어림식)${r.calW!==undefined?` — 이 기록: 1.036 × ${r.calW?r.calW+'kg':'75kg(체중 없음 · 기본값)'} × ${(+r.km).toFixed(2)}km = ${r.cal}`:''}`}`:''}</p></details></div>`;   /* 열량이 어떤 체중으로 계산됐는지 보이게 — 0.34km에 61kcal이 나온 까닭을 화면만으로는 알 수 없었다(실제 기기 2026-11-18) */
 }
 
 /* ═════════════════════ 뛴 뒤 디브리핑 — 오늘 결과를 그림·숫자로 풀고, 다음 훈련 수정에 동의를 구한다 ═════════════════════ */
@@ -15713,7 +15725,7 @@ function openDebrief(r,s){
   const row=(x,k)=>`<li class="${k}"><i>${k==='ok'?'✓':'!'}</i><span><b>${x[0]}</b>${x[1]}</span></li>`;
   $('dbBody').innerHTML=`
     <div class="db-hd" style="--tc:${col}"><span class="db-type">${(T.nm||'달리기').replace(/\s*\([^)]*\)/g,'')}</span><span class="db-date">${todayStr().slice(5).replace('-','.')} ${dowOf(todayStr())}</span></div>
-    ${vd?`<div class="db-vd ${vd[1]}">${vd[1]==='ok'?'🏅':vd[1]==='mid'?'🔎':'💬'} ${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
+    ${vd?`<div class="db-vd ${vd[1]}">${vd[0]}${st>1&&vd[1]==='ok'?`<small>약속 ${st}번 연속</small>`:''}</div>`:''}
     <div class="db-hero">${map?`<div class="db-map" data-maprid="${ESC(r.rid||'')}">${map}</div>`:''}<div class="db-nums">
       ${r.rw?`<div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div><div><b class="num">${rwMin(r.rw.runSec||0)}</b><i>뛴 시간(계획)</i></div><div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div>`:`<div><b class="num">${(+r.km).toFixed(2)}</b><i>km</i></div><div><b class="num">${fmtClock(r.sec)}</b><i>시간</i></div>
       <div><b class="num">${fmtPace(r.paceAvg)}</b><i>/km</i></div>`}${hrAvgOf(r)?`<div><b class="num">${hrAvgOf(r)}</b><i>♥ 평균${r.hrMax?' · 최고 '+r.hrMax:''}</i></div>`:''}${r.cadAvg?`<div><b class="num">${r.cadAvg}</b><i>spm</i></div>`:''}${r.rpe?`<div><b class="num">${r.rpe}</b><i>RPE</i></div>`:''}</div></div>
@@ -16230,7 +16242,8 @@ function goalPageHTML(){ try{
   const dot=d=>`${d.slice(0,4)}.${+d.slice(5,7)}.${+d.slice(8,10)}`;
   /* 목표까지 — 지금 예상의 느린 쪽(보수적)과 목표의 차이 */
   const gapS=gs?P.hi-gs:null, gapT=gs==null?'':gapS<=0?(P.lo<=gs&&P.hi<=gs?'이미 목표 안':'목표 가능권'):fmtGap(gapS);
-  const reach=gs?(fut.lo<=gs?(fut.hi<=gs?['ok','대회일 예상이 목표 안']:['mid','대회일 예상이 목표에 걸침']):['bad','대회일 예상이 목표 밖']):null;
+  const wn=g.date?'대회일':'12주 뒤';   /* 대회 날짜 없는 목표에 '대회일 예상'이라 쓰지 않는다 — 칸 제목은 '12주 뒤 예상' */
+  const reach=gs?(fut.lo<=gs?(fut.hi<=gs?['ok',`${wn} 예상이 목표 안`]:['mid',`${wn} 예상이 목표에 걸침`]):['bad',`${wn} 예상이 목표 밖`]):null;
   let prog=''; try{ const st=PLAN&&PLAN.start?String(PLAN.start).slice(0,10):null; if(st&&g.date&&st<gd){ const a=Date.parse(st+'T12:00:00'), b=Date.parse(gd+'T12:00:00'), n=Date.parse(t+'T12:00:00');
       const f=Math.max(0,Math.min(1,(n-a)/(b-a))), totW=Math.max(1,Math.round((b-a)/6048e5)), curW=Math.max(1,Math.min(totW,Math.floor((n-a)/6048e5)+1));
       prog=`<div class="gp-prog"><div class="gp-pk"><span>준비 기간</span><b>${totW}주 중 ${curW}주째 · ${Math.round(f*100)}%</b></div><div class="gp-bar"><i style="width:${(f*100).toFixed(1)}%"></i></div><div class="gp-pe"><span>${dot(st)}</span><span>${dot(gd)}</span></div></div>`; } }catch(e){}
@@ -16245,15 +16258,16 @@ function goalPageHTML(){ try{
             <text x="${cx.toFixed(1)}" y="${(B0-h-4).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${cur?'#2A1638':'#6B6078'}">${x.km>0?x.km.toFixed(1):''}</text>
             <text x="${cx.toFixed(1)}" y="${B0+14}" text-anchor="middle" font-size="9.5" fill="#8A8096" font-weight="${cur?700:500}">${cur?'이번 주':(+x.mon.slice(5,7))+'.'+(+x.mon.slice(8,10))}</text>`; }).join('')}
       </svg></div>`; } }catch(e){}
-  const pr=snapFills('__parts'); let ol='', mg='', pmc=''; try{ ol=pr.ol().replace(/<div class="ol-now">[\s\S]*?<\/div>\s*(?=<svg)/,''); }catch(e){}   /* 지금·대회일 예상은 위 칸에 이미 있다 — 그래프만 */ try{ mg=pr.mGoal(); }catch(e){} try{ pmc=pr.pmc(); }catch(e){}
+  const pr=snapFills('__parts'); let ol='', mg='', pmc=''; try{ ol=pr.ol().replace(/<div class="ol-now">[\s\S]*?<\/div>\s*(?=<svg)/,''); }catch(e){}   /* 지금·대회일 예상은 위 칸에 이미 있다 — 그래프만 */ try{ mg=pr.mGoal(); if(wkBars&&mg)mg=mg.replace(/<section class="mc-sec">[\s\S]*?<\/section>/,''); }catch(e){} try{ pmc=pr.pmc(); }catch(e){}
   return `<section class="gp">
     <div class="gp-hd"><b>내 목표와 지금</b><span>${dot(t)} 기준</span></div>
     ${hasGoal?`<div class="gp-goal"><i>목표</i><b>${gdLabel(m)}${gs?' '+fmtClock(gs):''}</b>${g.date?`<em>${dot(gd)}${dl!=null?(dl>0?` · D-${dl}`:dl===0?' · 오늘':' · 지남'):''}</em>`:''}</div>`:''}
-    <div class="gp-tiles"><div><i>지금 ${gdLabel(m)} 예상</i><b class="num">${predText(P)}</b>${ver?'':'<em>검증된 기록 없음 · 추정</em>'}</div>
+    ${ver?`<div class="gp-tiles"><div><i>지금 ${gdLabel(m)} 예상</i><b class="num">${predText(P)}</b></div>
       ${gs?`<div><i>목표까지</i><b class="num${gapS<=0?' ok':''}">${gapT}</b></div>`:''}
-      <div><i>${g.date?'대회일':'12주 뒤'} 예상</i><b class="num">${fmtHMr(fut.lo)}~${fmtHMr(fut.hi)}</b>${reach?`<em class="${reach[0]}">${reach[1]}</em>`:''}</div></div>
+      <div><i>${wn} 예상</i><b class="num">${fmtHMr(fut.lo)}~${fmtHMr(fut.hi)}</b>${reach?`<em class="${reach[0]}">${reach[1]}</em>`:''}</div></div>`
+      :`<div class="gp-tiles"><div style="grid-column:1/-1"><i>지금 ${gdLabel(m)} 예상</i><b>TT 기록 필요</b><em>예상 기록은 TT·대회 기록으로만 — 5km TT 한 번이면 예상·목표까지·${wn} 예상이 나와요</em></div></div>`}
     ${prog}
-    <div class="gp-eqh">지금 실력으로 뛰면</div><div class="gp-eqs">${eq}</div>
+    ${ver?`<div class="gp-eqh">지금 실력으로 뛰면</div><div class="gp-eqs">${eq}</div>`:''}
     ${ol?`<div class="gp-opt">${ol}</div>`:''}${wkBars}${mg?`<div class="gp-opt">${mg}</div>`:''}${pmc?`<div class="gp-opt">${pmc}</div>`:''}
   </section>`; }catch(e){ return ''; } }
 async function snapCard(el,name,title){
